@@ -1,10 +1,12 @@
+// IMPORTANT: initialize Sentry before anything else
+import './instrument';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import { initSentry, getSentryErrorHandler } from './observability/sentry';
+import { getSentryErrorHandler } from './observability/sentry';
 import dotenv from 'dotenv';
 
 // Import routes
@@ -22,8 +24,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env['PORT'] || 3001;
 
-// Initialize Sentry (no-op if SENTRY_DSN missing)
-initSentry(app);
+// Sentry request/tracing handlers are applied in instrument.ts via Sentry.init.
 
 // Ultra-permissive CORS for local development (placed FIRST)
 if ((process.env['NODE_ENV'] || 'development') !== 'production') {
