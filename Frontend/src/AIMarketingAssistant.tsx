@@ -55,7 +55,8 @@ export default function AIMarketingAssistant({ marketingGoals = [], tasks = [] }
         content: msg.content
       }));
 
-      const response = await fetch('http://localhost:3001/api/ai/chat', {
+      const { API_BASE_URL } = await import('./services/api');
+      const response = await fetch(`${API_BASE_URL}/ai/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

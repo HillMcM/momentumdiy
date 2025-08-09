@@ -53,7 +53,8 @@ export default function FloatingAssistant() {
 
     try {
       const conversationHistory = messages.slice(-5).map(m => ({ role: m.role, content: m.content }));
-      const res = await fetch('http://localhost:3001/api/ai/chat', {
+      const { API_BASE_URL } = await import('./services/api');
+      const res = await fetch(`${API_BASE_URL}/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
