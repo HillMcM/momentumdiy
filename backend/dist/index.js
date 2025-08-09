@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("./instrument");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
@@ -21,7 +22,6 @@ const profile_1 = __importDefault(require("./routes/profile"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env['PORT'] || 3001;
-(0, sentry_1.initSentry)(app);
 if ((process.env['NODE_ENV'] || 'development') !== 'production') {
     app.use((req, res, next) => {
         const origin = req.headers.origin || '*';
