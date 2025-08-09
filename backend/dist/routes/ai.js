@@ -35,10 +35,11 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = __importStar(require("express"));
 const aiService_1 = require("../services/aiService");
+const rate_1 = require("../middleware/rate");
 const marketingService_1 = require("../services/marketingService");
 const taskService_1 = require("../services/taskService");
 const router = express.Router();
-router.post('/chat', async (req, res) => {
+router.post('/chat', (0, rate_1.routeRateLimit)(30), async (req, res) => {
     try {
         const { message, conversationHistory = [], userBusinessType, userIndustry, userExperienceLevel, pagePath } = req.body;
         if (!message || message.trim().length === 0) {

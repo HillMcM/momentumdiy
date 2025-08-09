@@ -3,6 +3,7 @@ import { MarketingService } from '../services/marketingService';
 import { NotionSyncService } from '../services/notionSyncService';
 import { Client as NotionClient } from '@notionhq/client';
 import { CreateMarketingGoalRequest, UpdateMarketingGoalRequest } from '../types';
+import { routeRateLimit } from '../middleware/rate';
 
 const router = Router();
 
@@ -348,7 +349,7 @@ router.delete('/goals/:id', async (req: Request, res: Response) => {
 });
 
 // Notion sync endpoint
-router.post('/sync-notion', async (req: Request, res: Response) => {
+router.post('/sync-notion', routeRateLimit(2), async (req: Request, res: Response) => {
   try {
     const { databaseId: rawDbId, url, title } = req.body || {};
     let databaseId: string | undefined = rawDbId;
@@ -391,7 +392,7 @@ router.post('/sync-notion', async (req: Request, res: Response) => {
 });
 
 // Fallback: sync when a container page hosts child pages
-router.post('/sync-notion/container', async (req: Request, res: Response) => {
+router.post('/sync-notion/container', routeRateLimit(2), async (req: Request, res: Response) => {
   try {
     const { url } = req.body || {};
     if (!url) return res.status(400).json({ success: false, error: 'url is required' });
@@ -403,7 +404,7 @@ router.post('/sync-notion/container', async (req: Request, res: Response) => {
 });
 
 // Sync a single goal from a specific Notion page
-router.post('/sync-notion/goal', async (req: Request, res: Response) => {
+router.post('/sync-notion/goal', routeRateLimit(2), async (req: Request, res: Response) => {
   try {
     const { title, url } = req.body || {};
     if (!title || !url) return res.status(400).json({ success: false, error: 'title and url are required' });
@@ -415,7 +416,7 @@ router.post('/sync-notion/goal', async (req: Request, res: Response) => {
 });
 
 // Debug: peek at the first-level blocks for a Notion page
-router.post('/sync-notion/debug', async (req: Request, res: Response) => {
+router.post('/sync-notion/debug', routeRateLimit(2), async (req: Request, res: Response) => {
   try {
     const { url } = req.body || {};
     if (!url) return res.status(400).json({ success: false, error: 'url is required' });

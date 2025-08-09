@@ -1,5 +1,6 @@
 import * as express from 'express';
 import { AIService, ConversationContext, ChatMessage } from '../services/aiService';
+import { routeRateLimit } from '../middleware/rate';
 import { MarketingService } from '../services/marketingService';
 import { TaskService } from '../services/taskService';
 import { ApiResponse } from '../types';
@@ -21,7 +22,7 @@ interface ChatResponse {
 }
 
 // POST /api/ai/chat - Send a message to the AI assistant
-router.post('/chat', async (req, res) => {
+router.post('/chat', routeRateLimit(30), async (req, res) => {
   try {
     const { message, conversationHistory = [], userBusinessType, userIndustry, userExperienceLevel, pagePath }: ChatRequest = req.body;
 

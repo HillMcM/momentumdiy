@@ -4,6 +4,7 @@ const express_1 = require("express");
 const marketingService_1 = require("../services/marketingService");
 const notionSyncService_1 = require("../services/notionSyncService");
 const client_1 = require("@notionhq/client");
+const rate_1 = require("../middleware/rate");
 const router = (0, express_1.Router)();
 router.get('/goals', async (_req, res) => {
     try {
@@ -255,7 +256,7 @@ router.delete('/goals/:id', async (req, res) => {
         });
     }
 });
-router.post('/sync-notion', async (req, res) => {
+router.post('/sync-notion', (0, rate_1.routeRateLimit)(2), async (req, res) => {
     try {
         const { databaseId: rawDbId, url, title } = req.body || {};
         let databaseId = rawDbId;
@@ -293,7 +294,7 @@ router.post('/sync-notion', async (req, res) => {
         return res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Failed to sync' });
     }
 });
-router.post('/sync-notion/container', async (req, res) => {
+router.post('/sync-notion/container', (0, rate_1.routeRateLimit)(2), async (req, res) => {
     try {
         const { url } = req.body || {};
         if (!url)
@@ -305,7 +306,7 @@ router.post('/sync-notion/container', async (req, res) => {
         return res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Failed to sync from container' });
     }
 });
-router.post('/sync-notion/goal', async (req, res) => {
+router.post('/sync-notion/goal', (0, rate_1.routeRateLimit)(2), async (req, res) => {
     try {
         const { title, url } = req.body || {};
         if (!title || !url)
@@ -317,7 +318,7 @@ router.post('/sync-notion/goal', async (req, res) => {
         return res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Failed to sync goal from page' });
     }
 });
-router.post('/sync-notion/debug', async (req, res) => {
+router.post('/sync-notion/debug', (0, rate_1.routeRateLimit)(2), async (req, res) => {
     try {
         const { url } = req.body || {};
         if (!url)
