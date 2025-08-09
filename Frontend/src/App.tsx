@@ -1,0 +1,667 @@
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import './App.css';
+import TaskTrackerWidget from './TaskTrackerWidget';
+import TaskTrackerPage from './TaskTrackerPage';
+import MarketingTrackWidget from './MarketingTrackWidget';
+import MarketingTrackPage from './MarketingTrackPage';
+import { useState, useEffect } from 'react';
+import type { Project, Task, MarketingGoal } from './types';
+import OctopusLogo from './assets/octopus_icon.png';
+import { apiService } from './services/api';
+import AIMarketingAssistant from './AIMarketingAssistant';
+import FloatingAssistant from './FloatingAssistant';
+
+// Comment out deactivated component imports to prevent build errors
+/*
+import ProjectTrackerWidget from './ProjectTrackerWidget';
+import ProjectTrackerPage from './ProjectTrackerPage';
+import AssetLibraryWidget from './AssetLibraryWidget';
+import AssetLibraryPage from './AssetLibraryPage';
+import CalendarWidget from './CalendarWidget';
+import CalendarPage from './CalendarPage';
+import TestPage from './TestPage';
+import SimpleTest from './SimpleTest';
+import CreateEventModal from './CreateEventModal';
+*/
+
+function Header() {
+  return (
+    <header className="main-header">
+      <div className="header-left">
+        <img src={OctopusLogo} alt="MomentumDIY Logo" className="header-logo" />
+        <span className="header-app-name">MomentumDIY</span>
+      </div>
+      <button className="upgrade-btn">Upgrade</button>
+    </header>
+  );
+}
+
+function Sidebar() {
+  const location = useLocation();
+  
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const handleLinkClick = (path: string) => {
+    console.log('Navigating to:', path);
+  };
+
+  return (
+    <nav className="sidebar">
+      <div className="sidebar-header">Business Name</div>
+      <ul>
+        <li>
+          <Link 
+            to="/" 
+            className={isActive('/') ? 'active' : ''}
+            onClick={() => handleLinkClick('/')}
+          >
+            Dashboard
+          </Link>
+        </li>
+        <li>
+          <Link 
+            to="/marketing-track" 
+            className={isActive('/marketing-track') ? 'active' : ''}
+            onClick={() => handleLinkClick('/marketing-track')}
+          >
+            Marketing Track
+          </Link>
+        </li>
+        <li>
+          <Link 
+            to="/task-tracker" 
+            className={isActive('/task-tracker') ? 'active' : ''}
+            onClick={() => handleLinkClick('/task-tracker')}
+          >
+            Task Tracker
+          </Link>
+        </li>
+        <li>
+          <Link 
+            to="/ai-marketing-assistant" 
+            className={isActive('/ai-marketing-assistant') ? 'active' : ''}
+            onClick={() => handleLinkClick('/ai-marketing-assistant')}
+          >
+            AI Marketing Assistant
+          </Link>
+        </li>
+        {/* Non-core features are temporarily hidden
+        - Marketing Calendar
+        - Project Management  
+        - Asset Library
+        - Manage Subscription
+        - Test Pages
+        */}
+      </ul>
+      <div className="sidebar-footer">
+        <Link 
+          to="/feedback" 
+          className={isActive('/feedback') ? 'active' : ''}
+          onClick={() => handleLinkClick('/feedback')}
+        >
+          Feedback
+        </Link>
+        <Link 
+          to="/terms" 
+          className={isActive('/terms') ? 'active' : ''}
+          onClick={() => handleLinkClick('/terms')}
+        >
+          Terms & Conditions
+        </Link>
+      </div>
+    </nav>
+  );
+}
+
+function Placeholder({ title }: { title: string }) {
+  return (
+    <div style={{ padding: '2rem' }}>
+      <h1>{title}</h1>
+      <p>This feature is coming soon!</p>
+    </div>
+  );
+}
+
+interface DashboardProps {
+  projects: Project[];
+  tasks: Task[];
+  marketingGoals: MarketingGoal[];
+  onProjectsChange: (projects: Project[]) => void;
+  onTasksChange: (tasks: Task[]) => void;
+  onMarketingGoalsChange: (goals: MarketingGoal[]) => void;
+}
+
+function Dashboard({ 
+  projects, 
+  tasks, 
+  marketingGoals, 
+  onProjectsChange, 
+  onTasksChange,
+  onMarketingGoalsChange
+}: DashboardProps) {
+  return (
+    <div>
+      <MarketingTrackWidget marketingGoals={marketingGoals} onMarketingGoalsChange={onMarketingGoalsChange} />
+      <TaskTrackerWidget 
+        projects={projects}
+        tasks={tasks}
+        onTasksChange={onTasksChange}
+        onProjectsChange={onProjectsChange}
+      />
+      {/* Comment out non-core widgets for now */}
+      {/* 
+      <ProjectTrackerWidget 
+        projects={projects}
+        onProjectsChange={onProjectsChange}
+        tasks={tasks}
+      />
+      <AssetLibraryWidget 
+        assets={assets}
+        brandingKits={brandingKits}
+        shareLinks={shareLinks}
+        onAssetsChange={onAssetsChange}
+        onBrandingKitsChange={onBrandingKitsChange}
+        onShareLinksChange={onShareLinksChange}
+        onNavigateToAssetLibrary={handleNavigateToAssetLibrary}
+      />
+      */}
+    </div>
+  );
+}
+
+function App() {
+  console.log('App component rendering...');
+  
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
+  
+  // Comment out non-core state for now
+  // const [assets, setAssets] = useState<Asset[]>([]);
+  // const [brandingKits, setBrandingKits] = useState<BrandingKit[]>([]);
+  // const [shareLinks, setShareLinks] = useState<ShareLink[]>([]);
+  // const [customEvents, setCustomEvents] = useState<CalendarEvent[]>([]);
+  // const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  
+  const [isLoading, setIsLoading] = useState(true);
+
+  const dedupeTasks = (list: Task[]): Task[] => {
+    const map = new Map<string, Task>();
+    for (const t of list) {
+      const key = t.marketingTrack ? `${t.marketingTrack.goalId}:${t.marketingTrack.moduleId}:${t.marketingTrack.marketingTaskId}` : `${t.project}|${t.title}`;
+      const existing = map.get(key);
+      // Prefer the marketingTrack-linked version when both exist
+      if (!existing) {
+        map.set(key, t);
+      } else {
+        const prefer = (existing.marketingTrack ? existing : t.marketingTrack ? t : existing);
+        map.set(key, prefer);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  console.log('App state initialized:', { tasks: tasks.length, projects: projects.length, marketingGoals: marketingGoals.length });
+  console.log('App: Current marketing goals details:');
+  marketingGoals.forEach((g, index) => {
+    console.log(`  Goal ${index + 1}:`, { id: g.id, title: g.title, isActive: g.isActive, currentWeek: g.currentWeek });
+  });
+
+  // Load data from API on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        console.log('Loading data from API...');
+        
+        // Test backend connectivity first
+        console.log('Testing backend connectivity...');
+        try {
+          const apiHost = typeof window !== 'undefined' && window.location.hostname === '127.0.0.1' ? '127.0.0.1' : 'localhost';
+          const healthResponse = await fetch(`http://${apiHost}:3001/health`);
+          if (healthResponse.ok) {
+            console.log('✅ Backend is running and responding');
+          } else {
+            console.error('❌ Backend health check failed:', healthResponse.status);
+          }
+        } catch (healthError) {
+          console.error('❌ Backend connectivity test failed:', healthError);
+        }
+        
+        // Load tasks
+        console.log('Fetching tasks from API...');
+        const tasksResponse = await apiService.getTasks();
+        console.log('Tasks API response:', tasksResponse);
+        if (tasksResponse.success && tasksResponse.data) {
+          setTasks(dedupeTasks(tasksResponse.data));
+          console.log('✅ Loaded tasks:', tasksResponse.data.length);
+        } else {
+          console.error('❌ Failed to load tasks:', tasksResponse.error);
+        }
+        
+        // Load projects
+        console.log('Fetching projects from API...');
+        const projectsResponse = await apiService.getProjects();
+        console.log('Projects API response:', projectsResponse);
+        if (projectsResponse.success && projectsResponse.data) {
+          setProjects(projectsResponse.data);
+          console.log('✅ Loaded projects:', projectsResponse.data.length);
+        } else {
+          console.error('❌ Failed to load projects:', projectsResponse.error);
+        }
+        
+        // Load marketing goals directly from Supabase-backed API
+        console.log('Fetching marketing goals from API...');
+        const goalsResponse = await apiService.getMarketingGoals();
+        console.log('Marketing goals API response:', goalsResponse);
+        if (goalsResponse.success && goalsResponse.data) {
+          setMarketingGoals(goalsResponse.data);
+          console.log('✅ Loaded marketing goals:', goalsResponse.data.length);
+        } else {
+          console.error('❌ Failed to load marketing goals:', goalsResponse.error);
+        }
+        
+        // Load calendar events
+        console.log('Fetching calendar events from API...');
+        const eventsResponse = await apiService.getCalendarEvents();
+        console.log('Calendar events API response:', eventsResponse);
+        if (eventsResponse.success && eventsResponse.data) {
+          // setCustomEvents(eventsResponse.data); // This line was commented out in the new_code, so it's commented out here.
+          console.log('✅ Loaded calendar events:', eventsResponse.data.length);
+        } else {
+          console.log('ℹ️ No calendar events loaded or error occurred');
+        }
+
+        // Comment out asset loading since asset library is deactivated
+        /*
+        // Load assets
+        const assetsResponse = await apiService.getAssets();
+        console.log('Assets API response:', assetsResponse);
+        if (assetsResponse.success && assetsResponse.data) {
+          // setAssets(assetsResponse.data); // This line was commented out in the new_code, so it's commented out here.
+          console.log('Loaded assets:', assetsResponse.data.length);
+        } else {
+          console.log('No assets loaded or error occurred');
+        }
+        */
+        
+      } catch (error) {
+        console.error('❌ Error loading data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
+
+  const handleTasksChange = async (updatedTasks: Task[]) => {
+    console.log('App: handleTasksChange called with', updatedTasks.length, 'tasks');
+    const newTasks = updatedTasks.filter(t => !tasks.find(existing => existing.id === t.id));
+    console.log('App: New tasks:', newTasks);
+    
+    // Update local state immediately for UI responsiveness
+    setTasks(dedupeTasks(updatedTasks));
+    
+    // Persist changes to database
+    try {
+      // Handle new tasks
+      for (const newTask of newTasks) {
+        console.log('Creating new task:', newTask.title);
+        const response = await apiService.createTask({
+          title: newTask.title,
+          description: newTask.description || '',
+          responsible: newTask.responsible,
+          status: newTask.status,
+          projectId: newTask.projectId,
+          deadline: newTask.deadline,
+          project: newTask.project
+        });
+        
+        if (!response.success) {
+          console.error('Failed to create task:', response.error);
+        }
+      }
+      
+      // Handle updated tasks
+      const existingTasks = updatedTasks.filter(t => !newTasks.find(nt => nt.id === t.id));
+      for (const updatedTask of existingTasks) {
+        const originalTask = tasks.find(t => t.id === updatedTask.id);
+        if (originalTask && JSON.stringify(originalTask) !== JSON.stringify(updatedTask)) {
+          console.log('Updating task:', updatedTask.title);
+          const response = await apiService.updateTask(updatedTask.id, {
+            title: updatedTask.title,
+            description: updatedTask.description || '',
+            responsible: updatedTask.responsible,
+            status: updatedTask.status,
+            projectId: updatedTask.projectId,
+            deadline: updatedTask.deadline,
+            project: updatedTask.project,
+            timeSpent: updatedTask.timeSpent,
+            notifications: updatedTask.notifications
+          });
+          
+          if (!response.success) {
+            console.error('Failed to update task:', response.error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error persisting task changes:', error);
+    }
+    
+    // Check if we're adding new marketing track tasks (which means we're setting up a track)
+    const hasNewMarketingTasks = newTasks.some(task => task.marketingTrack);
+    if (hasNewMarketingTasks) {
+      console.log('App: Detected new marketing track tasks, skipping goal sync to preserve active state');
+      return;
+    }
+    
+    // Sync marketing track tasks but preserve active goal states
+    console.log('App: Syncing marketing track tasks');
+    const updatedGoals = marketingGoals.map(goal => {
+      const updatedModules = goal.modules.map(module => {
+        const updatedModuleTasks = module.tasks.map(marketingTask => {
+          // Find the corresponding main task
+          const mainTask = updatedTasks.find((t: Task) => t.marketingTrack?.marketingTaskId === marketingTask.id);
+          if (mainTask) {
+            return { ...marketingTask, isCompleted: mainTask.status === 'completed' };
+          }
+          return marketingTask;
+        });
+        return { ...module, tasks: updatedModuleTasks };
+      });
+      
+      // Recalculate progress
+      const totalTasks = updatedModules.reduce((sum, module) => sum + module.tasks.length, 0);
+      const completedTasks = updatedModules.reduce((sum, module) => 
+        sum + module.tasks.filter(task => task.isCompleted).length, 0
+      );
+      const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      
+      // Preserve active goal state and current week
+      return { 
+        ...goal, 
+        modules: updatedModules, 
+        progress,
+        isActive: goal.isActive, // Preserve active state
+        currentWeek: goal.currentWeek // Preserve current week
+      };
+    });
+    
+    setMarketingGoals(updatedGoals);
+  };
+
+  const handleProjectsChange = async (updatedProjects: Project[]) => {
+    console.log('App: handleProjectsChange called with', updatedProjects.length, 'projects');
+    console.log('App: Projects:', updatedProjects.map(p => ({ id: p.id, name: p.name, status: p.status })));
+    
+    // Update local state immediately for UI responsiveness
+    setProjects(updatedProjects);
+    
+    // Persist changes to database
+    try {
+      const newProjects = updatedProjects.filter(p => !projects.find(existing => existing.id === p.id));
+      const deletedProjects = projects.filter(p => !updatedProjects.find(up => up.id === p.id));
+      
+      // Handle new projects
+      for (const newProject of newProjects) {
+        console.log('Creating new project:', newProject.name);
+        // Create in database
+        try {
+          const response = await apiService.createProject({
+            name: newProject.name,
+            description: newProject.description || '',
+            deadline: newProject.deadline,
+            status: newProject.status
+          });
+          
+          if (response.success && response.data) {
+            console.log('Project created successfully:', response.data);
+          } else {
+            console.error('Failed to create project:', response.error);
+          }
+        } catch (error) {
+          console.error('Error creating project:', error);
+        }
+      }
+      
+      // Handle updated projects
+      const existingProjects = updatedProjects.filter(p => !newProjects.find(np => np.id === p.id));
+      for (const updatedProject of existingProjects) {
+        const originalProject = projects.find(p => p.id === updatedProject.id);
+        if (originalProject && JSON.stringify(originalProject) !== JSON.stringify(updatedProject)) {
+          console.log('Updating project:', updatedProject.name);
+          const response = await apiService.updateProject(updatedProject.id, {
+            name: updatedProject.name,
+            description: updatedProject.description || '',
+            deadline: updatedProject.deadline,
+            status: updatedProject.status
+          });
+          
+          if (!response.success) {
+            console.error('Failed to update project:', response.error);
+          }
+        }
+      }
+      
+      // Handle deleted projects
+      for (const deletedProject of deletedProjects) {
+        console.log('Deleting project:', deletedProject.name);
+        const response = await apiService.deleteProject(deletedProject.id);
+        
+        if (!response.success) {
+          console.error('Failed to delete project:', response.error);
+        }
+      }
+    } catch (error) {
+      console.error('Error persisting project changes:', error);
+    }
+  };
+
+  const handleMarketingGoalsChange = async (updatedGoals: MarketingGoal[]) => {
+    console.log('App: handleMarketingGoalsChange called with', updatedGoals.length, 'goals');
+    console.log('App: Updated goals details:');
+    updatedGoals.forEach((g, index) => {
+      console.log(`  Goal ${index + 1}:`, { id: g.id, title: g.title, isActive: g.isActive, currentWeek: g.currentWeek });
+    });
+    
+    // Update local state immediately for UI responsiveness
+    setMarketingGoals(updatedGoals);
+    
+    // Persist changes to database
+    try {
+      const newGoals = updatedGoals.filter(g => !marketingGoals.find(existing => existing.id === g.id));
+      
+      // Handle new goals
+      for (const newGoal of newGoals) {
+        console.log('Creating new marketing goal:', newGoal.title);
+        const response = await apiService.createMarketingGoal({
+          title: newGoal.title,
+          description: newGoal.description || '',
+          industry: newGoal.industry || 'General',
+          duration: newGoal.duration || 12
+        });
+        
+        if (!response.success) {
+          console.error('Failed to create marketing goal:', response.error);
+        }
+      }
+      
+      // Handle updated goals
+      const existingGoals = updatedGoals.filter(g => !newGoals.find(ng => ng.id === g.id));
+      for (const existingGoal of existingGoals) {
+        const originalGoal = marketingGoals.find(g => g.id === existingGoal.id);
+        if (originalGoal && (
+          originalGoal.isActive !== existingGoal.isActive ||
+          originalGoal.currentWeek !== existingGoal.currentWeek ||
+          originalGoal.progress !== existingGoal.progress
+        )) {
+          console.log('Updating marketing goal:', existingGoal.title);
+          const response = await apiService.updateMarketingGoal(existingGoal.id, {
+            isActive: existingGoal.isActive,
+            currentWeek: existingGoal.currentWeek,
+            progress: existingGoal.progress
+          });
+          
+          if (!response.success) {
+            console.error('Failed to update marketing goal:', response.error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error persisting marketing goals:', error);
+    }
+  };
+
+  // Comment out unused handlers for now
+  /*
+  const handleAssetsChange = async (updatedAssets: Asset[]) => {
+    // Implementation removed for now
+  };
+
+  const handleBrandingKitsChange = (updatedKits: BrandingKit[]) => {
+    // Implementation removed for now
+  };
+
+  const handleShareLinksChange = (updatedLinks: ShareLink[]) => {
+    // Implementation removed for now
+  };
+
+  const handleEventEdit = (event: CalendarEvent) => {
+    // Implementation removed for now
+  };
+
+  const handleEventSave = async (eventData: { title: string; description: string; startTime: string; endTime: string; projectId?: string; category?: EventCategory }) => {
+    // Implementation removed for now
+  };
+
+  const handleEventCancel = () => {
+    // Implementation removed for now
+  };
+
+  const handleEventDelete = async (eventId: string) => {
+    // Implementation removed for now
+  };
+  */
+
+  // Monitor marketing goals state changes
+  useEffect(() => {
+    console.log('App: marketingGoals state changed to:', marketingGoals.length, 'goals');
+    marketingGoals.forEach((g, index) => {
+      console.log(`  Goal ${index + 1}:`, { id: g.id, title: g.title, isActive: g.isActive, currentWeek: g.currentWeek });
+    });
+  }, [marketingGoals]);
+
+  console.log('App component about to render JSX...');
+
+  if (isLoading) {
+    return (
+      <Router>
+        <Header />
+        <div className="app-shell">
+          <Sidebar />
+          <main className="main-content">
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+              <div>Loading...</div>
+            </div>
+          </main>
+        </div>
+      </Router>
+    );
+  }
+
+  return (
+    <Router>
+      <Header />
+      <div className="app-shell">
+        <Sidebar />
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={
+              <Dashboard 
+                projects={projects}
+                tasks={tasks}
+                marketingGoals={marketingGoals}
+                onProjectsChange={handleProjectsChange}
+                onTasksChange={handleTasksChange}
+                onMarketingGoalsChange={handleMarketingGoalsChange}
+              />
+            } />
+            <Route path="/marketing-track" element={
+              <MarketingTrackPage 
+                marketingGoals={marketingGoals}
+                onMarketingGoalsChange={handleMarketingGoalsChange}
+                onTasksChange={handleTasksChange}
+                tasks={tasks}
+                projects={projects}
+                onProjectsChange={handleProjectsChange}
+              />
+            } />
+            <Route path="/task-tracker" element={
+              <TaskTrackerPage 
+                tasks={tasks}
+                projects={projects}
+                onTasksChange={handleTasksChange}
+                onProjectsChange={handleProjectsChange}
+              />
+            } />
+            <Route path="/ai-marketing-assistant" element={<AIMarketingAssistant />} />
+            
+            {/* Comment out non-core routes for now */}
+            {/*
+            <Route path="/calendar" element={
+              <CalendarPage
+                tasks={tasks}
+                projects={projects}
+                customEvents={customEvents}
+                onCustomEventsChange={setCustomEvents}
+                onEventClick={handleEventEdit}
+              />
+            } />
+            <Route path="/project-tracker" element={
+              <ProjectTrackerPage 
+                projects={projects}
+                tasks={tasks}
+                onProjectsChange={handleProjectsChange}
+              />
+            } />
+            <Route path="/asset-library" element={
+              <AssetLibraryPage 
+                assets={assets}
+                onAssetsChange={handleAssetsChange}
+                brandingKits={brandingKits}
+                onBrandingKitsChange={handleBrandingKitsChange}
+                shareLinks={shareLinks}
+                onShareLinksChange={handleShareLinksChange}
+              />
+            } />
+            */}
+            
+            {/* Keep these for future use */}
+            <Route path="/manage-subscription" element={<Placeholder title="Manage Subscription" />} />
+            <Route path="/feedback" element={<Placeholder title="Feedback" />} />
+            <Route path="/terms" element={<Placeholder title="Terms & Conditions" />} />
+          </Routes>
+          <FloatingAssistant />
+          {/* Comment out CreateEventModal for now since calendar is deactivated */}
+          {/*
+          <CreateEventModal
+            event={null} // editingEvent was commented out, so it's null
+            open={false} // editingEvent was commented out, so it's false
+            startDate=""
+            projects={projects}
+            onSave={handleEventSave}
+            onCancel={handleEventCancel}
+            onDelete={handleEventDelete}
+          />
+          */}
+        </main>
+      </div>
+    </Router>
+  );
+}
+
+export default App;

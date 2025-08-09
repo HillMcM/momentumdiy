@@ -1,0 +1,649 @@
+import { useState, useEffect } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import type { Task, Project } from './types';
+import { apiService } from './services/api';
+
+interface ProjectTrackerWidgetProps {
+  projects: Project[];
+  onProjectsChange: (projects: Project[]) => void;
+  tasks: Task[];
+}
+
+export default function ProjectTrackerWidget({ projects, onProjectsChange, tasks }: ProjectTrackerWidgetProps) {
+  const [expandedProject, setExpandedProject] = useState<Project | null>(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Update progress whenever tasks or selectedTaskIds change
+  useEffect(() => {
+    if (editingProject) {
+      const projectTasks = tasks.filter(task => selectedTaskIds.has(task.id));
+      const totalWeight = projectTasks.reduce((sum, task) => {
+        switch (task.status) {
+          case 'completed':
+            return sum + 100;
+          case 'in-progress':
+            return sum + 50;
+          default:
+            return sum;
+        }
+      }, 0);
+      
+      const newProgress = projectTasks.length > 0 ? Math.round(totalWeight / projectTasks.length) : 0;
+      const shouldComplete = projectTasks.length > 0 && projectTasks.every(task => task.status === 'completed');
+      
+      setEditingProject({
+        ...editingProject,
+        progress: newProgress,
+        status: shouldComplete ? 'completed' as const : 'active' as const
+      });
+    }
+  }, [selectedTaskIds, tasks]);
+
+  const openCreateProject = async () => {
+    try {
+      const response = await apiService.createProject({
+        name: 'New Project',
+        description: '',
+        deadline: null,
+        status: 'active'
+      });
+      
+      if (response.success && response.data) {
+        setEditingProject(response.data);
+        setSelectedTaskIds(new Set());
+        setIsCreating(true);
+        setExpandedProject(null);
+      } else {
+        console.error('Failed to create project:', response.error);
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+    }
+  };
+
+  const openEditProject = (project: Project) => {
+    setEditingProject({ ...project });
+    setSelectedTaskIds(new Set(project.tasks));
+    setIsCreating(false);
+    setExpandedProject(project);
+  };
+
+  const closeExpanded = () => {
+    setExpandedProject(null);
+    setEditingProject(null);
+    setSelectedTaskIds(new Set());
+    setIsCreating(false);
+  };
+
+  const handleSave = async () => {
+    if (editingProject) {
+      const projectTasks = tasks.filter(task => selectedTaskIds.has(task.id));
+      const totalWeight = projectTasks.reduce((sum, task) => {
+        switch (task.status) {
+          case 'completed':
+            return sum + 100;
+          case 'in-progress':
+            return sum + 50;
+          default:
+            return sum;
+        }
+      }, 0);
+      
+      const newProgress = projectTasks.length > 0 ? Math.round(totalWeight / projectTasks.length) : 0;
+      const shouldComplete = projectTasks.length > 0 && projectTasks.every(task => task.status === 'completed');
+      
+      const updatedProject: Project = {
+        ...editingProject,
+        tasks: Array.from(selectedTaskIds).map(id => id.toString()),
+        progress: newProgress,
+        status: shouldComplete ? 'completed' as const : 'active' as const
+      };
+
+      try {
+        if (projects.find(p => p.id === editingProject.id)) {
+          // Update existing project
+          const response = await apiService.updateProject(editingProject.id, {
+            name: updatedProject.name,
+            description: updatedProject.description || '',
+            status: updatedProject.status,
+            deadline: updatedProject.deadline,
+            tasks: updatedProject.tasks || [],
+            progress: updatedProject.progress || 0,
+            timeline: updatedProject.timeline || []
+          });
+          
+          if (response.success) {
+            onProjectsChange(projects.map(p => p.id === editingProject.id ? updatedProject : p));
+          } else {
+            console.error('Failed to update project:', response.error);
+          }
+        } else {
+          // This shouldn't happen since we create projects via API now
+          onProjectsChange([...projects, updatedProject]);
+        }
+        closeExpanded();
+      } catch (error) {
+        console.error('Error saving project:', error);
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (editingProject) {
+      try {
+        const response = await apiService.deleteProject(editingProject.id);
+        
+        if (response.success) {
+          onProjectsChange(projects.filter(p => p.id !== editingProject.id));
+        } else {
+          console.error('Failed to delete project:', response.error);
+        }
+        closeExpanded();
+      } catch (error) {
+        console.error('Error deleting project:', error);
+      }
+    }
+  };
+
+  const updateField = (field: keyof Project, value: any) => {
+    if (editingProject) {
+      setEditingProject({
+        ...editingProject,
+        [field]: field === 'deadline' && value ? value.toISOString() : value
+      });
+    }
+  };
+
+  const toggleTaskSelection = (taskId: string) => {
+    const newSelection = new Set(selectedTaskIds);
+    if (newSelection.has(taskId)) {
+      newSelection.delete(taskId);
+    } else {
+      newSelection.add(taskId);
+    }
+    setSelectedTaskIds(newSelection);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return '#5ECD7D';
+      case 'in-progress': return '#EF8E81';
+      case 'todo': return '#686DCA';
+      default: return '#FFF1E7';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed': return 'Completed';
+      case 'in-progress': return 'In Progress';
+      case 'todo': return 'To Do';
+      default: return status;
+    }
+  };
+
+  return (
+    <div style={{ padding: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.5px', color: '#FFF1E7' }}>Project Manager</h2>
+        <button
+          onClick={openCreateProject}
+          style={{
+            background: '#EF8E81',
+            color: '#FFF1E7',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.75rem 1.5rem',
+            cursor: 'pointer',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Add Project
+        </button>
+      </div>
+
+      {/* Project Cards Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+        {projects.map(project => {
+          const projectTasks = tasks.filter(task => project.tasks.includes(task.id));
+          const tasksGrouped = {
+            todo: projectTasks.filter(t => t.status === 'todo'),
+            'in-progress': projectTasks.filter(t => t.status === 'in-progress'),
+            completed: projectTasks.filter(t => t.status === 'completed'),
+          };
+
+          return (
+            <div
+              key={project.id}
+              onClick={() => openEditProject(project)}
+              style={{
+                background: '#22202F',
+                borderRadius: '12px',
+                padding: '1.5rem',
+                cursor: 'pointer',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                opacity: project.status === 'completed' ? 0.7 : 1,
+                transition: 'all 0.2s ease',
+                position: 'relative',
+                boxShadow: `0 0 10px 1px #EF8E81`,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7' }}>{project.name}</h3>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <span style={{ 
+                    color: '#FFF1E7', 
+                    opacity: 0.7,
+                    fontSize: '0.875rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '4px',
+                  }}>
+                    {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}
+                  </span>
+                  {project.status === 'completed' && (
+                    <span style={{
+                      background: '#5ECD7D',
+                      color: '#22202F',
+                      padding: '0.25rem 0.5rem',
+                      borderRadius: '4px',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                    }}>
+                      Completed
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <p style={{ 
+                margin: 0, 
+                fontSize: '0.875rem', 
+                color: '#FFF1E7', 
+                opacity: 0.7,
+                textAlign: 'left'
+              }}>
+                {project.description}
+              </p>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ flex: 1, height: '6px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px' }}>
+                  <div
+                    style={{
+                      width: `${project.progress}%`,
+                      height: '100%',
+                      background: project.status === 'completed' ? '#5ECD7D' : '#EF8E81',
+                      borderRadius: '3px',
+                      transition: 'width 0.3s ease, background-color 0.3s ease',
+                    }}
+                  />
+                </div>
+                <span style={{ color: '#FFF1E7', fontSize: '0.875rem' }}>{project.progress}%</span>
+              </div>
+
+              <div style={{ 
+                display: 'flex',
+                gap: '1rem',
+                fontSize: '0.875rem',
+                color: '#FFF1E7',
+                opacity: 0.7
+              }}>
+                <span>{tasksGrouped.todo.length} to-do</span>
+                <span>{tasksGrouped['in-progress'].length} in progress</span>
+                <span>{tasksGrouped.completed.length} completed</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Expanded Project Details */}
+      {expandedProject && editingProject && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem'
+        }}>
+          <div style={{
+            background: '#22202F',
+            borderRadius: '16px',
+            padding: '2rem',
+            maxWidth: '800px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative',
+            border: '1px solid rgba(239, 142, 129, 0.3)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)'
+          }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '2rem', color: '#FFF1E7', marginBottom: '0.5rem' }}>
+                  {isCreating ? 'Create New Project' : editingProject.name}
+                </h2>
+                <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7 }}>
+                  {isCreating ? 'Add a new project to track' : `Project ID: ${editingProject.id}`}
+                </p>
+              </div>
+              <button
+                onClick={closeExpanded}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#FFF1E7',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  padding: '0.5rem',
+                  borderRadius: '4px',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Project Form */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Basic Info Section */}
+              <div style={{ 
+                background: 'rgba(255, 255, 255, 0.05)', 
+                padding: '1.5rem', 
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <h3 style={{ margin: 0, marginBottom: '1rem', color: '#FFF1E7', fontSize: '1.25rem' }}>
+                  Project Information
+                </h3>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7', fontWeight: 600 }}>Name</label>
+                    <input
+                      value={editingProject.name}
+                      onChange={(e) => updateField('name', e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        background: '#191628',
+                        color: '#FFF1E7',
+                        fontSize: '1rem'
+                      }}
+                      placeholder="Enter project name..."
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7', fontWeight: 600 }}>Deadline</label>
+                    <DatePicker
+                      selected={editingProject.deadline ? new Date(editingProject.deadline) : null}
+                      onChange={(date) => updateField('deadline', date)}
+                      dateFormat="MMMM d, yyyy"
+                      className="date-picker"
+                      wrapperClassName="date-picker-wrapper"
+                      placeholderText="Select deadline..."
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7', fontWeight: 600 }}>Description</label>
+                  <textarea
+                    value={editingProject.description}
+                    onChange={(e) => updateField('description', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      background: '#191628',
+                      color: '#FFF1E7',
+                      minHeight: '100px',
+                      resize: 'vertical',
+                      fontSize: '1rem'
+                    }}
+                    placeholder="Describe your project..."
+                  />
+                </div>
+              </div>
+
+              {/* Progress Section */}
+              <div style={{ 
+                background: 'rgba(255, 255, 255, 0.05)', 
+                padding: '1.5rem', 
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <h3 style={{ margin: 0, marginBottom: '1rem', color: '#FFF1E7', fontSize: '1.25rem' }}>
+                  Progress Overview
+                </h3>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                  <div style={{ flex: 1, height: '12px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px' }}>
+                    <div
+                      style={{
+                        width: `${editingProject.progress}%`,
+                        height: '100%',
+                        background: editingProject.status === 'completed' ? '#5ECD7D' : '#EF8E81',
+                        borderRadius: '6px',
+                        transition: 'width 0.3s ease, background-color 0.3s ease',
+                      }}
+                    />
+                  </div>
+                  <span style={{ color: '#FFF1E7', fontSize: '1.125rem', fontWeight: 600, minWidth: '60px' }}>
+                    {editingProject.progress}%
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '2rem', justifyContent: 'center' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 700, color: '#686DCA' }}>
+                      {tasks.filter(task => selectedTaskIds.has(task.id) && task.status === 'todo').length}
+                    </div>
+                    <div style={{ color: '#FFF1E7', opacity: 0.7 }}>To Do</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 700, color: '#EF8E81' }}>
+                      {tasks.filter(task => selectedTaskIds.has(task.id) && task.status === 'in-progress').length}
+                    </div>
+                    <div style={{ color: '#FFF1E7', opacity: 0.7 }}>In Progress</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 700, color: '#5ECD7D' }}>
+                      {tasks.filter(task => selectedTaskIds.has(task.id) && task.status === 'completed').length}
+                    </div>
+                    <div style={{ color: '#FFF1E7', opacity: 0.7 }}>Completed</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tasks Section */}
+              <div style={{ 
+                background: 'rgba(255, 255, 255, 0.05)', 
+                padding: '1.5rem', 
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <h3 style={{ margin: 0, marginBottom: '1rem', color: '#FFF1E7', fontSize: '1.25rem' }}>
+                  Assigned Tasks
+                </h3>
+
+                {/* Selected Tasks */}
+                <div style={{ 
+                  display: 'flex', 
+                  flexWrap: 'wrap', 
+                  gap: '0.5rem',
+                  marginBottom: '1rem',
+                  minHeight: '40px',
+                  padding: '0.5rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '8px'
+                }}>
+                  {Array.from(selectedTaskIds).map(taskId => {
+                    const task = tasks.find(t => t.id === taskId);
+                    if (!task) return null;
+                    
+                    return (
+                      <div
+                        key={task.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          padding: '0.5rem 1rem',
+                          background: `rgba(${getStatusColor(task.status).replace('#', '0x')}, 0.2)`,
+                          border: `1px solid ${getStatusColor(task.status)}`,
+                          borderRadius: '20px',
+                          fontSize: '0.875rem',
+                          color: '#FFF1E7'
+                        }}
+                      >
+                        <span>{task.title}</span>
+                        <span style={{ 
+                          background: getStatusColor(task.status), 
+                          color: '#22202F',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '10px',
+                          fontSize: '0.75rem',
+                          fontWeight: 600
+                        }}>
+                          {getStatusLabel(task.status)}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleTaskSelection(task.id);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '0',
+                            cursor: 'pointer',
+                            color: '#FFF1E7',
+                            opacity: 0.7,
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: '1rem'
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {Array.from(selectedTaskIds).length === 0 && (
+                    <span style={{ color: '#FFF1E7', opacity: 0.5, fontStyle: 'italic' }}>
+                      No tasks assigned yet
+                    </span>
+                  )}
+                </div>
+
+                {/* Task Selection */}
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7', fontWeight: 600 }}>
+                    Add Tasks
+                  </label>
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const taskId = e.target.value;
+                      if (taskId) {
+                        toggleTaskSelection(taskId);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      background: '#191628',
+                      color: '#FFF1E7',
+                      cursor: 'pointer',
+                      fontSize: '1rem'
+                    }}
+                  >
+                    <option value="">+ Select a task to assign</option>
+                    {tasks
+                      .filter(task => !selectedTaskIds.has(task.id))
+                      .map(task => (
+                        <option key={task.id} value={task.id}>
+                          {task.title} ({getStatusLabel(task.status)})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button
+                  onClick={handleSave}
+                  style={{
+                    flex: 1,
+                    padding: '1rem',
+                    background: '#EF8E81',
+                    color: '#FFF1E7',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#ffb09e'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = '#EF8E81'}
+                >
+                  {isCreating ? 'Create Project' : 'Save Changes'}
+                </button>
+                {!isCreating && (
+                  <button
+                    onClick={handleDelete}
+                    style={{
+                      padding: '1rem 2rem',
+                      background: 'rgba(220, 53, 69, 0.8)',
+                      color: '#FFF1E7',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(220, 53, 69, 1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(220, 53, 69, 0.8)'}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+} 

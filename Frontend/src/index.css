@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+:root {
+  --font-family: 'Poppins', system-ui, sans-serif;
+  --color-bg-gradient-from: #191628;
+  --color-bg-gradient-to: #65170C;
+  --color-accent: #EF8E81;
+  --color-text: #FFF1E7;
+  --color-widget-bg: #22202F;
+  --color-widget-table: #191628;
+  --color-todo: #686DCA;
+  --color-inprogress: #FF9D57;
+  --color-completed: #00946A;
+}
+
+html, body {
+  font-family: var(--font-family);
+  color: var(--color-text);
+  background: radial-gradient(circle at center, var(--color-bg-gradient-to) 0%, var(--color-bg-gradient-from) 70%, var(--color-bg-gradient-from) 100%);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  text-align: left;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+a:hover {
+  opacity: 0.8;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  margin-top: 0;
+  text-align: left;
+}
+
+/* Widget and Sidebar backgrounds */
+.sidebar, .placeholder {
+  background: var(--color-widget-bg);
+  color: var(--color-text);
+}
+
+.widget {
+  color: var(--color-text);
+}
+
+/* Widget Table */
+.widget-table {
+  background: var(--color-widget-table);
+}
+
+/* Task Widget Accents */
+.todo-accent {
+  background: var(--color-todo);
+}
+.inprogress-accent {
+  background: var(--color-inprogress);
+}
+.completed-accent {
+  background: var(--color-completed);
+}
+
+/* Remove center alignment from Vite defaults */
+#root {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* Make main-content transparent to show gradient background */
+.main-content {
+  background: transparent !important;
+}
+
+/* Global text alignment - ensure all text is left-aligned by default */
+* {
+  text-align: left;
+}
+
+/* Allow specific elements to override if needed */
+.text-center {
+  text-align: center !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+/* Animation for dropdown slide down effect */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Themed date picker */
+.date-picker-wrapper {
+  width: 100%;
+}
+.date-input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: var(--color-text);
+}
+.date-input:focus {
+  outline: none;
+  border-color: rgba(239,142,129,0.5);
+  box-shadow: 0 0 0 2px rgba(239,142,129,0.2);
+}
