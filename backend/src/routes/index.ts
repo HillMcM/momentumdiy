@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { sendWelcomeEmail } from '../services/emailService';
 
 const router = Router();
 
@@ -60,4 +61,12 @@ router.post('/content-pillars', (req: Request, res: Response) => {
 });
 
 export default router;
+
+// Dev-only: email test endpoint (requires POSTMARK_* envs)
+router.post('/email/test', async (req: Request, res: Response) => {
+  const { to } = (req.body || {}) as { to?: string };
+  if (!to) return res.status(400).json({ success: false, error: 'to is required' });
+  const result = await sendWelcomeEmail(to);
+  return res.status(result.success ? 200 : 500).json(result);
+});
 
