@@ -116,6 +116,9 @@ app.use('/api/calendar', calendar_1.default);
 app.use('/api/assets', assets_1.default);
 app.use('/api/ai', ai_1.default);
 app.use('/api/profile', profile_1.default);
+app.get('/debug/sentry-test', () => {
+    throw new Error('Sentry test error');
+});
 app.get('/', (_req, res) => {
     res.json({
         success: true,

@@ -148,6 +148,11 @@ app.use('/api/assets', assetRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/profile', profileRoutes);
 
+// Sentry verification route: intentionally throws to test error capture
+app.get('/debug/sentry-test', () => {
+  throw new Error('Sentry test error');
+});
+
 // Root endpoint
 app.get('/', (_req, res) => {
   res.json({
