@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import { initSentry, getSentryErrorHandler } from './observability/sentry';
 import dotenv from 'dotenv';
 
 // Import routes
@@ -20,6 +21,9 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env['PORT'] || 3001;
+
+// Initialize Sentry (no-op if SENTRY_DSN missing)
+initSentry(app);
 
 // Ultra-permissive CORS for local development (placed FIRST)
 if ((process.env['NODE_ENV'] || 'development') !== 'production') {
@@ -171,6 +175,7 @@ app.use('*', (req, res) => {
 });
 
 // Global error handler
+app.use(getSentryErrorHandler());
 app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Global error handler:', error);
   

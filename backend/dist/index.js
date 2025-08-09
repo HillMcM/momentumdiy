@@ -9,6 +9,7 @@ const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 const compression_1 = __importDefault(require("compression"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
+const sentry_1 = require("./observability/sentry");
 const dotenv_1 = __importDefault(require("dotenv"));
 const tasks_1 = __importDefault(require("./routes/tasks"));
 const projects_1 = __importDefault(require("./routes/projects"));
@@ -20,6 +21,7 @@ const profile_1 = __importDefault(require("./routes/profile"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env['PORT'] || 3001;
+(0, sentry_1.initSentry)(app);
 if ((process.env['NODE_ENV'] || 'development') !== 'production') {
     app.use((req, res, next) => {
         const origin = req.headers.origin || '*';
@@ -136,6 +138,7 @@ app.use('*', (req, res) => {
         path: req.originalUrl
     });
 });
+app.use((0, sentry_1.getSentryErrorHandler)());
 app.use((error, _req, res, _next) => {
     console.error('Global error handler:', error);
     res.status(500).json({
