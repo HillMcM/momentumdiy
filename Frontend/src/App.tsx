@@ -219,8 +219,9 @@ function App() {
         // Test backend connectivity first
         console.log('Testing backend connectivity...');
         try {
-          const apiHost = typeof window !== 'undefined' && window.location.hostname === '127.0.0.1' ? '127.0.0.1' : 'localhost';
-          const healthResponse = await fetch(`http://${apiHost}:3001/health`);
+          // Use backend base URL from env-aware API module
+          const { BACKEND_BASE_URL } = await import('./services/api');
+          const healthResponse = await fetch(`${BACKEND_BASE_URL}/health`);
           if (healthResponse.ok) {
             console.log('✅ Backend is running and responding');
           } else {

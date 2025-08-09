@@ -14,16 +14,26 @@ import type {
   ApiResponse
 } from '../types';
 
-// Prefer explicit env at build time; fall back to local dev heuristics
+// Prefer explicit env at build time; fall back to heuristics
 const fromEnv = (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_BASE_URL)
   ? (import.meta as any).env.VITE_API_BASE_URL as string
   : '';
 
-const API_BASE_URL = fromEnv
+function isLocalHost(hostname: string | undefined): boolean {
+  if (!hostname) return false;
+  return hostname === 'localhost' || hostname === '127.0.0.1';
+}
+
+const defaultProdBackend = 'https://momentumdiy-backend.onrender.com';
+
+export const API_BASE_URL = fromEnv
   ? fromEnv.replace(/\/$/, '') + '/api'
-  : ((typeof window !== 'undefined' && window.location.hostname === '127.0.0.1')
-      ? 'http://127.0.0.1:3001/api'
-      : 'http://localhost:3001/api');
+  : ((typeof window !== 'undefined' && isLocalHost(window.location.hostname))
+      ? 'http://localhost:3001/api'
+      : `${defaultProdBackend}/api`);
+
+// The backend base without the /api suffix, for endpoints like /health
+export const BACKEND_BASE_URL = API_BASE_URL.replace(/\/?api$/, '');
 
 class ApiService {
   private async request<T>(

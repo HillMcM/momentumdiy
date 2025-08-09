@@ -42,13 +42,14 @@ const SimpleTest: React.FC = () => {
     setError('');
 
     // Test GET endpoints
-    await testEndpoint('Get Tasks', 'http://localhost:3001/api/tasks');
-    await testEndpoint('Get Projects', 'http://localhost:3001/api/projects');
-    await testEndpoint('Get Marketing Goals', 'http://localhost:3001/api/marketing/goals');
-    await testEndpoint('Get Calendar Events', 'http://localhost:3001/api/calendar/events');
+    const { API_BASE_URL } = await import('./services/api');
+    await testEndpoint('Get Tasks', `${API_BASE_URL}/tasks`);
+    await testEndpoint('Get Projects', `${API_BASE_URL}/projects`);
+    await testEndpoint('Get Marketing Goals', `${API_BASE_URL}/marketing/goals`);
+    await testEndpoint('Get Calendar Events', `${API_BASE_URL}/calendar/events`);
     
     // Test POST endpoints
-    await testEndpoint('Create Task', 'http://localhost:3001/api/tasks', {
+    await testEndpoint('Create Task', `${API_BASE_URL}/tasks`, {
       method: 'POST',
       body: JSON.stringify({
         title: 'Simple Test Task',
@@ -58,7 +59,7 @@ const SimpleTest: React.FC = () => {
       })
     });
     
-    await testEndpoint('Create Project', 'http://localhost:3001/api/projects', {
+    await testEndpoint('Create Project', `${API_BASE_URL}/projects`, {
       method: 'POST',
       body: JSON.stringify({
         name: 'Simple Test Project',
@@ -67,7 +68,7 @@ const SimpleTest: React.FC = () => {
       })
     });
     
-    await testEndpoint('Create Calendar Event', 'http://localhost:3001/api/calendar/events', {
+    await testEndpoint('Create Calendar Event', `${API_BASE_URL}/calendar/events`, {
       method: 'POST',
       body: JSON.stringify({
         title: 'Simple Test Event',
@@ -170,7 +171,7 @@ const SimpleTest: React.FC = () => {
         border: '1px solid #444'
       }}>
         <h3 style={{ color: '#ffffff' }}>API Information</h3>
-        <p style={{ color: '#e5e5e5' }}><strong>Backend URL:</strong> http://localhost:3001</p>
+        <p style={{ color: '#e5e5e5' }}><strong>Backend URL:</strong> {import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}</p>
         <p style={{ color: '#e5e5e5' }}><strong>Frontend URL:</strong> http://localhost:5173</p>
         <p style={{ color: '#e5e5e5' }}><strong>Supabase URL:</strong> http://127.0.0.1:54321</p>
       </div>

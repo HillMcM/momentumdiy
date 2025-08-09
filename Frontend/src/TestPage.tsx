@@ -127,7 +127,7 @@ const TestPage: React.FC = () => {
 
       <div className="api-info">
         <h3>API Information</h3>
-        <p><strong>Backend URL:</strong> http://localhost:3001</p>
+        <p><strong>Backend URL:</strong> {import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}</p>
         <p><strong>Frontend URL:</strong> http://localhost:5173</p>
         <p><strong>Supabase URL:</strong> http://127.0.0.1:54321</p>
       </div>
