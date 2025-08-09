@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { sendWelcomeEmail } from '../services/emailService';
+import { BillingService } from '../services/billingService';
 
 const router = Router();
 
@@ -69,4 +70,24 @@ router.post('/email/test', async (req: Request, res: Response) => {
   const result = await sendWelcomeEmail(to);
   return res.status(result.success ? 200 : 500).json(result);
 });
+
+// Stripe checkout session (scaffold). Requires STRIPE_SECRET_KEY & a Price ID.
+router.post('/billing/checkout', async (req: Request, res: Response) => {
+  try {
+    const { priceId, successUrl, cancelUrl, email } = (req.body || {}) as any;
+    if (!priceId || !successUrl || !cancelUrl) {
+      return res.status(400).json({ success: false, error: 'priceId, successUrl, cancelUrl are required' });
+    }
+    const session = await BillingService.createCheckoutSession({
+      priceId,
+      successUrl,
+      cancelUrl,
+      customerEmail: email,
+    });
+    return res.json({ success: true, data: { id: session.id, url: session.url } });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err?.message || 'Failed to create session' });
+  }
+});
+
 
