@@ -1,0 +1,2119 @@
+import { useState, useRef } from "react";
+import type { Asset, AssetCategory, BrandingKit, ShareLink } from './types';
+import { apiService } from './services/api';
+
+interface AssetLibraryPageProps {
+  assets: Asset[];
+  onAssetsChange: (assets: Asset[]) => void;
+  brandingKits: BrandingKit[];
+  onBrandingKitsChange: (kits: BrandingKit[]) => void;
+  shareLinks: ShareLink[];
+  onShareLinksChange: (links: ShareLink[]) => void;
+}
+
+export default function AssetLibraryPage({ 
+  assets, 
+  onAssetsChange, 
+  brandingKits, 
+  onBrandingKitsChange,
+  shareLinks,
+  onShareLinksChange 
+}: AssetLibraryPageProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showBrandingKitModal, setShowBrandingKitModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'assets' | 'branding-kits' | 'sharing'>('assets');
+  const [showBrandingStepper, setShowBrandingStepper] = useState(false);
+  const [currentStep, setCurrentStep] = useState<string>('1');
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const [skippedSteps, setSkippedSteps] = useState<Set<string>>(new Set());
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedFonts, setSelectedFonts] = useState<string[]>([]);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showFontSelector, setShowFontSelector] = useState(false);
+  const [activeItem, setActiveItem] = useState<string>('');
+  const [currentColor, setCurrentColor] = useState({ h: 0, s: 100, b: 100 });
+  const [customColor, setCustomColor] = useState('#FF0000');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const stepperFileInputRef = useRef<HTMLInputElement>(null);
+
+  const categories: AssetCategory[] = [
+    { id: 'logos', name: 'Logos', icon: '🎨', color: '#EF8E81' },
+    { id: 'images', name: 'Images', icon: '🖼️', color: '#686DCA' },
+    { id: 'documents', name: 'Documents', icon: '📄', color: '#5ECD7D' },
+    { id: 'videos', name: 'Videos', icon: '🎥', color: '#FFB347' },
+    { id: 'fonts', name: 'Fonts', icon: '🔤', color: '#9B59B6' },
+    { id: 'colors', name: 'Color Palettes', icon: '🎨', color: '#E74C3C' },
+    { id: 'templates', name: 'Templates', icon: '📋', color: '#3498DB' },
+    { id: 'other', name: 'Other', icon: '📁', color: '#95A5A6' }
+  ];
+
+  const brandingKitSteps = [
+    {
+      id: '1',
+      title: 'Logo Collection',
+      description: 'Upload your primary logo, secondary logo, and logo variations',
+      required: [
+        { text: 'Primary Logo', action: 'upload-logo', type: 'file' },
+        { text: 'Secondary Logo', action: 'upload-logo', type: 'file' },
+        { text: 'Logo Variations', action: 'upload-logo', type: 'file' }
+      ],
+      optional: [
+        { text: 'Logo in different colors', action: 'upload-logo', type: 'file' },
+        { text: 'Logo in different sizes', action: 'upload-logo', type: 'file' }
+      ]
+    },
+    {
+      id: '2',
+      title: 'Color Palette',
+      description: 'Define your brand colors with hex codes and usage guidelines',
+      required: [
+        { text: 'Primary Color', action: 'choose-colors', type: 'color' },
+        { text: 'Secondary Color', action: 'choose-colors', type: 'color' },
+        { text: 'Accent Color', action: 'choose-colors', type: 'color' }
+      ],
+      optional: [
+        { text: 'Neutral colors', action: 'choose-colors', type: 'color' },
+        { text: 'Color combinations', action: 'choose-colors', type: 'color' }
+      ]
+    },
+    {
+      id: '3',
+      title: 'Typography',
+      description: 'Upload and specify your brand fonts',
+      required: [
+        { text: 'Primary Font', action: 'choose-fonts', type: 'font' },
+        { text: 'Secondary Font', action: 'choose-fonts', type: 'font' }
+      ],
+      optional: [
+        { text: 'Font weights', action: 'choose-fonts', type: 'font' },
+        { text: 'Typography hierarchy', action: 'choose-fonts', type: 'font' }
+      ]
+    },
+    {
+      id: '4',
+      title: 'Imagery Style',
+      description: 'Upload sample images that represent your brand aesthetic',
+      required: [
+        { text: 'Brand Photography Style', action: 'upload-photo', type: 'file' },
+        { text: 'Icon Style', action: 'upload-photo', type: 'file' }
+      ],
+      optional: [
+        { text: 'Patterns', action: 'upload-photo', type: 'file' },
+        { text: 'Textures', action: 'upload-photo', type: 'file' },
+        { text: 'Illustrations', action: 'upload-photo', type: 'file' }
+      ]
+    },
+    {
+      id: '5',
+      title: 'Brand Guidelines',
+      description: 'Create a document with usage rules and examples',
+      required: [
+        { text: 'Logo Usage Rules', action: 'upload-photo', type: 'file' },
+        { text: 'Color Usage Rules', action: 'upload-photo', type: 'file' }
+      ],
+      optional: [
+        { text: 'Spacing guidelines', action: 'upload-photo', type: 'file' },
+        { text: 'Layout examples', action: 'upload-photo', type: 'file' }
+      ]
+    }
+  ];
+
+  const colorOptions = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+    '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2',
+    '#F9E79F', '#ABEBC6', '#FAD7A0', '#AED6F1', '#D5A6BD'
+  ];
+
+  const fontOptions = [
+    'Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Verdana',
+    'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Montserrat',
+    'Playfair Display', 'Merriweather', 'Source Sans Pro', 'Raleway', 'Ubuntu',
+    'Inter', 'Nunito', 'Work Sans', 'Quicksand', 'Josefin Sans'
+  ];
+
+  const filteredAssets = assets.filter(asset => {
+    const matchesCategory = selectedCategory === 'all' || asset.category === selectedCategory;
+    const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         asset.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const newAssets: Asset[] = Array.from(files).map((file, index) => {
+      // Auto-categorize based on file type
+      let category = 'other';
+      if (file.type.startsWith('image/')) {
+        category = 'images';
+      } else if (file.type.includes('pdf') || file.type.includes('document') || file.type.includes('text')) {
+        category = 'documents';
+      } else if (file.type.startsWith('video/')) {
+        category = 'videos';
+      } else if (file.type.includes('font') || file.name.toLowerCase().includes('.ttf') || file.name.toLowerCase().includes('.otf')) {
+        category = 'fonts';
+      } else if (file.name.toLowerCase().includes('logo') || file.name.toLowerCase().includes('brand')) {
+        category = 'logos';
+      } else if (file.name.toLowerCase().includes('template') || file.name.toLowerCase().includes('layout')) {
+        category = 'templates';
+      }
+
+      return {
+        id: Date.now().toString() + '-' + index,
+        name: file.name,
+        description: `Auto-uploaded ${category} file`,
+        category,
+        fileType: file.type,
+        fileSize: file.size,
+        uploadDate: new Date(),
+        url: URL.createObjectURL(file),
+        tags: [category, 'auto-uploaded'],
+        isPublic: false
+      };
+    });
+
+    // Update local state immediately for UI responsiveness
+    onAssetsChange([...assets, ...newAssets]);
+    
+    // Persist to database
+    try {
+      for (const asset of newAssets) {
+        const response = await apiService.createAsset({
+          name: asset.name,
+          description: asset.description,
+          category: asset.category,
+          fileType: asset.fileType,
+          fileSize: asset.fileSize,
+          url: asset.url,
+          tags: asset.tags,
+          isPublic: asset.isPublic
+        });
+        
+        if (!response.success) {
+          console.error('Failed to create asset:', asset.name);
+        }
+      }
+    } catch (error) {
+      console.error('Error persisting assets:', error);
+    }
+    
+    setShowUploadModal(false);
+  };
+
+  const handleAssetDelete = (assetId: string) => {
+    onAssetsChange(assets.filter(asset => asset.id !== assetId));
+  };
+
+  const createBrandingKit = (name: string, description: string) => {
+    const newKit: BrandingKit = {
+      id: Date.now().toString(),
+      name,
+      description,
+      createdAt: new Date(),
+      assets: [],
+      isComplete: false,
+      completionPercentage: 0
+    };
+    onBrandingKitsChange([...brandingKits, newKit]);
+    setShowBrandingKitModal(false);
+  };
+
+  const createShareLink = (name: string, email: string, permissions: string[]) => {
+    const newLink: ShareLink = {
+      id: Date.now().toString(),
+      name,
+      email,
+      permissions,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      isActive: true,
+      accessCode: Math.random().toString(36).substring(2, 8).toUpperCase()
+    };
+    onShareLinksChange([...shareLinks, newLink]);
+    setShowShareModal(false);
+  };
+
+  const handleStepComplete = (stepId: string) => {
+    setCompletedSteps(prev => new Set([...prev, stepId]));
+    const currentIndex = brandingKitSteps.findIndex(step => step.id === currentStep);
+    if (currentIndex < brandingKitSteps.length - 1) {
+      setCurrentStep(brandingKitSteps[currentIndex + 1].id);
+    } else {
+      // Mark as completed and show completion screen
+      setCurrentStep('completed');
+    }
+  };
+
+  const handleStepSkip = (stepId: string) => {
+    setSkippedSteps(prev => new Set([...prev, stepId]));
+    const currentIndex = brandingKitSteps.findIndex(step => step.id === currentStep);
+    if (currentIndex < brandingKitSteps.length - 1) {
+      setCurrentStep(brandingKitSteps[currentIndex + 1].id);
+    } else {
+      // Mark as completed and show completion screen
+      setCurrentStep('completed');
+    }
+  };
+
+  const handleStepBack = () => {
+    const currentIndex = brandingKitSteps.findIndex(step => step.id === currentStep);
+    if (currentIndex > 0) {
+      setCurrentStep(brandingKitSteps[currentIndex - 1].id);
+    }
+  };
+
+  const resetStepper = () => {
+    setCurrentStep('1');
+    setCompletedSteps(new Set());
+    setSkippedSteps(new Set());
+    setSelectedColors([]);
+    setSelectedFonts([]);
+  };
+
+  const handleItemAction = (item: string, action: string) => {
+    setActiveItem(item);
+    
+    switch (action) {
+      case 'upload-logo':
+      case 'upload-photo':
+        stepperFileInputRef.current?.click();
+        break;
+      case 'choose-colors':
+        setShowColorPicker(true);
+        break;
+      case 'choose-fonts':
+        setShowFontSelector(true);
+        break;
+    }
+  };
+
+  const handleStepperFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const newAssets: Asset[] = Array.from(files).map((file, index) => ({
+        id: Date.now().toString() + '-' + index,
+        name: file.name,
+        description: `Uploaded from branding kit guide: ${activeItem}`,
+        category: activeItem.includes('logo') ? 'logos' : 'images',
+        fileType: file.type,
+        fileSize: file.size,
+        uploadDate: new Date(),
+        url: URL.createObjectURL(file),
+        tags: [activeItem, 'branding-kit'],
+        isPublic: false
+      }));
+      
+      // Update local state immediately for UI responsiveness
+      onAssetsChange([...assets, ...newAssets]);
+      
+      // Persist to database
+      try {
+        for (const asset of newAssets) {
+          const response = await apiService.createAsset({
+            name: asset.name,
+            description: asset.description,
+            category: asset.category,
+            fileType: asset.fileType,
+            fileSize: asset.fileSize,
+            url: asset.url,
+            tags: asset.tags,
+            isPublic: asset.isPublic
+          });
+          
+          if (!response.success) {
+            console.error('Failed to create asset:', asset.name);
+          }
+        }
+      } catch (error) {
+        console.error('Error persisting assets:', error);
+      }
+      
+      setActiveItem('');
+    }
+  };
+
+  const handleColorSelect = (color: string) => {
+    if (!selectedColors.includes(color)) {
+      setSelectedColors([...selectedColors, color]);
+    }
+    setShowColorPicker(false);
+  };
+
+  const handleFontSelect = (font: string) => {
+    if (!selectedFonts.includes(font)) {
+      setSelectedFonts([...selectedFonts, font]);
+    }
+    setShowFontSelector(false);
+  };
+
+  const removeColor = (color: string) => {
+    setSelectedColors(selectedColors.filter(c => c !== color));
+  };
+
+  const removeFont = (font: string) => {
+    setSelectedFonts(selectedFonts.filter(f => f !== font));
+  };
+
+  // HSB to Hex conversion
+  const hsbToHex = (h: number, s: number, b: number): string => {
+    const hue = h / 360;
+    const saturation = s / 100;
+    const brightness = b / 100;
+
+    let r = 0, g = 0, b_val = 0;
+
+    if (saturation === 0) {
+      r = g = b_val = brightness;
+    } else {
+      const hueToRgb = (p: number, q: number, t: number) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1/6) return p + (q - p) * 6 * t;
+        if (t < 1/2) return q;
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+      };
+
+      const q = brightness < 0.5 ? brightness * (1 + saturation) : brightness + saturation - brightness * saturation;
+      const p = 2 * brightness - q;
+
+      r = hueToRgb(p, q, hue + 1/3);
+      g = hueToRgb(p, q, hue);
+      b_val = hueToRgb(p, q, hue - 1/3);
+    }
+
+    const toHex = (c: number) => {
+      const hex = Math.round(c * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b_val)}`;
+  };
+
+  // Hex to HSB conversion
+  const hexToHsb = (hex: string): { h: number, s: number, b: number } => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return { h: 0, s: 100, b: 100 };
+
+    const r = parseInt(result[1], 16) / 255;
+    const g = parseInt(result[2], 16) / 255;
+    const b = parseInt(result[3], 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const diff = max - min;
+    const sum = max + min;
+
+    let h = 0;
+    if (diff === 0) {
+      h = 0;
+    } else if (max === r) {
+      h = ((g - b) / diff) % 6;
+    } else if (max === g) {
+      h = (b - r) / diff + 2;
+    } else {
+      h = (r - g) / diff + 4;
+    }
+
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+
+    const s = max === 0 ? 0 : Math.round((diff / max) * 100);
+    const brightness = Math.round((sum / 2) * 100);
+
+    return { h, s, b: brightness };
+  };
+
+  const handleHueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const h = parseInt(e.target.value);
+    const newColor = { ...currentColor, h };
+    setCurrentColor(newColor);
+    setCustomColor(hsbToHex(h, newColor.s, newColor.b));
+  };
+
+  const handleSaturationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const s = parseInt(e.target.value);
+    const newColor = { ...currentColor, s };
+    setCurrentColor(newColor);
+    setCustomColor(hsbToHex(newColor.h, s, newColor.b));
+  };
+
+  const handleBrightnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const b = parseInt(e.target.value);
+    const newColor = { ...currentColor, b };
+    setCurrentColor(newColor);
+    setCustomColor(hsbToHex(newColor.h, newColor.s, b));
+  };
+
+  const handleCustomColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const hex = e.target.value;
+    setCustomColor(hex);
+    if (hex.length === 7) { // Only convert when hex is complete
+      const hsb = hexToHsb(hex);
+      setCurrentColor(hsb);
+    }
+  };
+
+  const getCategoryIcon = (categoryId: string) => {
+    return categories.find(cat => cat.id === categoryId)?.icon || '📁';
+  };
+
+  const getCategoryColor = (categoryId: string) => {
+    return categories.find(cat => cat.id === categoryId)?.color || '#95A5A6';
+  };
+
+  return (
+    <div className="widget" style={{ 
+      padding: '2rem',
+      minHeight: '100vh',
+      color: '#FFF1E7'
+    }}>
+      {/* Header */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 700, color: '#FFF1E7', marginBottom: '0.5rem' }}>
+          Asset Library
+        </h1>
+        <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '1.1rem' }}>
+          Organize, categorize, and share your business assets with ease
+        </p>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+        <button
+          onClick={() => setActiveTab('assets')}
+          style={{
+            background: activeTab === 'assets' ? '#EF8E81' : 'transparent',
+            color: '#FFF1E7',
+            border: '1px solid #EF8E81',
+            borderRadius: '8px',
+            padding: '0.75rem 1.5rem',
+            cursor: 'pointer',
+            fontWeight: 600
+          }}
+        >
+          Assets ({assets.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('branding-kits')}
+          style={{
+            background: activeTab === 'branding-kits' ? '#EF8E81' : 'transparent',
+            color: '#FFF1E7',
+            border: '1px solid #EF8E81',
+            borderRadius: '8px',
+            padding: '0.75rem 1.5rem',
+            cursor: 'pointer',
+            fontWeight: 600
+          }}
+        >
+          Branding Kits ({brandingKits.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('sharing')}
+          style={{
+            background: activeTab === 'sharing' ? '#EF8E81' : 'transparent',
+            color: '#FFF1E7',
+            border: '1px solid #EF8E81',
+            borderRadius: '8px',
+            padding: '0.75rem 1.5rem',
+            cursor: 'pointer',
+            fontWeight: 600
+          }}
+        >
+          Sharing ({shareLinks.length})
+        </button>
+      </div>
+
+      {/* Assets Tab */}
+      {activeTab === 'assets' && (
+        <div>
+          {/* Controls */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="Search assets..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  background: '#22202F',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1rem',
+                  color: '#FFF1E7',
+                  fontSize: '1rem',
+                  minWidth: '300px'
+                }}
+              />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                style={{
+                  background: '#22202F',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1rem',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+              >
+                <option value="all">All Categories</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.icon} {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <button
+                onClick={() => setViewMode('grid')}
+                style={{
+                  background: viewMode === 'grid' ? '#EF8E81' : 'transparent',
+                  color: '#FFF1E7',
+                  border: '1px solid #EF8E81',
+                  borderRadius: '8px',
+                  padding: '0.5rem',
+                  cursor: 'pointer'
+                }}
+              >
+                ⏹️
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                style={{
+                  background: viewMode === 'list' ? '#EF8E81' : 'transparent',
+                  color: '#FFF1E7',
+                  border: '1px solid #EF8E81',
+                  borderRadius: '8px',
+                  padding: '0.5rem',
+                  cursor: 'pointer'
+                }}
+              >
+                ☰
+              </button>
+              <button
+                onClick={() => setShowUploadModal(true)}
+                style={{
+                  background: '#EF8E81',
+                  color: '#FFF1E7',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                📤 Upload Assets
+              </button>
+            </div>
+          </div>
+
+          {/* Category Pills */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+            {categories.map(category => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                style={{
+                  background: selectedCategory === category.id ? category.color : 'transparent',
+                  color: '#FFF1E7',
+                  border: `1px solid ${category.color}`,
+                  borderRadius: '20px',
+                  padding: '0.5rem 1rem',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                {category.icon} {category.name}
+                <span style={{ background: 'rgba(255, 255, 255, 0.2)', borderRadius: '10px', padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
+                  {assets.filter(asset => asset.category === category.id).length}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Assets Grid/List */}
+          {viewMode === 'grid' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+              {filteredAssets.map(asset => (
+                <div
+                  key={asset.id}
+                  style={{
+                    background: '#22202F',
+                    borderRadius: '12px',
+                    padding: '1rem',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '2rem' }}>{getCategoryIcon(asset.category)}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAssetDelete(asset.id);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#EF8E81',
+                        cursor: 'pointer',
+                        fontSize: '1.2rem'
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: '#FFF1E7' }}>
+                    {asset.name}
+                  </h3>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: '#FFF1E7', opacity: 0.7 }}>
+                    {asset.description || 'No description'}
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: '#FFF1E7', opacity: 0.6 }}>
+                    <span>{asset.fileType}</span>
+                    <span>{Math.round(asset.fileSize / 1024)}KB</span>
+                  </div>
+                  <div style={{ 
+                    background: getCategoryColor(asset.category), 
+                    height: '4px', 
+                    borderRadius: '2px', 
+                    marginTop: '0.5rem' 
+                  }} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {filteredAssets.map(asset => (
+                <div
+                  key={asset.id}
+                  style={{
+                    background: '#22202F',
+                    borderRadius: '12px',
+                    padding: '1rem',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem'
+                  }}
+                >
+                  <span style={{ fontSize: '2rem' }}>{getCategoryIcon(asset.category)}</span>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1rem', color: '#FFF1E7' }}>
+                      {asset.name}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '0.875rem', color: '#FFF1E7', opacity: 0.7 }}>
+                      {asset.description || 'No description'}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.875rem', color: '#FFF1E7', opacity: 0.6 }}>
+                    <span>{asset.fileType}</span>
+                    <span>{Math.round(asset.fileSize / 1024)}KB</span>
+                    <span>{new Date(asset.uploadDate).toLocaleDateString()}</span>
+                  </div>
+                  <button
+                    onClick={() => handleAssetDelete(asset.id)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#EF8E81',
+                      cursor: 'pointer',
+                      fontSize: '1.2rem'
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Branding Kits Tab */}
+      {activeTab === 'branding-kits' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#FFF1E7' }}>Branding Kits</h2>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button
+                onClick={() => setShowBrandingStepper(true)}
+                style={{
+                  background: '#686DCA',
+                  color: '#FFF1E7',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                🎯 Start Branding Guide
+              </button>
+              <button
+                onClick={() => setShowBrandingKitModal(true)}
+                style={{
+                  background: '#EF8E81',
+                  color: '#FFF1E7',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Create Branding Kit
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+            {brandingKits.map(kit => (
+              <div
+                key={kit.id}
+                style={{
+                  background: '#22202F',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', color: '#FFF1E7' }}>
+                  {kit.name}
+                </h3>
+                <p style={{ margin: '0 0 1rem 0', fontSize: '0.875rem', color: '#FFF1E7', opacity: 0.7 }}>
+                  {kit.description}
+                </p>
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.875rem', color: '#FFF1E7' }}>Completion</span>
+                    <span style={{ fontSize: '0.875rem', color: '#FFF1E7' }}>{kit.completionPercentage}%</span>
+                  </div>
+                  <div style={{ 
+                    background: 'rgba(255, 255, 255, 0.1)', 
+                    height: '8px', 
+                    borderRadius: '4px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{ 
+                      background: '#EF8E81', 
+                      height: '100%', 
+                      width: `${kit.completionPercentage}%`,
+                      transition: 'width 0.3s ease'
+                    }} />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    style={{
+                      background: '#EF8E81',
+                      color: '#FFF1E7',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '0.5rem 1rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Edit Kit
+                  </button>
+                  <button
+                    style={{
+                      background: 'transparent',
+                      color: '#FFF1E7',
+                      border: '1px solid #EF8E81',
+                      borderRadius: '6px',
+                      padding: '0.5rem 1rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Share
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Branding Kit Guide */}
+          <div style={{ marginTop: '3rem' }}>
+            <div style={{ 
+              background: '#22202F', 
+              borderRadius: '12px', 
+              padding: '2rem', 
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              textAlign: 'center'
+            }}>
+              <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#FFF1E7' }}>
+                Need Help Building Your Brand?
+              </h2>
+              <p style={{ margin: '0 0 1.5rem 0', fontSize: '1rem', color: '#FFF1E7', opacity: 0.7 }}>
+                Follow our step-by-step guide to create a complete branding kit with all the essential assets.
+              </p>
+              <button
+                onClick={() => setShowBrandingStepper(true)}
+                style={{
+                  background: '#686DCA',
+                  color: '#FFF1E7',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '1rem 2rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  margin: '0 auto'
+                }}
+              >
+                🎯 Start Interactive Guide
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sharing Tab */}
+      {activeTab === 'sharing' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#FFF1E7' }}>Share Access</h2>
+            <button
+              onClick={() => setShowShareModal(true)}
+              style={{
+                background: '#EF8E81',
+                color: '#FFF1E7',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '0.75rem 1.5rem',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
+            >
+              Create Share Link
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {shareLinks.map(link => (
+              <div
+                key={link.id}
+                style={{
+                  background: '#22202F',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', color: '#FFF1E7' }}>
+                      {link.name}
+                    </h3>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: '#FFF1E7', opacity: 0.7 }}>
+                      {link.email}
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                      {link.permissions.map(permission => (
+                        <span
+                          key={permission}
+                          style={{
+                            background: '#EF8E81',
+                            color: '#FFF1E7',
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem'
+                          }}
+                        >
+                          {permission}
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#FFF1E7', opacity: 0.6 }}>
+                      <div>Created: {new Date(link.createdAt).toLocaleDateString()}</div>
+                      <div>Expires: {new Date(link.expiresAt).toLocaleDateString()}</div>
+                      <div>Access Code: <strong>{link.accessCode}</strong></div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                      style={{
+                        background: link.isActive ? '#5ECD7D' : '#95A5A6',
+                        color: '#FFF1E7',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '0.5rem 1rem',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      {link.isActive ? 'Active' : 'Inactive'}
+                    </button>
+                    <button
+                      style={{
+                        background: 'transparent',
+                        color: '#EF8E81',
+                        border: '1px solid #EF8E81',
+                        borderRadius: '6px',
+                        padding: '0.5rem 1rem',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Copy Link
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#22202F',
+            borderRadius: '12px',
+            padding: '2rem',
+            maxWidth: '500px',
+            width: '90%',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.5rem', color: '#FFF1E7' }}>
+              Upload Assets
+            </h2>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+            <input
+              ref={stepperFileInputRef}
+              type="file"
+              multiple
+              onChange={handleStepperFileUpload}
+              accept="image/*,.pdf,.doc,.docx,.txt"
+              style={{ display: 'none' }}
+            />
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                border: '2px dashed rgba(255, 255, 255, 0.3)',
+                borderRadius: '8px',
+                padding: '3rem',
+                textAlign: 'center',
+                cursor: 'pointer',
+                marginBottom: '1.5rem'
+              }}
+            >
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📤</div>
+              <p style={{ margin: '0 0 0.5rem 0', color: '#FFF1E7' }}>
+                Click to select files or drag and drop
+              </p>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: '#FFF1E7', opacity: 0.7 }}>
+                Supports images, documents, videos, and more
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowUploadModal(false)}
+                style={{
+                  background: 'transparent',
+                  color: '#FFF1E7',
+                  border: '1px solid #EF8E81',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Branding Kit Modal */}
+      {showBrandingKitModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#22202F',
+            borderRadius: '12px',
+            padding: '2rem',
+            maxWidth: '500px',
+            width: '90%',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.5rem', color: '#FFF1E7' }}>
+              Create Branding Kit
+            </h2>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7' }}>
+                Kit Name
+              </label>
+              <input
+                type="text"
+                placeholder="Enter kit name..."
+                style={{
+                  width: '100%',
+                  background: '#1A1A1A',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+                id="kitName"
+              />
+            </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7' }}>
+                Description
+              </label>
+              <textarea
+                placeholder="Enter description..."
+                style={{
+                  width: '100%',
+                  background: '#1A1A1A',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  color: '#FFF1E7',
+                  fontSize: '1rem',
+                  minHeight: '100px',
+                  resize: 'vertical'
+                }}
+                id="kitDescription"
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowBrandingKitModal(false)}
+                style={{
+                  background: 'transparent',
+                  color: '#FFF1E7',
+                  border: '1px solid #EF8E81',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const name = (document.getElementById('kitName') as HTMLInputElement)?.value;
+                  const description = (document.getElementById('kitDescription') as HTMLTextAreaElement)?.value;
+                  if (name) {
+                    createBrandingKit(name, description);
+                  }
+                }}
+                style={{
+                  background: '#EF8E81',
+                  color: '#FFF1E7',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Create Kit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#22202F',
+            borderRadius: '12px',
+            padding: '2rem',
+            maxWidth: '500px',
+            width: '90%',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.5rem', color: '#FFF1E7' }}>
+              Create Share Link
+            </h2>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7' }}>
+                Recipient Name
+              </label>
+              <input
+                type="text"
+                placeholder="Enter recipient name..."
+                style={{
+                  width: '100%',
+                  background: '#1A1A1A',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+                id="shareName"
+              />
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7' }}>
+                Email Address
+              </label>
+              <input
+                type="email"
+                placeholder="Enter email address..."
+                style={{
+                  width: '100%',
+                  background: '#1A1A1A',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+                id="shareEmail"
+              />
+            </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7' }}>
+                Permissions
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {['View Assets', 'Download Assets', 'Edit Assets', 'Share Assets'].map(permission => (
+                  <label key={permission} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#FFF1E7' }}>
+                    <input type="checkbox" value={permission} />
+                    {permission}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowShareModal(false)}
+                style={{
+                  background: 'transparent',
+                  color: '#FFF1E7',
+                  border: '1px solid #EF8E81',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const name = (document.getElementById('shareName') as HTMLInputElement)?.value;
+                  const email = (document.getElementById('shareEmail') as HTMLInputElement)?.value;
+                  const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+                  const permissions = Array.from(checkboxes).map(cb => (cb as HTMLInputElement).value);
+                  
+                  if (name && email) {
+                    createShareLink(name, email, permissions);
+                  }
+                }}
+                style={{
+                  background: '#EF8E81',
+                  color: '#FFF1E7',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Create Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Branding Stepper Modal */}
+      {showBrandingStepper && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.9)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '2rem'
+        }}>
+          <div style={{
+            background: '#22202F',
+            borderRadius: '16px',
+            padding: '2rem',
+            maxWidth: '800px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            position: 'relative'
+          }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ margin: 0, fontSize: '1.75rem', color: '#FFF1E7' }}>
+                Branding Kit Builder
+              </h2>
+              <button
+                onClick={() => setShowBrandingStepper(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#FFF1E7',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  padding: '0.5rem'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Progress Bar */}
+            <div style={{ marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.875rem', color: '#FFF1E7' }}>
+                  Step {brandingKitSteps.findIndex(step => step.id === currentStep) + 1} of {brandingKitSteps.length}
+                </span>
+                <span style={{ fontSize: '0.875rem', color: '#FFF1E7' }}>
+                  {Math.round(((brandingKitSteps.findIndex(step => step.id === currentStep) + 1) / brandingKitSteps.length) * 100)}% Complete
+                </span>
+              </div>
+              <div style={{ 
+                background: 'rgba(255, 255, 255, 0.1)', 
+                height: '8px', 
+                borderRadius: '4px',
+                overflow: 'hidden'
+              }}>
+                <div style={{ 
+                  background: '#EF8E81', 
+                  height: '100%', 
+                  width: `${((brandingKitSteps.findIndex(step => step.id === currentStep) + 1) / brandingKitSteps.length) * 100}%`,
+                  transition: 'width 0.3s ease'
+                }} />
+              </div>
+            </div>
+
+            {/* Step Indicators */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
+              {brandingKitSteps.map((step) => {
+                const isCompleted = completedSteps.has(step.id);
+                const isSkipped = skippedSteps.has(step.id);
+                const isCurrent = currentStep === step.id;
+                
+                return (
+                  <div
+                    key={step.id}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      flex: 1
+                    }}
+                  >
+                    <div style={{
+                      background: isCompleted ? '#5ECD7D' : isSkipped ? '#95A5A6' : isCurrent ? '#EF8E81' : 'rgba(255, 255, 255, 0.2)',
+                      color: '#FFF1E7',
+                      borderRadius: '50%',
+                      width: '40px',
+                      height: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      border: isCurrent ? '2px solid #EF8E81' : 'none'
+                    }}>
+                      {isCompleted ? '✓' : isSkipped ? '⏭' : step.id}
+                    </div>
+                    <span style={{ 
+                      fontSize: '0.75rem', 
+                      color: '#FFF1E7', 
+                      opacity: isCurrent ? 1 : 0.6,
+                      textAlign: 'center',
+                      maxWidth: '80px'
+                    }}>
+                      {step.title}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Current Step Content */}
+            <div style={{ marginBottom: '2rem' }}>
+              {(() => {
+                const currentStepData = brandingKitSteps.find(step => step.id === currentStep);
+                if (!currentStepData) return null;
+
+                return (
+                  <div>
+                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#FFF1E7' }}>
+                      {currentStepData.title}
+                    </h3>
+                    <p style={{ margin: '0 0 1.5rem 0', fontSize: '1rem', color: '#FFF1E7', opacity: 0.8 }}>
+                      {currentStepData.description}
+                    </p>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                      <div>
+                        <h4 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', color: '#FFF1E7' }}>
+                          Required Items
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {currentStepData.required.map((item, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '0.75rem',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(255, 255, 255, 0.1)'
+                              }}
+                            >
+                              <span style={{ fontSize: '0.875rem', color: '#FFF1E7' }}>
+                                {item.text}
+                              </span>
+                              <button
+                                onClick={() => handleItemAction(item.text, item.action)}
+                                style={{
+                                  background: item.type === 'color' ? '#4ECDC4' : item.type === 'font' ? '#96CEB4' : '#EF8E81',
+                                  color: '#FFF1E7',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  padding: '0.5rem 1rem',
+                                  cursor: 'pointer',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem'
+                                }}
+                              >
+                                {item.type === 'color' ? '🎨' : item.type === 'font' ? '📝' : '📤'} 
+                                {item.type === 'color' ? 'Choose' : item.type === 'font' ? 'Select' : 'Upload'}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', color: '#FFF1E7', opacity: 0.7 }}>
+                          Optional Items
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {currentStepData.optional.map((item, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '0.75rem',
+                                background: 'rgba(255, 255, 255, 0.03)',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                opacity: 0.7
+                              }}
+                            >
+                              <span style={{ fontSize: '0.875rem', color: '#FFF1E7' }}>
+                                {item.text}
+                              </span>
+                              <button
+                                onClick={() => handleItemAction(item.text, item.action)}
+                                style={{
+                                  background: item.type === 'color' ? '#4ECDC4' : item.type === 'font' ? '#96CEB4' : '#EF8E81',
+                                  color: '#FFF1E7',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  padding: '0.5rem 1rem',
+                                  cursor: 'pointer',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem',
+                                  opacity: 0.8
+                                }}
+                              >
+                                {item.type === 'color' ? '🎨' : item.type === 'font' ? '📝' : '📤'} 
+                                {item.type === 'color' ? 'Choose' : item.type === 'font' ? 'Select' : 'Upload'}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Selected Colors Display */}
+                    {selectedColors.length > 0 && (
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7' }}>
+                          Selected Colors
+                        </h4>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          {selectedColors.map((color, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.5rem',
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                borderRadius: '6px',
+                                border: '1px solid rgba(255, 255, 255, 0.2)'
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  borderRadius: '4px',
+                                  background: color,
+                                  border: '1px solid rgba(255, 255, 255, 0.3)'
+                                }}
+                              />
+                              <span style={{ fontSize: '0.75rem', color: '#FFF1E7' }}>{color}</span>
+                              <button
+                                onClick={() => removeColor(color)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#FFF1E7',
+                                  cursor: 'pointer',
+                                  fontSize: '0.75rem',
+                                  opacity: 0.6
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Selected Fonts Display */}
+                    {selectedFonts.length > 0 && (
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7' }}>
+                          Selected Fonts
+                        </h4>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          {selectedFonts.map((font, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.5rem',
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                borderRadius: '6px',
+                                border: '1px solid rgba(255, 255, 255, 0.2)'
+                              }}
+                            >
+                              <span style={{ fontSize: '0.75rem', color: '#FFF1E7' }}>{font}</span>
+                              <button
+                                onClick={() => removeFont(font)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#FFF1E7',
+                                  cursor: 'pointer',
+                                  fontSize: '0.75rem',
+                                  opacity: 0.6
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                      {brandingKitSteps.findIndex(step => step.id === currentStep) > 0 && (
+                        <button
+                          onClick={handleStepBack}
+                          style={{
+                            background: 'transparent',
+                            color: '#FFF1E7',
+                            border: '1px solid #EF8E81',
+                            borderRadius: '8px',
+                            padding: '0.75rem 1.5rem',
+                            cursor: 'pointer',
+                            fontSize: '1rem'
+                          }}
+                        >
+                          ← Back
+                        </button>
+                      )}
+                      
+                      <button
+                        onClick={() => handleStepSkip(currentStepData.id)}
+                        style={{
+                          background: 'transparent',
+                          color: '#FFF1E7',
+                          border: '1px solid #95A5A6',
+                          borderRadius: '8px',
+                          padding: '0.75rem 1.5rem',
+                          cursor: 'pointer',
+                          fontSize: '1rem'
+                        }}
+                      >
+                        Skip This Step
+                      </button>
+                      
+                      <button
+                        onClick={() => handleStepComplete(currentStepData.id)}
+                        style={{
+                          background: '#5ECD7D',
+                          color: '#FFF1E7',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '0.75rem 1.5rem',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          fontWeight: 600
+                        }}
+                      >
+                        {brandingKitSteps.findIndex(step => step.id === currentStep) === brandingKitSteps.length - 1 ? 'Finish' : 'Complete & Continue'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Completion Summary */}
+            {currentStep === 'completed' && (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '2rem',
+                background: 'rgba(92, 205, 125, 0.1)',
+                borderRadius: '12px',
+                border: '1px solid #5ECD7D'
+              }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+                <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#FFF1E7' }}>
+                  Branding Kit Guide Complete!
+                </h3>
+                <p style={{ margin: '0 0 1.5rem 0', fontSize: '1rem', color: '#FFF1E7', opacity: 0.8 }}>
+                  You've completed the branding kit guide. You can now create your branding kit and start uploading your assets.
+                </p>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                  <button
+                    onClick={() => {
+                      setShowBrandingStepper(false);
+                      setShowBrandingKitModal(true);
+                    }}
+                    style={{
+                      background: '#EF8E81',
+                      color: '#FFF1E7',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1.5rem',
+                      cursor: 'pointer',
+                      fontSize: '1rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    Create Branding Kit
+                  </button>
+                  <button
+                    onClick={() => setShowBrandingStepper(false)}
+                    style={{
+                      background: 'transparent',
+                      color: '#FFF1E7',
+                      border: '1px solid #EF8E81',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1.5rem',
+                      cursor: 'pointer',
+                      fontSize: '1rem'
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Reset Button */}
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+              <button
+                onClick={resetStepper}
+                style={{
+                  background: 'none',
+                  color: '#FFF1E7',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  opacity: 0.6,
+                  textDecoration: 'underline'
+                }}
+              >
+                Reset Progress
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Color Picker Modal */}
+      {showColorPicker && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.9)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001
+        }}>
+          <div style={{
+            background: '#22202F',
+            borderRadius: '16px',
+            padding: '2rem',
+            maxWidth: '700px',
+            width: '90%',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#FFF1E7' }}>
+                Choose Brand Colors
+              </h3>
+              <button
+                onClick={() => setShowColorPicker(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#FFF1E7',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  padding: '0.5rem'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '2rem' }}>
+              <p style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', opacity: 0.8 }}>
+                Select colors for: <strong>{activeItem}</strong>
+              </p>
+              
+              {/* HSB Color Picker */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem', marginBottom: '2rem' }}>
+                {/* Main Color Area */}
+                <div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7', fontSize: '0.875rem' }}>
+                      Color Preview
+                    </label>
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '120px',
+                        borderRadius: '12px',
+                        background: customColor,
+                        border: '2px solid rgba(255, 255, 255, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.5rem',
+                        color: currentColor.b < 50 ? '#FFF' : '#000',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                      }}
+                    >
+                      {customColor}
+                    </div>
+                  </div>
+
+                  {/* HSB Sliders */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {/* Hue Slider */}
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7', fontSize: '0.875rem' }}>
+                        Hue: {currentColor.h}°
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="range"
+                          min="0"
+                          max="360"
+                          value={currentColor.h}
+                          onChange={handleHueChange}
+                          style={{
+                            width: '100%',
+                            height: '8px',
+                            borderRadius: '4px',
+                            background: 'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)',
+                            outline: 'none',
+                            cursor: 'pointer'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Saturation Slider */}
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7', fontSize: '0.875rem' }}>
+                        Saturation: {currentColor.s}%
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={currentColor.s}
+                          onChange={handleSaturationChange}
+                          style={{
+                            width: '100%',
+                            height: '8px',
+                            borderRadius: '4px',
+                            background: `linear-gradient(to right, #808080 0%, ${hsbToHex(currentColor.h, 100, currentColor.b)} 100%)`,
+                            outline: 'none',
+                            cursor: 'pointer'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Brightness Slider */}
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7', fontSize: '0.875rem' }}>
+                        Brightness: {currentColor.b}%
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={currentColor.b}
+                          onChange={handleBrightnessChange}
+                          style={{
+                            width: '100%',
+                            height: '8px',
+                            borderRadius: '4px',
+                            background: `linear-gradient(to right, #000000 0%, ${hsbToHex(currentColor.h, currentColor.s, 100)} 100%)`,
+                            outline: 'none',
+                            cursor: 'pointer'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Hex Input */}
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', color: '#FFF1E7', fontSize: '0.875rem' }}>
+                        Hex Color
+                      </label>
+                      <input
+                        type="text"
+                        value={customColor}
+                        onChange={handleCustomColorChange}
+                        style={{
+                          width: '100%',
+                          background: '#1A1A1A',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          borderRadius: '8px',
+                          padding: '0.75rem',
+                          color: '#FFF1E7',
+                          fontSize: '1rem',
+                          fontFamily: 'monospace'
+                        }}
+                        placeholder="#FF0000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Color Palette */}
+                <div>
+                  <label style={{ display: 'block', marginBottom: '1rem', color: '#FFF1E7', fontSize: '1rem', fontWeight: 600 }}>
+                    Quick Colors
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                    {colorOptions.map((color, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          const hsb = hexToHsb(color);
+                          setCurrentColor(hsb);
+                          setCustomColor(color);
+                        }}
+                        style={{
+                          width: '60px',
+                          height: '60px',
+                          borderRadius: '12px',
+                          background: color,
+                          border: '3px solid rgba(255, 255, 255, 0.3)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1.25rem'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.1)';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                        }}
+                      >
+                        {customColor === color && '✓'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                <button
+                  onClick={() => handleColorSelect(customColor)}
+                  style={{
+                    background: '#5ECD7D',
+                    color: '#FFF1E7',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '0.75rem 1.5rem',
+                    cursor: 'pointer',
+                    fontSize: '1rem',
+                    fontWeight: 600
+                  }}
+                >
+                  Add This Color
+                </button>
+                <button
+                  onClick={() => setShowColorPicker(false)}
+                  style={{
+                    background: 'transparent',
+                    color: '#FFF1E7',
+                    border: '1px solid #EF8E81',
+                    borderRadius: '8px',
+                    padding: '0.75rem 1.5rem',
+                    cursor: 'pointer',
+                    fontSize: '1rem'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Font Selector Modal */}
+      {showFontSelector && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.9)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001
+        }}>
+          <div style={{
+            background: '#22202F',
+            borderRadius: '16px',
+            padding: '2rem',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#FFF1E7' }}>
+                Choose Brand Fonts
+              </h3>
+              <button
+                onClick={() => setShowFontSelector(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#FFF1E7',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  padding: '0.5rem'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '2rem' }}>
+              <p style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', opacity: 0.8 }}>
+                Select fonts for: <strong>{activeItem}</strong>
+              </p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {fontOptions.map((font, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleFontSelect(font)}
+                    style={{
+                      padding: '1rem',
+                      background: selectedFonts.includes(font) ? 'rgba(96, 205, 125, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                      border: selectedFonts.includes(font) ? '1px solid #5ECD7D' : '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!selectedFonts.includes(font)) {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!selectedFonts.includes(font)) {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      }
+                    }}
+                  >
+                    <div>
+                      <div style={{ 
+                        fontSize: '1.25rem', 
+                        color: '#FFF1E7', 
+                        fontWeight: 600,
+                        fontFamily: font,
+                        marginBottom: '0.25rem'
+                      }}>
+                        {font}
+                      </div>
+                      <div style={{ 
+                        fontSize: '0.875rem', 
+                        color: '#FFF1E7', 
+                        opacity: 0.7,
+                        fontFamily: font
+                      }}>
+                        The quick brown fox jumps over the lazy dog
+                      </div>
+                    </div>
+                    {selectedFonts.includes(font) && (
+                      <div style={{ color: '#5ECD7D', fontSize: '1.5rem' }}>✓</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              <button
+                onClick={() => setShowFontSelector(false)}
+                style={{
+                  background: 'transparent',
+                  color: '#FFF1E7',
+                  border: '1px solid #EF8E81',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer',
+                  fontSize: '1rem'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
