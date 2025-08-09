@@ -154,6 +154,11 @@ app.get('/debug/sentry-test', () => {
   throw new Error('Sentry test error');
 });
 
+// Alternate Sentry debug route (matches Sentry docs example)
+app.get('/debug-sentry', (_req, _res) => {
+  throw new Error('My first Sentry error!');
+});
+
 // Root endpoint
 app.get('/', (_req, res) => {
   res.json({

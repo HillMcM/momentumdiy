@@ -119,6 +119,9 @@ app.use('/api/profile', profile_1.default);
 app.get('/debug/sentry-test', () => {
     throw new Error('Sentry test error');
 });
+app.get('/debug-sentry', (_req, _res) => {
+    throw new Error('My first Sentry error!');
+});
 app.get('/', (_req, res) => {
     res.json({
         success: true,
