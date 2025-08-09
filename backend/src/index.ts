@@ -1,12 +1,13 @@
 // IMPORTANT: initialize Sentry before anything else
 import './instrument';
+import * as Sentry from '@sentry/node';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import { getSentryErrorHandler } from './observability/sentry';
+// Removed custom wrapper; use Sentry's express helpers directly
 import dotenv from 'dotenv';
 
 // Import routes
@@ -24,7 +25,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env['PORT'] || 3001;
 
-// Sentry request/tracing handlers are applied in instrument.ts via Sentry.init.
+// Sentry init is in instrument.ts. We'll attach the error handler below.
 
 // Ultra-permissive CORS for local development (placed FIRST)
 if ((process.env['NODE_ENV'] || 'development') !== 'production') {
@@ -186,7 +187,8 @@ app.use('*', (req, res) => {
 });
 
 // Global error handler
-app.use(getSentryErrorHandler());
+// Sentry error handler must be registered after routes and before other error middleware
+Sentry.setupExpressErrorHandler(app);
 app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Global error handler:', error);
   
