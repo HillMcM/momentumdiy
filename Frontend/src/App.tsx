@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
 import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
@@ -572,26 +572,28 @@ function ProtectedApp() {
 
   if (isLoading) {
     return (
-      <div className="app-shell">
+      <>
         <Header />
-        <Sidebar />
-        <main className="main-content">
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-            <div>Loading...</div>
-          </div>
-        </main>
-      </div>
+        <div className="app-shell">
+          <Sidebar />
+          <main className="main-content">
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+              <div>Loading...</div>
+            </div>
+          </main>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="app-shell">
+    <>
       <Header />
       <div className="app-shell">
         <Sidebar />
         <main className="main-content">
           <Routes>
-            <Route path="/app" element={
+            <Route index element={
               <Dashboard 
                 projects={projects}
                 tasks={tasks}
@@ -601,7 +603,7 @@ function ProtectedApp() {
                 onMarketingGoalsChange={handleMarketingGoalsChange}
               />
             } />
-            <Route path="/app/marketing-track" element={
+            <Route path="marketing-track" element={
               <MarketingTrackPage 
                 marketingGoals={marketingGoals}
                 onMarketingGoalsChange={handleMarketingGoalsChange}
@@ -611,7 +613,7 @@ function ProtectedApp() {
                 onProjectsChange={handleProjectsChange}
               />
             } />
-            <Route path="/app/task-tracker" element={
+            <Route path="task-tracker" element={
               <TaskTrackerPage 
                 tasks={tasks}
                 projects={projects}
@@ -619,20 +621,15 @@ function ProtectedApp() {
                 onProjectsChange={handleProjectsChange}
               />
             } />
-            <Route path="/app/ai-marketing-assistant" element={<AIMarketingAssistant />} />
-            <Route path="/app/manage-subscription" element={<Placeholder title="Manage Subscription" />} />
-            <Route path="/app/feedback" element={<Placeholder title="Feedback" />} />
-            <Route path="/terms" element={<Placeholder title="Terms & Conditions" />} />
+            <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
+            <Route path="manage-subscription" element={<Placeholder title="Manage Subscription" />} />
+            <Route path="feedback" element={<Placeholder title="Feedback" />} />
           </Routes>
           <FloatingAssistant />
         </main>
       </div>
-    </div>
+    </>
   );
-}
-
-function ProtectedLayout() {
-  return <Outlet />;
 }
 
 function App() {
@@ -646,9 +643,7 @@ function App() {
 
         {/* Protected */}
         <Route element={<ProtectedRoute />}>
-          <Route element={<ProtectedLayout />}>
-            <Route path="/app/*" element={<ProtectedApp />} />
-          </Route>
+          <Route path="/app/*" element={<ProtectedApp />} />
         </Route>
       </Routes>
     </Router>
