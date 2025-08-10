@@ -522,8 +522,14 @@ router.post('/consolidate-tasks', routeRateLimit(2), async (req: Request, res: R
       }
       // If we ended up with more than max groups due to rounding, merge last groups
       while (groups.length > maxTasks) {
-        const last = groups.pop()!;
-        groups[groups.length - 1].push(...last);
+        const last = groups.pop();
+        if (!last) break;
+        if (groups.length === 0) {
+          groups.push(last);
+          break;
+        }
+        const prev = groups[groups.length - 1];
+        if (prev) prev.push(...last);
       }
       // Ensure at least min groups: if fewer, split first group
       while (groups.length < minTasks && groups[0] && groups[0].length > 1) {
