@@ -9,6 +9,7 @@ interface AuthContextValue {
   signInWithEmail: (email: string) => Promise<{ ok: boolean; error?: string }>;
   signInWithPassword: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   signUpWithPassword: (email: string, password: string, fullName?: string) => Promise<{ ok: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ ok: boolean; error?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -107,6 +108,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const redirectTo = `${window.location.origin}/auth`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo }
+      });
+      if (error) return { ok: false, error: error.message };
+      // Browser will redirect; this promise may not resolve before navigation
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+    }
+  };
+
   const value: AuthContextValue = useMemo(() => ({
     user,
     session,
@@ -114,6 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithEmail,
     signInWithPassword,
     signUpWithPassword,
+    signInWithGoogle,
     signOut: async () => { await supabase.auth.signOut(); }
   }), [user, session, loading]);
 
