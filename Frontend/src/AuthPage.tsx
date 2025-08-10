@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { supabase } from './lib/supabase';
 
 export default function AuthPage() {
   const { signInWithEmail, user } = useAuth();
@@ -11,12 +12,25 @@ export default function AuthPage() {
   const location = useLocation();
 
   React.useEffect(() => {
-    // Handle magic link hash fragment (/#access_token=...)
+    // Handle magic link hash fragment (/#access_token=...&refresh_token=...)
     const hash = window.location.hash.replace('#', '');
-    if (hash && hash.includes('access_token')) {
-      // Supabase will process tokens automatically via onAuthStateChange
-      // Clear hash and redirect to app
-      window.history.replaceState(null, '', '/auth');
+    const params = new URLSearchParams(hash);
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    if (access_token && refresh_token) {
+      setStatus('Signing you in…');
+      supabase.auth
+        .setSession({ access_token, refresh_token })
+        .then(({ error }) => {
+          if (error) {
+            setStatus(`Sign-in failed: ${error.message}`);
+          } else {
+            // Clean the URL and redirect to app
+            window.history.replaceState(null, '', '/auth');
+            navigate('/app', { replace: true });
+          }
+        });
+      return; // wait for setSession
     }
 
     if (user) {
