@@ -6,10 +6,10 @@
   <title>MomentumDIY – Finally, a Marketing Plan Built for Real Small Business Owners</title>
   <meta name="description" content="90-day guided marketing tracks with weekly lessons, action items, and your own AI marketing assistant—no overwhelm, no jargon." />
 
-  <!-- Inter font -->
+  <!-- Poppins font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -22,6 +22,9 @@
             ink: '#0f172a',
             stone: '#0b1220'
           },
+          fontFamily: {
+            sans: ['Poppins', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'sans-serif']
+          },
           boxShadow: {
             soft: '0 10px 30px rgba(15, 23, 42, 0.08)'
           }
@@ -32,13 +35,13 @@
 
   <style>
     html { scroll-behavior: smooth; }
-    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; }
+    body { font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; }
     .hover-lift { transition: transform .25s ease, box-shadow .25s ease; }
     .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(15,23,42,.12); }
   </style>
 </head>
 
-<body class="bg-stone text-white">
+<body class="bg-stone text-white font-sans">
   <!-- Sticky mobile CTA -->
   <div class="fixed inset-x-0 bottom-3 z-50 px-4 sm:hidden">
     <a href="#cta" class="block text-center rounded-full bg-coral text-ink font-extrabold py-3 shadow-soft hover:brightness-95 active:scale-[0.98]">Start Free — No Credit Card</a>
@@ -46,11 +49,14 @@
 
   <!-- Hero -->
   <header class="relative overflow-hidden">
+    <!-- On-trend layered gradients -->
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,107,107,0.12)_0%,rgba(11,18,32,0)_60%)]"></div>
+    <div class="pointer-events-none absolute -top-24 -left-16 h-[420px] w-[420px] rounded-full bg-gradient-to-tr from-coral/40 via-fuchsia-500/25 to-sky-400/20 blur-3xl"></div>
+    <div class="pointer-events-none absolute -bottom-24 -right-16 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-sky-400/20 via-purple-500/20 to-coral/30 blur-3xl"></div>
     <div class="max-w-7xl mx-auto px-6 pt-6 pb-20 lg:pt-12">
       <nav class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <img src="/vite.svg" alt="" class="w-8 h-8" />
+          <img src="/assets/octopus_icon.png" alt="MomentumDIY octopus logo" class="w-8 h-8" />
           <span class="text-lg font-extrabold tracking-tight">MomentumDIY</span>
         </div>
         <div class="hidden sm:flex items-center gap-4">
@@ -79,7 +85,7 @@
 
         <!-- Right visual placeholder -->
         <div class="relative">
-          <div class="rounded-2xl bg-white/5 border border-white/10 p-3 shadow-soft">
+          <div class="rounded-2xl bg-white/5 border border-white/10 p-3 shadow-soft backdrop-blur-[1px]">
             <div class="aspect-[4/3] w-full rounded-xl bg-white/5 grid place-items-center text-white/70">
               <span class="text-sm">Product Screenshot / GIF Placeholder</span>
             </div>
@@ -271,5 +277,6 @@
   </script>
 </body>
 </html>
+
 
 
