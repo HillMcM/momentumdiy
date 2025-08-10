@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "export:notion": "tsx src/scripts/notion-export.ts",
     "seed:track-content": "tsx src/scripts/seed-track-content.ts",
+    "activate:first-five": "tsx src/scripts/activate-first-five.ts",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix"
