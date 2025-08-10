@@ -244,7 +244,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const completeAllTracksForPreview = useCallback(() => {
     const updated = marketingGoals.map(g => ({
       ...g,
-      isActive: false,
       currentWeek: g.duration,
       progress: 100,
       modules: g.modules.map(m => ({
@@ -619,8 +618,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           Marketing Tracks
         </h1>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={unlockAllWeeksAndExpand} style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', cursor: 'pointer' }}>Unlock & Expand</button>
-          <button onClick={completeAllTracksForPreview} style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.22)', color: '#EF8E81', cursor: 'pointer' }}>Complete All (Preview)</button>
+          <button type="button" onClick={() => unlockAllWeeksAndExpand()} style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', cursor: 'pointer' }}>Unlock & Expand</button>
+          <button type="button" onClick={() => completeAllTracksForPreview()} style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.22)', color: '#EF8E81', cursor: 'pointer' }}>Complete All (Preview)</button>
         </div>
       </div>
 
@@ -938,7 +937,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                       }}
                       onClick={() => {
                         const next = new Set(expandedWeeks);
-                        if (next.has(module.weekNumber)) next.delete(module.weekNumber); else next.add(module.weekNumber);
+                        if (next.has(module.weekNumber)) {
+                          next.delete(module.weekNumber);
+                        } else {
+                          next.add(module.weekNumber);
+                        }
                         setExpandedWeeks(next);
                       }}
                       onMouseEnter={(e) => {
