@@ -65,12 +65,12 @@ export default function AuthPage() {
     <div className="auth-root">
       <div className="auth-card">
         <h1>{mode === 'signup' ? 'Create your account' : 'Sign in'}</h1>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <div className="auth-tabs">
           <button type="button" onClick={() => setMode('signin')} disabled={mode==='signin'}>Password</button>
           <button type="button" onClick={() => setMode('magic')} disabled={mode==='magic'}>Magic link</button>
           <button type="button" onClick={() => setMode('signup')} disabled={mode==='signup'}>Sign up</button>
         </div>
-        <form onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleSubmit}>
           <input type="email" placeholder="you@example.com" value={email} onChange={(e)=>setEmail(e.target.value)} required />
           {mode !== 'magic' && (
             <input type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} required />
@@ -78,15 +78,13 @@ export default function AuthPage() {
           {mode === 'signup' && (
             <input type="text" placeholder="Full name (optional)" value={fullName} onChange={(e)=>setFullName(e.target.value)} />
           )}
-          <button type="submit" disabled={loading}>
+          <button className="auth-primary" type="submit" disabled={loading}>
             {loading ? 'Working…' : mode === 'magic' ? 'Send magic link' : (mode === 'signin' ? 'Sign in' : 'Create account')}
           </button>
         </form>
-        <div style={{ marginTop: 12 }}>
-          <button type="button" onClick={() => signInWithGoogle()}>
-            Continue with Google
-          </button>
-        </div>
+        <button className="auth-google" type="button" onClick={() => signInWithGoogle()}>
+          Continue with Google
+        </button>
         {status && <div className="auth-status">{status}</div>}
         <div className="auth-footer">
           <Link to="/">Back to site</Link>
