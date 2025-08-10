@@ -323,15 +323,17 @@ function ProtectedApp() {
       // Handle new tasks
       for (const newTask of newTasks) {
         console.log('Creating new task:', newTask.title);
-        const response = await apiService.createTask({
+        const looksLikeUuid = typeof newTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(newTask.projectId);
+        const payload: any = {
           title: newTask.title,
           description: newTask.description || '',
           responsible: newTask.responsible,
           status: newTask.status,
-          projectId: newTask.projectId,
           deadline: newTask.deadline,
-          project: newTask.project
-        });
+          project: newTask.project,
+        };
+        if (looksLikeUuid) payload.projectId = newTask.projectId;
+        const response = await apiService.createTask(payload);
         
         if (!response.success) {
           console.error('Failed to create task:', response.error);
@@ -344,17 +346,19 @@ function ProtectedApp() {
         const originalTask = tasks.find(t => t.id === updatedTask.id);
         if (originalTask && JSON.stringify(originalTask) !== JSON.stringify(updatedTask)) {
           console.log('Updating task:', updatedTask.title);
-          const response = await apiService.updateTask(updatedTask.id, {
+          const looksLikeUuid = typeof updatedTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(updatedTask.projectId);
+          const updatePayload: any = {
             title: updatedTask.title,
             description: updatedTask.description || '',
             responsible: updatedTask.responsible,
             status: updatedTask.status,
-            projectId: updatedTask.projectId,
             deadline: updatedTask.deadline,
             project: updatedTask.project,
             timeSpent: updatedTask.timeSpent,
             notifications: updatedTask.notifications
-          });
+          };
+          if (looksLikeUuid) updatePayload.projectId = updatedTask.projectId;
+          const response = await apiService.updateTask(updatedTask.id, updatePayload);
           
           if (!response.success) {
             console.error('Failed to update task:', response.error);
