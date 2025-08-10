@@ -4,7 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import { supabase } from './lib/supabase';
 
 export default function AuthPage() {
-  const { signInWithEmail, signInWithPassword, signUpWithPassword, user } = useAuth();
+  const { signInWithEmail, signInWithPassword, signUpWithPassword, signInWithGoogle, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -82,6 +82,11 @@ export default function AuthPage() {
             {loading ? 'Working…' : mode === 'magic' ? 'Send magic link' : (mode === 'signin' ? 'Sign in' : 'Create account')}
           </button>
         </form>
+        <div style={{ marginTop: 12 }}>
+          <button type="button" onClick={() => signInWithGoogle()}>
+            Continue with Google
+          </button>
+        </div>
         {status && <div className="auth-status">{status}</div>}
         <div className="auth-footer">
           <Link to="/">Back to site</Link>
