@@ -10,7 +10,11 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [mode, setMode] = useState<'signin' | 'signup'>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlMode = params.get('mode');
+    return urlMode === 'signup' ? 'signup' : 'signin';
+  });
   const navigate = useNavigate();
   const location = useLocation();
 
