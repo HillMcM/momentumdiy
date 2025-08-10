@@ -228,33 +228,25 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   // Fallback: use mock generator content/tasks when backend modules are empty
   const withFallback = (_goal: MarketingGoal, module: MarketingModule): MarketingModule => module;
 
-  // ---------- Test helpers (for admin review) ----------
-  const unlockAllWeeksAndExpand = useCallback(() => {
-    const maxWeek = Math.max(12, ...marketingGoals.map(g => g.duration || 12));
-    const allWeeks = new Set<number>();
-    for (let w = 1; w <= maxWeek; w++) allWeeks.add(w);
-    setExpandedWeeks(allWeeks);
-    const updated = marketingGoals.map(g => ({
-      ...g,
-      modules: g.modules.map(m => ({ ...m, isUnlocked: true }))
-    }));
+  // Complete current active track: unlock and mark all weeks complete, enable selection of others
+  const completeActiveTrackNow = useCallback(() => {
+    if (!activeGoal) return;
+    const updated = marketingGoals.map(g => {
+      if (g.id !== activeGoal.id) return g;
+      return {
+        ...g,
+        currentWeek: g.duration,
+        progress: 100,
+        modules: g.modules.map(m => ({
+          ...m,
+          isUnlocked: true,
+          isCompleted: true,
+          tasks: m.tasks.map(t => ({ ...t, isCompleted: true }))
+        }))
+      };
+    });
     onMarketingGoalsChange(updated);
-  }, [marketingGoals, onMarketingGoalsChange]);
-
-  const completeAllTracksForPreview = useCallback(() => {
-    const updated = marketingGoals.map(g => ({
-      ...g,
-      currentWeek: g.duration,
-      progress: 100,
-      modules: g.modules.map(m => ({
-        ...m,
-        isUnlocked: true,
-        isCompleted: true,
-        tasks: m.tasks.map(t => ({ ...t, isCompleted: true }))
-      }))
-    }));
-    onMarketingGoalsChange(updated);
-  }, [marketingGoals, onMarketingGoalsChange]);
+  }, [activeGoal, marketingGoals, onMarketingGoalsChange]);
 
   // Define createTasksFromMarketingModule before it's used in useEffect
   const createTasksFromMarketingModule = useCallback((goal: MarketingGoal, module: MarketingModule, projectId: string) => {
@@ -613,14 +605,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   return (
     <div className="widget" style={{ padding: '2rem', minHeight: '100vh', color: '#FFF1E7' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 700, color: '#FFF1E7', marginBottom: '0.5rem' }}>
           Marketing Tracks
         </h1>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button type="button" onClick={() => unlockAllWeeksAndExpand()} style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', cursor: 'pointer' }}>Unlock & Expand</button>
-          <button type="button" onClick={() => completeAllTracksForPreview()} style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.22)', color: '#EF8E81', cursor: 'pointer' }}>Complete All (Preview)</button>
-        </div>
       </div>
 
       {/* Active Track - Full Width Highlight */}
@@ -669,6 +657,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                 }}>
                   {activeGoal.currentWeek >= activeGoal.duration ? 'Completed' : `Active • Week ${activeGoal.currentWeek} of ${activeGoal.duration}`}
                 </span>
+                <button type="button" onClick={() => completeActiveTrackNow()} style={{ padding: '0.5rem 0.9rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.22)', color: '#EF8E81', cursor: 'pointer' }}>Complete Track (Preview)</button>
                                   {activeGoal.currentWeek < activeGoal.duration && activeGoal.weekStartDates && activeGoal.weekStartDates[activeGoal.currentWeek - 1] && (
                     <span style={{
                       background: 'rgba(104, 109, 202, 0.2)',
