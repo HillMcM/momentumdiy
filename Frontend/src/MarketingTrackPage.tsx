@@ -19,7 +19,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const [selectedModule, setSelectedModule] = useState<MarketingModule | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isCurrentWeekExpanded, setIsCurrentWeekExpanded] = useState(true);
-  const [expandedWeeks] = useState<Set<number>>(new Set());
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
   // Legacy modal state removed
 
   // Interactive task modal state
@@ -227,6 +227,35 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   // Fallback: use mock generator content/tasks when backend modules are empty
   const withFallback = (_goal: MarketingGoal, module: MarketingModule): MarketingModule => module;
+
+  // ---------- Test helpers (for admin review) ----------
+  const unlockAllWeeksAndExpand = useCallback(() => {
+    const maxWeek = Math.max(12, ...marketingGoals.map(g => g.duration || 12));
+    const allWeeks = new Set<number>();
+    for (let w = 1; w <= maxWeek; w++) allWeeks.add(w);
+    setExpandedWeeks(allWeeks);
+    const updated = marketingGoals.map(g => ({
+      ...g,
+      modules: g.modules.map(m => ({ ...m, isUnlocked: true }))
+    }));
+    onMarketingGoalsChange(updated);
+  }, [marketingGoals, onMarketingGoalsChange]);
+
+  const completeAllTracksForPreview = useCallback(() => {
+    const updated = marketingGoals.map(g => ({
+      ...g,
+      isActive: false,
+      currentWeek: g.duration,
+      progress: 100,
+      modules: g.modules.map(m => ({
+        ...m,
+        isUnlocked: true,
+        isCompleted: true,
+        tasks: m.tasks.map(t => ({ ...t, isCompleted: true }))
+      }))
+    }));
+    onMarketingGoalsChange(updated);
+  }, [marketingGoals, onMarketingGoalsChange]);
 
   // Define createTasksFromMarketingModule before it's used in useEffect
   const createTasksFromMarketingModule = useCallback((goal: MarketingGoal, module: MarketingModule, projectId: string) => {
@@ -585,13 +614,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   return (
     <div className="widget" style={{ padding: '2rem', minHeight: '100vh', color: '#FFF1E7' }}>
-      <div style={{ marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 700, color: '#FFF1E7', marginBottom: '0.5rem' }}>
           Marketing Tracks
         </h1>
-        <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '1.1rem' }}>
-          Strategic 12-week marketing programs designed for your industry
-        </p>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={unlockAllWeeksAndExpand} style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', cursor: 'pointer' }}>Unlock & Expand</button>
+          <button onClick={completeAllTracksForPreview} style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.22)', color: '#EF8E81', cursor: 'pointer' }}>Complete All (Preview)</button>
+        </div>
       </div>
 
       {/* Active Track - Full Width Highlight */}
@@ -906,7 +936,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                         borderBottomLeftRadius: expandedWeeks.has(module.weekNumber) ? '0' : '8px',
                         borderBottomRightRadius: expandedWeeks.has(module.weekNumber) ? '0' : '8px'
                       }}
-                      onClick={() => { /* collapsed weeks feature disabled in this iteration */ }}
+                      onClick={() => {
+                        const next = new Set(expandedWeeks);
+                        if (next.has(module.weekNumber)) next.delete(module.weekNumber); else next.add(module.weekNumber);
+                        setExpandedWeeks(next);
+                      }}
                       onMouseEnter={(e) => {
                         if (module.isUnlocked) {
                           e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
@@ -971,7 +1005,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                         {module.description}
                       </p>
 
-                      {module.isUnlocked && (
+                      {(module.isUnlocked || expandedWeeks.has(module.weekNumber)) && (
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
                             <span style={{ color: '#FFF1E7', fontSize: '0.75rem' }}>Tasks</span>
@@ -1003,7 +1037,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                     </div>
 
                     {/* Week Dropdown Content */}
-                    {expandedWeeks.has(module.weekNumber) && module.isUnlocked && (
+                    {expandedWeeks.has(module.weekNumber) && (module.isUnlocked) && (
                       <div style={{
                         background: 'rgba(255, 255, 255, 0.03)',
                         borderRadius: '0 0 8px 8px',
