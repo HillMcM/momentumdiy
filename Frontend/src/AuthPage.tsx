@@ -4,10 +4,13 @@ import { useAuth } from './contexts/AuthContext';
 import { supabase } from './lib/supabase';
 
 export default function AuthPage() {
-  const { signInWithEmail, user } = useAuth();
+  const { signInWithEmail, signInWithPassword, signUpWithPassword, user } = useAuth();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'magic' | 'signin' | 'signup'>('signin');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,11 +46,17 @@ export default function AuthPage() {
     e.preventDefault();
     setLoading(true);
     setStatus(null);
-    const res = await signInWithEmail(email);
-    if (res.ok) {
-      setStatus('Check your email for a magic sign-in link.');
+    let res: { ok: boolean; error?: string } = { ok: false };
+    if (mode === 'magic') {
+      res = await signInWithEmail(email);
+      setStatus(res.ok ? 'Check your email for a magic sign-in link.' : (res.error || 'Failed to send magic link'));
+    } else if (mode === 'signin') {
+      res = await signInWithPassword(email, password);
+      setStatus(res.ok ? null : (res.error || 'Sign in failed'));
     } else {
-      setStatus(res.error || 'Failed to send magic link');
+      res = await signUpWithPassword(email, password, fullName || undefined);
+      setStatus(res.ok ? 'Account created. You can now sign in.' : (res.error || 'Sign up failed'));
+      if (res.ok) setMode('signin');
     }
     setLoading(false);
   };
@@ -55,17 +64,23 @@ export default function AuthPage() {
   return (
     <div className="auth-root">
       <div className="auth-card">
-        <h1>Sign in</h1>
-        <p>We’ll email you a magic link to sign in.</p>
+        <h1>{mode === 'signup' ? 'Create your account' : 'Sign in'}</h1>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <button type="button" onClick={() => setMode('signin')} disabled={mode==='signin'}>Password</button>
+          <button type="button" onClick={() => setMode('magic')} disabled={mode==='magic'}>Magic link</button>
+          <button type="button" onClick={() => setMode('signup')} disabled={mode==='signup'}>Sign up</button>
+        </div>
         <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button type="submit" disabled={loading}>{loading ? 'Sending…' : 'Send magic link'}</button>
+          <input type="email" placeholder="you@example.com" value={email} onChange={(e)=>setEmail(e.target.value)} required />
+          {mode !== 'magic' && (
+            <input type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} required />
+          )}
+          {mode === 'signup' && (
+            <input type="text" placeholder="Full name (optional)" value={fullName} onChange={(e)=>setFullName(e.target.value)} />
+          )}
+          <button type="submit" disabled={loading}>
+            {loading ? 'Working…' : mode === 'magic' ? 'Send magic link' : (mode === 'signin' ? 'Sign in' : 'Create account')}
+          </button>
         </form>
         {status && <div className="auth-status">{status}</div>}
         <div className="auth-footer">
