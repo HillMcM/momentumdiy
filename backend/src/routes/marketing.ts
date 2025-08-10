@@ -4,6 +4,8 @@ import { NotionSyncService } from '../services/notionSyncService';
 import { Client as NotionClient } from '@notionhq/client';
 import { CreateMarketingGoalRequest, UpdateMarketingGoalRequest } from '../types';
 import { routeRateLimit } from '../middleware/rate';
+import { validate } from '../middleware/validate';
+import { supabase } from '../config/supabase';
 
 const router = Router();
 
@@ -91,7 +93,12 @@ router.get('/goals/:id', async (req: Request, res: Response) => {
  * POST /api/marketing/goals
  * Create a new marketing goal
  */
-router.post('/goals', async (req: Request, res: Response) => {
+router.post('/goals', routeRateLimit(10), validate((req) => {
+  const body = req.body || {};
+  if (!body.title) return 'Title is required';
+  if (!body.duration || body.duration < 1) return 'Duration must be at least 1 week';
+  return undefined;
+}), async (req: Request, res: Response) => {
   try {
     const goalData: CreateMarketingGoalRequest = req.body;
     
@@ -129,7 +136,7 @@ router.post('/goals', async (req: Request, res: Response) => {
  * PUT /api/marketing/goals/:id
  * Update an existing marketing goal
  */
-router.put('/goals/:id', async (req: Request, res: Response) => {
+router.put('/goals/:id', routeRateLimit(10), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const updates: UpdateMarketingGoalRequest = { ...req.body, id };
@@ -199,7 +206,12 @@ router.get('/goals/:id/modules', async (req: Request, res: Response) => {
  * POST /api/marketing/goals/:id/modules
  * Create a marketing module for a goal
  */
-router.post('/goals/:id/modules', async (req: Request, res: Response) => {
+router.post('/goals/:id/modules', routeRateLimit(20), validate((req) => {
+  const body = req.body || {};
+  if (!body.title) return 'Module title is required';
+  if (!body.weekNumber || body.weekNumber < 1) return 'Week number must be at least 1';
+  return undefined;
+}), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const moduleData = req.body;
@@ -264,7 +276,11 @@ router.get('/modules/:id/tasks', async (req: Request, res: Response) => {
  * POST /api/marketing/modules/:id/tasks
  * Create a marketing task for a module
  */
-router.post('/modules/:id/tasks', async (req: Request, res: Response) => {
+router.post('/modules/:id/tasks', routeRateLimit(60), validate((req) => {
+  const body = req.body || {};
+  if (!body.title) return 'Task title is required';
+  return undefined;
+}), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const taskData = req.body;
@@ -299,7 +315,11 @@ router.post('/modules/:id/tasks', async (req: Request, res: Response) => {
  * PATCH /api/marketing/tasks/:id/completion
  * Update marketing task completion status
  */
-router.patch('/tasks/:id/completion', async (req: Request, res: Response) => {
+router.patch('/tasks/:id/completion', routeRateLimit(60), validate((req) => {
+  const { isCompleted } = req.body || {};
+  if (typeof isCompleted !== 'boolean') return 'isCompleted must be a boolean';
+  return undefined;
+}), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const { isCompleted } = req.body;
@@ -400,6 +420,46 @@ router.post('/sync-notion/container', routeRateLimit(2), async (req: Request, re
     return res.json({ success: true, data: result, message: 'Synced from Notion container page' });
   } catch (error) {
     return res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Failed to sync from container' });
+  }
+});
+
+// Admin: Activate only selected goal titles (deactivate the rest)
+router.post('/activate-selected', routeRateLimit(2), async (req: Request, res: Response) => {
+  try {
+    const adminToken = req.header('x-admin-token') || req.header('X-Admin-Token');
+    if (!process.env['ADMIN_TOKEN']) {
+      return res.status(500).json({ success: false, error: 'ADMIN_TOKEN not configured on server' });
+    }
+    if (adminToken !== process.env['ADMIN_TOKEN']) {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+
+    const { titles } = req.body || {};
+    if (!Array.isArray(titles) || titles.length === 0) {
+      return res.status(400).json({ success: false, error: 'titles[] is required' });
+    }
+
+    const { data: goals, error } = await supabase
+      .from('marketing_goals')
+      .select('id, title, is_active');
+    if (error) return res.status(500).json({ success: false, error: error.message });
+
+    const titleSet = new Set((titles as string[]).map(t => t.trim().toLowerCase()));
+    const toActivate = (goals || []).filter(g => titleSet.has((g.title || '').toLowerCase())).map(g => g.id);
+    const toDeactivate = (goals || []).filter(g => !titleSet.has((g.title || '').toLowerCase())).map(g => g.id);
+
+    if (toActivate.length > 0) {
+      const { error: actErr } = await supabase.from('marketing_goals').update({ is_active: true }).in('id', toActivate);
+      if (actErr) return res.status(500).json({ success: false, error: actErr.message });
+    }
+    if (toDeactivate.length > 0) {
+      const { error: deErr } = await supabase.from('marketing_goals').update({ is_active: false }).in('id', toDeactivate);
+      if (deErr) return res.status(500).json({ success: false, error: deErr.message });
+    }
+
+    return res.json({ success: true, data: { activated: toActivate.length, deactivated: toDeactivate.length } });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Failed to activate selected' });
   }
 });
 
