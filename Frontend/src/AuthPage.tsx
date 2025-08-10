@@ -11,6 +11,14 @@ export default function AuthPage() {
   const location = useLocation();
 
   React.useEffect(() => {
+    // Handle magic link hash fragment (/#access_token=...)
+    const hash = window.location.hash.replace('#', '');
+    if (hash && hash.includes('access_token')) {
+      // Supabase will process tokens automatically via onAuthStateChange
+      // Clear hash and redirect to app
+      window.history.replaceState(null, '', '/auth');
+    }
+
     if (user) {
       const redirectTo = (location.state as any)?.from || '/app';
       navigate(redirectTo, { replace: true });
