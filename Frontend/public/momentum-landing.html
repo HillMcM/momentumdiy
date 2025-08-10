@@ -18,7 +18,7 @@
       theme: {
         extend: {
           colors: {
-            coral: '#FF6B6B',
+            coral: '#EF8E81',
             ink: '#0f172a',
             stone: '#0b1220'
           },
@@ -38,17 +38,29 @@
     body { font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; }
     .hover-lift { transition: transform .25s ease, box-shadow .25s ease; }
     .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(15,23,42,.12); }
+    :root {
+      --color-bg-gradient-from: #191628;
+      --color-bg-gradient-to: #65170C;
+    }
+    .bg-fun-1 {
+      background-color: var(--color-bg-gradient-from);
+      background-image: radial-gradient(1200px 600px at 20% 20%, var(--color-bg-gradient-to) 0%, var(--color-bg-gradient-from) 70%);
+    }
+    .bg-fun-2 {
+      background-color: var(--color-bg-gradient-from);
+      background-image: radial-gradient(1200px 600px at 80% 50%, var(--color-bg-gradient-from) 0%, var(--color-bg-gradient-to) 65%);
+    }
   </style>
 </head>
 
-<body class="bg-stone text-white font-sans">
+<body class="text-white font-sans">
   <!-- Sticky mobile CTA -->
   <div class="fixed inset-x-0 bottom-3 z-50 px-4 sm:hidden">
     <a href="#cta" class="block text-center rounded-full bg-coral text-ink font-extrabold py-3 shadow-soft hover:brightness-95 active:scale-[0.98]">Start Free — No Credit Card</a>
   </div>
 
   <!-- Hero -->
-  <header class="relative overflow-hidden">
+  <header class="relative overflow-hidden bg-fun-1">
     <!-- On-trend layered gradients -->
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,107,107,0.12)_0%,rgba(11,18,32,0)_60%)]"></div>
     <div class="pointer-events-none absolute -top-24 -left-16 h-[420px] w-[420px] rounded-full bg-gradient-to-tr from-coral/40 via-fuchsia-500/25 to-sky-400/20 blur-3xl"></div>
@@ -56,7 +68,7 @@
     <div class="max-w-7xl mx-auto px-6 pt-6 pb-20 lg:pt-12">
       <nav class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <img src="/assets/octopus_icon.png" alt="MomentumDIY octopus logo" class="w-8 h-8" />
+          <img src="/assets/octopus_icon.png" alt="MomentumDIY octopus logo" class="w-12 h-12" />
           <span class="text-lg font-extrabold tracking-tight">MomentumDIY</span>
         </div>
         <div class="hidden sm:flex items-center gap-4">
@@ -96,7 +108,7 @@
   </header>
 
   <!-- Founder note -->
-  <section class="bg-[#0e1526] py-16">
+  <section class="bg-fun-2 py-16">
     <div class="max-w-6xl mx-auto px-6 grid sm:grid-cols-[140px,1fr] gap-8 items-center">
       <div class="w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] rounded-full bg-white/10 border border-white/10 grid place-items-center text-white/60">
         Photo
@@ -110,7 +122,7 @@
   </section>
 
   <!-- How it works -->
-  <section id="how" class="py-16 bg-stone">
+  <section id="how" class="py-16 bg-fun-1">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-center text-3xl font-extrabold">How It Works</h2>
       <div class="mt-10 grid gap-6 sm:grid-cols-3">
@@ -135,7 +147,7 @@
   </section>
 
   <!-- Product visual tour -->
-  <section class="py-16 bg-[#0e1526]">
+  <section class="py-16 bg-fun-2">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-center text-3xl font-extrabold">Quick Tour</h2>
       <div class="mt-8 overflow-x-auto">
@@ -163,7 +175,7 @@
   </section>
 
   <!-- Benefits -->
-  <section class="py-16 bg-stone">
+  <section class="py-16 bg-fun-1">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-center text-3xl font-extrabold">Momentum, Not Just Marketing Tasks</h2>
       <div class="mt-10 grid gap-6 sm:grid-cols-3">
@@ -184,7 +196,7 @@
   </section>
 
   <!-- 3C Framework -->
-  <section class="py-16 bg-[#0e1526]">
+  <section class="py-16 bg-fun-2">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-center text-3xl font-extrabold">Built on the 3C Framework for Small Business Growth</h2>
       <div class="mt-10 grid gap-6 sm:grid-cols-3">
@@ -205,7 +217,7 @@
   </section>
 
   <!-- Roadmap -->
-  <section class="py-16 bg-stone">
+  <section class="py-16 bg-fun-1">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-center text-3xl font-extrabold">We’re Just Getting Started</h2>
       <ol class="mt-10 space-y-4">
@@ -217,7 +229,7 @@
   </section>
 
   <!-- Low-risk Offer -->
-  <section class="py-16 bg-[#0e1526]">
+  <section id="pricing" class="py-16 bg-fun-2">
     <div class="max-w-6xl mx-auto px-6 text-center">
       <p class="text-white/90 text-lg">Stop guessing and start making steady progress—without the overwhelm.</p>
       <a href="/auth" class="mt-6 inline-block rounded-full bg-coral text-ink font-extrabold px-6 py-3 shadow-soft hover:brightness-95 active:scale-[0.98]">Start Free Today</a>
@@ -226,7 +238,7 @@
   </section>
 
   <!-- FAQ -->
-  <section id="faq" class="py-16 bg-stone">
+  <section id="faq" class="py-16 bg-fun-1">
     <div class="max-w-4xl mx-auto px-6">
       <h2 class="text-center text-3xl font-extrabold">Frequently Asked Questions</h2>
       <div class="mt-8 divide-y divide-white/10 rounded-xl border border-white/10">
@@ -260,7 +272,7 @@
   </section>
 
   <!-- Footer -->
-  <footer class="py-10 bg-[#0e1526] text-white/80">
+  <footer class="py-10 bg-fun-2 text-white/80">
     <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
       <p class="text-sm">© <span id="year"></span> MomentumDIY</p>
       <nav class="flex items-center gap-5 text-sm">
