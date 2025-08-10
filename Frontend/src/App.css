@@ -718,8 +718,26 @@
 .landing-hero h1 { font-size: clamp(2rem, 5vw, 3rem); color: #FFF1E7; margin-bottom: 0.75rem; }
 .landing-hero p { max-width: 720px; margin: 0 auto 1rem; opacity: 0.9; }
 .landing-cta .cta-btn { display: inline-block; padding: 0.9rem 1.6rem; background: #EF8E81; color: #191628; border-radius: 999px; font-weight: 800; }
-.landing-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; padding: 2rem; max-width: 1000px; margin: 0 auto; }
+.landing-subtext { margin-top: 8px; opacity: 0.8; }
+.landing-section-title { text-align: center; margin: 0 auto 1rem; }
+.landing-features { padding: 1rem 2rem; max-width: 1100px; margin: 0 auto; }
+.landing-features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
 .feature { background: rgba(255,241,231,0.06); border: 1px solid rgba(239,142,129,0.2); border-radius: 12px; padding: 1rem; }
+.feature-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
+.landing-how { padding: 1rem 2rem; max-width: 1000px; margin: 0 auto; }
+.how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+.how-item { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,241,231,0.06); border: 1px solid rgba(239,142,129,0.2); border-radius: 12px; padding: 1rem; }
+.how-check { color: #EF8E81; font-weight: 900; }
+.landing-pricing { padding: 1rem 2rem; text-align: center; }
+.pricing-sub { opacity: 0.9; }
+.pricing-cards { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+.pricing-card { background: rgba(255,241,231,0.06); border: 1px solid rgba(239,142,129,0.2); border-radius: 12px; padding: 1rem 1.25rem; min-width: 220px; }
+.pricing-card.highlight { outline: 2px solid #EF8E81; }
+.price { font-size: 2rem; font-weight: 800; }
+.price span { font-size: 1rem; font-weight: 600; opacity: 0.8; margin-left: 4px; }
+.price-note { opacity: 0.85; font-size: 0.9rem; }
+.landing-faqs { padding: 1rem 2rem; max-width: 900px; margin: 0 auto; }
+.faq-list { opacity: 0.9; display: grid; gap: 6px; }
 .landing-footer { margin-top: auto; padding: 1rem 2rem; opacity: 0.8; }
 .auth-status { margin-top: 10px; color: #EF8E81; }
 .auth-footer { margin-top: 12px; }
