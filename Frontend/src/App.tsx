@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Outlet } from 'react-router-dom';
 import './App.css';
 import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
@@ -10,6 +10,10 @@ import OctopusLogo from './assets/octopus_icon.png';
 import { apiService } from './services/api';
 import AIMarketingAssistant from './AIMarketingAssistant';
 import FloatingAssistant from './FloatingAssistant';
+import ProtectedRoute from './ProtectedRoute';
+import LandingPage from './LandingPage';
+import AuthPage from './AuthPage';
+import { useAuth } from './contexts/AuthContext';
 
 // Comment out deactivated component imports to prevent build errors
 /*
@@ -25,13 +29,21 @@ import CreateEventModal from './CreateEventModal';
 */
 
 function Header() {
+  const { user, signOut } = useAuth();
   return (
     <header className="main-header">
       <div className="header-left">
         <img src={OctopusLogo} alt="MomentumDIY Logo" className="header-logo" />
         <span className="header-app-name">MomentumDIY</span>
       </div>
-      <button className="upgrade-btn">Upgrade</button>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <button className="upgrade-btn">Upgrade</button>
+        {user ? (
+          <button className="upgrade-btn" onClick={() => signOut()}>Sign out</button>
+        ) : (
+          <Link className="upgrade-btn" to="/auth">Sign in</Link>
+        )}
+      </div>
     </header>
   );
 }
@@ -53,36 +65,36 @@ function Sidebar() {
       <ul>
         <li>
           <Link 
-            to="/" 
-            className={isActive('/') ? 'active' : ''}
-            onClick={() => handleLinkClick('/')}
+            to="/app" 
+            className={isActive('/app') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app')}
           >
             Dashboard
           </Link>
         </li>
         <li>
           <Link 
-            to="/marketing-track" 
-            className={isActive('/marketing-track') ? 'active' : ''}
-            onClick={() => handleLinkClick('/marketing-track')}
+            to="/app/marketing-track" 
+            className={isActive('/app/marketing-track') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/marketing-track')}
           >
             Marketing Track
           </Link>
         </li>
         <li>
           <Link 
-            to="/task-tracker" 
-            className={isActive('/task-tracker') ? 'active' : ''}
-            onClick={() => handleLinkClick('/task-tracker')}
+            to="/app/task-tracker" 
+            className={isActive('/app/task-tracker') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/task-tracker')}
           >
             Task Tracker
           </Link>
         </li>
         <li>
           <Link 
-            to="/ai-marketing-assistant" 
-            className={isActive('/ai-marketing-assistant') ? 'active' : ''}
-            onClick={() => handleLinkClick('/ai-marketing-assistant')}
+            to="/app/ai-marketing-assistant" 
+            className={isActive('/app/ai-marketing-assistant') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/ai-marketing-assistant')}
           >
             AI Marketing Assistant
           </Link>
@@ -171,7 +183,7 @@ function Dashboard({
   );
 }
 
-function App() {
+function ProtectedApp() {
   console.log('App component rendering...');
   
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -560,28 +572,26 @@ function App() {
 
   if (isLoading) {
     return (
-      <Router>
+      <div className="app-shell">
         <Header />
-        <div className="app-shell">
-          <Sidebar />
-          <main className="main-content">
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-              <div>Loading...</div>
-            </div>
-          </main>
-        </div>
-      </Router>
+        <Sidebar />
+        <main className="main-content">
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <div>Loading...</div>
+          </div>
+        </main>
+      </div>
     );
   }
 
   return (
-    <Router>
+    <div className="app-shell">
       <Header />
       <div className="app-shell">
         <Sidebar />
         <main className="main-content">
           <Routes>
-            <Route path="/" element={
+            <Route path="/app" element={
               <Dashboard 
                 projects={projects}
                 tasks={tasks}
@@ -591,7 +601,7 @@ function App() {
                 onMarketingGoalsChange={handleMarketingGoalsChange}
               />
             } />
-            <Route path="/marketing-track" element={
+            <Route path="/app/marketing-track" element={
               <MarketingTrackPage 
                 marketingGoals={marketingGoals}
                 onMarketingGoalsChange={handleMarketingGoalsChange}
@@ -601,7 +611,7 @@ function App() {
                 onProjectsChange={handleProjectsChange}
               />
             } />
-            <Route path="/task-tracker" element={
+            <Route path="/app/task-tracker" element={
               <TaskTrackerPage 
                 tasks={tasks}
                 projects={projects}
@@ -609,58 +619,38 @@ function App() {
                 onProjectsChange={handleProjectsChange}
               />
             } />
-            <Route path="/ai-marketing-assistant" element={<AIMarketingAssistant />} />
-            
-            {/* Comment out non-core routes for now */}
-            {/*
-            <Route path="/calendar" element={
-              <CalendarPage
-                tasks={tasks}
-                projects={projects}
-                customEvents={customEvents}
-                onCustomEventsChange={setCustomEvents}
-                onEventClick={handleEventEdit}
-              />
-            } />
-            <Route path="/project-tracker" element={
-              <ProjectTrackerPage 
-                projects={projects}
-                tasks={tasks}
-                onProjectsChange={handleProjectsChange}
-              />
-            } />
-            <Route path="/asset-library" element={
-              <AssetLibraryPage 
-                assets={assets}
-                onAssetsChange={handleAssetsChange}
-                brandingKits={brandingKits}
-                onBrandingKitsChange={handleBrandingKitsChange}
-                shareLinks={shareLinks}
-                onShareLinksChange={handleShareLinksChange}
-              />
-            } />
-            */}
-            
-            {/* Keep these for future use */}
-            <Route path="/manage-subscription" element={<Placeholder title="Manage Subscription" />} />
-            <Route path="/feedback" element={<Placeholder title="Feedback" />} />
+            <Route path="/app/ai-marketing-assistant" element={<AIMarketingAssistant />} />
+            <Route path="/app/manage-subscription" element={<Placeholder title="Manage Subscription" />} />
+            <Route path="/app/feedback" element={<Placeholder title="Feedback" />} />
             <Route path="/terms" element={<Placeholder title="Terms & Conditions" />} />
           </Routes>
           <FloatingAssistant />
-          {/* Comment out CreateEventModal for now since calendar is deactivated */}
-          {/*
-          <CreateEventModal
-            event={null} // editingEvent was commented out, so it's null
-            open={false} // editingEvent was commented out, so it's false
-            startDate=""
-            projects={projects}
-            onSave={handleEventSave}
-            onCancel={handleEventCancel}
-            onDelete={handleEventDelete}
-          />
-          */}
         </main>
       </div>
+    </div>
+  );
+}
+
+function ProtectedLayout() {
+  return <Outlet />;
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Public */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/terms" element={<Placeholder title="Terms & Conditions" />} />
+
+        {/* Protected */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedLayout />}>
+            <Route path="/app/*" element={<ProtectedApp />} />
+          </Route>
+        </Route>
+      </Routes>
     </Router>
   );
 }
