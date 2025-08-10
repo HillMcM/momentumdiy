@@ -693,15 +693,20 @@
   cursor: pointer;
 }
 .auth-google {
-  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
   background: #FFF1E7;
   color: #191628;
   border: 1px solid rgba(239,142,129,0.3);
   font-weight: 700;
   cursor: pointer;
+  font-size: 0.95rem;
 }
+.auth-social { display: flex; justify-content: center; }
+.auth-section { padding: 6px 0; }
 .auth-status { margin-top: 10px; color: #EF8E81; }
 .auth-footer { margin-top: 12px; }
