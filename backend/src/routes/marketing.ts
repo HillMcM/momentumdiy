@@ -427,10 +427,11 @@ router.post('/sync-notion/container', routeRateLimit(2), async (req: Request, re
 router.post('/activate-selected', routeRateLimit(2), async (req: Request, res: Response) => {
   try {
     const adminToken = req.header('x-admin-token') || req.header('X-Admin-Token');
-    if (!process.env['ADMIN_TOKEN']) {
+    const serverToken = process.env['ADMIN_TOKEN'] || process.env['ADMIN_KEY'];
+    if (!serverToken) {
       return res.status(500).json({ success: false, error: 'ADMIN_TOKEN not configured on server' });
     }
-    if (adminToken !== process.env['ADMIN_TOKEN']) {
+    if (adminToken !== serverToken) {
       return res.status(403).json({ success: false, error: 'Forbidden' });
     }
 
@@ -467,10 +468,11 @@ router.post('/activate-selected', routeRateLimit(2), async (req: Request, res: R
 router.post('/consolidate-tasks', routeRateLimit(2), async (req: Request, res: Response) => {
   try {
     const adminToken = req.header('x-admin-token') || req.header('X-Admin-Token');
-    if (!process.env['ADMIN_TOKEN']) {
+    const serverToken = process.env['ADMIN_TOKEN'] || process.env['ADMIN_KEY'];
+    if (!serverToken) {
       return res.status(500).json({ success: false, error: 'ADMIN_TOKEN not configured on server' });
     }
-    if (adminToken !== process.env['ADMIN_TOKEN']) {
+    if (adminToken !== serverToken) {
       return res.status(403).json({ success: false, error: 'Forbidden' });
     }
 
