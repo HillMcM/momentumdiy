@@ -647,7 +647,7 @@ function ProtectedApp() {
       <>
         <Header />
         <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
-          <Sidebar hidden={sidebarHidden} />
+          <Sidebar hidden={sidebarHidden} onToggle={() => setSidebarHidden(s => !s)} />
           <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
             <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
           </div>
