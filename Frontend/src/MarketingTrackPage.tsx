@@ -47,7 +47,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const [baseline, setBaseline] = useState<BaselineState>(() => ({ ...(emptyBaseline as Record<PlatformKey, BaselineMetrics>) } as BaselineState));
   const [selectedPlatformTab, setSelectedPlatformTab] = useState<PlatformKey>('instagram');
   const [pillars, setPillars] = useState<string[]>(['', '', '', '']);
-  const [pillarsSaved, setPillarsSaved] = useState<boolean>(false);
   const [loadingInline] = useState<boolean>(false);
   const [inlineError] = useState<string | null>(null);
 
@@ -67,11 +66,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     if (resp.success) setBaseline(prev => ({ ...(prev as BaselineState), saved: true }));
   };
 
-  const savePillars = async () => {
-    const trimmed = pillars.map(p => p.trim()).filter(Boolean);
-    const resp = await apiService.saveContentPillars(trimmed);
-    if (resp.success) setPillarsSaved(true);
-  };
+  // Removed pillars saver in favor of selecting pillars in the main section
 
   // Ref to track processed goals to prevent infinite loops
   const processedGoalsRef = useRef<Set<string>>(new Set());
