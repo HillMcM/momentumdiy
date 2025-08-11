@@ -43,13 +43,19 @@
 
 /* App Shell Layout */
 .app-shell {
-  display: flex;
+  display: grid;
+  grid-template-columns: 240px 1fr;
   min-height: 100vh;
   background: transparent;
   color: #fff;
   max-width: none;
   margin: 0;
   padding: 0;
+  transition: grid-template-columns 0.25s ease;
+}
+
+.app-shell.collapsed {
+  grid-template-columns: 0 1fr;
 }
 
 /* Sidebar Styles */
@@ -72,12 +78,7 @@
   display: flex;
   flex-direction: column;
   padding: 24px 0;
-  flex-shrink: 0;
-  transition: transform 0.25s ease;
-}
-
-.sidebar.hidden {
-  transform: translateX(-110%);
+  overflow: hidden;
 }
 .sidebar-header {
   font-size: 1.2rem;
