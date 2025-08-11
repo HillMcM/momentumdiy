@@ -350,6 +350,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     return 'Keep it simple. Ship one useful asset this week and announce it everywhere you show up.';
   };
 
+  // Default pillar options used for chips and dropdowns
+  const DEFAULT_PILLAR_OPTIONS: string[] = [
+    'Your Products/Services',
+    'Behind-the-Scenes / Business Life',
+    'Customer Stories / Testimonials',
+    'Tips & Education',
+    'Promotions / Sales / Events',
+    'Personal Story / Values',
+    'Local Love / Community',
+    'Visual Inspiration'
+  ];
+
   type Stage = 'early' | 'mid' | 'growth';
   const getStagesForGoal = (title: string): Stage[] => {
     const t = title.toLowerCase();
@@ -1251,21 +1263,22 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             <div style={{ marginTop: '0.25rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '0.9rem' }}>
                               <div style={{ color: '#FFF1E7', marginBottom: '0.5rem', fontWeight: 700 }}>Choose your 3–4 content pillars</div>
                               {/* Removed rationale copy from section per request; shown inside task modal instead */}
-                              {/* Custom pillar input */}
+                              {/* Custom pillar input → creates a selectable pill */}
                               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                 <input value={newPillarDraft} onChange={e => setNewPillarDraft(e.target.value)} placeholder="Add a custom pillar…" style={{ ...inputBaseStyle, flex: 1 }} />
                                 <button onClick={() => {
                                   const trimmed = newPillarDraft.trim();
                                   if (!trimmed) return;
                                   const current = contentPillarsByGoal[activeGoal.id] || [];
-                                  if (current.includes(trimmed)) { setNewPillarDraft(''); return; }
-                                  const next = [...current, trimmed].slice(0, 4);
+                                  // Toggle behavior: if exists, remove; if not, add (cap at 4)
+                                  const exists = current.includes(trimmed);
+                                  const next = exists ? current.filter(x => x !== trimmed) : [...current, trimmed].slice(0, 4);
                                   savePillarsLocalAndRemote(activeGoal.id, next);
                                   setNewPillarDraft('');
                                 }} style={{ padding: '6px 10px' }}>Add</button>
                               </div>
                               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                {['Your Products/Services','Behind-the-Scenes / Business Life','Customer Stories / Testimonials','Tips & Education','Promotions / Sales / Events','Personal Story / Values','Local Love / Community','Visual Inspiration'].map(p => {
+                                {DEFAULT_PILLAR_OPTIONS.map(p => {
                                   const selected = (contentPillarsByGoal[activeGoal.id] || []).includes(p);
                                   return (
                                     <button key={p} onClick={() => {
@@ -1277,6 +1290,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     </button>
                                   );
                                 })}
+                                {/* Render custom-selected pillars as chips too */}
+                                {(contentPillarsByGoal[activeGoal.id] || [])
+                                  .filter(p => !DEFAULT_PILLAR_OPTIONS.includes(p))
+                                  .map(p => (
+                                    <button key={`custom-${p}`} onClick={() => {
+                                      const current = contentPillarsByGoal[activeGoal.id] || [];
+                                      const next = current.includes(p) ? current.filter(x => x !== p) : [...current, p].slice(0, 4);
+                                      savePillarsLocalAndRemote(activeGoal.id, next);
+                                    }} style={{ padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: '#EF8E81', color: '#191628', cursor: 'pointer', fontWeight: 700 }}>
+                                      {p}
+                                    </button>
+                                  ))}
                               </div>
                               <div style={{ marginTop: 8, color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>
                                 Selected: {(contentPillarsByGoal[activeGoal.id] || []).join(', ') || 'None selected yet'}
@@ -1327,12 +1352,16 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                         </td>
                                         <td style={{ padding: '8px' }}>
                                           <select value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
-                                            {(['Your Products/Services','Behind-the-Scenes / Business Life','Customer Stories / Testimonials','Tips & Education','Promotions / Sales / Events','Personal Story / Values','Local Love / Community','Visual Inspiration'] as string[]).map(opt => (
-                                              <option key={opt} value={opt}>{opt}</option>
-                                            ))}
-                                            {(contentPillarsByGoal[activeGoal.id] || []).filter(p => !['Your Products/Services','Behind-the-Scenes / Business Life','Customer Stories / Testimonials','Tips & Education','Promotions / Sales / Events','Personal Story / Values','Local Love / Community','Visual Inspiration'].includes(p)).map(opt => (
-                                              <option key={`custom-${opt}`} value={opt}>{opt}</option>
-                                            ))}
+                                            {(contentPillarsByGoal[activeGoal.id] || DEFAULT_PILLAR_OPTIONS)
+                                              .filter(p => (contentPillarsByGoal[activeGoal.id] || []).includes(p))
+                                              .map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                              ))}
+                                            {(contentPillarsByGoal[activeGoal.id] || [])
+                                              .filter(p => !DEFAULT_PILLAR_OPTIONS.includes(p))
+                                              .map(opt => (
+                                                <option key={`custom-${opt}`} value={opt}>{opt}</option>
+                                              ))}
                                           </select>
                                         </td>
                                         <td style={{ padding: '8px' }}>
