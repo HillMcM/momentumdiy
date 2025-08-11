@@ -45,6 +45,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   ) as Record<PlatformKey, BaselineMetrics>;
   type BaselineState = Record<PlatformKey, BaselineMetrics> & { saved?: boolean };
   const [baseline, setBaseline] = useState<BaselineState>(() => ({ ...(emptyBaseline as Record<PlatformKey, BaselineMetrics>) } as BaselineState));
+  const [selectedPlatformTab, setSelectedPlatformTab] = useState<PlatformKey>('instagram');
   const [pillars, setPillars] = useState<string[]>(['', '', '', '']);
   const [pillarsSaved, setPillarsSaved] = useState<boolean>(false);
   const [loadingInline] = useState<boolean>(false);
@@ -637,30 +638,41 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         <div>
           <h2 style={{ marginTop: 0 }}>{t.title}</h2>
           <p style={{ opacity: 0.85 }}>{t.description}</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Platform tabs */}
+          <div style={{ display: 'flex', gap: '6px', margin: '8px 0 12px' }}>
             {PLATFORM_KEYS.map(({ key, label }) => (
-              <div key={key} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
-                <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#FFF1E7' }}>{label}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-                  <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                    Followers
-                    <input value={baseline[key].followers} onChange={e => setBaseline(b => ({ ...b, [key]: { ...b[key], followers: e.target.value } }))} style={inputBaseStyle} />
-                  </label>
-                  <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                    Avg Likes
-                    <input value={baseline[key].avgLikes} onChange={e => setBaseline(b => ({ ...b, [key]: { ...b[key], avgLikes: e.target.value } }))} style={inputBaseStyle} />
-                  </label>
-                  <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                    Avg Comments
-                    <input value={baseline[key].avgComments} onChange={e => setBaseline(b => ({ ...b, [key]: { ...b[key], avgComments: e.target.value } }))} style={inputBaseStyle} />
-                  </label>
-                  <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                    Avg Story Views
-                    <input value={baseline[key].avgStoryViews} onChange={e => setBaseline(b => ({ ...b, [key]: { ...b[key], avgStoryViews: e.target.value } }))} style={inputBaseStyle} />
-                  </label>
-                </div>
-              </div>
+              <button key={key} onClick={() => setSelectedPlatformTab(key)} style={{
+                padding: '6px 10px',
+                borderRadius: 999,
+                border: '1px solid rgba(255,255,255,0.15)',
+                background: selectedPlatformTab === key ? '#EF8E81' : 'transparent',
+                color: selectedPlatformTab === key ? '#191628' : '#FFF1E7',
+                cursor: 'pointer',
+                fontWeight: 700
+              }}>{label}</button>
             ))}
+          </div>
+          {/* Selected platform fields */}
+          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
+            <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#FFF1E7' }}>{PLATFORM_KEYS.find(p => p.key === selectedPlatformTab)?.label}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+              <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                Followers
+                <input value={baseline[selectedPlatformTab].followers} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], followers: e.target.value } }))} style={inputBaseStyle} />
+              </label>
+              <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                Avg Likes
+                <input value={baseline[selectedPlatformTab].avgLikes} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgLikes: e.target.value } }))} style={inputBaseStyle} />
+              </label>
+              <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                Avg Comments
+                <input value={baseline[selectedPlatformTab].avgComments} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgComments: e.target.value } }))} style={inputBaseStyle} />
+              </label>
+              <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                Avg Story Views
+                <input value={baseline[selectedPlatformTab].avgStoryViews} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgStoryViews: e.target.value } }))} style={inputBaseStyle} />
+              </label>
+            </div>
           </div>
           <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <button onClick={saveBaseline} disabled={loadingInline} style={{ padding: '0.4rem 0.9rem' }}>Save</button>
