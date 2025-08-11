@@ -328,6 +328,20 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ] as any;
         return { ...module, title: 'Brand Voice + Visual Basics', description: 'Clarify how you sound and look so content is recognizable.', content, tasks };
       }
+      if (module.weekNumber === 4) {
+        const content = [
+          'This week: Create your 3 core post types — Educate, Promote, Connect — tailored to your brand voice and pillars.',
+          '',
+          'Educate: Teach something useful related to your offer.',
+          'Promote: Spotlight a product/service in a value-forward way.',
+          'Connect: Humanize your brand with stories, BTS, and moments.',
+        ].join('\n');
+        const tasks = [
+          { id: `${module.id}-w4-define`, title: 'Define your 3 core post types', description: 'Write a short angle and 1–2 prompts for Educate, Promote, Connect based on your industry and voice.', estimatedTime: '10m', isCompleted: false },
+          { id: `${module.id}-w4-draft`, title: 'Draft 3 sample captions (one per type)', description: 'Draft short captions you can reuse or refine for each type.', estimatedTime: '15m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Your 3 Go‑To Post Types', description: 'Never wonder what to post — rotate Educate, Promote, Connect.', content, tasks };
+      }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
@@ -404,6 +418,27 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const saveStyleGuide = (goalId: string, sg: MiniStyleGuide) => { setStyleGuideByGoal(prev => ({ ...prev, [goalId]: sg })); try { localStorage.setItem(`styleguide:${goalId}`, JSON.stringify(sg)); } catch {} };
   const saveTypography = (goalId: string, tp: TypographyChoice) => { setTypographyByGoal(prev => ({ ...prev, [goalId]: tp })); try { localStorage.setItem(`typography:${goalId}`, JSON.stringify(tp)); } catch {} };
   const savePalette = (goalId: string, pal: Palette) => { setPaletteByGoal(prev => ({ ...prev, [goalId]: pal })); try { localStorage.setItem(`palette:${goalId}`, JSON.stringify(pal)); } catch {} };
+
+  // Week 4: 3 core post types definitions (persist per-goal)
+  type PostTypeDef = { angle: string; prompts: string[]; caption: string };
+  type PostTypes = { educate: PostTypeDef; promote: PostTypeDef; connect: PostTypeDef };
+  const emptyPostTypes: PostTypes = {
+    educate: { angle: '', prompts: ['', ''], caption: '' },
+    promote: { angle: '', prompts: ['', ''], caption: '' },
+    connect: { angle: '', prompts: ['', ''], caption: '' },
+  };
+  const [postTypesByGoal, setPostTypesByGoal] = useState<Record<string, PostTypes>>({});
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const raw = localStorage.getItem(`posttypes:${activeGoal.id}`);
+      if (raw) setPostTypesByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as PostTypes }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const savePostTypes = (goalId: string, next: PostTypes) => {
+    setPostTypesByGoal(prev => ({ ...prev, [goalId]: next }));
+    try { localStorage.setItem(`posttypes:${goalId}`, JSON.stringify(next)); } catch {}
+  };
 
   type Stage = 'early' | 'mid' | 'growth';
   const getStagesForGoal = (title: string): Stage[] => {
@@ -1417,6 +1452,42 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 );
                               })()}
                             </div>
+                          </div>
+                        )}
+
+                        {/* Week 4: Define 3 Core Post Types (Educate, Promote, Connect) */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 4 && (
+                          <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                            {(['educate','promote','connect'] as const).map((key) => {
+                              const titles: Record<'educate'|'promote'|'connect', string> = {
+                                educate: 'Educate (Teach Something Useful)',
+                                promote: 'Promote (Sell without selling)',
+                                connect: 'Connect (Humanize your brand)'
+                              };
+                              const pt = (postTypesByGoal[activeGoal.id] || emptyPostTypes)[key];
+                              const update = (upd: Partial<PostTypeDef>) => {
+                                const current = postTypesByGoal[activeGoal.id] || emptyPostTypes;
+                                const next: PostTypes = { ...current, [key]: { ...current[key], ...upd } } as PostTypes;
+                                savePostTypes(activeGoal.id, next);
+                              };
+                              return (
+                                <div key={key} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                                  <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>{titles[key]}</h6>
+                                  <label style={{ display: 'block', marginBottom: 6 }}>Angle
+                                    <input value={pt.angle} onChange={e => update({ angle: e.target.value })} style={inputBaseStyle} placeholder="What’s your spin? e.g., ‘Practical, local-friendly tips’" />
+                                  </label>
+                                  <label style={{ display: 'block', marginBottom: 6 }}>Prompt 1
+                                    <input value={pt.prompts[0] || ''} onChange={e => update({ prompts: [e.target.value, pt.prompts[1] || ''] })} style={inputBaseStyle} placeholder="Prompt idea…" />
+                                  </label>
+                                  <label style={{ display: 'block', marginBottom: 6 }}>Prompt 2
+                                    <input value={pt.prompts[1] || ''} onChange={e => update({ prompts: [pt.prompts[0] || '', e.target.value] })} style={inputBaseStyle} placeholder="Another prompt…" />
+                                  </label>
+                                  <label style={{ display: 'block' }}>Sample caption
+                                    <textarea value={pt.caption} onChange={e => update({ caption: e.target.value })} style={{ ...inputBaseStyle, minHeight: 90 }} placeholder="Draft a short reusable caption…" />
+                                  </label>
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
 
