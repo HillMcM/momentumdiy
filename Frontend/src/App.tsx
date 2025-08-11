@@ -58,7 +58,7 @@ function SidebarToggle({ onClick, className }: { onClick: () => void; className?
   );
 }
 
-function Sidebar({ hidden }: { hidden: boolean }) {
+function Sidebar({ hidden, onToggle }: { hidden: boolean; onToggle: () => void }) {
   const location = useLocation();
   const { user } = useAuth();
   const deriveNameFromUser = (u: any | null) => {
@@ -100,8 +100,8 @@ function Sidebar({ hidden }: { hidden: boolean }) {
   return (
     <nav className={`sidebar${hidden ? ' hidden' : ''}`}>
       {!hidden && (
-        <div style={{ position: 'absolute', top: 16, right: 12 }}>
-          <SidebarToggle className="sidebar-toggle" onClick={() => window.dispatchEvent(new CustomEvent('toggle-sidebar'))} />
+        <div style={{ position: 'absolute', top: 8, right: 8 }}>
+          <SidebarToggle onClick={onToggle} />
         </div>
       )}
       <Link to="/app/profile" className="sidebar-header" style={{ display: 'block', textDecoration: 'none' }}>
@@ -665,7 +665,7 @@ function ProtectedApp() {
     <>
       <Header />
       <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
-        <Sidebar hidden={sidebarHidden} />
+        <Sidebar hidden={sidebarHidden} onToggle={() => setSidebarHidden(s => !s)} />
         {/* Attach opener only when collapsed */}
         {sidebarHidden && (
           <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
