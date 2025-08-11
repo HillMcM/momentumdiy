@@ -668,9 +668,7 @@ function ProtectedApp() {
         <Sidebar hidden={sidebarHidden} onToggle={() => setSidebarHidden(s => !s)} />
         {/* Attach opener only when collapsed */}
         {sidebarHidden && (
-          <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
-            <SidebarToggle onClick={() => setSidebarHidden(false)} />
-          </div>
+          <SidebarToggle className="sidebar-opener" onClick={() => setSidebarHidden(false)} />
         )}
         <main className="main-content">
           <Routes>
