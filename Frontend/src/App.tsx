@@ -4,6 +4,7 @@ import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
 import MarketingTrackWidget from './MarketingTrackWidget';
 import MarketingTrackPage from './MarketingTrackPage';
+import SocialProfileManager from './SocialProfileManager';
 import ProfilePage from './ProfilePage';
 import { useState, useEffect } from 'react';
 import type { Project, Task, MarketingGoal } from './types';
@@ -58,7 +59,7 @@ function SidebarToggle({ onClick, className }: { onClick: () => void; className?
   );
 }
 
-function Sidebar({ hidden, onToggle }: { hidden: boolean; onToggle: () => void }) {
+function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; onToggle: () => void; showProfileManager?: boolean }) {
   const location = useLocation();
   const { user } = useAuth();
   const deriveNameFromUser = (u: any | null) => {
@@ -135,6 +136,17 @@ function Sidebar({ hidden, onToggle }: { hidden: boolean; onToggle: () => void }
             Marketing Track
           </Link>
         </li>
+        {showProfileManager && (
+          <li>
+            <Link 
+              to="/app/profile-manager" 
+              className={isActive('/app/profile-manager') ? 'active' : ''}
+              onClick={() => handleLinkClick('/app/profile-manager')}
+            >
+              Social Profile Manager
+            </Link>
+          </li>
+        )}
         <li>
           <Link 
             to="/app/task-tracker" 
@@ -665,7 +677,7 @@ function ProtectedApp() {
     <>
       <Header />
       <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
-        <Sidebar hidden={sidebarHidden} onToggle={() => setSidebarHidden(s => !s)} />
+        <Sidebar hidden={sidebarHidden} onToggle={() => setSidebarHidden(s => !s)} showProfileManager={Boolean(marketingGoals.find(g => g.isActive && g.currentWeek >= g.duration))} />
         {/* Attach opener only when collapsed */}
         {sidebarHidden && (
           <SidebarToggle className="sidebar-opener" onClick={() => setSidebarHidden(false)} />
@@ -693,6 +705,7 @@ function ProtectedApp() {
                 onProjectsChange={handleProjectsChange}
               />
             } />
+            <Route path="profile-manager" element={<SocialProfileManager marketingGoals={marketingGoals} />} />
             <Route path="task-tracker" element={
               <TaskTrackerPage 
                 tasks={tasks}
