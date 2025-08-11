@@ -863,6 +863,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         <div>
           <h2 style={{ marginTop: 0 }}>{t.title}</h2>
           <p style={{ opacity: 0.85 }}>{t.description}</p>
+          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem', marginBottom: '0.75rem' }}>
+            <div style={{ fontWeight: 700, color: '#FFF1E7', marginBottom: '0.25rem' }}>Why create content pillars?</div>
+            <p style={{ margin: 0, opacity: 0.85 }}>
+              Content pillars are the repeatable themes that shape your message. They give you clarity, make planning faster,
+              and help your audience understand what you stand for. Once you lock them, your weekly plan becomes plug‑and‑play.
+            </p>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
             {pillars.map((p, idx) => (
               <label key={idx}>
@@ -1222,11 +1229,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     <span style={{ marginRight: 6 }}>{getTaskIcon(task.title)}</span>
                                     {task.title}
                                   </div>
-                                    {module.weekNumber === 2 && task.title.toLowerCase().includes('choose your 3–4 content pillars') && (
-                                      <div style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                                        <strong>Why create content pillars?</strong> Content pillars are the repeatable themes that shape your message. They give you clarity, make planning faster, and help your audience understand what you stand for. Once you lock them, your weekly plan becomes plug‑and‑play.
-                                      </div>
-                                    )}
+                                    {/* Remove rationale from preview; it will appear in the modal */}
                                     <div style={{ color: '#FFF1E7', opacity: 0.7, fontSize: '0.8rem', marginBottom: '0.25rem' }}>
                                       {task.description}
                                     </div>
@@ -1241,10 +1244,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                           <div style={{ gridColumn: '1 / -1' }}>
                             <div style={{ marginTop: '0.25rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '0.9rem' }}>
                               <div style={{ color: '#FFF1E7', marginBottom: '0.5rem', fontWeight: 700 }}>Choose your 3–4 content pillars</div>
-                              <div style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                                Content pillars are the repeatable themes that shape your message. They give you clarity, make planning faster,
-                                and help your audience understand what you stand for. Once you lock them, your weekly plan becomes plug‑and‑play.
-                              </div>
+                              {/* Removed rationale copy from section per request; shown inside task modal instead */}
                               {/* Custom pillar input */}
                               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                 <input value={newPillarDraft} onChange={e => setNewPillarDraft(e.target.value)} placeholder="Add a custom pillar…" style={{ ...inputBaseStyle, flex: 1 }} />
