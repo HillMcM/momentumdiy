@@ -78,8 +78,8 @@
 /* Floating opener keeps the same X axis near the logo when sidebar is collapsed */
 .sidebar-opener {
   position: fixed;
-  top: 80px;                 /* below header, same vertical as in-sidebar */
-  left: calc(240px - 32px);  /* align to the former sidebar right edge */
+  top: 80px;       /* below header */
+  left: 16px;      /* slide further left near the page edge */
   z-index: 120;
   background: transparent;
   border: none;
