@@ -62,7 +62,7 @@
 /* Sidebar Styles */
 .sidebar-toggle {
   position: absolute;
-  top: 88px;
+  top: 76px;
   left: 248px;
   z-index: 101;
   background: transparent;
@@ -71,6 +71,7 @@
   border-radius: 999px;
   padding: 4px;
   cursor: pointer;
+  outline: none;
 }
 .app-shell.collapsed .sidebar-toggle { left: 8px; }
 
