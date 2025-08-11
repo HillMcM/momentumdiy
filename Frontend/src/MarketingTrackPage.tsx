@@ -446,7 +446,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       }
     } catch {}
   }, [activeGoal?.id]);
-  const savePillars = (goalId: string, pillars: string[]) => {
+  const savePillarsLocal = (goalId: string, pillars: string[]) => {
     setContentPillarsByGoal(prev => ({ ...prev, [goalId]: pillars }));
     try { localStorage.setItem(`pillars:${goalId}`, JSON.stringify(pillars)); } catch {}
   };
@@ -1242,7 +1242,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     <button key={p} onClick={() => {
                                       const current = contentPillarsByGoal[activeGoal.id] || [];
                                       const next = selected ? current.filter(x => x !== p) : [...current, p].slice(0, 4);
-                                      savePillars(activeGoal.id, next);
+                                      savePillarsLocal(activeGoal.id, next);
                                     }} style={{ padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: selected ? '#EF8E81' : 'transparent', color: selected ? '#191628' : '#FFF1E7', cursor: 'pointer', fontWeight: 700 }}>
                                       {p}
                                     </button>
