@@ -355,6 +355,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ] as any;
         return { ...module, title: 'Your Weekly Social Plan', description: 'Simplified, systemized, and ready to roll.', content, tasks };
       }
+      if (module.weekNumber === 6) {
+        const content = [
+          'This week: Design 2–4 reusable Canva templates for your top post types so creation is fast and on‑brand.',
+          'Focus on clarity, readability, and consistency over fancy effects.'
+        ].join('\n');
+        const tasks = [
+          { id: `${module.id}-w6-choose`, title: 'Step 1: Choose 2–4 post types to template', description: 'Pick the types you share most (Tip/FAQ, Promo, Testimonial, Local).', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w6-design`, title: 'Step 2: Design branded templates', description: 'Create simple, reusable Canva templates with logo, fonts, and colors.', estimatedTime: '15m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Design Your Go‑To Social Templates', description: 'Branded templates that are fast to edit and consistent.', content, tasks };
+      }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
@@ -466,6 +477,22 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const saveWeeklyPlan = (goalId: string, wp: WeeklyPlan) => {
     setWeeklyPlanByGoal(prev => ({ ...prev, [goalId]: wp }));
     try { localStorage.setItem(`weeklyplan:${goalId}`, JSON.stringify(wp)); } catch {}
+  };
+
+  // Week 6: Branded template definitions (persist per-goal)
+  type TemplateType = 'Educate' | 'Promote' | 'Connect' | 'Other';
+  type TemplateDef = { name: string; type: TemplateType; canvaUrl: string; notes: string };
+  const [templatesByGoal, setTemplatesByGoal] = useState<Record<string, TemplateDef[]>>({});
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const raw = localStorage.getItem(`templates:${activeGoal.id}`);
+      if (raw) setTemplatesByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as TemplateDef[] }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const saveTemplates = (goalId: string, list: TemplateDef[]) => {
+    setTemplatesByGoal(prev => ({ ...prev, [goalId]: list }));
+    try { localStorage.setItem(`templates:${goalId}`, JSON.stringify(list)); } catch {}
   };
 
   type Stage = 'early' | 'mid' | 'growth';
@@ -1545,6 +1572,50 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 );
                               })()}
                             </div>
+                          </div>
+                        )}
+
+                        {/* Week 6: Template manager (2–4 reusable templates) */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 6 && (
+                          <div style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                            {(() => {
+                              const list = templatesByGoal[activeGoal.id] || [];
+                              const addTemplate = () => {
+                                const next = [...list, { name: '', type: 'Educate' as TemplateType, canvaUrl: '', notes: '' }];
+                                saveTemplates(activeGoal.id, next.slice(0,4));
+                              };
+                              const update = (idx: number, upd: Partial<TemplateDef>) => {
+                                const next = list.map((t, i) => i === idx ? { ...t, ...upd } : t);
+                                saveTemplates(activeGoal.id, next);
+                              };
+                              const remove = (idx: number) => {
+                                const next = list.filter((_, i) => i !== idx);
+                                saveTemplates(activeGoal.id, next);
+                              };
+                              return (
+                                <div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                                    <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700 }}>Templates (2–4)</h6>
+                                    <button onClick={addTemplate} disabled={list.length >= 4} style={{ padding: '0.4rem 0.75rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: list.length >= 4 ? 'rgba(255,255,255,0.08)' : '#EF8E81', color: '#FFF1E7', cursor: list.length >= 4 ? 'not-allowed' : 'pointer' }}>+ Add Template</button>
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+                                    {list.map((t, idx) => (
+                                      <div key={idx} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '0.75rem' }}>
+                                        <label>Name<input value={t.name} onChange={e => update(idx, { name: e.target.value })} style={inputBaseStyle} placeholder="e.g., Tip/FAQ Template" /></label>
+                                        <label>Type<select value={t.type} onChange={e => update(idx, { type: e.target.value as TemplateType })} style={inputBaseStyle as any}>
+                                          {(['Educate','Promote','Connect','Other'] as TemplateType[]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                        </select></label>
+                                        <label>Canva URL<input value={t.canvaUrl} onChange={e => update(idx, { canvaUrl: e.target.value })} style={inputBaseStyle} placeholder="https://canva.com/… (optional)" /></label>
+                                        <label>Notes<textarea value={t.notes} onChange={e => update(idx, { notes: e.target.value })} style={{ ...inputBaseStyle, minHeight: 70 }} placeholder="Include brand elements: logo, fonts, colors, handle…" /></label>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                          <button onClick={() => remove(idx)} style={{ padding: '0.35rem 0.6rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#FFF1E7', cursor: 'pointer' }}>Remove</button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </div>
                         )}
 
