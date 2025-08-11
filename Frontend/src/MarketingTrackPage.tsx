@@ -721,6 +721,64 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         </div>
       );
     }
+    if (lower.includes('fix bio') || lower.includes('bio + link')) {
+      return (
+        <div>
+          <h2 style={{ marginTop: 0 }}>Fix bio + link (if needed)</h2>
+          <p style={{ opacity: 0.85 }}>Tighten your profile so new visitors instantly know who you are, what you do, and the next step.</p>
+          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem', marginTop: '0.5rem' }}>
+            <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#FFF1E7' }}>Checklist</div>
+            <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: 1.6 }}>
+              <li>Bio clearly says what you do</li>
+              <li>Profile pic is current and professional</li>
+              <li>Link leads to something useful (website, menu, booking, etc.)</li>
+              <li>Highlight covers or pinned posts reflect your top offers</li>
+            </ul>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem', marginTop: '0.75rem' }}>
+            <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#FFF1E7' }}>Good bio examples</div>
+            <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: 1.6 }}>
+              <li>“Neighborhood bakery • Fresh sourdough daily • 📍 Eastside • ⏰ M–Sat • ⬇️ Order online”</li>
+              <li>“Independent salon • Cuts • Color • Bridal • 📍 Downtown • ⬇️ Book your appointment”</li>
+              <li>“Brand design studio for local shops • Logos • Packaging • 📍 Denver • ⬇️ See our work”</li>
+            </ul>
+          </div>
+          <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
+            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
+          </div>
+        </div>
+      );
+    }
+    if (lower.includes('plan this week') || lower.includes('plan this week’s') || lower.includes('3 posts')) {
+      return (
+        <div>
+          <h2 style={{ marginTop: 0 }}>Plan this week’s posts</h2>
+          <p style={{ opacity: 0.85 }}>We’ll use three post types to keep things clear and consistent. Draft your captions below in the Social Content Plan.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
+              <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Educate</div>
+              <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Teach something useful that relates to your product or service.</p>
+              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Example: “Answer a common customer question or give a useful tip related to your work.”</div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
+              <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Connect</div>
+              <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Humanize your brand and build trust with small stories.</p>
+              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Examples: “Here’s what we’re working on this week…”, “Share why you started your business, or something you’re proud of.”</div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
+              <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Promote</div>
+              <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Spotlight one offer and invite people to take the next step.</p>
+              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Examples: “Highlight 1 offer you love—show it, describe it, and invite people in.” “Shout out a local business or share a light-hearted community post on Friday.”</div>
+            </div>
+          </div>
+          <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
+            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
+          </div>
+        </div>
+      );
+    }
     if (lower.includes('content pillars') || lower.includes('choose your content pillars')) {
       return (
         <div>
