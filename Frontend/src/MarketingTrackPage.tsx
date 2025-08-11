@@ -388,6 +388,16 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ] as any;
         return { ...module, title: 'Schedule 1 Full Week of Content', description: 'Plan, design, write, and schedule ahead for consistency.', content, tasks };
       }
+      if (module.weekNumber === 9) {
+        const content = [
+          'This week: Build a 10‑minute daily engagement routine to increase reach and loyalty.',
+        ].join('\n');
+        const tasks = [
+          { id: `${module.id}-w9-routine`, title: 'Define your 10‑minute routine', description: 'Warm up (2m), Give love (5m), Start a conversation (3m)', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w9-track`, title: 'Track engagement 5 days this week', description: 'Check off your routine daily to build the habit.', estimatedTime: '5m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Boost Engagement with 10 Minutes Daily', description: 'Simple, consistent engagement that compounds.', content, tasks };
+      }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
@@ -553,6 +563,19 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     } catch {}
   }, [activeGoal?.id]);
   const saveWk8 = (goalId: string, plan: Week8Plan) => { setWk8ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk8:${goalId}`, JSON.stringify(plan)); } catch {} };
+
+  // Week 9: Daily engagement habit (persist per-goal)
+  type DayEngagement = { warmUp: boolean; giveLove: number; conversation: boolean };
+  type Week9Plan = { days: string[]; routine: Record<string, DayEngagement> };
+  const [wk9ByGoal, setWk9ByGoal] = useState<Record<string, Week9Plan>>({});
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const raw = localStorage.getItem(`wk9:${activeGoal.id}`);
+      if (raw) setWk9ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week9Plan }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const saveWk9 = (goalId: string, plan: Week9Plan) => { setWk9ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk9:${goalId}`, JSON.stringify(plan)); } catch {} };
 
   type Stage = 'early' | 'mid' | 'growth';
   const getStagesForGoal = (title: string): Stage[] => {
@@ -1808,6 +1831,50 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                         <label>Caption<textarea value={p.caption} onChange={e => updatePost(idx, { caption: e.target.value })} style={{ ...inputBaseStyle, minHeight: 80 }} placeholder="Draft the caption…" /></label>
                                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                                           <input type="checkbox" checked={p.scheduled} onChange={e => updatePost(idx, { scheduled: e.target.checked })} /> Mark scheduled
+                                        </label>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+
+                        {/* Week 9: Daily engagement habit tracker */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 9 && (
+                          <div style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                            {(() => {
+                              const baseDays = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+                              const plan: Week9Plan = wk9ByGoal[activeGoal.id] || { days: baseDays, routine: {} };
+                              const setDayEnabled = (day: string) => {
+                                const days = plan.days.includes(day) ? plan.days.filter(d => d!==day) : [...plan.days, day];
+                                saveWk9(activeGoal.id, { ...plan, days });
+                              };
+                              const getRoutine = (day: string): DayEngagement => plan.routine[day] || { warmUp: false, giveLove: 0, conversation: false };
+                              const updateRoutine = (day: string, upd: Partial<DayEngagement>) => {
+                                const next: Week9Plan = { ...plan, routine: { ...plan.routine, [day]: { ...getRoutine(day), ...upd } } };
+                                saveWk9(activeGoal.id, next);
+                              };
+                              return (
+                                <div>
+                                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                                    {baseDays.map(d => (
+                                      <button key={d} onClick={() => setDayEnabled(d)} style={{ padding: '0.4rem 0.75rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: plan.days.includes(d) ? '#EF8E81' : 'transparent', color: plan.days.includes(d) ? '#191628' : '#FFF1E7' }}>{d}</button>
+                                    ))}
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.75rem' }}>
+                                    {plan.days.map(day => (
+                                      <div key={day} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '0.75rem' }}>
+                                        <div style={{ fontWeight: 700, color: '#FFF1E7', marginBottom: 6 }}>{day}</div>
+                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                          <input type="checkbox" checked={getRoutine(day).warmUp} onChange={e => updateRoutine(day, { warmUp: e.target.checked })} /> Warm up done (2m)
+                                        </label>
+                                        <label>Give love count (3–5 posts)
+                                          <input type="number" min={0} max={10} value={getRoutine(day).giveLove} onChange={e => updateRoutine(day, { giveLove: Math.max(0, Math.min(10, parseInt(e.target.value || '0'))) })} style={inputBaseStyle} />
+                                        </label>
+                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                          <input type="checkbox" checked={getRoutine(day).conversation} onChange={e => updateRoutine(day, { conversation: e.target.checked })} /> Conversation started (3m)
                                         </label>
                                       </div>
                                     ))}
