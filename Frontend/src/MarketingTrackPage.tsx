@@ -428,6 +428,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   // Week 2: content pillars selection (persist locally per-goal)
   const [contentPillarsByGoal, setContentPillarsByGoal] = useState<Record<string, string[]>>({});
   const [newPillarDraft, setNewPillarDraft] = useState<string>('');
+  const savePillarsLocalAndRemote = useCallback(async (goalId: string, pillars: string[]) => {
+    setContentPillarsByGoal(prev => ({ ...prev, [goalId]: pillars }));
+    try { localStorage.setItem(`pillars:${goalId}`, JSON.stringify(pillars)); } catch {}
+    try { await apiService.saveContentPillars(pillars); } catch {}
+  }, []);
   useEffect(() => {
     if (!activeGoal) return;
     try {
@@ -444,6 +449,19 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     setContentPillarsByGoal(prev => ({ ...prev, [goalId]: pillars }));
     try { localStorage.setItem(`pillars:${goalId}`, JSON.stringify(pillars)); } catch {}
   };
+
+  // When active goal changes, hydrate pillars from API as a fallback
+  useEffect(() => {
+    if (!activeGoal) return;
+    (async () => {
+      try {
+        const cp = await apiService.getContentPillars();
+        if (cp.success && Array.isArray(cp.data)) {
+          setContentPillarsByGoal(prev => ({ ...prev, [activeGoal.id]: cp.data.slice(0, 4) }));
+        }
+      } catch {}
+    })();
+  }, [activeGoal?.id]);
 
   // Generator removed for now (button hidden until pillars are set)
 
@@ -1244,7 +1262,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   const current = contentPillarsByGoal[activeGoal.id] || [];
                                   if (current.includes(trimmed)) { setNewPillarDraft(''); return; }
                                   const next = [...current, trimmed].slice(0, 4);
-                                  savePillarsLocal(activeGoal.id, next);
+                                  savePillarsLocalAndRemote(activeGoal.id, next);
                                   setNewPillarDraft('');
                                 }} style={{ padding: '6px 10px' }}>Add</button>
                               </div>
@@ -1255,7 +1273,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     <button key={p} onClick={() => {
                                       const current = contentPillarsByGoal[activeGoal.id] || [];
                                       const next = selected ? current.filter(x => x !== p) : [...current, p].slice(0, 4);
-                                      savePillarsLocal(activeGoal.id, next);
+                                      savePillarsLocalAndRemote(activeGoal.id, next);
                                     }} style={{ padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: selected ? '#EF8E81' : 'transparent', color: selected ? '#191628' : '#FFF1E7', cursor: 'pointer', fontWeight: 700 }}>
                                       {p}
                                     </button>
@@ -1310,7 +1328,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                           </select>
                                         </td>
                                         <td style={{ padding: '8px' }}>
-                                          <input value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} placeholder="Linked pillar…" style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
+                                          <select value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
+                                            {(['Your Products/Services','Behind-the-Scenes / Business Life','Customer Stories / Testimonials','Tips & Education','Promotions / Sales / Events','Personal Story / Values','Local Love / Community','Visual Inspiration'] as string[]).map(opt => (
+                                              <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                            {(contentPillarsByGoal[activeGoal.id] || []).filter(p => !['Your Products/Services','Behind-the-Scenes / Business Life','Customer Stories / Testimonials','Tips & Education','Promotions / Sales / Events','Personal Story / Values','Local Love / Community','Visual Inspiration'].includes(p)).map(opt => (
+                                              <option key={`custom-${opt}`} value={opt}>{opt}</option>
+                                            ))}
+                                          </select>
                                         </td>
                                         <td style={{ padding: '8px' }}>
                                           <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder="Draft caption…" style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
