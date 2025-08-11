@@ -39,10 +39,6 @@ function Header() {
         <span className="header-app-name">MomentumDIY</span>
       </div>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        {user && (
-          <Link className="upgrade-btn" to="/app/profile">Profile</Link>
-        )}
-        <button className="upgrade-btn">Upgrade</button>
         {user ? (
           <button className="upgrade-btn" onClick={() => signOut()}>Sign out</button>
         ) : (
