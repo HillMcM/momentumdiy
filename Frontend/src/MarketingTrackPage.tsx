@@ -1373,6 +1373,35 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                         padding: '1rem',
                         animation: 'slideDown 0.3s ease-out'
                       }}>
+                        {/* Intro (template) */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && (
+                          <div style={{
+                            background: 'rgba(255,241,231,0.05)',
+                            border: '1px solid rgba(239,142,129,0.25)',
+                            borderRadius: 10,
+                            padding: '0.9rem',
+                            marginBottom: '0.75rem'
+                          }}>
+                            <div style={{ color: '#FFF1E7' }}>
+                              {module.weekNumber === 1 ? (
+                                <>
+                                  <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                                    {`Hi${profile?.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''},`}
+                                  </div>
+                                  <p style={{ margin: '0.25rem 0' }}>Welcome to your new quarter of <span style={{ fontStyle: 'italic' }}>Momentum Marketing!</span> 🎉</p>
+                                  <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Over the next 12 weeks, we’ll strengthen your social media presence by focusing on smart strategy, easy systems, and engaging content that reflects the heart of your business.</p>
+                                  <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week we’re kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress.</p>
+                                </>
+                              ) : (
+                                <>
+                                  <div style={{ fontWeight: 700, marginBottom: 6 }}>This week</div>
+                                  <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>{module.description || 'Keep your rhythm: plan and ship 3–5 posts with clear intent.'}</p>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                           {/* Week Content */}
                           <div>
@@ -1445,6 +1474,31 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             </div>
                           </div>
                         </div>
+
+                        {/* Baseline tabs wide (full width) for Social track in All Weeks */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && (
+                          <div style={{ marginTop: '0.75rem' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '0.9rem' }}>
+                              <div style={{ display: 'flex', gap: '6px', margin: '0 0 8px' }}>
+                                {PLATFORM_KEYS.map(({ key, label }) => (
+                                  <button key={key} onClick={() => setSelectedPlatformTab(key)} style={{
+                                    padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)',
+                                    background: selectedPlatformTab === key ? '#EF8E81' : 'transparent', color: selectedPlatformTab === key ? '#191628' : '#FFF1E7', cursor: 'pointer', fontWeight: 700
+                                  }}>{label}</button>
+                                ))}
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+                                <label>Followers<input value={baseline[selectedPlatformTab].followers} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], followers: e.target.value } }))} style={inputBaseStyle} /></label>
+                                <label>Avg Likes<input value={baseline[selectedPlatformTab].avgLikes} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgLikes: e.target.value } }))} style={inputBaseStyle} /></label>
+                                <label>Avg Comments<input value={baseline[selectedPlatformTab].avgComments} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgComments: e.target.value } }))} style={inputBaseStyle} /></label>
+                                <label>Avg Story Views<input value={baseline[selectedPlatformTab].avgStoryViews} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgStoryViews: e.target.value } }))} style={inputBaseStyle} /></label>
+                              </div>
+                              <div style={{ marginTop: 8 }}>
+                                <button onClick={() => { saveBaseline(); }} style={{ padding: '6px 10px' }}>Save baseline</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
