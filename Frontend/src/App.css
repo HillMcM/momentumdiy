@@ -62,8 +62,8 @@
 /* Sidebar Styles */
 .sidebar-toggle {
   position: absolute;
-  top: 76px;
-  left: 248px;
+  top: 8px;
+  right: 8px;
   z-index: 101;
   background: transparent;
   color: #FFF1E7;
@@ -73,7 +73,7 @@
   cursor: pointer;
   outline: none;
 }
-.app-shell.collapsed .sidebar-toggle { left: 8px; }
+.app-shell.collapsed .sidebar-toggle { left: 8px; right: auto; top: 76px; }
 
 .sidebar {
   width: 240px;
