@@ -701,22 +701,28 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             {/* Active Track Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
               <div style={{ flex: 1 }}>
-                <h3 style={{ margin: 0, fontSize: '1.75rem', color: '#FFF1E7', marginBottom: '0.5rem' }}>
-                  {activeGoal.title}
+                <h3 style={{ margin: 0, fontSize: '1.75rem', color: '#FFF1E7', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <span>{activeGoal.title}</span>
+                  <span aria-hidden style={{ fontSize: '1.1rem' }}>🟡 🟢 🔵</span>
                 </h3>
                 <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '1rem', marginBottom: '0.5rem' }}>
                   {activeGoal.description}
                 </p>
-                <span style={{ 
-                  color: '#EF8E81', 
-                  fontSize: '0.875rem',
-                  background: 'rgba(239, 142, 129, 0.1)',
-                  padding: '0.25rem 0.5rem',
-                  borderRadius: '4px',
-                  display: 'inline-block'
+                <div style={{
+                  marginTop: '0.5rem',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px dashed rgba(255,255,255,0.12)',
+                  borderRadius: 8,
+                  padding: '0.6rem 0.75rem',
+                  color: '#FFF1E7',
+                  fontSize: '0.9rem'
                 }}>
-                  {activeGoal.industry}
-                </span>
+                  <div style={{ display: 'grid', rowGap: '0.25rem' }}>
+                    <div><strong>🟡 Early Stage</strong>: Still figuring out core audience and message, low or inconsistent visibility.</div>
+                    <div><strong>🟢 Mid-Stage</strong>: Some traction and a growing customer base, but needs to scale marketing or get more strategic.</div>
+                    <div><strong>🔵 Growth Stage</strong>: Solid operations, now focused on optimization, expansion, or innovation.</div>
+                  </div>
+                </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <span style={{
@@ -1262,22 +1268,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7', marginBottom: '0.5rem' }}>
-                      {goal.title}
+                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span>{goal.title}</span>
+                      <span aria-hidden style={{ fontSize: '1rem' }}>🟡 🟢 🔵</span>
                     </h3>
                     <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
                       {goal.description}
                     </p>
-                    <span style={{ 
-                      color: '#EF8E81', 
-                      fontSize: '0.875rem',
-                      background: 'rgba(239, 142, 129, 0.1)',
-                      padding: '0.25rem 0.5rem',
-                      borderRadius: '4px',
-                      display: 'inline-block'
-                    }}>
-                      {goal.industry}
-                    </span>
+                    {/* Stage legend inline hint could be added here if needed */}
                   </div>
                   <button
                     onClick={(e) => {
