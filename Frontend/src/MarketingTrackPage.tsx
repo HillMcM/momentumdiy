@@ -859,10 +859,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       );
     }
     if (lower.includes('content pillars') || lower.includes('choose your content pillars')) {
+      const selected = (goalId && contentPillarsByGoal[goalId]) ? contentPillarsByGoal[goalId] : [];
       return (
         <div>
           <h2 style={{ marginTop: 0 }}>{t.title}</h2>
-          <p style={{ opacity: 0.85 }}>{t.description}</p>
           <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem', marginBottom: '0.75rem' }}>
             <div style={{ fontWeight: 700, color: '#FFF1E7', marginBottom: '0.25rem' }}>Why create content pillars?</div>
             <p style={{ margin: 0, opacity: 0.85 }}>
@@ -870,19 +870,15 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
               and help your audience understand what you stand for. Once you lock them, your weekly plan becomes plug‑and‑play.
             </p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-            {pillars.map((p, idx) => (
-              <label key={idx}>
-                Pillar {idx + 1}
-                <input value={p} onChange={e => setPillars(arr => { const next = [...arr]; next[idx] = e.target.value; return next; })} style={inputBaseStyle} />
-              </label>
-            ))}
+          <div style={{ color: '#FFF1E7', opacity: 0.85, marginBottom: '0.5rem' }}>Your selected pillars</div>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {(selected && selected.length > 0) ? selected.map(p => (
+              <span key={p} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', fontSize: '0.9rem' }}>{p}</span>
+            )) : (
+              <span style={{ opacity: 0.7 }}>No pillars selected yet. Use the section on this page to add up to 4 pillars.</span>
+            )}
           </div>
-          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button onClick={savePillars} disabled={loadingInline} style={{ padding: '0.4rem 0.9rem' }}>Save</button>
-            {pillarsSaved && <span style={{ color: '#5ECD7D' }}>Saved</span>}
-            {inlineError && <span style={{ color: '#EF8E81' }}>{inlineError}</span>}
-            <span style={{ marginLeft: 'auto' }} />
+          <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
             <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
             <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
           </div>
