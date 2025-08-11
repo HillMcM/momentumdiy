@@ -27,6 +27,10 @@ const PORT = process.env['PORT'] || 3001;
 
 // Sentry init is in instrument.ts. We'll attach the error handler below.
 
+// When running behind a proxy (Render, Vercel, etc.), trust X-Forwarded-* headers
+// so that rate limiting and logging use the real client IP rather than the proxy IP.
+app.set('trust proxy', 1);
+
 // Ultra-permissive CORS for local development (placed FIRST)
 if ((process.env['NODE_ENV'] || 'development') !== 'production') {
   app.use((req, res, next) => {

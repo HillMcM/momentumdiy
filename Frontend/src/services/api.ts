@@ -37,11 +37,12 @@ export const BACKEND_BASE_URL = API_BASE_URL.replace(/\/?api$/, '');
 
 class ApiService {
   private async request<T>(
-    endpoint: string, 
-    options: RequestInit = {}
+    endpoint: string,
+    options: RequestInit = {},
+    retryOn429: boolean = true
   ): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -50,22 +51,40 @@ class ApiService {
       ...options,
     };
 
-    try {
-      const response = await fetch(url, config);
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+    const attempt = async (triesLeft: number): Promise<ApiResponse<T>> => {
+      try {
+        const response = await fetch(url, config);
+        const contentType = response.headers.get('content-type') || '';
+        const data = contentType.includes('application/json') ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          // Backoff and retry on 429 Too Many Requests
+          if (retryOn429 && response.status === 429 && triesLeft > 0) {
+            // Honor Retry-After if present (seconds), else exponential backoff
+            const retryAfterHeader = response.headers.get('retry-after');
+            const retryAfterMs = retryAfterHeader ? parseInt(retryAfterHeader, 10) * 1000 : (1000 * Math.pow(2, 3 - triesLeft));
+            await new Promise(res => setTimeout(res, isFinite(retryAfterMs) ? retryAfterMs : 1000));
+            return attempt(triesLeft - 1);
+          }
+          const message = (data as any)?.error || `HTTP error! status: ${response.status}`;
+          throw new Error(message);
+        }
+
+        return data as ApiResponse<T>;
+      } catch (error) {
+        if (retryOn429 && triesLeft > 0 && (error as any)?.message?.includes('Too many requests')) {
+          await new Promise(res => setTimeout(res, 1000 * Math.pow(2, 3 - triesLeft)));
+          return attempt(triesLeft - 1);
+        }
+        console.error('API request failed:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error occurred'
+        } as ApiResponse<T>;
       }
-      
-      return data;
-    } catch (error) {
-      console.error('API request failed:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
-      } as ApiResponse<T>;
-    }
+    };
+
+    return attempt(3);
   }
 
   // Task API methods

@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const assetService_1 = require("../services/assetService");
+const validate_1 = require("../middleware/validate");
+const rate_1 = require("../middleware/rate");
 const router = (0, express_1.Router)();
 router.get('/', async (req, res) => {
     try {
@@ -41,7 +43,14 @@ router.get('/:id', async (req, res) => {
         });
     }
 });
-router.post('/', async (req, res) => {
+router.post('/', (0, rate_1.routeRateLimit)(60), (0, validate_1.validate)((req) => {
+    const body = req.body || {};
+    if (!body.name)
+        return 'Name is required';
+    if (!body.category)
+        return 'Category is required';
+    return undefined;
+}), async (req, res) => {
     try {
         const assetData = req.body;
         if (!assetData.name) {
@@ -69,7 +78,7 @@ router.post('/', async (req, res) => {
         });
     }
 });
-router.put('/:id', async (req, res) => {
+router.put('/:id', (0, rate_1.routeRateLimit)(60), async (req, res) => {
     try {
         const { id } = req.params;
         if (!id) {
@@ -92,7 +101,7 @@ router.put('/:id', async (req, res) => {
         });
     }
 });
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', (0, rate_1.routeRateLimit)(60), async (req, res) => {
     try {
         const { id } = req.params;
         if (!id) {

@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const projectService_1 = require("../services/projectService");
+const validate_1 = require("../middleware/validate");
+const rate_1 = require("../middleware/rate");
 const router = (0, express_1.Router)();
 router.get('/', async (req, res) => {
     try {
@@ -35,7 +37,12 @@ router.get('/:id', async (req, res) => {
         });
     }
 });
-router.post('/', async (req, res) => {
+router.post('/', (0, rate_1.routeRateLimit)(30), (0, validate_1.validate)((req) => {
+    const body = req.body || {};
+    if (!body.name || typeof body.name !== 'string')
+        return 'Name is required';
+    return undefined;
+}), async (req, res) => {
     try {
         const projectData = req.body;
         if (!projectData.name) {
@@ -57,7 +64,7 @@ router.post('/', async (req, res) => {
         });
     }
 });
-router.put('/:id', async (req, res) => {
+router.put('/:id', (0, rate_1.routeRateLimit)(30), async (req, res) => {
     try {
         const id = req.params['id'];
         const updates = { ...req.body, id };
@@ -74,7 +81,7 @@ router.put('/:id', async (req, res) => {
         });
     }
 });
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', (0, rate_1.routeRateLimit)(30), async (req, res) => {
     try {
         const id = req.params['id'];
         const result = await projectService_1.ProjectService.deleteProject(id);

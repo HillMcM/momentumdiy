@@ -5,6 +5,7 @@ const marketingService_1 = require("../services/marketingService");
 const notionSyncService_1 = require("../services/notionSyncService");
 const client_1 = require("@notionhq/client");
 const rate_1 = require("../middleware/rate");
+const validate_1 = require("../middleware/validate");
 const router = (0, express_1.Router)();
 router.get('/goals', async (_req, res) => {
     try {
@@ -65,7 +66,14 @@ router.get('/goals/:id', async (req, res) => {
         });
     }
 });
-router.post('/goals', async (req, res) => {
+router.post('/goals', (0, rate_1.routeRateLimit)(10), (0, validate_1.validate)((req) => {
+    const body = req.body || {};
+    if (!body.title)
+        return 'Title is required';
+    if (!body.duration || body.duration < 1)
+        return 'Duration must be at least 1 week';
+    return undefined;
+}), async (req, res) => {
     try {
         const goalData = req.body;
         if (!goalData.title) {
@@ -93,7 +101,7 @@ router.post('/goals', async (req, res) => {
         });
     }
 });
-router.put('/goals/:id', async (req, res) => {
+router.put('/goals/:id', (0, rate_1.routeRateLimit)(10), async (req, res) => {
     try {
         const id = req.params['id'];
         const updates = { ...req.body, id };
@@ -142,7 +150,14 @@ router.get('/goals/:id/modules', async (req, res) => {
         });
     }
 });
-router.post('/goals/:id/modules', async (req, res) => {
+router.post('/goals/:id/modules', (0, rate_1.routeRateLimit)(20), (0, validate_1.validate)((req) => {
+    const body = req.body || {};
+    if (!body.title)
+        return 'Module title is required';
+    if (!body.weekNumber || body.weekNumber < 1)
+        return 'Week number must be at least 1';
+    return undefined;
+}), async (req, res) => {
     try {
         const id = req.params['id'];
         const moduleData = req.body;
@@ -190,7 +205,12 @@ router.get('/modules/:id/tasks', async (req, res) => {
         });
     }
 });
-router.post('/modules/:id/tasks', async (req, res) => {
+router.post('/modules/:id/tasks', (0, rate_1.routeRateLimit)(60), (0, validate_1.validate)((req) => {
+    const body = req.body || {};
+    if (!body.title)
+        return 'Task title is required';
+    return undefined;
+}), async (req, res) => {
     try {
         const id = req.params['id'];
         const taskData = req.body;
@@ -216,7 +236,12 @@ router.post('/modules/:id/tasks', async (req, res) => {
         });
     }
 });
-router.patch('/tasks/:id/completion', async (req, res) => {
+router.patch('/tasks/:id/completion', (0, rate_1.routeRateLimit)(60), (0, validate_1.validate)((req) => {
+    const { isCompleted } = req.body || {};
+    if (typeof isCompleted !== 'boolean')
+        return 'isCompleted must be a boolean';
+    return undefined;
+}), async (req, res) => {
     try {
         const id = req.params['id'];
         const { isCompleted } = req.body;

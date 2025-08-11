@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { ProjectService } from '../services/projectService';
+import { validate } from '../middleware/validate';
+import { routeRateLimit } from '../middleware/rate';
 import { CreateProjectRequest, UpdateProjectRequest } from '../types';
 
 const router = Router();
@@ -54,7 +56,11 @@ router.get('/:id', async (req: Request, res: Response) => {
  * POST /api/projects
  * Create a new project
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', routeRateLimit(30), validate((req) => {
+  const body = req.body || {};
+  if (!body.name || typeof body.name !== 'string') return 'Name is required';
+  return undefined;
+}), async (req: Request, res: Response) => {
   try {
     const projectData: CreateProjectRequest = req.body;
     
@@ -85,7 +91,7 @@ router.post('/', async (req: Request, res: Response) => {
  * PUT /api/projects/:id
  * Update an existing project
  */
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', routeRateLimit(30), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const updates: UpdateProjectRequest = { ...req.body, id };
@@ -109,7 +115,7 @@ router.put('/:id', async (req: Request, res: Response) => {
  * DELETE /api/projects/:id
  * Delete a project
  */
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', routeRateLimit(30), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     
