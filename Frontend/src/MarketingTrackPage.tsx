@@ -868,7 +868,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                       padding: '1.5rem',
                       animation: 'slideDown 0.3s ease-out'
                     }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
                         {/* Week Content */}
                         <div>
                           <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', marginBottom: '1rem', fontWeight: 600 }}>
@@ -881,14 +881,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             color: '#FFF1E7',
                             lineHeight: '1.6',
                             fontSize: '0.9rem',
-                            maxHeight: '300px',
+                            height: '320px',
                             overflowY: 'auto'
                           }}>
                             {renderRichContent(module.content)}
-                          </div>
-                          {/* Pro Tip */}
-                          <div style={{ marginTop: '0.75rem', background: 'rgba(104,109,202,0.12)', border: '1px dashed rgba(104,109,202,0.4)', color: '#FFF1E7', borderRadius: 8, padding: '0.75rem' }}>
-                            <strong style={{ color: '#686DCA' }}>Pro Tip:</strong> {getProTip(module)}
                           </div>
                         </div>
 
@@ -900,7 +896,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             </h6>
                             <div style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>Create Tasks</div>
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto' }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '320px', overflowY: 'auto' }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
                             {module.tasks.map(task => (
                               <div
                                 key={task.id}
@@ -973,6 +969,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 </div>
                               </div>
                             ))}
+                          </div>
+                        </div>
+                        {/* Pro Tip spanning both columns */}
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <div style={{ marginTop: '0.25rem', background: 'rgba(104,109,202,0.12)', border: '1px dashed rgba(104,109,202,0.4)', color: '#FFF1E7', borderRadius: 8, padding: '0.9rem' }}>
+                            <strong style={{ color: '#686DCA' }}>💡 Pro Tip:</strong> {getProTip(module)}
                           </div>
                         </div>
                       </div>
