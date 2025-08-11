@@ -46,7 +46,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   type BaselineState = Record<PlatformKey, BaselineMetrics> & { saved?: boolean };
   const [baseline, setBaseline] = useState<BaselineState>(() => ({ ...(emptyBaseline as Record<PlatformKey, BaselineMetrics>) } as BaselineState));
   const [selectedPlatformTab, setSelectedPlatformTab] = useState<PlatformKey>('instagram');
-  const [pillars, setPillars] = useState<string[]>(['', '', '', '']);
+  const [, setPillars] = useState<string[]>(['', '', '', '']);
   const [loadingInline] = useState<boolean>(false);
   const [inlineError] = useState<string | null>(null);
 
