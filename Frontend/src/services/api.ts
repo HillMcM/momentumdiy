@@ -114,6 +114,10 @@ class ApiService {
     });
   }
 
+  async getArchivedTasks(): Promise<ApiResponse<Task[]>> {
+    return this.request<Task[]>(`/tasks?archived=true`);
+  }
+
   async deleteTask(id: string): Promise<ApiResponse<void>> {
     return this.request<void>(`/tasks/${id}`, {
       method: 'DELETE',

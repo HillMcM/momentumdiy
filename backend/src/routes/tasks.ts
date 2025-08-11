@@ -12,7 +12,7 @@ const router = Router();
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { projectId, status } = req.query as { projectId?: string; status?: string };
+    const { projectId, status, archived } = req.query as { projectId?: string; status?: string; archived?: string };
     
     const result = await TaskService.getTasks(
       projectId,
@@ -23,6 +23,12 @@ router.get('/', async (req: Request, res: Response) => {
       return res.status(400).json(result);
     }
 
+    // Filter archived optionally at API layer, default hide archived
+    if (result.success && result.data) {
+      const showArchived = archived === 'true';
+      const filtered = showArchived ? result.data : result.data.filter((t: any) => !t.isArchived);
+      return res.json({ success: true, data: filtered });
+    }
     return res.json(result);
   } catch (error) {
     return res.status(500).json({

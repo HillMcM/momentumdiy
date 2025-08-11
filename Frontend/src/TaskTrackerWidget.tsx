@@ -238,7 +238,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
   console.log('TaskTrackerWidget render - tasks count:', tasks.length);
   console.log('TaskTrackerWidget render - tasks:', tasks);
   
-  const [viewMode, setViewMode] = useState<'kanban' | 'deadline'>('kanban');
+  const [viewMode, setViewMode] = useState<'kanban' | 'deadline' | 'archived'>('kanban');
   const [order, setOrder] = useState<ColumnOrder>(initialOrder);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -370,6 +370,14 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
     }
   };
 
+  const archiveTask = (task: Task) => {
+    onTasksChange(tasks.map(t => t.id === task.id ? ({ ...t, isArchived: true } as any) : t));
+    setOrder({
+      ...order,
+      [task.status]: order[task.status].filter(id => id !== task.id),
+    });
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id as string);
@@ -472,6 +480,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
           <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: 2 }}>
             <button onClick={() => setViewMode('kanban')} style={{ padding: '0.45rem 0.75rem', border: 'none', borderRadius: 8, background: viewMode==='kanban'?'#2a2740':'transparent', color: '#FFF1E7', cursor: 'pointer' }}>Kanban</button>
             <button onClick={() => setViewMode('deadline')} style={{ padding: '0.45rem 0.75rem', border: 'none', borderRadius: 8, background: viewMode==='deadline'?'#2a2740':'transparent', color: '#FFF1E7', cursor: 'pointer' }}>Due Soon</button>
+            <button onClick={() => setViewMode('archived')} style={{ padding: '0.45rem 0.75rem', border: 'none', borderRadius: 8, background: viewMode==='archived'?'#2a2740':'transparent', color: '#FFF1E7', cursor: 'pointer' }}>Archived</button>
           </div>
           <button
             onClick={openCreateModal}
@@ -569,6 +578,28 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
                   <div style={{ width: 120 }}>
                     <span style={{ padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.8rem', background: task.status==='completed'?'#5ECD7D':task.status==='in-progress'?'#CD845E':'#686DCA', color: task.status==='completed'?'#22202F':'#FFF1E7' }}>{task.status.replace('-', ' ')}</span>
                   </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {viewMode === 'archived' && (
+        <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '0.75rem' }}>
+          <div style={{ display: 'flex', fontWeight: 600, opacity: 0.85, padding: '0.5rem 0.75rem', color: '#FFF1E7' }}>
+            <div style={{ flex: 1 }}>Task</div>
+            <div style={{ width: 180 }}>Archived</div>
+          </div>
+          <div style={{ maxHeight: 420, overflowY: 'auto', paddingRight: 4 }}>
+            {tasks
+              .filter(t => (t as any).isArchived)
+              .map(task => (
+                <div key={task.id} style={{ display: 'flex', alignItems: 'center', padding: '0.6rem 0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ flex: 1, color: '#FFF1E7' }}>
+                    <div style={{ fontWeight: 600 }}>{task.title}</div>
+                    {task.marketingTrack && <div style={{ fontSize: '0.75rem', color: '#EF8E81' }}>🎯 Marketing Track</div>}
+                  </div>
+                  <div style={{ width: 180, color: '#FFF1E7', opacity: 0.85 }}>Yes</div>
                 </div>
               ))}
           </div>
@@ -704,7 +735,22 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', justifyContent: 'flex-end', flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', justifyContent: 'space-between', flexShrink: 0 }}>
+              {editingTask && (
+                <button
+                  onClick={() => archiveTask(editingTask)}
+                  style={{
+                    padding: '0.6rem 1rem',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    color: '#FFF1E7',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Archive
+                </button>
+              )}
                 <button
                   onClick={handleSave}
                   style={{
