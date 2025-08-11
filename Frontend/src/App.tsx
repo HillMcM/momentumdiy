@@ -8,6 +8,7 @@ import ProfilePage from './ProfilePage';
 import { useState, useEffect } from 'react';
 import type { Project, Task, MarketingGoal } from './types';
 import OctopusLogo from './assets/octopus_icon.png';
+import MenuIcon from './assets/menu_hamburger.svg';
 import { apiService } from './services/api';
 import AIMarketingAssistant from './AIMarketingAssistant';
 import FloatingAssistant from './FloatingAssistant';
@@ -52,7 +53,7 @@ function Header() {
 function SidebarToggle({ onClick }: { onClick: () => void }) {
   return (
     <button className="sidebar-toggle" onClick={onClick} aria-label="Toggle sidebar" title="Open menu">
-      <img src={OctopusLogo} alt="menu" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+      <img src={MenuIcon} alt="menu" style={{ width: 24, height: 24 }} />
     </button>
   );
 }
