@@ -429,7 +429,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGoal?.id, activeGoal?.currentWeek]);
-  const [quickWins, setQuickWins] = useState<{ baseline?: boolean; bioLink?: boolean; planned?: boolean }>({});
   const [plannerMode, setPlannerMode] = useState<'beginner' | 'confident'>('beginner');
 
   // Week 2: content pillars selection (persist locally per-goal)
