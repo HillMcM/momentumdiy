@@ -1383,12 +1383,30 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 };
                                 return (
                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
-                                    <label>Heading Font<select value={tp.headingFont} onChange={e => saveTypography(activeGoal.id, { ...tp, headingFont: e.target.value })} style={inputBaseStyle as any}>{FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}</select></label>
-                                    <label>Body Font<select value={tp.bodyFont} onChange={e => saveTypography(activeGoal.id, { ...tp, bodyFont: e.target.value })} style={inputBaseStyle as any}>{FONT_OPTIONS.map(f => <option key={`b-${f}`} value={f}>{f}</option>)}</select></label>
-                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <label>Heading Font
+                                      <select value={tp.headingFont} onChange={e => saveTypography(activeGoal.id, { ...tp, headingFont: e.target.value })} style={{ ...inputBaseStyle, height: '3rem', fontSize: '1rem' } as any}>
+                                        {FONT_OPTIONS.map(f => <option key={f} value={f} style={{ fontFamily: f as any }}>{f}</option>)}
+                                      </select>
+                                      <div style={{ marginTop: 6, padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.2)', color: '#FFF1E7' }}>
+                                        <div style={{ fontFamily: tp.headingFont as any, fontSize: '1.25rem' }}>The quick brown fox jumps over the lazy dog</div>
+                                      </div>
+                                    </label>
+                                    <label>Body Font
+                                      <select value={tp.bodyFont} onChange={e => saveTypography(activeGoal.id, { ...tp, bodyFont: e.target.value })} style={{ ...inputBaseStyle, height: '3rem', fontSize: '1rem' } as any}>
+                                        {FONT_OPTIONS.map(f => <option key={`b-${f}`} value={f} style={{ fontFamily: f as any }}>{f}</option>)}
+                                      </select>
+                                      <div style={{ marginTop: 6, padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.2)', color: '#FFF1E7' }}>
+                                        <div style={{ fontFamily: tp.bodyFont as any }}>Readable preview text set in your body font.</div>
+                                      </div>
+                                    </label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', alignItems: 'center' }}>
                                       {pal.map((c, i) => (
-                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                          <input type="color" value={c} onChange={e => setColor(i, e.target.value)} style={{ width: 36, height: 36, padding: 0, border: 'none', background: 'transparent' }} />
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                          <div style={{ width: 44, height: 44, borderRadius: '50%', background: c, border: '2px solid rgba(255,255,255,0.2)' }} />
+                                          <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: 12, opacity: 0.8, color: '#FFF1E7', marginBottom: 4 }}>{['Primary','Secondary','Tertiary','Accent 1','Accent 2'][i] || `Color ${i+1}`}</div>
+                                            <input type="color" value={c} onChange={e => setColor(i, e.target.value)} style={{ width: '100%', height: 36, padding: 0, border: 'none', background: 'transparent' }} />
+                                          </div>
                                         </div>
                                       ))}
                                       {pal.length < 5 && (
