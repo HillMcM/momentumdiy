@@ -197,13 +197,26 @@ function Dashboard({
   onTasksChange,
   onMarketingGoalsChange
 }: DashboardProps) {
+  const activeGoal = marketingGoals.find(g => g.isActive);
+  const visibleTasks = activeGoal 
+    ? tasks.filter(t => t.marketingTrack && t.marketingTrack.goalId === activeGoal.id)
+    : tasks;
+
+  const handleSubsetTasksChange = (updatedVisible: Task[]) => {
+    if (!activeGoal) {
+      onTasksChange(updatedVisible);
+      return;
+    }
+    const others = tasks.filter(t => !(t.marketingTrack && t.marketingTrack.goalId === activeGoal.id));
+    onTasksChange([...others, ...updatedVisible]);
+  };
   return (
     <div>
       <MarketingTrackWidget marketingGoals={marketingGoals} onMarketingGoalsChange={onMarketingGoalsChange} />
       <TaskTrackerWidget 
         projects={projects}
-        tasks={tasks}
-        onTasksChange={onTasksChange}
+        tasks={visibleTasks}
+        onTasksChange={handleSubsetTasksChange}
         onProjectsChange={onProjectsChange}
       />
       {/* Comment out non-core widgets for now */}
