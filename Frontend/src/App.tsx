@@ -643,7 +643,9 @@ function ProtectedApp() {
         <Header />
         <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
           <Sidebar hidden={sidebarHidden} />
-          <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
+          <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
+            <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
+          </div>
           <main className="main-content">
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
               <div>Loading...</div>
@@ -659,7 +661,10 @@ function ProtectedApp() {
       <Header />
       <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
         <Sidebar hidden={sidebarHidden} />
-        <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
+        {/* Move the sidebar toggle to the left sidebar edge, under the logo area */}
+        <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
+          <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
+        </div>
         <main className="main-content">
           <Routes>
             <Route index element={
