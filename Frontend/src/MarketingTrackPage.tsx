@@ -252,7 +252,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     return nodes;
   };
 
-  // Fallback/customizer: tailor Week 1 of Improve Social Media Strategy & Engagement
+  // Fallback/customizer: tailor weeks of Improve Social Media Strategy & Engagement
   const withFallback = (goal: MarketingGoal, module: MarketingModule): MarketingModule => {
     const title = goal.title.toLowerCase();
     if (title.includes('improve social media')) {
@@ -283,6 +283,36 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         { id: `${module.id}-w1-plan`, title: 'Plan this week’s 3 posts', description: 'Educate, Connect, Promote. Short and simple.', estimatedTime: '10m', isCompleted: false },
       ] as any;
       return { ...module, title: 'Social Audit & Baseline Tracking', description: 'Audit, baseline, and a simple 3‑post plan to start consistent.', content: conciseContent, tasks: reducedTasks };
+      }
+      if (module.weekNumber === 2) {
+        const curatedContent = [
+          'This week: Define your 3–4 Content Pillars and post with more intention using a refined 5‑day plan.',
+          '',
+          '## Why pillars?',
+          'Pillars are the themes that represent your brand and audience needs. They make planning easier and more consistent.',
+          '',
+          '## Choose your pillars (3–4)',
+          '- Your Products/Services',
+          '- Behind‑the‑Scenes / Business Life',
+          '- Customer Stories / Testimonials',
+          '- Tips & Education',
+          '- Promotions / Sales / Events',
+          '- Personal Story / Values / Why You Started',
+          '- Local Love / Community / Shoutouts',
+          '- Visual Inspiration (Moodboards, Process, Design)',
+          '',
+          '## Refined 5‑Day Content Plan',
+          '- Monday — Meet the Maker (Personal Story / BTS): Show yourself or your team and what this week looks like',
+          '- Tuesday — Teach or Tip (Education / Products): Share a how‑to, misconception to fix, or product usage tip',
+          '- Wednesday — Testimonial or Win (Customer Love): Share a client quote/review or a quick story',
+          '- Thursday — Offer or Product Feature (Promotion / Service): Highlight one product/service and why it matters',
+          '- Friday — Community Boost (Local / Fun): Shout out a local business or something light to close the week',
+        ].join('\n');
+        const curatedTasks = [
+          { id: `${module.id}-w2-pillars`, title: 'Choose your 3–4 content pillars', description: 'Select brand‑aligned pillars and save them.', estimatedTime: '10m', isCompleted: false },
+          { id: `${module.id}-w2-plan`, title: 'Create your refined 5‑day content plan', description: 'Draft 3–5 posts using the week’s plan and your pillars.', estimatedTime: '15m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Content Pillars + Strategic Posting Flow', description: 'Lock your pillars and plan a refined 5‑day posting rhythm.', content: curatedContent, tasks: curatedTasks };
       }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
@@ -315,6 +345,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   // Pro Tip helper (simple seed tips based on common themes)
   const getProTip = (module: MarketingModule): string => {
     const t = `${module.title} ${module.description}`.toLowerCase();
+    if (activeGoal && activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 2) {
+      return 'You don’t need to be everywhere—you just need to be consistent in the right places.';
+    }
     if (t.includes('loyalty') || t.includes('repeat')) return 'This week, try sending a thank-you email to your top 10 customers from last month.';
     if (t.includes('social') || t.includes('engagement')) return 'Batch-create 3 post variations and schedule them to reduce decision fatigue.';
     if (t.includes('brand') || t.includes('identity')) return 'Create a 3-line voice guide: tone, vocabulary, and “never say” words.';
@@ -379,31 +412,63 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     const isSocial = activeGoal.title.toLowerCase().includes('improve social media');
     if (!isSocial) return;
     const currentWeek = activeGoal.currentWeek || 1;
-    if (currentWeek !== 1) return;
-    setPlanner(defaultPlanner);
+    if (currentWeek === 1) {
+      setPlanner(defaultPlanner);
+      return;
+    }
+    if (currentWeek === 2) {
+      const refinedWeek2: PlannerRow[] = [
+        { day: 'Monday', type: 'Connect', pillar: 'Personal Story / Behind the Scenes', caption: '' },
+        { day: 'Tuesday', type: 'Educate', pillar: 'Education / Products', caption: '' },
+        { day: 'Wednesday', type: 'Connect', pillar: 'Customer Love / Testimonial', caption: '' },
+        { day: 'Thursday', type: 'Promote', pillar: 'Offer or Product Feature', caption: '' },
+        { day: 'Friday', type: 'Connect', pillar: 'Community / Local / Fun', caption: '' },
+      ];
+      setPlanner(refinedWeek2);
+      return;
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGoal?.id, activeGoal?.currentWeek]);
   const [quickWins, setQuickWins] = useState<{ baseline?: boolean; bioLink?: boolean; planned?: boolean }>({});
   const [plannerMode, setPlannerMode] = useState<'beginner' | 'confident'>('beginner');
 
+  // Week 2: content pillars selection (persist locally per-goal)
+  const [contentPillarsByGoal, setContentPillarsByGoal] = useState<Record<string, string[]>>({});
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const raw = localStorage.getItem(`pillars:${activeGoal.id}`);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (Array.isArray(saved)) {
+          setContentPillarsByGoal(prev => ({ ...prev, [activeGoal.id]: saved as string[] }));
+        }
+      }
+    } catch {}
+  }, [activeGoal?.id]);
+  const savePillars = (goalId: string, pillars: string[]) => {
+    setContentPillarsByGoal(prev => ({ ...prev, [goalId]: pillars }));
+    try { localStorage.setItem(`pillars:${goalId}`, JSON.stringify(pillars)); } catch {}
+  };
+
   // Generator removed for now (button hidden until pillars are set)
 
-  // Complete current active track: unlock and mark all weeks complete, enable selection of others
-  const completeActiveTrackNow = useCallback(() => {
+  // Advance active track to next week (persists currentWeek via onMarketingGoalsChange)
+  const advanceActiveTrackWeek = useCallback(() => {
     if (!activeGoal) return;
     const updated = marketingGoals.map(g => {
       if (g.id !== activeGoal.id) return g;
-      return {
-        ...g,
-        currentWeek: g.duration,
-        progress: 100,
-        modules: g.modules.map(m => ({
-          ...m,
-          isUnlocked: true,
-          isCompleted: true,
-          tasks: m.tasks.map(t => ({ ...t, isCompleted: true }))
-        }))
-      };
+      const nextWeek = Math.min(g.currentWeek + 1, g.duration);
+      const updatedModules = g.modules.map(module => ({
+        ...module,
+        isUnlocked: module.weekNumber <= nextWeek,
+        isCompleted: module.weekNumber < nextWeek ? true : module.isCompleted
+      }));
+      const updatedWeekStartDates = [...(g.weekStartDates || [])];
+      if (nextWeek !== g.currentWeek) {
+        updatedWeekStartDates[nextWeek - 1] = new Date();
+      }
+      return { ...g, currentWeek: nextWeek, modules: updatedModules, weekStartDates: updatedWeekStartDates, lastWeekAdvancement: new Date() };
     });
     onMarketingGoalsChange(updated);
   }, [activeGoal, marketingGoals, onMarketingGoalsChange]);
@@ -893,7 +958,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                 }}>
                   {activeGoal.currentWeek >= activeGoal.duration ? 'Completed' : `Active • Week ${activeGoal.currentWeek} of ${activeGoal.duration}`}
                 </span>
-                <button type="button" onClick={() => completeActiveTrackNow()} style={{ padding: '0.5rem 0.9rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.22)', color: '#EF8E81', cursor: 'pointer' }}>Complete Track (Preview)</button>
+                <button type="button" onClick={() => advanceActiveTrackWeek()} style={{ padding: '0.5rem 0.9rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.22)', color: '#EF8E81', cursor: 'pointer' }}>Advance to Next Week</button>
                                   {activeGoal.currentWeek < activeGoal.duration && activeGoal.weekStartDates && activeGoal.weekStartDates[activeGoal.currentWeek - 1] && (
                     <span style={{
                       background: 'rgba(104, 109, 202, 0.2)',
@@ -937,15 +1002,16 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
               </div>
             </div>
 
-            {/* Current Week Module */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h4 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7', marginBottom: '1rem' }}>
-                Current Week: {activeGoal.currentWeek}
-              </h4>
-              {activeGoal.modules.filter(m => m.weekNumber === activeGoal.currentWeek).map(m0 => {
-                const module = withFallback(activeGoal, m0);
-                return (
-                <div key={module.id}>
+            {/* Current Week Module or Completion View */}
+            {!isTrackCompleted ? (
+              <div style={{ marginBottom: '2rem' }}>
+                <h4 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7', marginBottom: '1rem' }}>
+                  Current Week: {activeGoal.currentWeek}
+                </h4>
+                {activeGoal.modules.filter(m => m.weekNumber === activeGoal.currentWeek).map(m0 => {
+                  const module = withFallback(activeGoal, m0);
+                  return (
+                  <div key={module.id}>
                   {/* Current Week Card Header */}
                   <div
                     style={{
@@ -1061,7 +1127,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                         </div>
                       )}
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
                         {/* Week Content */}
                         <div>
                           <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', marginBottom: '1rem', fontWeight: 600 }}>
@@ -1164,26 +1230,27 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             ))}
                           </div>
                         </div>
-                        {/* Baseline tabs wide (full width). For Social track, always shown; Week 1 has special copy above. */}
-                        {activeGoal.title.toLowerCase().includes('improve social media') && (
+                        {/* Week 2: Content Pillars selector (replaces baseline section) */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 2 && (
                           <div style={{ gridColumn: '1 / -1' }}>
                             <div style={{ marginTop: '0.25rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '0.9rem' }}>
-                              <div style={{ display: 'flex', gap: '6px', margin: '0 0 8px' }}>
-                                {PLATFORM_KEYS.map(({ key, label }) => (
-                                  <button key={key} onClick={() => setSelectedPlatformTab(key)} style={{
-                                    padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)',
-                                    background: selectedPlatformTab === key ? '#EF8E81' : 'transparent', color: selectedPlatformTab === key ? '#191628' : '#FFF1E7', cursor: 'pointer', fontWeight: 700
-                                  }}>{label}</button>
-                                ))}
+                              <div style={{ color: '#FFF1E7', marginBottom: '0.5rem', fontWeight: 700 }}>Choose your 3–4 content pillars</div>
+                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                {['Your Products/Services','Behind-the-Scenes / Business Life','Customer Stories / Testimonials','Tips & Education','Promotions / Sales / Events','Personal Story / Values','Local Love / Community','Visual Inspiration'].map(p => {
+                                  const selected = (contentPillarsByGoal[activeGoal.id] || []).includes(p);
+                                  return (
+                                    <button key={p} onClick={() => {
+                                      const current = contentPillarsByGoal[activeGoal.id] || [];
+                                      const next = selected ? current.filter(x => x !== p) : [...current, p].slice(0, 4);
+                                      savePillars(activeGoal.id, next);
+                                    }} style={{ padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: selected ? '#EF8E81' : 'transparent', color: selected ? '#191628' : '#FFF1E7', cursor: 'pointer', fontWeight: 700 }}>
+                                      {p}
+                                    </button>
+                                  );
+                                })}
                               </div>
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
-                                <label>Followers<input value={baseline[selectedPlatformTab].followers} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], followers: e.target.value } }))} style={inputBaseStyle} /></label>
-                                <label>Avg Likes<input value={baseline[selectedPlatformTab].avgLikes} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgLikes: e.target.value } }))} style={inputBaseStyle} /></label>
-                                <label>Avg Comments<input value={baseline[selectedPlatformTab].avgComments} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgComments: e.target.value } }))} style={inputBaseStyle} /></label>
-                                <label>Avg Story Views<input value={baseline[selectedPlatformTab].avgStoryViews} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgStoryViews: e.target.value } }))} style={inputBaseStyle} /></label>
-                              </div>
-                              <div style={{ marginTop: 8 }}>
-                                <button onClick={() => { saveBaseline(); setQuickWins(q => ({ ...q, baseline: true })); }} style={{ padding: '6px 10px' }}>Save baseline</button>
+                              <div style={{ marginTop: 8, color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>
+                                Selected: {(contentPillarsByGoal[activeGoal.id] || []).join(', ') || 'None selected yet'}
                               </div>
                             </div>
                           </div>
@@ -1208,9 +1275,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             </div>
                             {/* Quick Wins */}
                             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px' }}>
-                                <input type="checkbox" checked={!!quickWins.baseline} onChange={(e)=> setQuickWins(q => ({ ...q, baseline: e.target.checked }))} /> Save baseline metrics
-                              </label>
+                              {module.weekNumber === 1 && (
+                                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px' }}>
+                                  <input type="checkbox" checked={!!quickWins.baseline} onChange={(e)=> setQuickWins(q => ({ ...q, baseline: e.target.checked }))} /> Save baseline metrics
+                                </label>
+                              )}
                               <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px' }}>
                                 <input type="checkbox" checked={!!quickWins.bioLink} onChange={(e)=> setQuickWins(q => ({ ...q, bioLink: e.target.checked }))} /> Fix bio + link
                               </label>
@@ -1248,9 +1317,126 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                       </div>
                     </div>
                   )}
-                </div>
-              );})}
-            </div>
+                  </div>
+                );})}
+              </div>
+            ) : (
+              <div style={{ marginBottom: '2rem' }}>
+                <h4 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7', marginBottom: '1rem' }}>
+                  Track Completed • Week {activeGoal.duration}
+                </h4>
+                {(() => {
+                  const finalModuleRaw = activeGoal.modules.find(m => m.weekNumber === activeGoal.duration);
+                  if (!finalModuleRaw) return null;
+                  const finalModule = withFallback(activeGoal, finalModuleRaw);
+                  return (
+                    <div>
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        borderRadius: '12px',
+                        padding: '1.5rem',
+                        border: '1px solid rgba(239, 142, 129, 0.2)'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                          <div style={{ flex: 1 }}>
+                            <h5 style={{ margin: 0, fontSize: '1.1rem', color: '#FFF1E7', marginBottom: '0.25rem' }}>
+                              {finalModule.title}
+                            </h5>
+                            <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '0.9rem' }}>
+                              {finalModule.description}
+                            </p>
+                          </div>
+                          <span style={{
+                            background: '#5ECD7D',
+                            color: '#22202F',
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600
+                          }}>
+                            ✓ Complete
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Completion Details Layout mirrors current-week dropdown */}
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        borderRadius: '0 0 12px 12px',
+                        border: '1px solid rgba(239, 142, 129, 0.2)',
+                        borderTop: 'none',
+                        padding: '1.5rem',
+                        marginTop: '-1px'
+                      }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
+                          {/* Week Content */}
+                          <div>
+                            <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', marginBottom: '1rem', fontWeight: 600 }}>
+                              Week Content
+                            </h6>
+                            <div style={{
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              borderRadius: '8px',
+                              padding: '1rem',
+                              color: '#FFF1E7',
+                              lineHeight: '1.6',
+                              fontSize: '0.9rem',
+                              maxHeight: '320px',
+                              overflowY: 'auto'
+                            }}>
+                              {renderRichContent(finalModule.content)}
+                            </div>
+                          </div>
+
+                          {/* Week Tasks (all completed) */}
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                              <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>
+                                Week Tasks
+                              </h6>
+                              <div style={{ padding: '0.25rem 0.75rem', background: '#5ECD7D', color: '#22202F', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700 }}>Completed</div>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '320px', overflowY: 'auto' }}>
+                              {finalModule.tasks.map(task => (
+                                <div key={task.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.75rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '6px', border: `1px solid ${task.isCompleted ? 'rgba(94, 205, 125, 0.3)' : 'rgba(255, 255, 255, 0.1)'}` }}>
+                                  <div style={{
+                                    width: '26px',
+                                    height: '26px',
+                                    borderRadius: '50%',
+                                    border: '2px solid #5ECD7D',
+                                    background: '#5ECD7D',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                    marginTop: '2px',
+                                    padding: 0,
+                                    minWidth: '26px',
+                                    minHeight: '26px',
+                                    boxShadow: '0 0 0 6px rgba(94,205,125,0.15)'
+                                  }}>
+                                    <span style={{ color: '#22202F', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ color: '#FFF1E7', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem', textDecoration: 'line-through', opacity: 0.7 }}>
+                                      {task.title}
+                                    </div>
+                                    <div style={{ color: '#FFF1E7', opacity: 0.7, fontSize: '0.8rem', marginBottom: '0.25rem' }}>
+                                      {task.description}
+                                    </div>
+                                    <div style={{ color: '#EF8E81', fontSize: '0.75rem', fontWeight: 600 }}>⏱️ {task.estimatedTime || '—'}</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
 
             {/* All Modules Grid */}
             <div>
