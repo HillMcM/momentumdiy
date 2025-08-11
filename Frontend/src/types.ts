@@ -71,6 +71,7 @@ export interface Task {
   timeSpent: string;
   notifications: boolean;
   status: TaskStatus;
+  isArchived?: boolean;
   projectId?: string; // ID of the project this task belongs to
   marketingTrack?: {
     goalId: string;
@@ -172,6 +173,7 @@ export interface UpdateTaskRequest {
   projectId?: string;
   timeSpent?: string;
   notifications?: boolean;
+  isArchived?: boolean;
 }
 
 // Project API Types

@@ -253,6 +253,7 @@ export class TaskService {
     };
     if (dbTask.project_id) task.projectId = dbTask.project_id;
     if (dbTask.marketing_track) task.marketingTrack = dbTask.marketing_track;
+    if ((dbTask as any).is_archived !== undefined) (task as any).isArchived = (dbTask as any).is_archived;
     return task;
   }
 } 
