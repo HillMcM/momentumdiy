@@ -703,7 +703,26 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
               <div style={{ flex: 1 }}>
                 <h3 style={{ margin: 0, fontSize: '1.75rem', color: '#FFF1E7', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <span>{activeGoal.title}</span>
-                  <span aria-hidden style={{ fontSize: '1.1rem' }}>🟡 🟢 🔵</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                      padding: '0.2rem 0.5rem', borderRadius: '999px',
+                      border: '1px solid #FFC857', background: 'rgba(255, 200, 87, 0.12)',
+                      color: '#FFF1E7', fontSize: '0.8rem'
+                    }}><span aria-hidden>🟡</span><span>Early Stage</span></span>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                      padding: '0.2rem 0.5rem', borderRadius: '999px',
+                      border: '1px solid #5ECD7D', background: 'rgba(94, 205, 125, 0.12)',
+                      color: '#FFF1E7', fontSize: '0.8rem'
+                    }}><span aria-hidden>🟢</span><span>Mid-Stage</span></span>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                      padding: '0.2rem 0.5rem', borderRadius: '999px',
+                      border: '1px solid #686DCA', background: 'rgba(104, 109, 202, 0.12)',
+                      color: '#FFF1E7', fontSize: '0.8rem'
+                    }}><span aria-hidden>🔵</span><span>Growth Stage</span></span>
+                  </span>
                 </h3>
                 <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '1rem', marginBottom: '0.5rem' }}>
                   {activeGoal.description}
@@ -1270,7 +1289,26 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                   <div style={{ flex: 1 }}>
                     <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <span>{goal.title}</span>
-                      <span aria-hidden style={{ fontSize: '1rem' }}>🟡 🟢 🔵</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                          padding: '0.18rem 0.45rem', borderRadius: '999px',
+                          border: '1px solid #FFC857', background: 'rgba(255, 200, 87, 0.12)',
+                          color: '#FFF1E7', fontSize: '0.78rem'
+                        }}><span aria-hidden>🟡</span><span>Early Stage</span></span>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                          padding: '0.18rem 0.45rem', borderRadius: '999px',
+                          border: '1px solid #5ECD7D', background: 'rgba(94, 205, 125, 0.12)',
+                          color: '#FFF1E7', fontSize: '0.78rem'
+                        }}><span aria-hidden>🟢</span><span>Mid-Stage</span></span>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                          padding: '0.18rem 0.45rem', borderRadius: '999px',
+                          border: '1px solid #686DCA', background: 'rgba(104, 109, 202, 0.12)',
+                          color: '#FFF1E7', fontSize: '0.78rem'
+                        }}><span aria-hidden>🔵</span><span>Growth Stage</span></span>
+                      </span>
                     </h3>
                     <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
                       {goal.description}
