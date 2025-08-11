@@ -35,7 +35,7 @@ type ProfileRecord = {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section style={{ background: '#22202F', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '1rem' }}>
+    <section style={{ background: '#22202F', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '1rem', overflow: 'hidden', boxSizing: 'border-box' }}>
       <h3 style={{ marginTop: 0 }}>{title}</h3>
       {children}
     </section>
@@ -46,7 +46,7 @@ function Input({ label, value, onChange, type = 'text' }: { label: string; value
   return (
     <label style={{ display: 'block', marginBottom: '0.75rem' }}>
       <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>{label}</div>
-      <input type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#FFF1E7' }} />
+      <input type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: '0.6rem 0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#FFF1E7' }} />
     </label>
   );
 }
@@ -131,7 +131,7 @@ export default function ProfilePage() {
       </div>
 
       {tab === 'account' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '1rem' }}>
           <Section title="Core Account Info">
             <Input label="Full Name" value={profile.full_name} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), full_name: v }))} />
             <Input label="Contact Email" value={profile.contact_email ?? profile.email} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), contact_email: v }))} />
@@ -151,7 +151,7 @@ export default function ProfilePage() {
       )}
 
       {tab === 'business' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '1rem' }}>
           <Section title="Business Details">
             <Input label="Business Name" value={profile.business_name} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), business_name: v }))} />
             <Input label="Business Category" value={profile.business_category} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), business_category: v }))} />
@@ -162,11 +162,11 @@ export default function ProfilePage() {
             <Input label="Primary Marketing Goal" value={profile.primary_marketing_goal} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), primary_marketing_goal: v }))} />
             <Input label="Main Channels (comma-separated)" value={(profile.marketing_channels || []).join(', ')} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), marketing_channels: v.split(',').map(s => s.trim()).filter(Boolean) }))} />
             <Input label="Industry Keywords (comma-separated)" value={(profile.industry_keywords || []).join(', ')} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), industry_keywords: v.split(',').map(s => s.trim()).filter(Boolean) }))} />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0,1fr))', gap: '0.5rem', marginTop: '0.5rem' }}>
               {['social','seo','ads','design','writing'].map((k) => (
                 <label key={k} style={{ fontSize: '0.85rem' }}>
                   {k.toUpperCase()} Skill (0-5)
-                  <input type="number" min={0} max={5} value={(profile.skill_levels || {})[k as keyof SkillLevels] ?? 0} onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), skill_levels: { ...(p?.skill_levels || {}), [k]: Number(e.target.value) } }))} style={{ width: '100%', padding: '0.4rem 0.5rem', borderRadius: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#FFF1E7' }} />
+                  <input type="number" min={0} max={5} value={(profile.skill_levels || {})[k as keyof SkillLevels] ?? 0} onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), skill_levels: { ...(p?.skill_levels || {}), [k]: Number(e.target.value) } }))} style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: '0.4rem 0.5rem', borderRadius: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#FFF1E7' }} />
                 </label>
               ))}
             </div>
@@ -186,7 +186,7 @@ export default function ProfilePage() {
       )}
 
       {tab === 'favorites' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '1rem' }}>
           <Section title="Favorite Templates/Tools">
             <Input label="Favorite Templates (comma-separated)" value={(profile.favorite_templates || []).join(', ')} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), favorite_templates: v.split(',').map(s => s.trim()).filter(Boolean) }))} />
             <Input label="Favorite Tools (comma-separated)" value={(profile.favorite_tools || []).join(', ')} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), favorite_tools: v.split(',').map(s => s.trim()).filter(Boolean) }))} />
