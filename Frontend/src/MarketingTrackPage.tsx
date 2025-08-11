@@ -255,7 +255,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   // Fallback/customizer: tailor Week 1 of Improve Social Media Strategy & Engagement
   const withFallback = (goal: MarketingGoal, module: MarketingModule): MarketingModule => {
     const title = goal.title.toLowerCase();
-    if (title.includes('improve social media') && module.weekNumber === 1) {
+    if (title.includes('improve social media')) {
+      if (module.weekNumber === 1) {
       const conciseContent = [
         'This week: audit your profile, capture baseline numbers, and plan 3 posts you can actually ship.',
         '',
@@ -282,6 +283,19 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         { id: `${module.id}-w1-plan`, title: 'Plan this week’s 3 posts', description: 'Educate, Connect, Promote. Short and simple.', estimatedTime: '10m', isCompleted: false },
       ] as any;
       return { ...module, title: 'Social Audit & Baseline Tracking', description: 'Audit, baseline, and a simple 3‑post plan to start consistent.', content: conciseContent, tasks: reducedTasks };
+      }
+      // For all other weeks, replace long email content with concise template summary + prompts
+      const concise = [
+        `This week: ${module.title}.`,
+        '',
+        'Keep momentum with a clear rhythm (Beginner 3x or Confident 5x). Draft captions in your Social Content Plan using these prompts:',
+        '- Behind the Scenes: Here’s what we’re working on this week…',
+        '- Tip or FAQ: Answer a common customer question or give a useful tip related to your work',
+        '- Personal Story: Share why you started your business, or something you’re proud of',
+        '- Product/Service Feature: Highlight 1 offer you love—show it, describe it, and invite people in',
+        '- Fun or Community: Shout out a local business, share a favorite spot, or post something light‑hearted'
+      ].join('\n');
+      return { ...module, content: concise };
     }
     return module;
   };
