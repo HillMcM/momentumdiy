@@ -53,6 +53,19 @@
 }
 
 /* Sidebar Styles */
+.sidebar-toggle {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 101;
+  background: rgba(255,241,231,0.12);
+  color: #FFF1E7;
+  border: 1px solid rgba(239,142,129,0.35);
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
 .sidebar {
   width: 240px;
   background: #23233a;
@@ -60,6 +73,11 @@
   flex-direction: column;
   padding: 24px 0;
   flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.sidebar.hidden {
+  transform: translateX(-110%);
 }
 .sidebar-header {
   font-size: 1.2rem;

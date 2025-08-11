@@ -49,7 +49,13 @@ function Header() {
   );
 }
 
-function Sidebar() {
+function SidebarToggle({ onClick }: { onClick: () => void }) {
+  return (
+    <button className="sidebar-toggle" onClick={onClick} aria-label="Toggle sidebar" title="Open menu">☰</button>
+  );
+}
+
+function Sidebar({ hidden }: { hidden: boolean }) {
   const location = useLocation();
   const { user } = useAuth();
   const deriveNameFromUser = (u: any | null) => {
@@ -89,7 +95,7 @@ function Sidebar() {
   };
 
   return (
-    <nav className="sidebar">
+    <nav className={`sidebar${hidden ? ' hidden' : ''}`}>
       <Link to="/app/profile" className="sidebar-header" style={{ display: 'block', textDecoration: 'none' }}>
         {businessName}
       </Link>
@@ -242,6 +248,7 @@ function ProtectedApp() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
+  const [sidebarHidden, setSidebarHidden] = useState<boolean>(false);
   
   // Comment out non-core state for now
   // const [assets, setAssets] = useState<Asset[]>([]);
@@ -631,8 +638,9 @@ function ProtectedApp() {
     return (
       <>
         <Header />
-        <div className="app-shell">
-          <Sidebar />
+        <div className="app-shell" style={{ position: 'relative' }}>
+          <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
+          <Sidebar hidden={sidebarHidden} />
           <main className="main-content">
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
               <div>Loading...</div>
@@ -646,8 +654,9 @@ function ProtectedApp() {
   return (
     <>
       <Header />
-      <div className="app-shell">
-        <Sidebar />
+      <div className="app-shell" style={{ position: 'relative' }}>
+        <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
+        <Sidebar hidden={sidebarHidden} />
         <main className="main-content">
           <Routes>
             <Route index element={
