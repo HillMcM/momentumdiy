@@ -409,6 +409,16 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ] as any;
         return { ...module, title: 'Reuse a Past Post — Give It a Comeback', description: 'Repeat, remix, and stay visible without burnout.', content, tasks };
       }
+      if (module.weekNumber === 11) {
+        const content = [
+          'This week: Run a simple engagement campaign (poll/quiz, giveaway, fun question, or Q&A) to spark interaction and reach.',
+        ].join('\n');
+        const tasks = [
+          { id: `${module.id}-w11-pick`, title: 'Step 1: Pick your campaign type', description: 'Story Poll/Quiz, Giveaway, Fun Feed Question, or Q&A', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w11-promote`, title: 'Step 2: Promote it clearly', description: 'Tell people how to participate and when you’ll announce results.', estimatedTime: '5m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Create a Mini Engagement Campaign', description: 'Fast, fun, and effective.', content, tasks };
+      }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
@@ -601,6 +611,27 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     } catch {}
   }, [activeGoal?.id]);
   const saveWk10 = (goalId: string, plan: Week10Plan) => { setWk10ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk10:${goalId}`, JSON.stringify(plan)); } catch {} };
+
+  // Week 11: Engagement campaign (persist per-goal)
+  type CampaignType = 'Story Poll/Quiz' | 'Giveaway' | 'Fun Feed Question' | 'Q&A';
+  type Week11Plan = {
+    type: CampaignType;
+    title: string;
+    caption: string;
+    rules: string;
+    start: string;
+    end: string;
+    assets: string; // notes/links to graphics/templates
+  };
+  const [wk11ByGoal, setWk11ByGoal] = useState<Record<string, Week11Plan>>({});
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const raw = localStorage.getItem(`wk11:${activeGoal.id}`);
+      if (raw) setWk11ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week11Plan }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const saveWk11 = (goalId: string, plan: Week11Plan) => { setWk11ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk11:${goalId}`, JSON.stringify(plan)); } catch {} };
 
   type Stage = 'early' | 'mid' | 'growth';
   const getStagesForGoal = (title: string): Stage[] => {
@@ -1949,6 +1980,37 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 );
                               })()}
                             </div>
+                          </div>
+                        )}
+
+                        {/* Week 11: Engagement campaign builder */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 11 && (
+                          <div style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                            {(() => {
+                              const plan: Week11Plan = wk11ByGoal[activeGoal.id] || { type: 'Story Poll/Quiz', title: '', caption: '', rules: '', start: '', end: '', assets: '' };
+                              const update = (upd: Partial<Week11Plan>) => saveWk11(activeGoal.id, { ...plan, ...upd });
+                              return (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                  <div>
+                                    <label>Campaign Type
+                                      <select value={plan.type} onChange={e => update({ type: e.target.value as CampaignType })} style={inputBaseStyle as any}>
+                                        {(['Story Poll/Quiz','Giveaway','Fun Feed Question','Q&A'] as CampaignType[]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                      </select>
+                                    </label>
+                                    <label>Title<input value={plan.title} onChange={e => update({ title: e.target.value })} style={inputBaseStyle} placeholder="Engagement prompt title…" /></label>
+                                    <label>Caption<textarea value={plan.caption} onChange={e => update({ caption: e.target.value })} style={{ ...inputBaseStyle, minHeight: 90 }} placeholder="Write a clear caption with how to participate…" /></label>
+                                  </div>
+                                  <div>
+                                    <label>Rules / How to participate<textarea value={plan.rules} onChange={e => update({ rules: e.target.value })} style={{ ...inputBaseStyle, minHeight: 90 }} placeholder="Follow + tag 1 friend, comment to win, vote by Friday, etc." /></label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                      <label>Start<input value={plan.start} onChange={e => update({ start: e.target.value })} style={inputBaseStyle} placeholder="YYYY-MM-DD" /></label>
+                                      <label>End<input value={plan.end} onChange={e => update({ end: e.target.value })} style={inputBaseStyle} placeholder="YYYY-MM-DD" /></label>
+                                    </div>
+                                    <label>Assets / Links<textarea value={plan.assets} onChange={e => update({ assets: e.target.value })} style={{ ...inputBaseStyle, minHeight: 70 }} placeholder="Notes or links to graphics/templates" /></label>
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </div>
                         )}
 
