@@ -117,7 +117,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         if (cp.success && Array.isArray(cp.data)) {
           const vals = cp.data.concat(['', '', '', '']).slice(0, 4);
           setPillars(vals);
-          setPillarsSaved(cp.data.length > 0);
         }
       } catch (e) {
         // ignore
