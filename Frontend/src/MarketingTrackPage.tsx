@@ -445,8 +445,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       }
     } catch {}
   }, [activeGoal?.id]);
-  // keep for backward compatibility in case referenced elsewhere (but unused path):
-  const savePillarsLocal = (_goalId: string, _pillars: string[]) => {};
+  // removed unused legacy function savePillarsLocal
 
   // When active goal changes, hydrate pillars from API as a fallback
   useEffect(() => {
