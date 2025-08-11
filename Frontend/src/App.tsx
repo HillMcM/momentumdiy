@@ -668,6 +668,7 @@ function ProtectedApp() {
                 projects={projects}
                 onTasksChange={handleTasksChange}
                 onProjectsChange={handleProjectsChange}
+                marketingGoals={marketingGoals}
               />
             } />
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
