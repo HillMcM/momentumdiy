@@ -445,10 +445,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       }
     } catch {}
   }, [activeGoal?.id]);
-  const savePillarsLocal = (goalId: string, pillars: string[]) => {
-    setContentPillarsByGoal(prev => ({ ...prev, [goalId]: pillars }));
-    try { localStorage.setItem(`pillars:${goalId}`, JSON.stringify(pillars)); } catch {}
-  };
+  // keep for backward compatibility in case referenced elsewhere (but unused path):
+  const savePillarsLocal = (_goalId: string, _pillars: string[]) => {};
 
   // When active goal changes, hydrate pillars from API as a fallback
   useEffect(() => {
@@ -456,8 +454,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     (async () => {
       try {
         const cp = await apiService.getContentPillars();
-        if (cp.success && Array.isArray(cp.data)) {
-          setContentPillarsByGoal(prev => ({ ...prev, [activeGoal.id]: cp.data.slice(0, 4) }));
+        if (cp && (cp as any).success && Array.isArray((cp as any).data)) {
+          const list = (cp as any).data as string[];
+          setContentPillarsByGoal(prev => ({ ...prev, [activeGoal.id]: list.slice(0, 4) }));
         }
       } catch {}
     })();
