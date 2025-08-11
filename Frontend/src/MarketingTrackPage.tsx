@@ -398,6 +398,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ] as any;
         return { ...module, title: 'Boost Engagement with 10 Minutes Daily', description: 'Simple, consistent engagement that compounds.', content, tasks };
       }
+      if (module.weekNumber === 10) {
+        const content = [
+          'This week: Reuse a past post with a fresh spin. Choose a strong post, pick a new format/angle, and repost with a new CTA.',
+        ].join('\n');
+        const tasks = [
+          { id: `${module.id}-w10-choose`, title: 'Step 1: Find a strong post to repurpose', description: 'Pick something with good engagement or a message worth repeating.', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w10-remix`, title: 'Step 2: Choose how to refresh it', description: 'Carousel, reel/voiceover, BTS video, graphic quote/stat, testimonial with photo.', estimatedTime: '10m', isCompleted: false },
+          { id: `${module.id}-w10-repost`, title: 'Step 3: Repost with a slightly different CTA', description: 'Try “Did you miss this?” or “New followers—here’s a tip worth repeating.”', estimatedTime: '5m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Reuse a Past Post — Give It a Comeback', description: 'Repeat, remix, and stay visible without burnout.', content, tasks };
+      }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
@@ -576,6 +587,20 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     } catch {}
   }, [activeGoal?.id]);
   const saveWk9 = (goalId: string, plan: Week9Plan) => { setWk9ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk9:${goalId}`, JSON.stringify(plan)); } catch {} };
+
+  // Week 10: Repurpose a past post (persist per-goal)
+  type PastPost = { title: string; url: string; date: string; format: 'Photo' | 'Caption' | 'Promo' | 'Long Caption' | 'Testimonial' | 'Other' };
+  type RemixPlan = { newFormat: 'Carousel' | 'Reel/Video' | 'BTS Video' | 'Graphic Quote/Stat' | 'Photo+Testimonial' | 'Other'; notes: string; cta: string };
+  type Week10Plan = { past: PastPost; remix: RemixPlan };
+  const [wk10ByGoal, setWk10ByGoal] = useState<Record<string, Week10Plan>>({});
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const raw = localStorage.getItem(`wk10:${activeGoal.id}`);
+      if (raw) setWk10ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week10Plan }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const saveWk10 = (goalId: string, plan: Week10Plan) => { setWk10ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk10:${goalId}`, JSON.stringify(plan)); } catch {} };
 
   type Stage = 'early' | 'mid' | 'growth';
   const getStagesForGoal = (title: string): Stage[] => {
@@ -1882,6 +1907,48 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 </div>
                               );
                             })()}
+                          </div>
+                        )}
+
+                        {/* Week 10: Repurpose a past post with a fresh spin */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 10 && (
+                          <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            {/* Choose post */}
+                            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                              <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 1: Pick a past post</h6>
+                              {(() => {
+                                const p = wk10ByGoal[activeGoal.id]?.past || { title: '', url: '', date: '', format: 'Other' as const };
+                                const update = (upd: Partial<PastPost>) => saveWk10(activeGoal.id, { past: { ...p, ...upd }, remix: wk10ByGoal[activeGoal.id]?.remix || { newFormat: 'Carousel', notes: '', cta: '' } });
+                                return (
+                                  <div>
+                                    <label>Title/description<input value={p.title} onChange={e => update({ title: e.target.value })} style={inputBaseStyle} /></label>
+                                    <label>URL<input value={p.url} onChange={e => update({ url: e.target.value })} style={inputBaseStyle} placeholder="https://… (optional)" /></label>
+                                    <label>Date<input value={p.date} onChange={e => update({ date: e.target.value })} style={inputBaseStyle} placeholder="YYYY-MM-DD" /></label>
+                                    <label>Original format<select value={p.format} onChange={e => update({ format: e.target.value as any })} style={inputBaseStyle as any}>
+                                      {(['Photo','Caption','Promo','Long Caption','Testimonial','Other'] as PastPost['format'][]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select></label>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                            {/* Remix */}
+                            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                              <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 2–3: Refresh + Repost</h6>
+                              {(() => {
+                                const plan = wk10ByGoal[activeGoal.id] || { past: { title: '', url: '', date: '', format: 'Other' }, remix: { newFormat: 'Carousel', notes: '', cta: '' } };
+                                const r = plan.remix;
+                                const update = (upd: Partial<RemixPlan>) => saveWk10(activeGoal.id, { ...plan, remix: { ...r, ...upd } });
+                                return (
+                                  <div>
+                                    <label>New version<select value={r.newFormat} onChange={e => update({ newFormat: e.target.value as any })} style={inputBaseStyle as any}>
+                                      {(['Carousel','Reel/Video','BTS Video','Graphic Quote/Stat','Photo+Testimonial','Other'] as RemixPlan['newFormat'][]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select></label>
+                                    <label>Notes<textarea value={r.notes} onChange={e => update({ notes: e.target.value })} style={{ ...inputBaseStyle, minHeight: 80 }} placeholder="How will you refresh it?" /></label>
+                                    <label>CTA<textarea value={r.cta} onChange={e => update({ cta: e.target.value })} style={{ ...inputBaseStyle, minHeight: 60 }} placeholder="Ex: ‘Did you miss this the first time?’" /></label>
+                                  </div>
+                                );
+                              })()}
+                            </div>
                           </div>
                         )}
 
