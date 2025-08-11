@@ -666,6 +666,20 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   }, [activeGoal?.id]);
   const saveWk12 = (goalId: string, s: Week12State) => { setWk12ByGoal(prev => ({ ...prev, [goalId]: s })); try { localStorage.setItem(`wk12:${goalId}`, JSON.stringify(s)); } catch {} };
 
+  // Week 12: Current metrics per platform (separate from saved baseline)
+  const [wk12MetricsByGoal, setWk12MetricsByGoal] = useState<Record<string, Record<PlatformKey, BaselineMetrics>>>({});
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const raw = localStorage.getItem(`wk12metrics:${activeGoal.id}`);
+      if (raw) setWk12MetricsByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Record<PlatformKey, BaselineMetrics> }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const saveWk12Metrics = (goalId: string, data: Record<PlatformKey, BaselineMetrics>) => {
+    setWk12MetricsByGoal(prev => ({ ...prev, [goalId]: data }));
+    try { localStorage.setItem(`wk12metrics:${goalId}`, JSON.stringify(data)); } catch {}
+  };
+
   type Stage = 'early' | 'mid' | 'growth';
   const getStagesForGoal = (title: string): Stage[] => {
     const t = title.toLowerCase();
@@ -1834,8 +1848,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                       ))}
                               <div style={{ marginTop: 8 }}>
                                         <button onClick={addLink} style={{ padding: '0.4rem 0.75rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: '#EF8E81', color: '#FFF1E7' }}>+ Add link</button>
-                                      </div>
-                                    </div>
+                              </div>
+                            </div>
                                   );
                                 })()}
                               </div>
@@ -2047,12 +2061,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                           </div>
                         )}
 
-                        {/* Week 12: Reflection + 30‑day plan */}
+                        {/* Week 12: Reflection + 30‑day plan with baseline vs current metrics */}
                         {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 12 && (
                           <div style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
                             {(() => {
                               const s: Week12State = wk12ByGoal[activeGoal.id] || { reflection: { changed: '', worked: '', keepStop: '', nextGoal: '' }, metrics: {}, plan: { focus: '', notes: '' } };
                               const upd = (next: Partial<Week12State>) => saveWk12(activeGoal.id, { ...s, ...next, reflection: { ...s.reflection, ...(next.reflection||{}) }, metrics: { ...s.metrics, ...(next.metrics||{}) }, plan: { ...s.plan, ...(next.plan||{}) } });
+                              const currentMetrics = wk12MetricsByGoal[activeGoal.id] || (emptyBaseline as Record<PlatformKey, BaselineMetrics>);
                               return (
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                   {/* Reflection */}
@@ -2065,12 +2080,42 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   </div>
                                   {/* Metrics + Plan */}
                                   <div>
-                                    <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 2: Metrics (optional)</h6>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-                                      <label>Followers<input value={s.metrics.followers || ''} onChange={e => upd({ metrics: { followers: e.target.value } as any })} style={inputBaseStyle} /></label>
-                                      <label>Engagement<input value={s.metrics.engagement || ''} onChange={e => upd({ metrics: { engagement: e.target.value } as any })} style={inputBaseStyle} /></label>
-                                      <label>Story Views<input value={s.metrics.storyViews || ''} onChange={e => upd({ metrics: { storyViews: e.target.value } as any })} style={inputBaseStyle} /></label>
-                                      <label>Reach<input value={s.metrics.reach || ''} onChange={e => upd({ metrics: { reach: e.target.value } as any })} style={inputBaseStyle} /></label>
+                                    <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 2: Metrics — Baseline vs Current</h6>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                      {/* Baseline (read-only) */}
+                                      <div>
+                                        <div style={{ fontWeight: 600, marginBottom: 6, color: '#FFF1E7' }}>Baseline (Week 1, read‑only)</div>
+                                        <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '0.75rem' }}>
+                                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                                            {PLATFORM_KEYS.map(({ key, label }) => (
+                                              <div key={key} style={{ border: '1px dashed rgba(255,255,255,0.2)', borderRadius: 8, padding: '0.5rem' }}>
+                                                <div style={{ fontWeight: 600, color: '#FFF1E7', marginBottom: 4 }}>{label}</div>
+                                                <div style={{ fontSize: 12, opacity: 0.9 }}>Followers: {baseline[key]?.followers || '—'}</div>
+                                                <div style={{ fontSize: 12, opacity: 0.9 }}>Avg Likes: {baseline[key]?.avgLikes || '—'}</div>
+                                                <div style={{ fontSize: 12, opacity: 0.9 }}>Avg Comments: {baseline[key]?.avgComments || '—'}</div>
+                                                <div style={{ fontSize: 12, opacity: 0.9 }}>Avg Story Views: {baseline[key]?.avgStoryViews || '—'}</div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {/* Current (fillable) */}
+                                      <div>
+                                        <div style={{ fontWeight: 600, marginBottom: 6, color: '#FFF1E7' }}>Current</div>
+                                        <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '0.75rem' }}>
+                                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                                            {PLATFORM_KEYS.map(({ key, label }) => (
+                                              <div key={key} style={{ border: '1px dashed rgba(255,255,255,0.2)', borderRadius: 8, padding: '0.5rem' }}>
+                                                <div style={{ fontWeight: 600, color: '#FFF1E7', marginBottom: 4 }}>{label}</div>
+                                                <label>Followers<input value={currentMetrics[key]?.followers || ''} onChange={e => saveWk12Metrics(activeGoal.id, { ...currentMetrics, [key]: { ...(currentMetrics[key] || { followers: '', avgLikes: '', avgComments: '', avgStoryViews: '' }), followers: e.target.value } })} style={inputBaseStyle} /></label>
+                                                <label>Avg Likes<input value={currentMetrics[key]?.avgLikes || ''} onChange={e => saveWk12Metrics(activeGoal.id, { ...currentMetrics, [key]: { ...(currentMetrics[key] || { followers: '', avgLikes: '', avgComments: '', avgStoryViews: '' }), avgLikes: e.target.value } })} style={inputBaseStyle} /></label>
+                                                <label>Avg Comments<input value={currentMetrics[key]?.avgComments || ''} onChange={e => saveWk12Metrics(activeGoal.id, { ...currentMetrics, [key]: { ...(currentMetrics[key] || { followers: '', avgLikes: '', avgComments: '', avgStoryViews: '' }), avgComments: e.target.value } })} style={inputBaseStyle} /></label>
+                                                <label>Avg Story Views<input value={currentMetrics[key]?.avgStoryViews || ''} onChange={e => saveWk12Metrics(activeGoal.id, { ...currentMetrics, [key]: { ...(currentMetrics[key] || { followers: '', avgLikes: '', avgComments: '', avgStoryViews: '' }), avgStoryViews: e.target.value } })} style={inputBaseStyle} /></label>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
                                     <h6 style={{ marginTop: '1rem', color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 3: 30‑day plan</h6>
                                     <label>Focus<input value={s.plan.focus} onChange={e => upd({ plan: { focus: e.target.value } as any })} style={inputBaseStyle} placeholder="Ex: 3x Stories/week; Tuesday Tips; run a giveaway" /></label>
