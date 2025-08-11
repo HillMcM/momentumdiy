@@ -50,9 +50,9 @@ function Header() {
   );
 }
 
-function SidebarToggle({ onClick }: { onClick: () => void }) {
+function SidebarToggle({ onClick, className }: { onClick: () => void; className?: string }) {
   return (
-    <button className="sidebar-toggle" onClick={onClick} aria-label="Toggle sidebar" title="Open menu">
+    <button className={className || 'sidebar-toggle'} onClick={onClick} aria-label="Toggle sidebar" title="Open menu">
       <img src={SidebarToggleIcon} alt="menu" style={{ width: 24, height: 24 }} />
     </button>
   );
@@ -99,6 +99,11 @@ function Sidebar({ hidden }: { hidden: boolean }) {
 
   return (
     <nav className={`sidebar${hidden ? ' hidden' : ''}`}>
+      {!hidden && (
+        <div style={{ position: 'absolute', top: 16, right: 12 }}>
+          <SidebarToggle className="sidebar-toggle" onClick={() => window.dispatchEvent(new CustomEvent('toggle-sidebar'))} />
+        </div>
+      )}
       <Link to="/app/profile" className="sidebar-header" style={{ display: 'block', textDecoration: 'none' }}>
         {businessName}
       </Link>
@@ -661,10 +666,12 @@ function ProtectedApp() {
       <Header />
       <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
         <Sidebar hidden={sidebarHidden} />
-        {/* Move the sidebar toggle to the left sidebar edge, under the logo area */}
-        <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
-          <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
-        </div>
+        {/* Attach opener only when collapsed */}
+        {sidebarHidden && (
+          <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
+            <SidebarToggle onClick={() => setSidebarHidden(false)} />
+          </div>
+        )}
         <main className="main-content">
           <Routes>
             <Route index element={
