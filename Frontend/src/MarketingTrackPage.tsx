@@ -252,8 +252,32 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     return nodes;
   };
 
-  // Fallback: use mock generator content/tasks when backend modules are empty
-  const withFallback = (_goal: MarketingGoal, module: MarketingModule): MarketingModule => module;
+  // Fallback/customizer: tailor Week 1 of Improve Social Media Strategy & Engagement
+  const withFallback = (goal: MarketingGoal, module: MarketingModule): MarketingModule => {
+    const title = goal.title.toLowerCase();
+    if (title.includes('improve social media') && module.weekNumber === 1) {
+      const conciseContent = [
+        'This week: audit your profile, capture baseline numbers, and plan 3 posts you can actually ship.',
+        '',
+        'Profile checks:',
+        '- Bio clearly says what you do',
+        '- Profile photo is current',
+        '- Link points to something useful (site/menu/booking)',
+        '- Pin/highlight reflects your top offer',
+        '',
+        'Baseline: followers, avg likes, avg comments, story views (choose platform tabs).',
+        '',
+        'Posting rhythm: Beginner 3x (Mon/Wed/Fri) or Confident 5x (Mon–Fri).',
+      ].join('\n');
+      const reducedTasks = [
+        { id: `${module.id}-w1-baseline`, title: 'Save baseline metrics', description: 'Enter metrics for your main platform and save.', estimatedTime: '5m', isCompleted: false },
+        { id: `${module.id}-w1-bio`, title: 'Fix bio + link (if needed)', description: 'Make your profile clear and actionable.', estimatedTime: '10m', isCompleted: false },
+        { id: `${module.id}-w1-plan`, title: 'Plan this week’s 3 posts', description: 'Educate, Connect, Promote. Short and simple.', estimatedTime: '10m', isCompleted: false },
+      ] as any;
+      return { ...module, title: 'Social Audit & Baseline Tracking', description: 'Audit, baseline, and a simple 3‑post plan to start consistent.', content: conciseContent, tasks: reducedTasks };
+    }
+    return module;
+  };
 
   // Task helpers
   const getTaskIcon = (title: string): string => {
@@ -321,6 +345,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   }));
   const [planner, setPlanner] = useState<PlannerRow[]>(defaultPlanner);
   const [quickWins, setQuickWins] = useState<{ baseline?: boolean; bioLink?: boolean; planned?: boolean }>({});
+  const [plannerMode, setPlannerMode] = useState<'beginner' | 'confident'>('beginner');
 
   const generateWeekFromPillars = () => {
     const p = pillars.filter(Boolean);
@@ -655,24 +680,24 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           {/* Selected platform fields */}
           <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
             <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#FFF1E7' }}>{PLATFORM_KEYS.find(p => p.key === selectedPlatformTab)?.label}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-              <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                Followers
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+                  <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                    Followers
                 <input value={baseline[selectedPlatformTab].followers} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], followers: e.target.value } }))} style={inputBaseStyle} />
-              </label>
-              <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                Avg Likes
+                  </label>
+                  <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                    Avg Likes
                 <input value={baseline[selectedPlatformTab].avgLikes} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgLikes: e.target.value } }))} style={inputBaseStyle} />
-              </label>
-              <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                Avg Comments
+                  </label>
+                  <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                    Avg Comments
                 <input value={baseline[selectedPlatformTab].avgComments} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgComments: e.target.value } }))} style={inputBaseStyle} />
-              </label>
-              <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                Avg Story Views
+                  </label>
+                  <label style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                    Avg Story Views
                 <input value={baseline[selectedPlatformTab].avgStoryViews} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgStoryViews: e.target.value } }))} style={inputBaseStyle} />
-              </label>
-            </div>
+                  </label>
+                </div>
           </div>
           <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <button onClick={saveBaseline} disabled={loadingInline} style={{ padding: '0.4rem 0.9rem' }}>Save</button>
@@ -942,6 +967,28 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                           }}>
                             {renderRichContent(module.content)}
                           </div>
+                          {/* Inline Baseline tabs for Week 1 of Social track */}
+                          {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 1 && (
+                            <div style={{ marginTop: '0.75rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '0.9rem' }}>
+                              <div style={{ display: 'flex', gap: '6px', margin: '0 0 8px' }}>
+                                {PLATFORM_KEYS.map(({ key, label }) => (
+                                  <button key={key} onClick={() => setSelectedPlatformTab(key)} style={{
+                                    padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)',
+                                    background: selectedPlatformTab === key ? '#EF8E81' : 'transparent', color: selectedPlatformTab === key ? '#191628' : '#FFF1E7', cursor: 'pointer', fontWeight: 700
+                                  }}>{label}</button>
+                                ))}
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+                                <label>Followers<input value={baseline[selectedPlatformTab].followers} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], followers: e.target.value } }))} style={inputBaseStyle} /></label>
+                                <label>Avg Likes<input value={baseline[selectedPlatformTab].avgLikes} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgLikes: e.target.value } }))} style={inputBaseStyle} /></label>
+                                <label>Avg Comments<input value={baseline[selectedPlatformTab].avgComments} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgComments: e.target.value } }))} style={inputBaseStyle} /></label>
+                                <label>Avg Story Views<input value={baseline[selectedPlatformTab].avgStoryViews} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgStoryViews: e.target.value } }))} style={inputBaseStyle} /></label>
+                              </div>
+                              <div style={{ marginTop: 8 }}>
+                                <button onClick={() => { saveBaseline(); setQuickWins(q => ({ ...q, baseline: true })); }} style={{ padding: '6px 10px' }}>Save baseline</button>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Week Tasks */}
@@ -1038,7 +1085,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                           <div style={{ marginTop: '0.5rem', background: 'rgba(255,241,231,0.04)', border: '1px solid rgba(239,142,129,0.25)', borderRadius: 10, padding: '1rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                               <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 700 }}>Guided Week</h6>
-                              <button onClick={generateWeekFromPillars} style={{ padding: '0.4rem 0.8rem', borderRadius: 8, border: '1px solid rgba(239,142,129,0.35)', background: 'rgba(239,142,129,0.18)', color: '#EF8E81', fontWeight: 700, cursor: 'pointer' }}>Generate Week from Pillars</button>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>Rhythm</span>
+                                <button onClick={()=> setPlannerMode('beginner')} disabled={plannerMode==='beginner'} style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: plannerMode==='beginner' ? '#EF8E81' : 'transparent', color: plannerMode==='beginner' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Beginner 3x</button>
+                                <button onClick={()=> setPlannerMode('confident')} disabled={plannerMode==='confident'} style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: plannerMode==='confident' ? '#EF8E81' : 'transparent', color: plannerMode==='confident' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Confident 5x</button>
+                                <button onClick={generateWeekFromPillars} style={{ padding: '0.4rem 0.8rem', borderRadius: 8, border: '1px solid rgba(239,142,129,0.35)', background: 'rgba(239,142,129,0.18)', color: '#EF8E81', fontWeight: 700, cursor: 'pointer' }}>Generate Week from Pillars</button>
+                              </div>
                             </div>
                             {/* Quick Wins */}
                             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
@@ -1064,7 +1116,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {planner.map((row, idx) => (
+                                  {(plannerMode==='beginner' ? planner.filter(r => ['Monday','Wednesday','Friday'].includes(r.day)) : planner).map((row, idx) => (
                                     <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
                                       <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
                                       <td style={{ padding: '8px' }}>
