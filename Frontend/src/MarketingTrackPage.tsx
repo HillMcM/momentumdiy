@@ -1161,16 +1161,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>
                                   Week Tasks
                                 </h6>
-                                <div style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.85rem' }}>
-                                  {module.weekNumber === 2 ? (
-                                    <>
-                                      <span style={{ color: '#FFF1E7' }}>Why these tasks?</span> Your pillars create clarity; the refined plan makes posting systematic and easier to sustain.
-                                    </>
-                                  ) : null}
-                                </div>
                               </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '320px', overflowY: 'auto' }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
-                            {module.tasks.map(task => (
+                              {module.tasks.map(task => (
                               <div
                                 key={task.id}
                                 data-task-id={task.id}
@@ -1218,7 +1211,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     <span style={{ color: '#22202F', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
                                   )}
                                 </button>
-                                <div style={{ flex: 1 }}>
+                                  <div style={{ flex: 1 }}>
                                   <div style={{ 
                                     color: '#FFF1E7', 
                                     fontSize: '0.9rem', 
@@ -1230,14 +1223,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     <span style={{ marginRight: 6 }}>{getTaskIcon(task.title)}</span>
                                     {task.title}
                                   </div>
-                                  <div style={{ 
-                                    color: '#FFF1E7', 
-                                    opacity: 0.7, 
-                                    fontSize: '0.8rem',
-                                    marginBottom: '0.25rem'
-                                  }}>
-                                    {task.description}
-                                  </div>
+                                    {module.weekNumber === 2 && task.title.toLowerCase().includes('choose your 3–4 content pillars') && (
+                                      <div style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                                        <strong>Why create content pillars?</strong> Content pillars are the repeatable themes that shape your message. They give you clarity, make planning faster, and help your audience understand what you stand for. Once you lock them, your weekly plan becomes plug‑and‑play.
+                                      </div>
+                                    )}
+                                    <div style={{ color: '#FFF1E7', opacity: 0.7, fontSize: '0.8rem', marginBottom: '0.25rem' }}>
+                                      {task.description}
+                                    </div>
                                   <div style={{ color: '#EF8E81', fontSize: '0.75rem', fontWeight: 600 }}>⏱️ {task.estimatedTime || '—'}</div>
                                 </div>
                               </div>
@@ -1304,23 +1297,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 <button onClick={()=> setPlannerMode('confident')} disabled={plannerMode==='confident'} style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: plannerMode==='confident' ? '#EF8E81' : 'transparent', color: plannerMode==='confident' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Confident 5x</button>
                               </div>
                             </div>
-                            {/* Quick Wins */}
-                            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-                              {module.weekNumber === 1 && (
-                                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px' }}>
-                                  <input type="checkbox" checked={!!quickWins.baseline} onChange={(e)=> setQuickWins(q => ({ ...q, baseline: e.target.checked }))} /> Save baseline metrics
-                                </label>
-                              )}
-                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px' }}>
-                                <input type="checkbox" checked={!!quickWins.bioLink} onChange={(e)=> setQuickWins(q => ({ ...q, bioLink: e.target.checked }))} /> Fix bio + link
-                              </label>
-                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px' }}>
-                                <input type="checkbox" checked={!!quickWins.planned} onChange={(e)=> setQuickWins(q => ({ ...q, planned: e.target.checked }))} /> Week planned
-                              </label>
-                            </div>
+                            {/* Quick Wins removed per request */}
                              {/* Planner Grid */}
-                            <div style={{ overflowX: 'auto' }}>
-                              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
+                             <div style={{ overflowX: 'hidden' }}>
+                               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, tableLayout: 'fixed' }}>
                                 <thead>
                                   <tr style={{ textAlign: 'left', color: '#FFF1E7', opacity: 0.8 }}>
                                     <th style={{ padding: '8px' }}>Day</th>
