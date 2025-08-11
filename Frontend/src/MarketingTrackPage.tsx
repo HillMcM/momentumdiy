@@ -342,6 +342,19 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ] as any;
         return { ...module, title: 'Your 3 Go‑To Post Types', description: 'Never wonder what to post — rotate Educate, Promote, Connect.', content, tasks };
       }
+      if (module.weekNumber === 5) {
+        const content = [
+          'This week: Connect the dots into a weekly rhythm you can repeat. Pick a frequency, match post types to days, and decide when you’ll plan/schedule.',
+          '',
+          'Beginner Flow: 3x/week (Mon–Wed–Fri). Confident Flow: 4–5x/week (Mon–Fri).',
+          'Stories and quick check-ins can layer on top anytime!'
+        ].join('\n');
+        const tasks = [
+          { id: `${module.id}-w5-frequency`, title: 'Step 1: Choose your weekly posting frequency', description: 'Pick Beginner (3x) or Confident (4–5x) to fit your energy.', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w5-schedule`, title: 'Step 3: Choose when you’ll plan + post each week', description: 'Pick your content planning hour and scheduling habit.', estimatedTime: '5m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Your Weekly Social Plan', description: 'Simplified, systemized, and ready to roll.', content, tasks };
+      }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
@@ -438,6 +451,21 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const savePostTypes = (goalId: string, next: PostTypes) => {
     setPostTypesByGoal(prev => ({ ...prev, [goalId]: next }));
     try { localStorage.setItem(`posttypes:${goalId}`, JSON.stringify(next)); } catch {}
+  };
+
+  // Week 5: Weekly plan settings (persist per-goal)
+  type WeeklyPlan = { frequency: 'beginner' | 'confident' | 'custom'; planningTime: string };
+  const [weeklyPlanByGoal, setWeeklyPlanByGoal] = useState<Record<string, WeeklyPlan>>({});
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const raw = localStorage.getItem(`weeklyplan:${activeGoal.id}`);
+      if (raw) setWeeklyPlanByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as WeeklyPlan }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const saveWeeklyPlan = (goalId: string, wp: WeeklyPlan) => {
+    setWeeklyPlanByGoal(prev => ({ ...prev, [goalId]: wp }));
+    try { localStorage.setItem(`weeklyplan:${goalId}`, JSON.stringify(wp)); } catch {}
   };
 
   type Stage = 'early' | 'mid' | 'growth';
@@ -1488,6 +1516,35 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 </div>
                               );
                             })}
+                          </div>
+                        )}
+
+                        {/* Week 5: Weekly plan builder (frequency + planning time) */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 5 && (
+                          <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                              <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.75rem' }}>Step 1: Pick your weekly posting frequency</h6>
+                              {(() => {
+                                const wp = weeklyPlanByGoal[activeGoal.id] || { frequency: 'beginner', planningTime: '' };
+                                return (
+                                  <div style={{ display: 'flex', gap: 8 }}>
+                                    <button onClick={() => saveWeeklyPlan(activeGoal.id, { ...wp, frequency: 'beginner' })} style={{ padding: '0.5rem 0.75rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: wp.frequency==='beginner' ? '#EF8E81' : 'transparent', color: wp.frequency==='beginner' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Beginner 3x</button>
+                                    <button onClick={() => saveWeeklyPlan(activeGoal.id, { ...wp, frequency: 'confident' })} style={{ padding: '0.5rem 0.75rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: wp.frequency==='confident' ? '#EF8E81' : 'transparent', color: wp.frequency==='confident' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Confident 4–5x</button>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                              <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.75rem' }}>Step 3: Choose when you’ll plan + post</h6>
+                              {(() => {
+                                const wp = weeklyPlanByGoal[activeGoal.id] || { frequency: 'beginner', planningTime: '' };
+                                return (
+                                  <div>
+                                    <input value={wp.planningTime} onChange={e => saveWeeklyPlan(activeGoal.id, { ...wp, planningTime: e.target.value })} style={inputBaseStyle} placeholder="Ex: Plan on Friday at 2pm; schedule on Sunday evenings" />
+                                  </div>
+                                );
+                              })()}
+                            </div>
                           </div>
                         )}
 
