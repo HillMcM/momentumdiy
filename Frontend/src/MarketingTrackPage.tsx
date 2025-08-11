@@ -277,6 +277,30 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     return 'Keep it simple. Ship one useful asset this week and announce it everywhere you show up.';
   };
 
+  type Stage = 'early' | 'mid' | 'growth';
+  const getStagesForGoal = (title: string): Stage[] => {
+    const t = title.toLowerCase();
+    if (t.includes('increase repeat visits') || t.includes('loyalty')) return ['mid', 'growth'];
+    if (t.includes('grow online presence') || t.includes('visibility')) return ['early'];
+    if (t.includes('clarify') || t.includes('brand identity')) return ['early', 'mid', 'growth'];
+    if (t.includes('improve social media') || t.includes('engagement')) return ['early', 'mid'];
+    if (t.includes('increase local foot traffic') || t.includes('foot traffic')) return ['early', 'mid'];
+    return ['early', 'mid', 'growth'];
+  };
+  const renderStageChips = (stages: Stage[]) => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+      {stages.includes('early') && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.18rem 0.5rem', borderRadius: 999, border: '1px solid #FFC857', background: 'rgba(255,200,87,0.12)', color: '#FFF1E7', fontSize: '0.78rem' }}>Early Stage</span>
+      )}
+      {stages.includes('mid') && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.18rem 0.5rem', borderRadius: 999, border: '1px solid #5ECD7D', background: 'rgba(94,205,125,0.12)', color: '#FFF1E7', fontSize: '0.78rem' }}>Mid-Stage</span>
+      )}
+      {stages.includes('growth') && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.18rem 0.5rem', borderRadius: 999, border: '1px solid #686DCA', background: 'rgba(104,109,202,0.12)', color: '#FFF1E7', fontSize: '0.78rem' }}>Growth Stage</span>
+      )}
+    </div>
+  );
+
   // Simple confetti overlay for week completion
   const [confettiAt, setConfettiAt] = useState<number>(0);
   const triggerConfetti = () => {
@@ -701,47 +725,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             {/* Active Track Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
               <div style={{ flex: 1 }}>
-                <h3 style={{ margin: 0, fontSize: '1.75rem', color: '#FFF1E7', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <span>{activeGoal.title}</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                      padding: '0.2rem 0.5rem', borderRadius: '999px',
-                      border: '1px solid #FFC857', background: 'rgba(255, 200, 87, 0.12)',
-                      color: '#FFF1E7', fontSize: '0.8rem'
-                    }}><span aria-hidden>🟡</span><span>Early Stage</span></span>
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                      padding: '0.2rem 0.5rem', borderRadius: '999px',
-                      border: '1px solid #5ECD7D', background: 'rgba(94, 205, 125, 0.12)',
-                      color: '#FFF1E7', fontSize: '0.8rem'
-                    }}><span aria-hidden>🟢</span><span>Mid-Stage</span></span>
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                      padding: '0.2rem 0.5rem', borderRadius: '999px',
-                      border: '1px solid #686DCA', background: 'rgba(104, 109, 202, 0.12)',
-                      color: '#FFF1E7', fontSize: '0.8rem'
-                    }}><span aria-hidden>🔵</span><span>Growth Stage</span></span>
-                  </span>
+                <h3 style={{ margin: 0, fontSize: '1.75rem', color: '#FFF1E7', marginBottom: '0.5rem' }}>
+                  {activeGoal.title}
                 </h3>
                 <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '1rem', marginBottom: '0.5rem' }}>
                   {activeGoal.description}
                 </p>
-                <div style={{
-                  marginTop: '0.5rem',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px dashed rgba(255,255,255,0.12)',
-                  borderRadius: 8,
-                  padding: '0.6rem 0.75rem',
-                  color: '#FFF1E7',
-                  fontSize: '0.9rem'
-                }}>
-                  <div style={{ display: 'grid', rowGap: '0.25rem' }}>
-                    <div><strong>🟡 Early Stage</strong>: Still figuring out core audience and message, low or inconsistent visibility.</div>
-                    <div><strong>🟢 Mid-Stage</strong>: Some traction and a growing customer base, but needs to scale marketing or get more strategic.</div>
-                    <div><strong>🔵 Growth Stage</strong>: Solid operations, now focused on optimization, expansion, or innovation.</div>
-                  </div>
-                </div>
+                {/* Stage legend will be conditionally shown above when choosing tracks */}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <span style={{
@@ -1232,6 +1222,23 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           <h2 style={{ margin: 0, fontSize: '1.75rem', color: '#FFF1E7', marginBottom: '1.5rem' }}>
             {shouldDisableTracks ? 'Locked Tracks' : 'Available Tracks'}
           </h2>
+          {!shouldDisableTracks && (
+            <div style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px dashed rgba(255,255,255,0.12)',
+              borderRadius: 8,
+              padding: '0.75rem 1rem',
+              color: '#FFF1E7',
+              fontSize: '0.9rem',
+              marginBottom: '1rem'
+            }}>
+              <div style={{ display: 'grid', rowGap: '0.25rem' }}>
+                <div><strong>🟡 Early Stage</strong>: Still figuring out core audience and message, low or inconsistent visibility.</div>
+                <div><strong>🟢 Mid-Stage</strong>: Some traction and a growing customer base, but needs to scale marketing or get more strategic.</div>
+                <div><strong>🔵 Growth Stage</strong>: Solid operations, now focused on optimization, expansion, or innovation.</div>
+              </div>
+            </div>
+          )}
           {shouldDisableTracks && (
             <div style={{
               background: 'rgba(239, 142, 129, 0.1)',
@@ -1287,29 +1294,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <span>{goal.title}</span>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-                        <span style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                          padding: '0.18rem 0.45rem', borderRadius: '999px',
-                          border: '1px solid #FFC857', background: 'rgba(255, 200, 87, 0.12)',
-                          color: '#FFF1E7', fontSize: '0.78rem'
-                        }}><span aria-hidden>🟡</span><span>Early Stage</span></span>
-                        <span style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                          padding: '0.18rem 0.45rem', borderRadius: '999px',
-                          border: '1px solid #5ECD7D', background: 'rgba(94, 205, 125, 0.12)',
-                          color: '#FFF1E7', fontSize: '0.78rem'
-                        }}><span aria-hidden>🟢</span><span>Mid-Stage</span></span>
-                        <span style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                          padding: '0.18rem 0.45rem', borderRadius: '999px',
-                          border: '1px solid #686DCA', background: 'rgba(104, 109, 202, 0.12)',
-                          color: '#FFF1E7', fontSize: '0.78rem'
-                        }}><span aria-hidden>🔵</span><span>Growth Stage</span></span>
-                      </span>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7', marginBottom: '0.25rem' }}>
+                      {goal.title}
                     </h3>
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      {renderStageChips(getStagesForGoal(goal.title))}
+                    </div>
                     <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
                       {goal.description}
                     </p>
