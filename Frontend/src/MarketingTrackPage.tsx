@@ -4,6 +4,7 @@ import type { MarketingGoal, MarketingModule, Task, Project, TaskStatus } from '
 // TaskModal not used in this iteration
 // Removed mockData usage to avoid placeholder content
 import { apiService } from './services/api';
+import { supabase } from './lib/supabase';
 
 interface MarketingTrackPageProps {
   marketingGoals: MarketingGoal[];
@@ -20,6 +21,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isCurrentWeekExpanded, setIsCurrentWeekExpanded] = useState(true);
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
+  const [profile, setProfile] = useState<{ businessName?: string; fullName?: string; avatarUrl?: string } | null>(null);
   // Legacy modal state removed
 
   // Interactive task modal state
@@ -170,6 +172,28 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     filledModulesRef.current = true;
   }, [marketingGoals]);
 
+  // Load profile for personalization
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+        if (!userId) return;
+        const { data } = await supabase
+          .from('profiles')
+          .select('business_name, full_name, avatar_url')
+          .eq('id', userId)
+          .maybeSingle();
+        if (!mounted) return;
+        setProfile({ businessName: data?.business_name || undefined, fullName: data?.full_name || undefined, avatarUrl: data?.avatar_url || undefined });
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
   // Ensure weekStartDates exists for active goals so "Next week in..." pill shows
   useEffect(() => {
     if (!activeGoal || !activeGoal.isActive) return;
@@ -181,7 +205,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   // Rich content renderer for week content
   const renderRichContent = (text: string): ReactNode => {
     if (!text) return null;
-    const lines = text.split('\n');
+    const displayName = profile?.fullName?.split(' ')[0] || profile?.businessName || 'there';
+    const replaced = text.replace(/\[Client First Name\]/g, displayName);
+    const lines = replaced.split('\n');
     const nodes: ReactNode[] = [];
     let currentList: string[] = [];
 
@@ -227,6 +253,36 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   // Fallback: use mock generator content/tasks when backend modules are empty
   const withFallback = (_goal: MarketingGoal, module: MarketingModule): MarketingModule => module;
+
+  // Task helpers
+  const getTaskIcon = (title: string): string => {
+    const t = title.toLowerCase();
+    if (t.includes('audit') || t.includes('review')) return '🔎';
+    if (t.includes('design') || t.includes('template')) return '🎨';
+    if (t.includes('write') || t.includes('caption') || t.includes('email')) return '✍️';
+    if (t.includes('schedule') || t.includes('plan')) return '📅';
+    if (t.includes('bio') || t.includes('profile')) return '👤';
+    if (t.includes('post') || t.includes('content')) return '📣';
+    return '🗒️';
+  };
+
+  // Pro Tip helper (simple seed tips based on common themes)
+  const getProTip = (module: MarketingModule): string => {
+    const t = `${module.title} ${module.description}`.toLowerCase();
+    if (t.includes('loyalty') || t.includes('repeat')) return 'This week, try sending a thank-you email to your top 10 customers from last month.';
+    if (t.includes('social') || t.includes('engagement')) return 'Batch-create 3 post variations and schedule them to reduce decision fatigue.';
+    if (t.includes('brand') || t.includes('identity')) return 'Create a 3-line voice guide: tone, vocabulary, and “never say” words.';
+    if (t.includes('foot traffic') || t.includes('local')) return 'Add a limited-time in-store bonus for customers who mention your latest post.';
+    if (t.includes('visibility') || t.includes('online presence')) return 'Refresh your Google Business Profile with 3 new photos and an update post.';
+    return 'Keep it simple. Ship one useful asset this week and announce it everywhere you show up.';
+  };
+
+  // Simple confetti overlay for week completion
+  const [confettiAt, setConfettiAt] = useState<number>(0);
+  const triggerConfetti = () => {
+    setConfettiAt(Date.now());
+    setTimeout(() => setConfettiAt(0), 1500);
+  };
 
   // Complete current active track: unlock and mark all weeks complete, enable selection of others
   const completeActiveTrackNow = useCallback(() => {
@@ -427,6 +483,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       return goal;
     });
     onMarketingGoalsChange(updatedGoals);
+
+    // If week now completed, celebrate
+    const g = updatedGoals.find(g => g.id === goalId);
+    const m = g?.modules.find(m => m.id === moduleId);
+    if (m && m.tasks.length > 0 && m.tasks.every(t => t.isCompleted)) {
+      triggerConfetti();
+    }
     const updatedTasks = tasks.map(task => {
       if (task.marketingTrack && task.marketingTrack.goalId === goalId && task.marketingTrack.moduleId === moduleId && task.marketingTrack.marketingTaskId === taskId) {
         return { ...task, status: task.status === 'completed' ? 'todo' as const : 'completed' as const };
@@ -605,6 +668,15 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   return (
     <div className="widget" style={{ padding: '2rem', minHeight: '100vh', color: '#FFF1E7' }}>
+      {/* Personal header */}
+      {profile && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+          {profile.avatarUrl && <img src={profile.avatarUrl} alt="avatar" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.2)' }} />}
+          <div style={{ fontSize: '1.1rem', opacity: 0.9 }}>
+            {`Hi${profile.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''}! Ready to dig in?`}
+          </div>
+        </div>
+      )}
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 700, color: '#FFF1E7', marginBottom: '0.5rem' }}>
           Marketing Tracks
@@ -618,11 +690,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             Active Track
           </h2>
           <div style={{
-            background: '#22202F',
+            background: 'linear-gradient(180deg, rgba(239,142,129,0.06), rgba(25,22,40,0.35))',
             borderRadius: '16px',
             padding: '2rem',
-            border: '2px solid rgba(239, 142, 129, 0.3)',
-            boxShadow: '0 8px 32px rgba(239, 142, 129, 0.1)',
+            border: '2px solid rgba(239, 142, 129, 0.25)',
+            boxShadow: '0 10px 28px rgba(0,0,0,0.35)',
             position: 'relative',
             overflow: 'hidden'
           }}>
@@ -680,7 +752,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             </div>
 
             {/* Progress Bar */}
-            <div style={{ marginBottom: '2rem' }}>
+            <div style={{ marginBottom: '2rem', padding: '4px 0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span style={{ color: '#FFF1E7', fontSize: '0.875rem' }}>Overall Progress</span>
                 <span style={{ color: '#EF8E81', fontSize: '0.875rem', fontWeight: 600 }}>{activeGoal.progress}%</span>
@@ -814,6 +886,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                           }}>
                             {renderRichContent(module.content)}
                           </div>
+                          {/* Pro Tip */}
+                          <div style={{ marginTop: '0.75rem', background: 'rgba(104,109,202,0.12)', border: '1px dashed rgba(104,109,202,0.4)', color: '#FFF1E7', borderRadius: 8, padding: '0.75rem' }}>
+                            <strong style={{ color: '#686DCA' }}>Pro Tip:</strong> {getProTip(module)}
+                          </div>
                         </div>
 
                         {/* Week Tasks */}
@@ -851,8 +927,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     toggleTaskCompletion(activeGoal.id, module.id, task.id);
                                   }}
                                   style={{
-                                    width: '18px',
-                                    height: '18px',
+                                    width: '26px',
+                                    height: '26px',
                                     borderRadius: '50%',
                                     border: `2px solid ${task.isCompleted ? '#5ECD7D' : '#686DCA'}`,
                                     background: task.isCompleted ? '#5ECD7D' : 'transparent',
@@ -863,12 +939,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     flexShrink: 0,
                                     marginTop: '2px',
                                     padding: 0,
-                                    minWidth: '18px',
-                                    minHeight: '18px'
+                                    minWidth: '26px',
+                                    minHeight: '26px',
+                                    boxShadow: task.isCompleted ? '0 0 0 6px rgba(94,205,125,0.15)' : 'none',
+                                    transition: 'box-shadow 0.2s ease'
                                   }}
                                 >
                                   {task.isCompleted && (
-                                    <span style={{ color: '#22202F', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
+                                    <span style={{ color: '#22202F', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
                                   )}
                                 </button>
                                 <div style={{ flex: 1 }}>
@@ -880,6 +958,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     textDecoration: task.isCompleted ? 'line-through' : 'none',
                                     opacity: task.isCompleted ? 0.7 : 1
                                   }}>
+                                    <span style={{ marginRight: 6 }}>{getTaskIcon(task.title)}</span>
                                     {task.title}
                                   </div>
                                   <div style={{ 
@@ -890,7 +969,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   }}>
                                     {task.description}
                                   </div>
-                                  <div style={{ color: '#EF8E81', fontSize: '0.75rem', fontWeight: 600 }}>⏱️ {task.estimatedTime}</div>
+                                  <div style={{ color: '#EF8E81', fontSize: '0.75rem', fontWeight: 600 }}>⏱️ {task.estimatedTime || '—'}</div>
                                 </div>
                               </div>
                             ))}
@@ -1373,6 +1452,25 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Confetti */}
+      {confettiAt > 0 && (
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 99998 }}>
+          {Array.from({ length: 40 }).map((_, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              top: 0,
+              left: `${(i * 97) % 100}%`,
+              width: 8,
+              height: 8,
+              background: ['#EF8E81','#686DCA','#5ECD7D','#FF9D57'][i % 4],
+              borderRadius: 2,
+              transform: `translateY(${(Date.now()-confettiAt)/2 + (i*10)}px) rotate(${i*30}deg)`,
+              transition: 'transform 0.1s linear'
+            }} />
+          ))}
         </div>
       )}
 
