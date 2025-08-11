@@ -1510,7 +1510,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             </div>
                             {/* Quick Wins removed per request */}
                              {/* Planner Grid */}
-                             <div style={{ overflowX: 'hidden' }}>
+                              <div style={{ overflowX: 'hidden' }}>
                                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, tableLayout: 'fixed' }}>
                                 <thead>
                                   <tr style={{ textAlign: 'left', color: '#FFF1E7', opacity: 0.8 }}>
@@ -1520,33 +1520,49 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     <th style={{ padding: '8px' }}>Caption (draft)</th>
                                   </tr>
                                 </thead>
-                                <tbody>
+                                    <tbody>
                                     {(plannerMode==='beginner' ? planner.filter(r => ['Monday','Wednesday','Friday'].includes(r.day)) : planner).map((row, idx) => (
                                       <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
                                         <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
-                                        <td style={{ padding: '8px' }}>
-                                          <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as any }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
-                                            <option value="Connect">Connect</option>
-                                            <option value="Educate">Educate</option>
-                                            <option value="Promote">Promote</option>
-                                          </select>
+                                          <td style={{ padding: '8px', color: '#FFF1E7' }}>
+                                            {module.weekNumber >= 4 ? (
+                                              <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as any }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
+                                                <option value="Connect">Connect</option>
+                                                <option value="Educate">Educate</option>
+                                                <option value="Promote">Promote</option>
+                                              </select>
+                                            ) : (
+                                              <span>{row.type}</span>
+                                            )}
+                                          </td>
+                                          <td style={{ padding: '8px' }}>
+                                            {module.weekNumber >= 2 ? (
+                                              <select value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
+                                                {(contentPillarsByGoal[activeGoal.id] || DEFAULT_PILLAR_OPTIONS)
+                                                  .filter(p => (contentPillarsByGoal[activeGoal.id] || []).includes(p))
+                                                  .map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                  ))}
+                                                {(contentPillarsByGoal[activeGoal.id] || [])
+                                                  .filter(p => !DEFAULT_PILLAR_OPTIONS.includes(p))
+                                                  .map(opt => (
+                                                    <option key={`custom-${opt}`} value={opt}>{opt}</option>
+                                                  ))}
+                                              </select>
+                                            ) : (
+                                              <span style={{ color: '#FFF1E7' }}>{row.pillar}</span>
+                                            )}
                                         </td>
                                         <td style={{ padding: '8px' }}>
-                                          <select value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
-                                            {(contentPillarsByGoal[activeGoal.id] || DEFAULT_PILLAR_OPTIONS)
-                                              .filter(p => (contentPillarsByGoal[activeGoal.id] || []).includes(p))
-                                              .map(opt => (
-                                                <option key={opt} value={opt}>{opt}</option>
-                                              ))}
-                                            {(contentPillarsByGoal[activeGoal.id] || [])
-                                              .filter(p => !DEFAULT_PILLAR_OPTIONS.includes(p))
-                                              .map(opt => (
-                                                <option key={`custom-${opt}`} value={opt}>{opt}</option>
-                                              ))}
-                                          </select>
-                                        </td>
-                                        <td style={{ padding: '8px' }}>
-                                          <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder="Draft caption…" style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
+                                          <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder={
+                                            module.weekNumber === 1 ? (
+                                              row.day === 'Monday' ? "Here’s what we’re working on this week…" :
+                                              row.day === 'Tuesday' ? "Answer a common customer question or give a useful tip" :
+                                              row.day === 'Wednesday' ? "Share why you started your business, or something you’re proud of" :
+                                              row.day === 'Thursday' ? "Highlight 1 offer you love—describe it and invite people in" :
+                                              row.day === 'Friday' ? "Shout out a local business or share a light‑hearted moment" : 'Draft caption…'
+                                            ) : 'Draft caption…'
+                                          } style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
                                         </td>
                                       </tr>
                                     ))}
