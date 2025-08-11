@@ -51,7 +51,9 @@ function Header() {
 
 function SidebarToggle({ onClick }: { onClick: () => void }) {
   return (
-    <button className="sidebar-toggle" onClick={onClick} aria-label="Toggle sidebar" title="Open menu">☰</button>
+    <button className="sidebar-toggle" onClick={onClick} aria-label="Toggle sidebar" title="Open menu">
+      <img src={OctopusLogo} alt="menu" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+    </button>
   );
 }
 
@@ -638,9 +640,9 @@ function ProtectedApp() {
     return (
       <>
         <Header />
-        <div className="app-shell" style={{ position: 'relative' }}>
-          <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
+        <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
           <Sidebar hidden={sidebarHidden} />
+          <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
           <main className="main-content">
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
               <div>Loading...</div>
@@ -654,9 +656,9 @@ function ProtectedApp() {
   return (
     <>
       <Header />
-      <div className="app-shell" style={{ position: 'relative' }}>
-        <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
+      <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
         <Sidebar hidden={sidebarHidden} />
+        <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
         <main className="main-content">
           <Routes>
             <Route index element={
