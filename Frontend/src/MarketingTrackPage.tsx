@@ -434,6 +434,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   // Week 2: content pillars selection (persist locally per-goal)
   const [contentPillarsByGoal, setContentPillarsByGoal] = useState<Record<string, string[]>>({});
+  const [newPillarDraft, setNewPillarDraft] = useState<string>('');
   useEffect(() => {
     if (!activeGoal) return;
     try {
@@ -1099,7 +1100,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                       animation: 'slideDown 0.3s ease-out'
                     }}>
                       {/* Intro section for Social track (special copy for Week 1, concise for others) */}
-                      {activeGoal.title.toLowerCase().includes('improve social media') && (
+                          {activeGoal.title.toLowerCase().includes('improve social media') && (
                         <div style={{
                           background: 'rgba(255,241,231,0.05)',
                           border: '1px solid rgba(239,142,129,0.25)',
@@ -1116,6 +1117,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 <p style={{ margin: '0.25rem 0' }}>Welcome to your new quarter of <span style={{ fontStyle: 'italic' }}>Momentum Marketing!</span> 🎉</p>
                                 <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Over the next 12 weeks, we’ll strengthen your social media presence by focusing on smart strategy, easy systems, and engaging content that reflects the heart of your business.</p>
                                 <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week we’re kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress.</p>
+                              </>
+                            ) : module.weekNumber === 2 ? (
+                              <>
+                                <div style={{ fontWeight: 700, marginBottom: 6 }}>{`Hi${profile?.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''},`}</div>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.95 }}>One of the hardest parts of showing up consistently on social media is knowing <strong>what to say</strong>.</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week, we’re solving that by defining your <strong>Content Pillars</strong>—the 3–4 themes that represent your brand and connect with your audience. These become your “go‑to” buckets for content creation, making it easier to plan posts that feel intentional, not random.</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Once you’ve got your pillars, you’ll also try a more <strong>strategy‑driven weekly content plan</strong> that builds from last week.</p>
                               </>
                             ) : (
                               <>
@@ -1149,12 +1157,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
                         {/* Week Tasks */}
                         <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>
-                              Week Tasks
-                            </h6>
-                            <div style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>Create Tasks</div>
-                          </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>
+                                  Week Tasks
+                                </h6>
+                                <div style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.85rem' }}>
+                                  {module.weekNumber === 2 ? (
+                                    <>
+                                      <span style={{ color: '#FFF1E7' }}>Why these tasks?</span> Your pillars create clarity; the refined plan makes posting systematic and easier to sustain.
+                                    </>
+                                  ) : null}
+                                </div>
+                              </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '320px', overflowY: 'auto' }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
                             {module.tasks.map(task => (
                               <div
@@ -1235,6 +1249,23 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                           <div style={{ gridColumn: '1 / -1' }}>
                             <div style={{ marginTop: '0.25rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '0.9rem' }}>
                               <div style={{ color: '#FFF1E7', marginBottom: '0.5rem', fontWeight: 700 }}>Choose your 3–4 content pillars</div>
+                              <div style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                                Content pillars are the repeatable themes that shape your message. They give you clarity, make planning faster,
+                                and help your audience understand what you stand for. Once you lock them, your weekly plan becomes plug‑and‑play.
+                              </div>
+                              {/* Custom pillar input */}
+                              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                <input value={newPillarDraft} onChange={e => setNewPillarDraft(e.target.value)} placeholder="Add a custom pillar…" style={{ ...inputBaseStyle, flex: 1 }} />
+                                <button onClick={() => {
+                                  const trimmed = newPillarDraft.trim();
+                                  if (!trimmed) return;
+                                  const current = contentPillarsByGoal[activeGoal.id] || [];
+                                  if (current.includes(trimmed)) { setNewPillarDraft(''); return; }
+                                  const next = [...current, trimmed].slice(0, 4);
+                                  savePillarsLocal(activeGoal.id, next);
+                                  setNewPillarDraft('');
+                                }} style={{ padding: '6px 10px' }}>Add</button>
+                              </div>
                               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                 {['Your Products/Services','Behind-the-Scenes / Business Life','Customer Stories / Testimonials','Tips & Education','Promotions / Sales / Events','Personal Story / Values','Local Love / Community','Visual Inspiration'].map(p => {
                                   const selected = (contentPillarsByGoal[activeGoal.id] || []).includes(p);
@@ -1287,7 +1318,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 <input type="checkbox" checked={!!quickWins.planned} onChange={(e)=> setQuickWins(q => ({ ...q, planned: e.target.checked }))} /> Week planned
                               </label>
                             </div>
-                            {/* Planner Grid */}
+                             {/* Planner Grid */}
                             <div style={{ overflowX: 'auto' }}>
                               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                                 <thead>
@@ -1299,16 +1330,24 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {(plannerMode==='beginner' ? planner.filter(r => ['Monday','Wednesday','Friday'].includes(r.day)) : planner).map((row, idx) => (
-                                    <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
-                                      <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
-                                      <td style={{ padding: '8px', color: '#FFF1E7', opacity: 0.9 }}>{row.type}</td>
-                                      <td style={{ padding: '8px', color: '#FFF1E7', opacity: 0.9 }}>{row.pillar}</td>
-                                      <td style={{ padding: '8px' }}>
-                                        <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder="Draft caption…" style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
-                                      </td>
-                                    </tr>
-                                  ))}
+                                    {(plannerMode==='beginner' ? planner.filter(r => ['Monday','Wednesday','Friday'].includes(r.day)) : planner).map((row, idx) => (
+                                      <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
+                                        <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
+                                        <td style={{ padding: '8px' }}>
+                                          <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as any }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
+                                            <option value="Connect">Connect</option>
+                                            <option value="Educate">Educate</option>
+                                            <option value="Promote">Promote</option>
+                                          </select>
+                                        </td>
+                                        <td style={{ padding: '8px' }}>
+                                          <input value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} placeholder="Linked pillar…" style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
+                                        </td>
+                                        <td style={{ padding: '8px' }}>
+                                          <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder="Draft caption…" style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
+                                        </td>
+                                      </tr>
+                                    ))}
                                 </tbody>
                               </table>
                             </div>
