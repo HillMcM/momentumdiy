@@ -377,6 +377,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ] as any;
         return { ...module, title: 'Polish Your Bio, Links, and Highlights', description: 'Make your profile clear, appealing, and actionable.', content, tasks };
       }
+      if (module.weekNumber === 8) {
+        const content = [
+          'This week: Schedule 1 full week of content in advance using your plan, templates, and post types.',
+        ].join('\n');
+        const tasks = [
+          { id: `${module.id}-w8-pickdays`, title: 'Step 1: Pick your post days (3–5)', description: 'Choose days that match your weekly plan.', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w8-prep`, title: 'Step 2: Prep your content', description: 'Draft captions, plug visuals, align with pillars and types.', estimatedTime: '10m', isCompleted: false },
+          { id: `${module.id}-w8-schedule`, title: 'Step 3: Schedule your posts', description: 'Use Meta Business Suite, Later, Planoly, Buffer, or post manually.', estimatedTime: '10m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Schedule 1 Full Week of Content', description: 'Plan, design, write, and schedule ahead for consistency.', content, tasks };
+      }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
@@ -528,6 +539,21 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const saveLinks = (goalId: string, items: LinkItem[]) => { setLinksByGoal(prev => ({ ...prev, [goalId]: items })); try { localStorage.setItem(`profilelinks:${goalId}`, JSON.stringify(items)); } catch {} };
   const saveHighlights = (goalId: string, items: HighlightItem[]) => { setHighlightsByGoal(prev => ({ ...prev, [goalId]: items })); try { localStorage.setItem(`profilehi:${goalId}`, JSON.stringify(items)); } catch {} };
 
+  // Week 8: Scheduling helper (persist per-goal)
+  type ScheduleTool = 'Meta Business Suite' | 'Later' | 'Planoly' | 'Buffer' | 'Manual';
+  type ScheduledPost = { day: string; type: 'Educate' | 'Promote' | 'Connect'; pillar: string; caption: string; scheduled: boolean };
+  type Week8Plan = { days: string[]; tool: ScheduleTool; posts: ScheduledPost[] };
+  const [wk8ByGoal, setWk8ByGoal] = useState<Record<string, Week8Plan>>({});
+  const DEFAULT_DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const raw = localStorage.getItem(`wk8:${activeGoal.id}`);
+      if (raw) setWk8ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week8Plan }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const saveWk8 = (goalId: string, plan: Week8Plan) => { setWk8ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk8:${goalId}`, JSON.stringify(plan)); } catch {} };
+
   type Stage = 'early' | 'mid' | 'growth';
   const getStagesForGoal = (title: string): Stage[] => {
     const t = title.toLowerCase();
@@ -585,7 +611,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     if (!isSocial) return;
     const currentWeek = activeGoal.currentWeek || 1;
     if (currentWeek === 1) {
-      setPlanner(defaultPlanner);
+    setPlanner(defaultPlanner);
       return;
     }
     if (currentWeek === 2) {
@@ -1195,14 +1221,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
             {/* Current Week Module or Completion View */}
             {!isTrackCompleted ? (
-              <div style={{ marginBottom: '2rem' }}>
-                <h4 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7', marginBottom: '1rem' }}>
-                  Current Week: {activeGoal.currentWeek}
-                </h4>
-                {activeGoal.modules.filter(m => m.weekNumber === activeGoal.currentWeek).map(m0 => {
-                  const module = withFallback(activeGoal, m0);
-                  return (
-                  <div key={module.id}>
+            <div style={{ marginBottom: '2rem' }}>
+              <h4 style={{ margin: 0, fontSize: '1.25rem', color: '#FFF1E7', marginBottom: '1rem' }}>
+                Current Week: {activeGoal.currentWeek}
+              </h4>
+              {activeGoal.modules.filter(m => m.weekNumber === activeGoal.currentWeek).map(m0 => {
+                const module = withFallback(activeGoal, m0);
+                return (
+                <div key={module.id}>
                   {/* Current Week Card Header */}
                   <div
                     style={{
@@ -1290,7 +1316,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                       animation: 'slideDown 0.3s ease-out'
                     }}>
                       {/* Intro section for Social track (special copy for Week 1, concise for others) */}
-                          {activeGoal.title.toLowerCase().includes('improve social media') && (
+                      {activeGoal.title.toLowerCase().includes('improve social media') && (
                         <div style={{
                           background: 'rgba(255,241,231,0.05)',
                           border: '1px solid rgba(239,142,129,0.25)',
@@ -1325,7 +1351,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                         </div>
                       )}
 
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
                         {/* Week Content */}
                         <div>
                           <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', marginBottom: '1rem', fontWeight: 600 }}>
@@ -1347,13 +1373,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
                         {/* Week Tasks */}
                         <div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>
-                                  Week Tasks
-                                </h6>
-                              </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>
+                              Week Tasks
+                            </h6>
+                          </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '320px', overflowY: 'auto' }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
-                              {module.tasks.map(task => (
+                            {module.tasks.map(task => (
                               <div
                                 key={task.id}
                                 data-task-id={task.id}
@@ -1401,7 +1427,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     <span style={{ color: '#22202F', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
                                   )}
                                 </button>
-                                  <div style={{ flex: 1 }}>
+                                <div style={{ flex: 1 }}>
                                   <div style={{ 
                                     color: '#FFF1E7', 
                                     fontSize: '0.9rem', 
@@ -1415,8 +1441,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   </div>
                                     {/* Remove rationale from preview; it will appear in the modal */}
                                     <div style={{ color: '#FFF1E7', opacity: 0.7, fontSize: '0.8rem', marginBottom: '0.25rem' }}>
-                                      {task.description}
-                                    </div>
+                                    {task.description}
+                                  </div>
                                   <div style={{ color: '#EF8E81', fontSize: '0.75rem', fontWeight: 600 }}>⏱️ {task.estimatedTime || '—'}</div>
                                 </div>
                               </div>
@@ -1467,7 +1493,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     }} style={{ padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: '#EF8E81', color: '#191628', cursor: 'pointer', fontWeight: 700 }}>
                                       {p}
                                     </button>
-                                  ))}
+                                ))}
                               </div>
                               <div style={{ marginTop: 8, color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>
                                 Selected: {(contentPillarsByGoal[activeGoal.id] || []).join(', ') || 'None selected yet'}
@@ -1694,7 +1720,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                           <button onClick={() => remove(idx)} style={{ padding: '0.4rem 0.6rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#FFF1E7' }}>Remove</button>
                                         </div>
                                       ))}
-                                      <div style={{ marginTop: 8 }}>
+                              <div style={{ marginTop: 8 }}>
                                         <button onClick={addLink} style={{ padding: '0.4rem 0.75rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: '#EF8E81', color: '#FFF1E7' }}>+ Add link</button>
                                       </div>
                                     </div>
@@ -1728,6 +1754,70 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                           </div>
                         )}
 
+                        {/* Week 8: Scheduling helper */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 8 && (
+                          <div style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                            {(() => {
+                              const plan: Week8Plan = wk8ByGoal[activeGoal.id] || { days: ['Monday','Wednesday','Friday'], tool: 'Meta Business Suite', posts: [] };
+                              const selectedDays = plan.days.length ? plan.days : ['Monday','Wednesday','Friday'];
+                              const setDays = (day: string) => {
+                                const next = selectedDays.includes(day) ? selectedDays.filter(d => d !== day) : [...selectedDays, day];
+                                saveWk8(activeGoal.id, { ...plan, days: next });
+                              };
+                              const setTool = (tool: ScheduleTool) => saveWk8(activeGoal.id, { ...plan, tool });
+                              const ensurePosts = () => {
+                                const posts = DEFAULT_DAYS.filter(d => selectedDays.includes(d)).map(d => {
+                                  const existing = plan.posts.find(p => p.day === d);
+                                  return existing || { day: d, type: 'Educate', pillar: (contentPillarsByGoal[activeGoal.id] || [DEFAULT_PILLAR_OPTIONS[0]])[0] || '', caption: '', scheduled: false };
+                                });
+                                return posts as ScheduledPost[];
+                              };
+                              const posts = ensurePosts();
+                              const updatePost = (idx: number, upd: Partial<ScheduledPost>) => {
+                                const next = posts.map((p, i) => i===idx ? { ...p, ...upd } : p);
+                                saveWk8(activeGoal.id, { ...plan, posts: next });
+                              };
+                              return (
+                                <div>
+                                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                                    {DEFAULT_DAYS.map(d => (
+                                      <button key={d} onClick={() => setDays(d)} style={{ padding: '0.4rem 0.75rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: selectedDays.includes(d) ? '#EF8E81' : 'transparent', color: selectedDays.includes(d) ? '#191628' : '#FFF1E7' }}>{d}</button>
+                                    ))}
+                                  </div>
+                                  <div style={{ marginBottom: '0.75rem' }}>
+                                    <label>Scheduler Tool
+                                      <select value={plan.tool} onChange={e => setTool(e.target.value as ScheduleTool)} style={inputBaseStyle as any}>
+                                        {(['Meta Business Suite','Later','Planoly','Buffer','Manual'] as ScheduleTool[]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                      </select>
+                                    </label>
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.75rem' }}>
+                                    {posts.map((p, idx) => (
+                                      <div key={p.day} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '0.75rem' }}>
+                                        <div style={{ fontWeight: 700, color: '#FFF1E7', marginBottom: 6 }}>{p.day}</div>
+                                        <label>Type<select value={p.type} onChange={e => updatePost(idx, { type: e.target.value as any })} style={inputBaseStyle as any}>
+                                          <option value="Educate">Educate</option>
+                                          <option value="Promote">Promote</option>
+                                          <option value="Connect">Connect</option>
+                                        </select></label>
+                                        <label>Pillar<select value={p.pillar} onChange={e => updatePost(idx, { pillar: e.target.value })} style={inputBaseStyle as any}>
+                                          {(contentPillarsByGoal[activeGoal.id] || DEFAULT_PILLAR_OPTIONS)
+                                            .filter(pl => (contentPillarsByGoal[activeGoal.id] || []).includes(pl))
+                                            .map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                        </select></label>
+                                        <label>Caption<textarea value={p.caption} onChange={e => updatePost(idx, { caption: e.target.value })} style={{ ...inputBaseStyle, minHeight: 80 }} placeholder="Draft the caption…" /></label>
+                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                          <input type="checkbox" checked={p.scheduled} onChange={e => updatePost(idx, { scheduled: e.target.checked })} /> Mark scheduled
+                                        </label>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+
                         {/* Pro Tip spanning both columns */}
                         <div style={{ gridColumn: '1 / -1' }}>
                           <div style={{ marginTop: '0.25rem', background: 'rgba(104,109,202,0.12)', border: '1px dashed rgba(104,109,202,0.4)', color: '#FFF1E7', borderRadius: 8, padding: '0.9rem' }}>
@@ -1746,7 +1836,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                               </div>
                             </div>
                             {/* Quick Wins removed per request */}
-                             {/* Planner Grid */}
+                            {/* Planner Grid */}
                               <div style={{ overflowX: 'hidden' }}>
                                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, tableLayout: 'fixed' }}>
                                 <thead>
@@ -1757,10 +1847,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     <th style={{ padding: '8px' }}>Caption (draft)</th>
                                   </tr>
                                 </thead>
-                                    <tbody>
-                                    {(plannerMode==='beginner' ? planner.filter(r => ['Monday','Wednesday','Friday'].includes(r.day)) : planner).map((row, idx) => (
-                                      <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
-                                        <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
+                                <tbody>
+                                  {(plannerMode==='beginner' ? planner.filter(r => ['Monday','Wednesday','Friday'].includes(r.day)) : planner).map((row, idx) => (
+                                    <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
+                                      <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
                                           <td style={{ padding: '8px', color: '#FFF1E7' }}>
                                             {module.weekNumber >= 4 ? (
                                               <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as any }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
@@ -1772,7 +1862,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                               <span>{row.type}</span>
                                             )}
                                           </td>
-                                          <td style={{ padding: '8px' }}>
+                                      <td style={{ padding: '8px' }}>
                                             {module.weekNumber >= 2 ? (
                                               <select value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
                                                 {(contentPillarsByGoal[activeGoal.id] || DEFAULT_PILLAR_OPTIONS)
@@ -1800,9 +1890,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                               row.day === 'Friday' ? "Shout out a local business or share a light‑hearted moment" : 'Draft caption…'
                                             ) : 'Draft caption…'
                                           } style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
-                                        </td>
-                                      </tr>
-                                    ))}
+                                      </td>
+                                    </tr>
+                                  ))}
                                 </tbody>
                               </table>
                             </div>
@@ -1811,8 +1901,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                       </div>
                     </div>
                   )}
-                  </div>
-                );})}
+                </div>
+              );})}
               </div>
             ) : (
               <div style={{ marginBottom: '2rem' }}>
@@ -1851,7 +1941,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             ✓ Complete
                           </span>
                         </div>
-                      </div>
+            </div>
 
                       {/* Completion Details Layout mirrors current-week dropdown */}
                       <div style={{
