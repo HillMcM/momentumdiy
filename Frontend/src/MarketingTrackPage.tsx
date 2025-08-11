@@ -419,6 +419,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ] as any;
         return { ...module, title: 'Create a Mini Engagement Campaign', description: 'Fast, fun, and effective.', content, tasks };
       }
+      if (module.weekNumber === 12) {
+        const content = [
+          'This week: Reflect, celebrate, and plan what’s next. Gather insights from the last 12 weeks and pick a simple 30‑day focus.',
+        ].join('\n');
+        const tasks = [
+          { id: `${module.id}-w12-reflect`, title: 'Step 1: Reflect on your progress', description: 'Answer prompts: What changed? What worked best? Keep/stop? Next social goal?', estimatedTime: '10m', isCompleted: false },
+          { id: `${module.id}-w12-metrics`, title: 'Step 2: Check your metrics (optional)', description: 'Compare baseline to now: followers, engagement, story views, reach.', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w12-plan`, title: 'Step 3: Set a 30‑day plan', description: 'Pick one focus for the next month and write a short plan.', estimatedTime: '10m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Celebrate + Plan What’s Next', description: 'Review insights and pick your next 30‑day focus.', content, tasks };
+      }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
@@ -632,6 +643,28 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     } catch {}
   }, [activeGoal?.id]);
   const saveWk11 = (goalId: string, plan: Week11Plan) => { setWk11ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk11:${goalId}`, JSON.stringify(plan)); } catch {} };
+
+  // Week 12: Reflection + next 30‑day plan (persist per-goal)
+  type Week12Reflection = {
+    changed: string;
+    worked: string;
+    keepStop: string;
+    nextGoal: string;
+  };
+  type Week12Metrics = {
+    followers?: string; engagement?: string; storyViews?: string; reach?: string;
+  };
+  type Week12Plan = { focus: string; notes: string };
+  type Week12State = { reflection: Week12Reflection; metrics: Week12Metrics; plan: Week12Plan };
+  const [wk12ByGoal, setWk12ByGoal] = useState<Record<string, Week12State>>({});
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const raw = localStorage.getItem(`wk12:${activeGoal.id}`);
+      if (raw) setWk12ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week12State }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const saveWk12 = (goalId: string, s: Week12State) => { setWk12ByGoal(prev => ({ ...prev, [goalId]: s })); try { localStorage.setItem(`wk12:${goalId}`, JSON.stringify(s)); } catch {} };
 
   type Stage = 'early' | 'mid' | 'growth';
   const getStagesForGoal = (title: string): Stage[] => {
@@ -2007,6 +2040,41 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                       <label>End<input value={plan.end} onChange={e => update({ end: e.target.value })} style={inputBaseStyle} placeholder="YYYY-MM-DD" /></label>
                                     </div>
                                     <label>Assets / Links<textarea value={plan.assets} onChange={e => update({ assets: e.target.value })} style={{ ...inputBaseStyle, minHeight: 70 }} placeholder="Notes or links to graphics/templates" /></label>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+
+                        {/* Week 12: Reflection + 30‑day plan */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 12 && (
+                          <div style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                            {(() => {
+                              const s: Week12State = wk12ByGoal[activeGoal.id] || { reflection: { changed: '', worked: '', keepStop: '', nextGoal: '' }, metrics: {}, plan: { focus: '', notes: '' } };
+                              const upd = (next: Partial<Week12State>) => saveWk12(activeGoal.id, { ...s, ...next, reflection: { ...s.reflection, ...(next.reflection||{}) }, metrics: { ...s.metrics, ...(next.metrics||{}) }, plan: { ...s.plan, ...(next.plan||{}) } });
+                              return (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                  {/* Reflection */}
+                                  <div>
+                                    <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 1: Reflect</h6>
+                                    <label>What changed?<textarea value={s.reflection.changed} onChange={e => upd({ reflection: { changed: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>What worked best?<textarea value={s.reflection.worked} onChange={e => upd({ reflection: { worked: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>Keep doing / Stop doing<textarea value={s.reflection.keepStop} onChange={e => upd({ reflection: { keepStop: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>Next social goal<textarea value={s.reflection.nextGoal} onChange={e => upd({ reflection: { nextGoal: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                  </div>
+                                  {/* Metrics + Plan */}
+                                  <div>
+                                    <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 2: Metrics (optional)</h6>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
+                                      <label>Followers<input value={s.metrics.followers || ''} onChange={e => upd({ metrics: { followers: e.target.value } as any })} style={inputBaseStyle} /></label>
+                                      <label>Engagement<input value={s.metrics.engagement || ''} onChange={e => upd({ metrics: { engagement: e.target.value } as any })} style={inputBaseStyle} /></label>
+                                      <label>Story Views<input value={s.metrics.storyViews || ''} onChange={e => upd({ metrics: { storyViews: e.target.value } as any })} style={inputBaseStyle} /></label>
+                                      <label>Reach<input value={s.metrics.reach || ''} onChange={e => upd({ metrics: { reach: e.target.value } as any })} style={inputBaseStyle} /></label>
+                                    </div>
+                                    <h6 style={{ marginTop: '1rem', color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 3: 30‑day plan</h6>
+                                    <label>Focus<input value={s.plan.focus} onChange={e => upd({ plan: { focus: e.target.value } as any })} style={inputBaseStyle} placeholder="Ex: 3x Stories/week; Tuesday Tips; run a giveaway" /></label>
+                                    <label>Notes<textarea value={s.plan.notes} onChange={e => upd({ plan: { notes: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 80 }} /></label>
                                   </div>
                                 </div>
                               );
