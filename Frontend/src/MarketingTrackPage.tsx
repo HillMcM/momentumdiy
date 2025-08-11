@@ -366,6 +366,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ] as any;
         return { ...module, title: 'Design Your Go‑To Social Templates', description: 'Branded templates that are fast to edit and consistent.', content, tasks };
       }
+      if (module.weekNumber === 7) {
+        const content = [
+          'This week: Polish your profile—bio, links, and highlights—so visitors know who you are, what you do, and the next step in 5 seconds.',
+        ].join('\n');
+        const tasks = [
+          { id: `${module.id}-w7-bio`, title: 'Step 1: Refresh your bio', description: 'Use the simple formula: What you do • Where you are • Clear CTA • Link below.', estimatedTime: '10m', isCompleted: false },
+          { id: `${module.id}-w7-links`, title: 'Step 2: Clean up your links', description: 'Use Linktree/Stan or a key page; fix/remove broken links and surface your main CTA.', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w7-highlights`, title: 'Step 3: Update highlights or pinned posts', description: 'Pin top posts; update highlights (About, Services, BTS, Testimonials, Events).', estimatedTime: '10m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Polish Your Bio, Links, and Highlights', description: 'Make your profile clear, appealing, and actionable.', content, tasks };
+      }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
@@ -494,6 +505,28 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     setTemplatesByGoal(prev => ({ ...prev, [goalId]: list }));
     try { localStorage.setItem(`templates:${goalId}`, JSON.stringify(list)); } catch {}
   };
+
+  // Week 7: Profile polish (bio, links, highlights) persisted per-goal
+  type BioForm = { what: string; location: string; cta: string };
+  type LinkItem = { label: string; url: string };
+  type HighlightItem = { title: string };
+  const [bioByGoal, setBioByGoal] = useState<Record<string, BioForm>>({});
+  const [linksByGoal, setLinksByGoal] = useState<Record<string, LinkItem[]>>({});
+  const [highlightsByGoal, setHighlightsByGoal] = useState<Record<string, HighlightItem[]>>({});
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const bioRaw = localStorage.getItem(`profilebio:${activeGoal.id}`);
+      const linksRaw = localStorage.getItem(`profilelinks:${activeGoal.id}`);
+      const hiRaw = localStorage.getItem(`profilehi:${activeGoal.id}`);
+      if (bioRaw) setBioByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(bioRaw) as BioForm }));
+      if (linksRaw) setLinksByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(linksRaw) as LinkItem[] }));
+      if (hiRaw) setHighlightsByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(hiRaw) as HighlightItem[] }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const saveBio = (goalId: string, bio: BioForm) => { setBioByGoal(prev => ({ ...prev, [goalId]: bio })); try { localStorage.setItem(`profilebio:${goalId}`, JSON.stringify(bio)); } catch {} };
+  const saveLinks = (goalId: string, items: LinkItem[]) => { setLinksByGoal(prev => ({ ...prev, [goalId]: items })); try { localStorage.setItem(`profilelinks:${goalId}`, JSON.stringify(items)); } catch {} };
+  const saveHighlights = (goalId: string, items: HighlightItem[]) => { setHighlightsByGoal(prev => ({ ...prev, [goalId]: items })); try { localStorage.setItem(`profilehi:${goalId}`, JSON.stringify(items)); } catch {} };
 
   type Stage = 'early' | 'mid' | 'growth';
   const getStagesForGoal = (title: string): Stage[] => {
@@ -1616,6 +1649,82 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 </div>
                               );
                             })()}
+                          </div>
+                        )}
+
+                        {/* Week 7: Profile polish guided editor */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 7 && (
+                          <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            {/* Bio */}
+                            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                              <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 1: Refresh your bio</h6>
+                              {(() => {
+                                const bio = bioByGoal[activeGoal.id] || { what: '', location: '', cta: '' };
+                                const sample = [`👉 ${bio.what || '[What you do/offers]'}\n📍 ${bio.location || '[City/Neighborhood]'}\n📅 ${bio.cta || '[CTA: Book now / Shop / DM]'}\n🔗 Link below`].join('\n');
+                                return (
+                                  <div>
+                                    <label>What you do / offer<input value={bio.what} onChange={e => saveBio(activeGoal.id, { ...bio, what: e.target.value })} style={inputBaseStyle} /></label>
+                                    <label>Location (if local)<input value={bio.location} onChange={e => saveBio(activeGoal.id, { ...bio, location: e.target.value })} style={inputBaseStyle} /></label>
+                                    <label>Call to action<input value={bio.cta} onChange={e => saveBio(activeGoal.id, { ...bio, cta: e.target.value })} style={inputBaseStyle} placeholder="Book now • Shop online • DM us" /></label>
+                                    <div style={{ marginTop: 8, padding: '0.75rem', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.2)', color: '#FFF1E7', whiteSpace: 'pre-wrap' }}>{sample}</div>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                            {/* Links + Highlights */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                              <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                                <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 2: Clean up your links</h6>
+                                {(() => {
+                                  const links = linksByGoal[activeGoal.id] || [];
+                                  const addLink = () => saveLinks(activeGoal.id, [...links, { label: '', url: '' }]);
+                                  const update = (idx: number, upd: Partial<LinkItem>) => saveLinks(activeGoal.id, links.map((l, i) => i===idx ? { ...l, ...upd } : l));
+                                  const remove = (idx: number) => saveLinks(activeGoal.id, links.filter((_, i) => i!==idx));
+                                  return (
+                                    <div>
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '0.5rem', alignItems: 'center' }}>
+                                        <strong style={{ color: '#FFF1E7' }}>Label</strong>
+                                        <strong style={{ color: '#FFF1E7' }}>URL</strong>
+                                        <span />
+                                      </div>
+                                      {(links.length ? links : [{ label: '', url: '' }]).map((l, idx) => (
+                                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '0.5rem', marginTop: 6 }}>
+                                          <input value={l.label} onChange={e => update(idx, { label: e.target.value })} style={inputBaseStyle} placeholder="Book now / Shop / Menu" />
+                                          <input value={l.url} onChange={e => update(idx, { url: e.target.value })} style={inputBaseStyle} placeholder="https://…" />
+                                          <button onClick={() => remove(idx)} style={{ padding: '0.4rem 0.6rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#FFF1E7' }}>Remove</button>
+                                        </div>
+                                      ))}
+                                      <div style={{ marginTop: 8 }}>
+                                        <button onClick={addLink} style={{ padding: '0.4rem 0.75rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: '#EF8E81', color: '#FFF1E7' }}>+ Add link</button>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                              <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                                <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 3: Update highlights or pinned posts</h6>
+                                {(() => {
+                                  const hs = highlightsByGoal[activeGoal.id] || [];
+                                  const add = () => saveHighlights(activeGoal.id, [...hs, { title: '' }]);
+                                  const update = (idx: number, title: string) => saveHighlights(activeGoal.id, hs.map((h, i) => i===idx ? { title } : h));
+                                  const remove = (idx: number) => saveHighlights(activeGoal.id, hs.filter((_, i) => i!==idx));
+                                  const defaults = ['About / Welcome','Services or Menu','Behind‑the‑Scenes','Testimonials / Reviews','Events / Community / Promotions'];
+                                  return (
+                                    <div>
+                                      {(hs.length ? hs : defaults.map(t => ({ title: t }))).map((h, idx) => (
+                                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem', marginTop: 6 }}>
+                                          <input value={h.title} onChange={e => update(idx, e.target.value)} style={inputBaseStyle} />
+                                          <button onClick={() => remove(idx)} style={{ padding: '0.4rem 0.6rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#FFF1E7' }}>Remove</button>
+                                        </div>
+                                      ))}
+                                      <div style={{ marginTop: 8 }}>
+                                        <button onClick={add} style={{ padding: '0.4rem 0.75rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: '#EF8E81', color: '#FFF1E7' }}>+ Add highlight</button>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            </div>
                           </div>
                         )}
 
