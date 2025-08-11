@@ -308,6 +308,35 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     setTimeout(() => setConfettiAt(0), 1500);
   };
 
+  // Guided Week Planner (UI-only for now)
+  type PostType = 'Educate' | 'Promote' | 'Connect';
+  const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'] as const;
+  type PlannerRow = { day: string; type: PostType; pillar: string; caption: string };
+  const defaultPlanner: PlannerRow[] = DAYS.map((d, idx) => ({
+    day: d,
+    type: (['Educate','Connect','Educate','Promote','Connect'] as PostType[])[idx],
+    pillar: '',
+    caption: ''
+  }));
+  const [planner, setPlanner] = useState<PlannerRow[]>(defaultPlanner);
+  const [quickWins, setQuickWins] = useState<{ baseline?: boolean; bioLink?: boolean; planned?: boolean }>({});
+
+  const generateWeekFromPillars = () => {
+    const p = pillars.filter(Boolean);
+    const next = planner.map((row, i) => {
+      const pillar = p.length > 0 ? p[i % p.length] : row.pillar || 'Brand Story';
+      const base = row.type;
+      const prompt = base === 'Educate'
+        ? `Quick tip from ${pillar}: one clear idea customers can use today.`
+        : base === 'Promote'
+        ? `Spotlight an offer tied to ${pillar}. Lead with benefit, add simple CTA.`
+        : `Share a human moment related to ${pillar}. Why it matters to you.`;
+      return { ...row, pillar, caption: prompt };
+    });
+    setPlanner(next);
+    setQuickWins(q => ({ ...q, planned: true }));
+  };
+
   // Complete current active track: unlock and mark all weeks complete, enable selection of others
   const completeActiveTrackNow = useCallback(() => {
     if (!activeGoal) return;
@@ -990,6 +1019,60 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                         <div style={{ gridColumn: '1 / -1' }}>
                           <div style={{ marginTop: '0.25rem', background: 'rgba(104,109,202,0.12)', border: '1px dashed rgba(104,109,202,0.4)', color: '#FFF1E7', borderRadius: 8, padding: '0.9rem' }}>
                             <strong style={{ color: '#686DCA' }}>💡 Pro Tip:</strong> {getProTip(module)}
+                          </div>
+                        </div>
+                        {/* Guided Week (Planner + Quick Wins) */}
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <div style={{ marginTop: '0.5rem', background: 'rgba(255,241,231,0.04)', border: '1px solid rgba(239,142,129,0.25)', borderRadius: 10, padding: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                              <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 700 }}>Guided Week</h6>
+                              <button onClick={generateWeekFromPillars} style={{ padding: '0.4rem 0.8rem', borderRadius: 8, border: '1px solid rgba(239,142,129,0.35)', background: 'rgba(239,142,129,0.18)', color: '#EF8E81', fontWeight: 700, cursor: 'pointer' }}>Generate Week from Pillars</button>
+                            </div>
+                            {/* Quick Wins */}
+                            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px' }}>
+                                <input type="checkbox" checked={!!quickWins.baseline} onChange={(e)=> setQuickWins(q => ({ ...q, baseline: e.target.checked }))} /> Save baseline metrics
+                              </label>
+                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px' }}>
+                                <input type="checkbox" checked={!!quickWins.bioLink} onChange={(e)=> setQuickWins(q => ({ ...q, bioLink: e.target.checked }))} /> Fix bio + link
+                              </label>
+                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px' }}>
+                                <input type="checkbox" checked={!!quickWins.planned} onChange={(e)=> setQuickWins(q => ({ ...q, planned: e.target.checked }))} /> Week planned
+                              </label>
+                            </div>
+                            {/* Planner Grid */}
+                            <div style={{ overflowX: 'auto' }}>
+                              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
+                                <thead>
+                                  <tr style={{ textAlign: 'left', color: '#FFF1E7', opacity: 0.8 }}>
+                                    <th style={{ padding: '8px' }}>Day</th>
+                                    <th style={{ padding: '8px' }}>Type</th>
+                                    <th style={{ padding: '8px' }}>Pillar</th>
+                                    <th style={{ padding: '8px' }}>Caption (draft)</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {planner.map((row, idx) => (
+                                    <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
+                                      <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
+                                      <td style={{ padding: '8px' }}>
+                                        <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as any }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px' }}>
+                                          <option>Educate</option>
+                                          <option>Promote</option>
+                                          <option>Connect</option>
+                                        </select>
+                                      </td>
+                                      <td style={{ padding: '8px' }}>
+                                        <input value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} placeholder="e.g., Tips, Behind the Scenes" style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
+                                      </td>
+                                      <td style={{ padding: '8px' }}>
+                                        <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder="Draft caption…" style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
                         </div>
                       </div>
