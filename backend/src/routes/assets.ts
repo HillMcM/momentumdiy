@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AssetService } from '../services/assetService';
+import { validate } from '../middleware/validate';
+import { routeRateLimit } from '../middleware/rate';
 import { CreateAssetRequest, UpdateAssetRequest } from '../types';
 
 const router = Router();
@@ -64,7 +66,12 @@ router.get('/:id', async (req: Request, res: Response) => {
  * POST /api/assets
  * Create a new asset
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', routeRateLimit(60), validate((req) => {
+  const body = req.body || {};
+  if (!body.name) return 'Name is required';
+  if (!body.category) return 'Category is required';
+  return undefined;
+}), async (req: Request, res: Response) => {
   try {
     const assetData: CreateAssetRequest = req.body;
     
@@ -102,7 +109,7 @@ router.post('/', async (req: Request, res: Response) => {
  * PUT /api/assets/:id
  * Update an existing asset
  */
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', routeRateLimit(60), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
@@ -134,7 +141,7 @@ router.put('/:id', async (req: Request, res: Response) => {
  * DELETE /api/assets/:id
  * Delete an asset
  */
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', routeRateLimit(60), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     

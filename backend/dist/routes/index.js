@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const emailService_1 = require("../services/emailService");
+const billingService_1 = require("../services/billingService");
 const router = (0, express_1.Router)();
 let baselineMetrics = null;
 let contentPillars = [];
@@ -50,4 +52,29 @@ router.post('/content-pillars', (req, res) => {
     return res.json({ success: true, data: contentPillars, message: 'Content pillars saved' });
 });
 exports.default = router;
+router.post('/email/test', async (req, res) => {
+    const { to } = (req.body || {});
+    if (!to)
+        return res.status(400).json({ success: false, error: 'to is required' });
+    const result = await (0, emailService_1.sendWelcomeEmail)(to);
+    return res.status(result.success ? 200 : 500).json(result);
+});
+router.post('/billing/checkout', async (req, res) => {
+    try {
+        const { priceId, successUrl, cancelUrl, email } = (req.body || {});
+        if (!priceId || !successUrl || !cancelUrl) {
+            return res.status(400).json({ success: false, error: 'priceId, successUrl, cancelUrl are required' });
+        }
+        const session = await billingService_1.BillingService.createCheckoutSession({
+            priceId,
+            successUrl,
+            cancelUrl,
+            customerEmail: email,
+        });
+        return res.json({ success: true, data: { id: session.id, url: session.url } });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, error: err?.message || 'Failed to create session' });
+    }
+});
 //# sourceMappingURL=index.js.map

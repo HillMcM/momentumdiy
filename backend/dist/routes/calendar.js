@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const calendarService_1 = require("../services/calendarService");
+const validate_1 = require("../middleware/validate");
+const rate_1 = require("../middleware/rate");
 const router = (0, express_1.Router)();
 router.get('/events', async (req, res) => {
     try {
@@ -35,7 +37,16 @@ router.get('/events/:id', async (req, res) => {
         });
     }
 });
-router.post('/events', async (req, res) => {
+router.post('/events', (0, rate_1.routeRateLimit)(60), (0, validate_1.validate)((req) => {
+    const body = req.body || {};
+    if (!body.title)
+        return 'Title is required';
+    if (!body.start)
+        return 'Start time is required';
+    if (!body.type)
+        return 'Event type is required';
+    return undefined;
+}), async (req, res) => {
     try {
         const eventData = req.body;
         if (!eventData.title) {
@@ -81,7 +92,7 @@ router.post('/events', async (req, res) => {
         });
     }
 });
-router.put('/events/:id', async (req, res) => {
+router.put('/events/:id', (0, rate_1.routeRateLimit)(60), async (req, res) => {
     try {
         const id = req.params['id'];
         const updates = { ...req.body, id };

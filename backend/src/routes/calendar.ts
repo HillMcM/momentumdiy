@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { CalendarService } from '../services/calendarService';
+import { validate } from '../middleware/validate';
+import { routeRateLimit } from '../middleware/rate';
 import { CreateCalendarEventRequest, UpdateCalendarEventRequest } from '../types';
 
 const router = Router();
@@ -54,7 +56,13 @@ router.get('/events/:id', async (req: Request, res: Response) => {
  * POST /api/calendar/events
  * Create a new calendar event
  */
-router.post('/events', async (req: Request, res: Response) => {
+router.post('/events', routeRateLimit(60), validate((req) => {
+  const body = req.body || {};
+  if (!body.title) return 'Title is required';
+  if (!body.start) return 'Start time is required';
+  if (!body.type) return 'Event type is required';
+  return undefined;
+}), async (req: Request, res: Response) => {
   try {
     const eventData: CreateCalendarEventRequest = req.body;
     
@@ -112,7 +120,7 @@ router.post('/events', async (req: Request, res: Response) => {
  * PUT /api/calendar/events/:id
  * Update an existing calendar event
  */
-router.put('/events/:id', async (req: Request, res: Response) => {
+router.put('/events/:id', routeRateLimit(60), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const updates: UpdateCalendarEventRequest = { ...req.body, id };

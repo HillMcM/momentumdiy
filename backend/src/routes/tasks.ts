@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { TaskService } from '../services/taskService';
+import { validate } from '../middleware/validate';
+import { routeRateLimit } from '../middleware/rate';
 import { CreateTaskRequest, UpdateTaskRequest } from '../types';
 
 const router = Router();
@@ -57,7 +59,11 @@ router.get('/:id', async (req: Request, res: Response) => {
  * POST /api/tasks
  * Create a new task
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', routeRateLimit(60), validate((req) => {
+  const body = req.body || {};
+  if (!body.title || typeof body.title !== 'string') return 'Title is required';
+  return undefined;
+}), async (req: Request, res: Response) => {
   try {
     const taskData: CreateTaskRequest = req.body;
     
@@ -88,7 +94,7 @@ router.post('/', async (req: Request, res: Response) => {
  * PUT /api/tasks/:id
  * Update an existing task
  */
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', routeRateLimit(60), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const updates: UpdateTaskRequest = { ...req.body, id };
@@ -112,7 +118,7 @@ router.put('/:id', async (req: Request, res: Response) => {
  * DELETE /api/tasks/:id
  * Delete a task
  */
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', routeRateLimit(60), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     
@@ -135,7 +141,11 @@ router.delete('/:id', async (req: Request, res: Response) => {
  * PATCH /api/tasks/:id/status
  * Update task status
  */
-router.patch('/:id/status', async (req: Request, res: Response) => {
+router.patch('/:id/status', routeRateLimit(60), validate((req) => {
+  const { status } = req.body || {};
+  if (!status) return 'Status is required';
+  return undefined;
+}), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const { status } = req.body;
@@ -166,7 +176,11 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
  * PATCH /api/tasks/:id/time-spent
  * Update task time spent
  */
-router.patch('/:id/time-spent', async (req: Request, res: Response) => {
+router.patch('/:id/time-spent', routeRateLimit(60), validate((req) => {
+  const { timeSpent } = req.body || {};
+  if (timeSpent === undefined) return 'Time spent is required';
+  return undefined;
+}), async (req: Request, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const { timeSpent } = req.body;

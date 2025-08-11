@@ -4,6 +4,7 @@ import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
 import MarketingTrackWidget from './MarketingTrackWidget';
 import MarketingTrackPage from './MarketingTrackPage';
+import ProfilePage from './ProfilePage';
 import { useState, useEffect } from 'react';
 import type { Project, Task, MarketingGoal } from './types';
 import OctopusLogo from './assets/octopus_icon.png';
@@ -14,6 +15,7 @@ import ProtectedRoute from './ProtectedRoute';
 import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
 import { useAuth } from './contexts/AuthContext';
+import { supabase } from './lib/supabase';
 
 // Comment out deactivated component imports to prevent build errors
 /*
@@ -37,6 +39,9 @@ function Header() {
         <span className="header-app-name">MomentumDIY</span>
       </div>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        {user && (
+          <Link className="upgrade-btn" to="/app/profile">Profile</Link>
+        )}
         <button className="upgrade-btn">Upgrade</button>
         {user ? (
           <button className="upgrade-btn" onClick={() => signOut()}>Sign out</button>
@@ -50,6 +55,34 @@ function Header() {
 
 function Sidebar() {
   const location = useLocation();
+  const { user } = useAuth();
+  const deriveNameFromUser = (u: any | null) => {
+    if (!u) return 'Business Name';
+    const metaName = (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || '';
+    const emailName = (u.email ? String(u.email).split('@')[0] : '') || '';
+    return metaName?.trim() || emailName || 'Business Name';
+  };
+  const [businessName, setBusinessName] = useState<string>(deriveNameFromUser(user));
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        if (!user) return;
+        const { data } = await supabase
+          .from('profiles')
+          .select('business_name, full_name, email')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (!mounted) return;
+        const name = (data?.business_name?.trim()) || (data?.full_name?.trim()) || (data?.email?.split('@')[0]) || deriveNameFromUser(user);
+        setBusinessName(name);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user?.id]);
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -61,7 +94,9 @@ function Sidebar() {
 
   return (
     <nav className="sidebar">
-      <div className="sidebar-header">Business Name</div>
+      <Link to="/app/profile" className="sidebar-header" style={{ display: 'block', textDecoration: 'none' }}>
+        {businessName}
+      </Link>
       <ul>
         <li>
           <Link 
@@ -70,6 +105,15 @@ function Sidebar() {
             onClick={() => handleLinkClick('/app')}
           >
             Dashboard
+          </Link>
+        </li>
+        <li>
+          <Link 
+            to="/app/profile" 
+            className={isActive('/app/profile') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/profile')}
+          >
+            Profile
           </Link>
         </li>
         <li>
@@ -607,6 +651,7 @@ function ProtectedApp() {
                 onMarketingGoalsChange={handleMarketingGoalsChange}
               />
             } />
+            <Route path="profile" element={<ProfilePage />} />
             <Route path="marketing-track" element={
               <MarketingTrackPage 
                 marketingGoals={marketingGoals}
