@@ -268,6 +268,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         'Baseline: followers, avg likes, avg comments, story views (choose platform tabs).',
         '',
         'Posting rhythm: Beginner 3x (Mon/Wed/Fri) or Confident 5x (Mon–Fri).',
+        '',
+        'Example prompts to help draft your captions:',
+        '- Monday (Behind the Scenes): Here’s what we’re working on this week… (show workspace/product prep/plan)',
+        '- Tuesday (Tip or FAQ): Answer a common customer question or give a useful tip related to your work',
+        '- Wednesday (Personal Story): Share why you started your business, or something you’re proud of',
+        '- Thursday (Product/Service Feature): Highlight 1 offer you love—show it, describe it, and invite people in',
+        '- Friday (Fun or Community): Shout out a local business, share a favorite spot, or post something light‑hearted'
       ].join('\n');
       const reducedTasks = [
         { id: `${module.id}-w1-baseline`, title: 'Save baseline metrics', description: 'Enter metrics for your main platform and save.', estimatedTime: '5m', isCompleted: false },
@@ -339,11 +346,29 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   type PlannerRow = { day: string; type: PostType; pillar: string; caption: string };
   const defaultPlanner: PlannerRow[] = DAYS.map((d, idx) => ({
     day: d,
-    type: (['Educate','Connect','Educate','Promote','Connect'] as PostType[])[idx],
-    pillar: '',
+    type: (['Connect','Educate','Connect','Promote','Connect'] as PostType[])[idx],
+    pillar: (
+      [
+        'Behind the Scenes',
+        'Tip or FAQ',
+        'Personal Story',
+        'Product/Service Feature',
+        'Fun or Community Post'
+      ] as string[]
+    )[idx],
     caption: ''
   }));
   const [planner, setPlanner] = useState<PlannerRow[]>(defaultPlanner);
+  // When Week 1 of Social track is active, enforce the fixed plan mapping
+  useEffect(() => {
+    if (!activeGoal) return;
+    const isSocial = activeGoal.title.toLowerCase().includes('improve social media');
+    if (!isSocial) return;
+    const currentWeek = activeGoal.currentWeek || 1;
+    if (currentWeek !== 1) return;
+    setPlanner(defaultPlanner);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGoal?.id, activeGoal?.currentWeek]);
   const [quickWins, setQuickWins] = useState<{ baseline?: boolean; bioLink?: boolean; planned?: boolean }>({});
   const [plannerMode, setPlannerMode] = useState<'beginner' | 'confident'>('beginner');
 
@@ -1127,16 +1152,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   {(plannerMode==='beginner' ? planner.filter(r => ['Monday','Wednesday','Friday'].includes(r.day)) : planner).map((row, idx) => (
                                     <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
                                       <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
-                                      <td style={{ padding: '8px' }}>
-                                        <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as any }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px' }}>
-                                          <option>Educate</option>
-                                          <option>Promote</option>
-                                          <option>Connect</option>
-                                        </select>
-                                      </td>
-                                      <td style={{ padding: '8px' }}>
-                                        <input value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} placeholder="e.g., Tips, Behind the Scenes" style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
-                                      </td>
+                                      <td style={{ padding: '8px', color: '#FFF1E7', opacity: 0.9 }}>{row.type}</td>
+                                      <td style={{ padding: '8px', color: '#FFF1E7', opacity: 0.9 }}>{row.pillar}</td>
                                       <td style={{ padding: '8px' }}>
                                         <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder="Draft caption…" style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
                                       </td>
