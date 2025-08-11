@@ -1018,8 +1018,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                       padding: '1.5rem',
                       animation: 'slideDown 0.3s ease-out'
                     }}>
-                      {/* Intro section for Week 1 of Social track */}
-                      {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 1 && (
+                      {/* Intro section for Social track (special copy for Week 1, concise for others) */}
+                      {activeGoal.title.toLowerCase().includes('improve social media') && (
                         <div style={{
                           background: 'rgba(255,241,231,0.05)',
                           border: '1px solid rgba(239,142,129,0.25)',
@@ -1028,12 +1028,21 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                           marginBottom: '1rem'
                         }}>
                           <div style={{ color: '#FFF1E7' }}>
-                            <div style={{ fontWeight: 700, marginBottom: 6 }}>
-                              {`Hi${profile?.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''},`}
-                            </div>
-                            <p style={{ margin: '0.25rem 0' }}>Welcome to your new quarter of <span style={{ fontStyle: 'italic' }}>Momentum Marketing!</span> 🎉</p>
-                            <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Over the next 12 weeks, we’ll strengthen your social media presence by focusing on smart strategy, easy systems, and engaging content that reflects the heart of your business.</p>
-                            <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week we’re kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress.</p>
+                            {module.weekNumber === 1 ? (
+                              <>
+                                <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                                  {`Hi${profile?.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''},`}
+                                </div>
+                                <p style={{ margin: '0.25rem 0' }}>Welcome to your new quarter of <span style={{ fontStyle: 'italic' }}>Momentum Marketing!</span> 🎉</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Over the next 12 weeks, we’ll strengthen your social media presence by focusing on smart strategy, easy systems, and engaging content that reflects the heart of your business.</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week we’re kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress.</p>
+                              </>
+                            ) : (
+                              <>
+                                <div style={{ fontWeight: 700, marginBottom: 6 }}>This week</div>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>{module.description || 'Keep your rhythm: plan and ship 3–5 posts with clear intent.'}</p>
+                              </>
+                            )}
                           </div>
                         </div>
                       )}
@@ -1141,8 +1150,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             ))}
                           </div>
                         </div>
-                        {/* Baseline tabs wide (full width for Week 1 Social) */}
-                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 1 && (
+                        {/* Baseline tabs wide (full width). For Social track, always shown; Week 1 has special copy above. */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && (
                           <div style={{ gridColumn: '1 / -1' }}>
                             <div style={{ marginTop: '0.25rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '0.9rem' }}>
                               <div style={{ display: 'flex', gap: '6px', margin: '0 0 8px' }}>
