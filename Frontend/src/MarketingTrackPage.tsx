@@ -308,6 +308,26 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ] as any;
         return { ...module, title: 'Content Pillars + Strategic Posting Flow', description: 'Lock your pillars and plan a refined 5‑day posting rhythm.', content: curatedContent, tasks: curatedTasks };
       }
+      if (module.weekNumber === 3) {
+        const content = [
+          'This week: Define your brand voice and set a simple visual style so your posts look and sound consistent.',
+          '',
+          'Step 1 — Mini Style Guide',
+          '- Voice: What tone do you want to consistently use? (e.g., warm, helpful, direct)',
+          '- Audience: Who are you talking to? (describe your ideal customer in a sentence)',
+          '- Brand adjectives: 3–5 words that describe your feel (e.g., friendly, modern, local)',
+          '- Brand promise: What result do you deliver?',
+          '',
+          'Step 2 — Visual Basics',
+          '- Choose a heading font and a body font',
+          '- Pick 3–5 colors you’ll use repeatedly',
+        ].join('\n');
+        const tasks = [
+          { id: `${module.id}-w3-style`, title: 'Step 1: Complete your mini style guide', description: 'Fill in voice, audience, adjectives, and brand promise.', estimatedTime: '10m', isCompleted: false },
+          { id: `${module.id}-w3-visuals`, title: 'Step 2: Choose fonts and colors', description: 'Pick heading/body fonts and select 3–5 colors for your palette.', estimatedTime: '10m', isCompleted: false },
+        ] as any;
+        return { ...module, title: 'Brand Voice + Visual Basics', description: 'Clarify how you sound and look so content is recognizable.', content, tasks };
+      }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
@@ -361,6 +381,29 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     'Local Love / Community',
     'Visual Inspiration'
   ];
+
+  // Week 3 mini style guide + typography + palette (persist per-goal)
+  type MiniStyleGuide = { voice: string; audience: string; adjectives: string; brandPromise: string };
+  type TypographyChoice = { headingFont: string; bodyFont: string };
+  type Palette = string[];
+  const [styleGuideByGoal, setStyleGuideByGoal] = useState<Record<string, MiniStyleGuide>>({});
+  const [typographyByGoal, setTypographyByGoal] = useState<Record<string, TypographyChoice>>({});
+  const [paletteByGoal, setPaletteByGoal] = useState<Record<string, Palette>>({});
+  const FONT_OPTIONS = ['Inter','Roboto','Poppins','Montserrat','Lora','Merriweather','Source Sans 3','Playfair Display'];
+  useEffect(() => {
+    if (!activeGoal) return;
+    try {
+      const sgRaw = localStorage.getItem(`styleguide:${activeGoal.id}`);
+      const tpRaw = localStorage.getItem(`typography:${activeGoal.id}`);
+      const palRaw = localStorage.getItem(`palette:${activeGoal.id}`);
+      if (sgRaw) setStyleGuideByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(sgRaw) as MiniStyleGuide }));
+      if (tpRaw) setTypographyByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(tpRaw) as TypographyChoice }));
+      if (palRaw) setPaletteByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(palRaw) as Palette }));
+    } catch {}
+  }, [activeGoal?.id]);
+  const saveStyleGuide = (goalId: string, sg: MiniStyleGuide) => { setStyleGuideByGoal(prev => ({ ...prev, [goalId]: sg })); try { localStorage.setItem(`styleguide:${goalId}`, JSON.stringify(sg)); } catch {} };
+  const saveTypography = (goalId: string, tp: TypographyChoice) => { setTypographyByGoal(prev => ({ ...prev, [goalId]: tp })); try { localStorage.setItem(`typography:${goalId}`, JSON.stringify(tp)); } catch {} };
+  const savePalette = (goalId: string, pal: Palette) => { setPaletteByGoal(prev => ({ ...prev, [goalId]: pal })); try { localStorage.setItem(`palette:${goalId}`, JSON.stringify(pal)); } catch {} };
 
   type Stage = 'early' | 'mid' | 'growth';
   const getStagesForGoal = (title: string): Stage[] => {
@@ -1306,6 +1349,55 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                               <div style={{ marginTop: 8, color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>
                                 Selected: {(contentPillarsByGoal[activeGoal.id] || []).join(', ') || 'None selected yet'}
                               </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Week 3 Guided Mini Style + Visuals (spanning both columns) */}
+                        {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 3 && (
+                          <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            {/* Mini Style Guide */}
+                            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                              <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.75rem' }}>Mini Style Guide</h6>
+                              {(() => {
+                                const sg = styleGuideByGoal[activeGoal.id] || { voice: '', audience: '', adjectives: '', brandPromise: '' };
+                                return (
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem' }}>
+                                    <label>Voice<input value={sg.voice} onChange={e => saveStyleGuide(activeGoal.id, { ...sg, voice: e.target.value })} style={inputBaseStyle} placeholder="Warm, helpful, direct…" /></label>
+                                    <label>Audience<input value={sg.audience} onChange={e => saveStyleGuide(activeGoal.id, { ...sg, audience: e.target.value })} style={inputBaseStyle} placeholder="Describe your ideal customer…" /></label>
+                                    <label>Adjectives<input value={sg.adjectives} onChange={e => saveStyleGuide(activeGoal.id, { ...sg, adjectives: e.target.value })} style={inputBaseStyle} placeholder="3–5 words: friendly, modern, local…" /></label>
+                                    <label>Brand Promise<input value={sg.brandPromise} onChange={e => saveStyleGuide(activeGoal.id, { ...sg, brandPromise: e.target.value })} style={inputBaseStyle} placeholder="What result do you deliver?" /></label>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+
+                            {/* Visual Basics */}
+                            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
+                              <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.75rem' }}>Visual Basics</h6>
+                              {(() => {
+                                const tp = typographyByGoal[activeGoal.id] || { headingFont: 'Inter', bodyFont: 'Inter' };
+                                const pal = paletteByGoal[activeGoal.id] || ['#EF8E81', '#686DCA', '#FFC857'];
+                                const setColor = (idx: number, value: string) => {
+                                  const next = [...pal]; next[idx] = value; savePalette(activeGoal.id, next);
+                                };
+                                return (
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
+                                    <label>Heading Font<select value={tp.headingFont} onChange={e => saveTypography(activeGoal.id, { ...tp, headingFont: e.target.value })} style={inputBaseStyle as any}>{FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}</select></label>
+                                    <label>Body Font<select value={tp.bodyFont} onChange={e => saveTypography(activeGoal.id, { ...tp, bodyFont: e.target.value })} style={inputBaseStyle as any}>{FONT_OPTIONS.map(f => <option key={`b-${f}`} value={f}>{f}</option>)}</select></label>
+                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                      {pal.map((c, i) => (
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                          <input type="color" value={c} onChange={e => setColor(i, e.target.value)} style={{ width: 36, height: 36, padding: 0, border: 'none', background: 'transparent' }} />
+                                        </div>
+                                      ))}
+                                      {pal.length < 5 && (
+                                        <button onClick={() => savePalette(activeGoal.id, [...pal, '#CCCCCC'].slice(0,5))} style={{ padding: '6px 10px' }}>+ Color</button>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
                         )}
