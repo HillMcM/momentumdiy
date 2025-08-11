@@ -949,6 +949,26 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                       padding: '1.5rem',
                       animation: 'slideDown 0.3s ease-out'
                     }}>
+                      {/* Intro section for Week 1 of Social track */}
+                      {activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 1 && (
+                        <div style={{
+                          background: 'rgba(255,241,231,0.05)',
+                          border: '1px solid rgba(239,142,129,0.25)',
+                          borderRadius: 10,
+                          padding: '1rem',
+                          marginBottom: '1rem'
+                        }}>
+                          <div style={{ color: '#FFF1E7' }}>
+                            <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                              {`Hi${profile?.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''},`}
+                            </div>
+                            <p style={{ margin: '0.25rem 0' }}>Welcome to your new quarter of <span style={{ fontStyle: 'italic' }}>Momentum Marketing!</span> 🎉</p>
+                            <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Over the next 12 weeks, we’ll strengthen your social media presence by focusing on smart strategy, easy systems, and engaging content that reflects the heart of your business.</p>
+                            <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week we’re kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress.</p>
+                          </div>
+                        </div>
+                      )}
+
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
                         {/* Week Content */}
                         <div>
