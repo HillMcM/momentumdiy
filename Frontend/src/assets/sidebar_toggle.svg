@@ -1,0 +1,14 @@
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cream color icon -->
+  <defs>
+    <style>
+      .cream { stroke: #FFF1E7; fill: none; }
+      .cream-fill { fill: #FFF1E7; stroke: none; }
+    </style>
+  </defs>
+  <!-- Outer rounded square -->
+  <rect x="2.5" y="2.5" width="19" height="19" rx="4.5" class="cream" stroke-width="2.5"/>
+  <!-- Vertical bar near the left -->
+  <rect x="7" y="5" width="3" height="14" rx="1.5" class="cream-fill"/>
+</svg>
+
