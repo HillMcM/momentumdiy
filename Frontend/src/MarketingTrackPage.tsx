@@ -1664,11 +1664,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   const toggleTaskCompletion = (goalId: string, moduleId: string, taskId: string) => {
     console.log('toggleTaskCompletion called:', { goalId, moduleId, taskId });
+    console.log('marketingGoals length:', marketingGoals.length);
+    console.log('tasks length:', tasks.length);
     
     // Determine if this is a marketing task ID or main task ID
     // Marketing task IDs typically contain the module ID + week info (e.g., '4dc2e4e4-0394-4d74-85f7-d039b959ac5a-w1-online')
     // Main task IDs are typically UUIDs
     const isMarketingTaskId = taskId.includes(moduleId) && taskId.includes('-w');
+    console.log('isMarketingTaskId:', isMarketingTaskId);
     
     let marketingTaskId: string;
     let mainTaskId: string;
@@ -1676,6 +1679,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     if (isMarketingTaskId) {
       // This is a marketing task ID, use it directly
       marketingTaskId = taskId;
+      console.log('Using taskId as marketingTaskId:', marketingTaskId);
       
       // Try to find the corresponding main task
       const mainTask = tasks.find(task => 
@@ -1685,6 +1689,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         task.marketingTrack.marketingTaskId === taskId
       );
       mainTaskId = mainTask?.id || '';
+      console.log('Found main task:', mainTask ? { id: mainTask.id, status: mainTask.status } : 'not found');
     } else {
       // This is a main task ID, find the marketing task ID
       const mainTask = tasks.find(task => 
@@ -1708,12 +1713,21 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     const currentModule = currentGoal?.modules.find(m => m.id === moduleId);
     const currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
     
+    console.log('Looking for goal with ID:', goalId);
+    console.log('Looking for module with ID:', moduleId);
+    console.log('Looking for task with ID:', marketingTaskId);
+    
     if (!currentTask) {
       console.error('Marketing task not found:', { goalId, moduleId, marketingTaskId });
       console.log('Available goals:', marketingGoals.map(g => ({ id: g.id, title: g.title })));
       console.log('Current goal:', currentGoal ? { id: currentGoal.id, title: currentGoal.title } : 'not found');
+      if (currentGoal) {
+        console.log('Goal modules:', currentGoal.modules.map(m => ({ id: m.id, title: m.title })));
+      }
       console.log('Current module:', currentModule ? { id: currentModule.id, title: currentModule.title } : 'not found');
-      console.log('Available tasks in module:', currentModule?.tasks.map(t => ({ id: t.id, title: t.title })) || 'no module found');
+      if (currentModule) {
+        console.log('Module tasks:', currentModule.tasks.map(t => ({ id: t.id, title: t.title })));
+      }
       return;
     }
     
