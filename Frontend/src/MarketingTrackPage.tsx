@@ -1038,6 +1038,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     // If week now completed, celebrate
     const g = updatedGoals.find(g => g.id === goalId);
     const m = g?.modules.find(m => m.id === moduleId);
+    const toggledTask = m?.tasks.find(t => t.id === taskId);
     if (m && m.tasks.length > 0 && m.tasks.every(t => t.isCompleted)) {
       triggerConfetti();
     }
@@ -1050,6 +1051,32 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     });
     console.log('Updated main tasks:', updatedTasks);
     onTasksChange(updatedTasks);
+
+    // Persist completion to backend; rollback if it fails
+    (async () => {
+      try {
+        if (!toggledTask) return;
+        const resp = await apiService.updateMarketingTaskCompletion(taskId, toggledTask.isCompleted);
+        if (!resp.success) {
+          console.error('Failed to persist marketing task completion:', resp.error);
+          const rolledBackGoals = marketingGoals.map(goal => {
+            if (goal.id === goalId) {
+              return {
+                ...goal,
+                modules: goal.modules.map(module => module.id === moduleId
+                  ? { ...module, tasks: module.tasks.map(t => t.id === taskId ? { ...t, isCompleted: !toggledTask.isCompleted } : t) }
+                  : module
+                )
+              };
+            }
+            return goal;
+          });
+          onMarketingGoalsChange(rolledBackGoals);
+        }
+      } catch (err) {
+        console.error('Error persisting marketing task completion:', err);
+      }
+    })();
   };
 
   const startMarketingTrack = (goal: MarketingGoal) => {
@@ -2583,9 +2610,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 onClick={() => {
                                   try {
                                     if (!activeGoal) return;
-                                    const projectId = getOrCreateProjectForGoal(activeGoal);
-                                    const m = withFallback(activeGoal, module);
-                                    createTasksFromMarketingModule(activeGoal, m, projectId);
+                                    // Open interactive modal in "create new task" mode
+                                    setInteractiveMeta({ goalId: activeGoal.id, moduleId: module.id });
+                                    setInteractiveTask({ id: '', title: 'Create Task', description: '' });
+                                    setInteractiveOpen(true);
                                   } catch {}
                                 }}
                                 style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
