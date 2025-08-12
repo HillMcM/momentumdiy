@@ -1734,7 +1734,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     );
     mainTaskId = mainTask?.id || '';
     console.log('Found main task:', mainTask ? { id: mainTask.id, status: mainTask.status } : 'not found');
-    console.log('Available main tasks:', tasks.map(t => ({ id: t.id, title: t.title, status: t.status, hasMarketingTrack: !!t.marketingTrack })));
+    console.log('Available main tasks:', tasks.map(t => ({ 
+      id: t.id, 
+      title: t.title, 
+      status: t.status, 
+      hasMarketingTrack: !!t.marketingTrack,
+      marketingTrack: t.marketingTrack ? {
+        goalId: t.marketingTrack.goalId,
+        moduleId: t.marketingTrack.moduleId,
+        marketingTaskId: t.marketingTrack.marketingTaskId
+      } : null
+    })));
     
     // Find the marketing goal task using the marketingTaskId
     const currentGoal = marketingGoals.find(g => g.id === goalId);
@@ -1751,7 +1761,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       resolvedId: resolvedMarketingTaskId, 
       originalId: marketingTaskId, 
       found: currentTask ? { id: currentTask.id, title: currentTask.title, isCompleted: currentTask.isCompleted } : 'not found',
-      availableTaskIds: currentModule?.tasks.map(t => t.id) || []
+      availableTaskIds: currentModule?.tasks.map(t => t.id) || [],
+      allMarketingTasks: currentModule?.tasks.map(t => ({ id: t.id, title: t.title, isCompleted: t.isCompleted })) || []
     });
     
     console.log('Looking for goal with ID:', goalId);
