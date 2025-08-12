@@ -467,9 +467,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             '',
             'This week\'s goal is to get a clear picture of where your business is showing up—and where it might be invisible. It\'s your *visibility baseline*, and it\'ll help us track real progress over the next 12 weeks.',
             '',
-            '## Pro Tip',
-            'Before we build momentum, we find where you\'re stuck. Visibility is step one. Let\'s get the full picture so we know what progress looks like.',
-            '',
             '## How Your Marketing Assistant Can Help',
             'Ask your assistant to review your Google listing, signage, or website and suggest quick updates. They can also help you interpret or gather metrics and offer quick-win ideas.'
           ].join('\n');
@@ -1125,6 +1122,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   // Pro Tip helper (simple seed tips based on common themes)
   const getProTip = (module: MarketingModule): string => {
     const t = `${module.title} ${module.description}`.toLowerCase();
+    
+    // Special case for Week 1 of Local Foot Traffic track
+    if (activeGoal && activeGoal.title.toLowerCase().includes('foot traffic') && module.weekNumber === 1) {
+      return 'Before we build momentum, we find where you\'re stuck. Visibility is step one. Let\'s get the full picture so we know what progress looks like.';
+    }
+    
     if (activeGoal && activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 2) {
       return "You don't need to be everywhere—you just need to be consistent in the right places.";
     }
