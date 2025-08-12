@@ -3368,33 +3368,309 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             <strong style={{ color: '#686DCA' }}>💡 Pro Tip:</strong> {getProTip(module)}
                           </div>
                         </div>
-                        {/* Guided Week (Planner + Quick Wins) */}
+                        {/* Week 1 Forms - Embedded directly in the view */}
                         <div style={{ gridColumn: '1 / -1' }}>
-                          <div style={{ marginTop: '0.5rem', background: 'rgba(255,241,231,0.04)', border: '1px solid rgba(239,142,129,0.25)', borderRadius: 10, padding: '1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                              <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 700 }}>Week Progress</h6>
-                              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>Focus Area</span>
-                                <span style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.2)', color: '#EF8E81', fontSize: '0.8rem' }}>Local Visibility</span>
+                          <div style={{ marginTop: '0.5rem', background: 'rgba(255,241,231,0.04)', border: '1px solid rgba(239,142,129,0.25)', borderRadius: 10, padding: '1.5rem' }}>
+                            <h6 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#FFF1E7', fontWeight: 700 }}>Week 1: Complete Your Visibility Audit</h6>
+                            
+                            {/* Online Presence Audit Form */}
+                            <div style={{ marginBottom: '2rem' }}>
+                              <h6 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>Online Presence Audit</h6>
+                              <p style={{ margin: '0 0 1rem 0', opacity: 0.85, fontSize: '0.9rem' }}>
+                                Let's check how discoverable you are online. Fill out this audit to see where you're visible and where you might be invisible.
+                              </p>
+                              
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Google Business Profile
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Is it claimed and accurate?
+                                    </div>
+                                  </label>
+                                  <textarea
+                                    placeholder="Describe the current state of your Google Business Profile..."
+                                    rows={3}
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem',
+                                      resize: 'vertical',
+                                      fontFamily: 'inherit'
+                                    }}
+                                  />
+                                </div>
 
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Website
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Does it reflect current hours, services, and offerings?
+                                    </div>
+                                  </label>
+                                  <textarea
+                                    placeholder="Describe your website's current state..."
+                                    rows={3}
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem',
+                                      resize: 'vertical',
+                                      fontFamily: 'inherit'
+                                    }}
+                                  />
+                                </div>
+
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Social Media
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Are you posting consistently and engaging with locals?
+                                    </div>
+                                  </label>
+                                  <textarea
+                                    placeholder="Describe your social media presence..."
+                                    rows={3}
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem',
+                                      resize: 'vertical',
+                                      fontFamily: 'inherit'
+                                    }}
+                                  />
+                                </div>
+
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Online Reviews
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      What are people saying about finding you?
+                                    </div>
+                                  </label>
+                                  <textarea
+                                    placeholder="Summarize your current reviews and reputation..."
+                                    rows={3}
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem',
+                                      resize: 'vertical',
+                                      fontFamily: 'inherit'
+                                    }}
+                                  />
+                                </div>
                               </div>
                             </div>
-                            {/* Week Progress Summary */}
-                            <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>Tasks Completed</span>
-                                  <span style={{ color: '#EF8E81', fontWeight: 600, fontSize: '0.9rem' }}>
-                                    {module.tasks.filter(t => t.isCompleted).length} of {module.tasks.length}
-                                  </span>
+
+                            {/* Baseline Metrics Form */}
+                            <div style={{ marginBottom: '2rem' }}>
+                              <h6 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>Baseline Metrics</h6>
+                              <p style={{ margin: '0 0 1rem 0', opacity: 0.85, fontSize: '0.9rem' }}>
+                                Capture these numbers to track your progress over the next 12 weeks. This is your starting point!
+                              </p>
+                              
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Weekly Walk-ins
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Count how many people come in without an appointment
+                                    </div>
+                                  </label>
+                                  <input
+                                    type="number"
+                                    placeholder="0"
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem'
+                                    }}
+                                  />
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>Week Focus</span>
-                                  <span style={{ color: '#686DCA', fontWeight: 600, fontSize: '0.9rem' }}>Local Visibility</span>
+
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Google Views
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Monthly profile views from your Google Business Profile
+                                    </div>
+                                  </label>
+                                  <input
+                                    type="number"
+                                    placeholder="0"
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem'
+                                    }}
+                                  />
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>Next Steps</span>
-                                  <span style={{ color: '#5ECD7D', fontWeight: 600, fontSize: '0.9rem' }}>Complete remaining tasks</span>
+
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Social Engagement
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Average likes/comments per post
+                                    </div>
+                                  </label>
+                                  <input
+                                    type="number"
+                                    placeholder="0"
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem'
+                                    }}
+                                  />
+                                </div>
+
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Weekly Revenue
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Track weekly sales (optional but helpful)
+                                    </div>
+                                  </label>
+                                  <input
+                                    type="number"
+                                    placeholder="0"
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem'
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Storefront Photos Form */}
+                            <div>
+                              <h6 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>Storefront & Signage Photos</h6>
+                              <p style={{ margin: '0 0 1rem 0', opacity: 0.85, fontSize: '0.9rem' }}>
+                                Take photos from across the street to see what first-time visitors see. This helps you understand your store's first impression.
+                              </p>
+                              
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Storefront from across the street
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Upload a photo showing your store from a distance
+                                    </div>
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem'
+                                    }}
+                                  />
+                                </div>
+
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Window signage and displays
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Upload photos of your window displays and signage
+                                    </div>
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem'
+                                    }}
+                                  />
+                                </div>
+
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Entryway and first impression
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Upload photos of your entryway and entrance area
+                                    </div>
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem'
+                                    }}
+                                  />
+                                </div>
+
+                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Any outdoor seating or display areas
+                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                      Upload photos of outdoor areas if applicable
+                                    </div>
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    style={{
+                                      width: '100%',
+                                      padding: '0.75rem',
+                                      borderRadius: 8,
+                                      border: '1px solid #444',
+                                      background: '#191628',
+                                      color: '#FFF1E7',
+                                      fontSize: '1rem'
+                                    }}
+                                  />
                                 </div>
                               </div>
                             </div>
