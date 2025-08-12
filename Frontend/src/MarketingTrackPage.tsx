@@ -265,16 +265,16 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         'Posting rhythm: Beginner 3x (Mon/Wed/Fri) or Confident 5x (Mon–Fri).',
         '',
         'Example prompts to help draft your captions:',
-        '- Monday (Behind the Scenes): Here’s what we’re working on this week… (show workspace/product prep/plan)',
+        '- Monday (Behind the Scenes): Here's what we're working on this week… (show workspace/product prep/plan)',
         '- Tuesday (Tip or FAQ): Answer a common customer question or give a useful tip related to your work',
-        '- Wednesday (Personal Story): Share why you started your business, or something you’re proud of',
+        '- Wednesday (Personal Story): Share why you started your business, or something you're proud of',
         '- Thursday (Product/Service Feature): Highlight 1 offer you love—show it, describe it, and invite people in',
         '- Friday (Fun or Community): Shout out a local business, share a favorite spot, or post something light‑hearted'
       ].join('\n');
       const reducedTasks = [
         { id: `${module.id}-w1-baseline`, title: 'Save baseline metrics', description: 'Enter metrics for your main platform and save.', estimatedTime: '5m', isCompleted: false },
         { id: `${module.id}-w1-bio`, title: 'Fix bio + link (if needed)', description: 'Make your profile clear and actionable.', estimatedTime: '10m', isCompleted: false },
-        { id: `${module.id}-w1-plan`, title: 'Plan this week’s 3 posts', description: 'Educate, Connect, Promote. Short and simple.', estimatedTime: '10m', isCompleted: false },
+        { id: `${module.id}-w1-plan`, title: 'Plan this week's 3 posts', description: 'Educate, Connect, Promote. Short and simple.', estimatedTime: '10m', isCompleted: false },
       ] as any;
       return { ...module, title: 'Social Audit & Baseline Tracking', description: 'Audit, baseline, and a simple 3‑post plan to start consistent.', content: conciseContent, tasks: reducedTasks };
       }
@@ -304,7 +304,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ].join('\n');
         const curatedTasks = [
           { id: `${module.id}-w2-pillars`, title: 'Choose your 3–4 content pillars', description: 'Select brand‑aligned pillars and save them.', estimatedTime: '10m', isCompleted: false },
-          { id: `${module.id}-w2-plan`, title: 'Create your refined 5‑day content plan', description: 'Draft 3–5 posts using the week’s plan and your pillars.', estimatedTime: '15m', isCompleted: false },
+          { id: `${module.id}-w2-plan`, title: 'Create your refined 5‑day content plan', description: 'Draft 3–5 posts using the week's plan and your pillars.', estimatedTime: '15m', isCompleted: false },
         ] as any;
         return { ...module, title: 'Content Pillars + Strategic Posting Flow', description: 'Lock your pillars and plan a refined 5‑day posting rhythm.', content: curatedContent, tasks: curatedTasks };
       }
@@ -320,7 +320,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           '',
           'Step 2 — Visual Basics',
           '- Choose a heading font and a body font',
-          '- Pick 3–5 colors you’ll use repeatedly',
+          '- Pick 3–5 colors you'll use repeatedly',
         ].join('\n');
         const tasks = [
           { id: `${module.id}-w3-style`, title: 'Step 1: Complete your mini style guide', description: 'Fill in voice, audience, adjectives, and brand promise.', estimatedTime: '10m', isCompleted: false },
@@ -344,14 +344,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       }
       if (module.weekNumber === 5) {
         const content = [
-          'This week: Connect the dots into a weekly rhythm you can repeat. Pick a frequency, match post types to days, and decide when you’ll plan/schedule.',
+          'This week: Connect the dots into a weekly rhythm you can repeat. Pick a frequency, match post types to days, and decide when you'll plan/schedule.',
           '',
           'Beginner Flow: 3x/week (Mon–Wed–Fri). Confident Flow: 4–5x/week (Mon–Fri).',
           'Stories and quick check-ins can layer on top anytime!'
         ].join('\n');
         const tasks = [
           { id: `${module.id}-w5-frequency`, title: 'Step 1: Choose your weekly posting frequency', description: 'Pick Beginner (3x) or Confident (4–5x) to fit your energy.', estimatedTime: '5m', isCompleted: false },
-          { id: `${module.id}-w5-schedule`, title: 'Step 3: Choose when you’ll plan + post each week', description: 'Pick your content planning hour and scheduling habit.', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w5-schedule`, title: 'Step 3: Choose when you'll plan + post each week', description: 'Pick your content planning hour and scheduling habit.', estimatedTime: '5m', isCompleted: false },
         ] as any;
         return { ...module, title: 'Your Weekly Social Plan', description: 'Simplified, systemized, and ready to roll.', content, tasks };
       }
@@ -405,7 +405,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         const tasks = [
           { id: `${module.id}-w10-choose`, title: 'Step 1: Find a strong post to repurpose', description: 'Pick something with good engagement or a message worth repeating.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w10-remix`, title: 'Step 2: Choose how to refresh it', description: 'Carousel, reel/voiceover, BTS video, graphic quote/stat, testimonial with photo.', estimatedTime: '10m', isCompleted: false },
-          { id: `${module.id}-w10-repost`, title: 'Step 3: Repost with a slightly different CTA', description: 'Try “Did you miss this?” or “New followers—here’s a tip worth repeating.”', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w10-repost`, title: 'Step 3: Repost with a slightly different CTA', description: 'Try "Did you miss this?" or "New followers—here's a tip worth repeating."', estimatedTime: '5m', isCompleted: false },
         ] as any;
         return { ...module, title: 'Reuse a Past Post — Give It a Comeback', description: 'Repeat, remix, and stay visible without burnout.', content, tasks };
       }
@@ -415,29 +415,29 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ].join('\n');
         const tasks = [
           { id: `${module.id}-w11-pick`, title: 'Step 1: Pick your campaign type', description: 'Story Poll/Quiz, Giveaway, Fun Feed Question, or Q&A', estimatedTime: '5m', isCompleted: false },
-          { id: `${module.id}-w11-promote`, title: 'Step 2: Promote it clearly', description: 'Tell people how to participate and when you’ll announce results.', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w11-promote`, title: 'Step 2: Promote it clearly', description: 'Tell people how to participate and when you'll announce results.', estimatedTime: '5m', isCompleted: false },
         ] as any;
         return { ...module, title: 'Create a Mini Engagement Campaign', description: 'Fast, fun, and effective.', content, tasks };
       }
       if (module.weekNumber === 12) {
         const content = [
-          'This week: Reflect, celebrate, and plan what’s next. Gather insights from the last 12 weeks and pick a simple 30‑day focus.',
+          'This week: Reflect, celebrate, and plan what's next. Gather insights from the last 12 weeks and pick a simple 30‑day focus.',
         ].join('\n');
         const tasks = [
           { id: `${module.id}-w12-reflect`, title: 'Step 1: Reflect on your progress', description: 'Answer prompts: What changed? What worked best? Keep/stop? Next social goal?', estimatedTime: '10m', isCompleted: false },
           { id: `${module.id}-w12-metrics`, title: 'Step 2: Check your metrics (optional)', description: 'Compare baseline to now: followers, engagement, story views, reach.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w12-plan`, title: 'Step 3: Set a 30‑day plan', description: 'Pick one focus for the next month and write a short plan.', estimatedTime: '10m', isCompleted: false },
         ] as any;
-        return { ...module, title: 'Celebrate + Plan What’s Next', description: 'Review insights and pick your next 30‑day focus.', content, tasks };
+        return { ...module, title: 'Celebrate + Plan What's Next', description: 'Review insights and pick your next 30‑day focus.', content, tasks };
       }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
         '',
         'Keep momentum with a clear rhythm (Beginner 3x or Confident 5x). Draft captions in your Social Content Plan using these prompts:',
-        '- Behind the Scenes: Here’s what we’re working on this week…',
+        '- Behind the Scenes: Here's what we're working on this week…',
         '- Tip or FAQ: Answer a common customer question or give a useful tip related to your work',
-        '- Personal Story: Share why you started your business, or something you’re proud of',
+        '- Personal Story: Share why you started your business, or something you're proud of',
         '- Product/Service Feature: Highlight 1 offer you love—show it, describe it, and invite people in',
         '- Fun or Community: Shout out a local business, share a favorite spot, or post something light‑hearted'
       ].join('\n');
@@ -462,11 +462,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const getProTip = (module: MarketingModule): string => {
     const t = `${module.title} ${module.description}`.toLowerCase();
     if (activeGoal && activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 2) {
-      return 'You don’t need to be everywhere—you just need to be consistent in the right places.';
+      return 'You don't need to be everywhere—you just need to be consistent in the right places.';
     }
     if (t.includes('loyalty') || t.includes('repeat')) return 'This week, try sending a thank-you email to your top 10 customers from last month.';
     if (t.includes('social') || t.includes('engagement')) return 'Batch-create 3 post variations and schedule them to reduce decision fatigue.';
-    if (t.includes('brand') || t.includes('identity')) return 'Create a 3-line voice guide: tone, vocabulary, and “never say” words.';
+    if (t.includes('brand') || t.includes('identity')) return 'Create a 3-line voice guide: tone, vocabulary, and "never say" words.';
     if (t.includes('foot traffic') || t.includes('local')) return 'Add a limited-time in-store bonus for customers who mention your latest post.';
     if (t.includes('visibility') || t.includes('online presence')) return 'Refresh your Google Business Profile with 3 new photos and an update post.';
     return 'Keep it simple. Ship one useful asset this week and announce it everywhere you show up.';
@@ -1013,11 +1013,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   };
 
   const toggleTaskCompletion = (goalId: string, moduleId: string, taskId: string) => {
+    console.log('toggleTaskCompletion called:', { goalId, moduleId, taskId });
+    console.log('Current marketingGoals:', marketingGoals);
+    console.log('Current tasks:', tasks);
+    
     const updatedGoals = marketingGoals.map(goal => {
       if (goal.id === goalId) {
         const updatedModules = goal.modules.map(module => {
           if (module.id === moduleId) {
+            console.log('Updating module:', module.id, 'task:', taskId);
             const updatedTasks = module.tasks.map(task => task.id === taskId ? { ...task, isCompleted: !task.isCompleted } : task);
+            console.log('Updated tasks:', updatedTasks);
             return { ...module, tasks: updatedTasks };
           }
           return module;
@@ -1026,6 +1032,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       }
       return goal;
     });
+    console.log('Updated goals:', updatedGoals);
     onMarketingGoalsChange(updatedGoals);
 
     // If week now completed, celebrate
@@ -1036,10 +1043,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     }
     const updatedTasks = tasks.map(task => {
       if (task.marketingTrack && task.marketingTrack.goalId === goalId && task.marketingTrack.moduleId === moduleId && task.marketingTrack.marketingTaskId === taskId) {
+        console.log('Updating main task:', task.id, 'status to:', task.status === 'completed' ? 'todo' : 'completed');
         return { ...task, status: task.status === 'completed' ? 'todo' as const : 'completed' as const };
       }
       return task;
     });
+    console.log('Updated main tasks:', updatedTasks);
     onTasksChange(updatedTasks);
   };
 
@@ -1192,9 +1201,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem', marginTop: '0.75rem' }}>
             <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#FFF1E7' }}>Good bio examples</div>
             <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: 1.6 }}>
-              <li>“Neighborhood bakery • Fresh sourdough daily • 📍 Eastside • ⏰ M–Sat • ⬇️ Order online”</li>
-              <li>“Independent salon • Cuts • Color • Bridal • 📍 Downtown • ⬇️ Book your appointment”</li>
-              <li>“Brand design studio for local shops • Logos • Packaging • 📍 Denver • ⬇️ See our work”</li>
+              <li>"Neighborhood bakery • Fresh sourdough daily • 📍 Eastside • ⏰ M–Sat • ⬇️ Order online"</li>
+              <li>"Independent salon • Cuts • Color • Bridal • 📍 Downtown • ⬇️ Book your appointment"</li>
+              <li>"Brand design studio for local shops • Logos • Packaging • 📍 Denver • ⬇️ See our work"</li>
             </ul>
           </div>
           <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
@@ -1204,26 +1213,26 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         </div>
       );
     }
-    if (lower.includes('plan this week') || lower.includes('plan this week’s') || lower.includes('3 posts')) {
+    if (lower.includes('plan this week') || lower.includes('plan this week's') || lower.includes('3 posts')) {
       return (
         <div>
-          <h2 style={{ marginTop: 0 }}>Plan this week’s posts</h2>
-          <p style={{ opacity: 0.85 }}>We’ll use three post types to keep things clear and consistent. Draft your captions below in the Social Content Plan.</p>
+          <h2 style={{ marginTop: 0 }}>Plan this week's posts</h2>
+          <p style={{ opacity: 0.85 }}>We'll use three post types to keep things clear and consistent. Draft your captions below in the Social Content Plan.</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
               <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Educate</div>
               <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Teach something useful that relates to your product or service.</p>
-              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Example: “Answer a common customer question or give a useful tip related to your work.”</div>
+              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Example: "Answer a common customer question or give a useful tip related to your work."</div>
             </div>
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
               <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Connect</div>
               <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Humanize your brand and build trust with small stories.</p>
-              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Examples: “Here’s what we’re working on this week…”, “Share why you started your business, or something you’re proud of.”</div>
+              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Examples: "Here's what we're working on this week…", "Share why you started your business, or something you're proud of."</div>
             </div>
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
               <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Promote</div>
               <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Spotlight one offer and invite people to take the next step.</p>
-              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Examples: “Highlight 1 offer you love—show it, describe it, and invite people in.” “Shout out a local business or share a light-hearted community post on Friday.”</div>
+              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Examples: "Highlight 1 offer you love—show it, describe it, and invite people in." "Shout out a local business or share a light-hearted community post on Friday."</div>
             </div>
           </div>
           <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
@@ -1492,15 +1501,15 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   {`Hi${profile?.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''},`}
                                 </div>
                                 <p style={{ margin: '0.25rem 0' }}>Welcome to your new quarter of <span style={{ fontStyle: 'italic' }}>Momentum Marketing!</span> 🎉</p>
-                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Over the next 12 weeks, we’ll strengthen your social media presence by focusing on smart strategy, easy systems, and engaging content that reflects the heart of your business.</p>
-                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week we’re kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress.</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Over the next 12 weeks, we'll strengthen your social media presence by focusing on smart strategy, easy systems, and engaging content that reflects the heart of your business.</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week we're kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress.</p>
                               </>
                             ) : module.weekNumber === 2 ? (
                               <>
                                 <div style={{ fontWeight: 700, marginBottom: 6 }}>{`Hi${profile?.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''},`}</div>
                                 <p style={{ margin: '0.25rem 0', opacity: 0.95 }}>One of the hardest parts of showing up consistently on social media is knowing <strong>what to say</strong>.</p>
-                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week, we’re solving that by defining your <strong>Content Pillars</strong>—the 3–4 themes that represent your brand and connect with your audience. These become your “go‑to” buckets for content creation, making it easier to plan posts that feel intentional, not random.</p>
-                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Once you’ve got your pillars, you’ll also try a more <strong>strategy‑driven weekly content plan</strong> that builds from last week.</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week, we're solving that by defining your <strong>Content Pillars</strong>—the 3–4 themes that represent your brand and connect with your audience. These become your "go‑to" buckets for content creation, making it easier to plan posts that feel intentional, not random.</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Once you've got your pillars, you'll also try a more <strong>strategy‑driven weekly content plan</strong> that builds from last week.</p>
                               </>
                             ) : (
                               <>
@@ -1576,8 +1585,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                               >
                                 <button
                                   onClick={(e) => {
+                                    console.log('Checkbox clicked!', { taskId: task.id, taskTitle: task.title });
                                     e.stopPropagation();
                                     toggleTaskCompletion(activeGoal.id, module.id, task.id);
+                                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                    burstConfettiAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
                                   }}
                                   style={{
                                     width: '28px',
@@ -1763,7 +1775,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 <div key={key} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
                                   <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>{titles[key]}</h6>
                                   <label style={{ display: 'block', marginBottom: 6 }}>Angle
-                                    <input value={pt.angle} onChange={e => update({ angle: e.target.value })} style={inputBaseStyle} placeholder="What’s your spin? e.g., ‘Practical, local-friendly tips’" />
+                                    <input value={pt.angle} onChange={e => update({ angle: e.target.value })} style={inputBaseStyle} placeholder="What's your spin? e.g., 'Practical, local-friendly tips'" />
                                   </label>
                                   <label style={{ display: 'block', marginBottom: 6 }}>Prompt 1
                                     <input value={pt.prompts[0] || ''} onChange={e => update({ prompts: [e.target.value, pt.prompts[1] || ''] })} style={inputBaseStyle} placeholder="Prompt idea…" />
@@ -1796,7 +1808,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                               })()}
                             </div>
                             <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', border: '1px solid rgba(239,142,129,0.2)' }}>
-                              <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.75rem' }}>Step 3: Choose when you’ll plan + post</h6>
+                              <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.75rem' }}>Step 3: Choose when you'll plan + post</h6>
                               {(() => {
                                 const wp = weeklyPlanByGoal[activeGoal.id] || { frequency: 'beginner', planningTime: '' };
                                 return (
@@ -2071,7 +2083,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                       {(['Carousel','Reel/Video','BTS Video','Graphic Quote/Stat','Photo+Testimonial','Other'] as RemixPlan['newFormat'][]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                     </select></label>
                                     <label>Notes<textarea value={r.notes} onChange={e => update({ notes: e.target.value })} style={{ ...inputBaseStyle, minHeight: 80 }} placeholder="How will you refresh it?" /></label>
-                                    <label>CTA<textarea value={r.cta} onChange={e => update({ cta: e.target.value })} style={{ ...inputBaseStyle, minHeight: 60 }} placeholder="Ex: ‘Did you miss this the first time?’" /></label>
+                                    <label>CTA<textarea value={r.cta} onChange={e => update({ cta: e.target.value })} style={{ ...inputBaseStyle, minHeight: 60 }} placeholder="Ex: 'Did you miss this the first time?'" /></label>
                                   </div>
                                 );
                               })()}
@@ -2241,9 +2253,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                         <td style={{ padding: '8px' }}>
                                           <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder={
                                             module.weekNumber === 1 ? (
-                                              row.day === 'Monday' ? "Here’s what we’re working on this week…" :
+                                              row.day === 'Monday' ? "Here's what we're working on this week…" :
                                               row.day === 'Tuesday' ? "Answer a common customer question or give a useful tip" :
-                                              row.day === 'Wednesday' ? "Share why you started your business, or something you’re proud of" :
+                                              row.day === 'Wednesday' ? "Share why you started your business, or something you're proud of" :
                                               row.day === 'Thursday' ? "Highlight 1 offer you love—describe it and invite people in" :
                                               row.day === 'Friday' ? "Shout out a local business or share a light‑hearted moment" : 'Draft caption…'
                                             ) : 'Draft caption…'
@@ -2531,8 +2543,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     {`Hi${profile?.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''},`}
                                   </div>
                                   <p style={{ margin: '0.25rem 0' }}>Welcome to your new quarter of <span style={{ fontStyle: 'italic' }}>Momentum Marketing!</span> 🎉</p>
-                                  <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Over the next 12 weeks, we’ll strengthen your social media presence by focusing on smart strategy, easy systems, and engaging content that reflects the heart of your business.</p>
-                                  <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week we’re kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress.</p>
+                                  <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Over the next 12 weeks, we'll strengthen your social media presence by focusing on smart strategy, easy systems, and engaging content that reflects the heart of your business.</p>
+                                  <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week we're kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress.</p>
                                 </>
                               ) : (
                                 <>
@@ -2579,6 +2591,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 <div key={task.id} data-task-id={task.id} data-task-title={task.title} data-task-desc={task.description} role="button" tabIndex={0} onKeyDown={(e)=>{ if(e.key==='Enter'||e.key===' ') openInteractiveTask(activeGoal.id, module.id, task.id, task.title, task.description); }} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.75rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '6px', border: `1px solid ${task.isCompleted ? 'rgba(94, 205, 125, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`, cursor: 'pointer' }}>
                                   <button
                                     onClick={(e) => {
+                                      console.log('Checkbox clicked!', { taskId: task.id, taskTitle: task.title });
                                       e.stopPropagation();
                                       toggleTaskCompletion(activeGoal.id, module.id, task.id);
                                       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
