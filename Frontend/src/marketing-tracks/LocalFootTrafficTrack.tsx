@@ -333,7 +333,8 @@ export default function LocalFootTrafficTrack({
               margin: '0 0 1rem 0', 
               fontSize: '1.75rem', 
               color: '#FFF1E7', 
-              fontWeight: 700 
+              fontWeight: 700,
+              textAlign: 'center'
             }}>
               Ready to Start Your Local Foot Traffic Journey?
             </h3>
@@ -345,7 +346,8 @@ export default function LocalFootTrafficTrack({
               lineHeight: 1.6,
               maxWidth: '600px',
               marginLeft: 'auto',
-              marginRight: 'auto'
+              marginRight: 'auto',
+              textAlign: 'center'
             }}>
               Click the button below to activate this track and unlock Week 1 content. You'll get immediate access to your first week's tasks and can start building your local business visibility right away.
             </p>
@@ -363,7 +365,9 @@ export default function LocalFootTrafficTrack({
                 boxShadow: '0 8px 25px rgba(239,142,129,0.4)',
                 transition: 'all 0.3s ease',
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px'
+                letterSpacing: '0.5px',
+                display: 'block',
+                margin: '0 auto'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-3px)';
@@ -380,7 +384,8 @@ export default function LocalFootTrafficTrack({
               margin: '1rem 0 0 0', 
               color: '#FFF1E7', 
               opacity: 0.6, 
-              fontSize: '0.9rem' 
+              fontSize: '0.9rem',
+              textAlign: 'center'
             }}>
               Unlocks Week 1 content and creates your project timeline
             </p>
