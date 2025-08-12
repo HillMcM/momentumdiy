@@ -1689,7 +1689,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     }
   };
 
-  const toggleTaskCompletion = (goalId: string, moduleId: string, taskId: string) => {
+  const toggleTaskCompletion = (goalId: string, moduleId: string, taskId: string, taskTitle?: string) => {
     console.log('=== toggleTaskCompletion START ===');
     console.log('toggleTaskCompletion called:', { goalId, moduleId, taskId });
     console.log('marketingGoals length:', marketingGoals.length);
@@ -1697,19 +1697,35 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     console.log('marketingGoals:', marketingGoals);
     console.log('tasks (first 5):', tasks.slice(0, 5));
     
-    // Since we've cleaned up the database, taskId is now the actual marketing task ID (UUID)
-    // We don't need to parse descriptive IDs anymore
-    const marketingTaskId = taskId;
+    // Map any legacy descriptive IDs (that include -w) to the real UUID by matching title within the module
+    let marketingTaskId = taskId;
+    if (taskId.includes('-w')) {
+      const goal = marketingGoals.find(g => g.id === goalId);
+      const mod = goal?.modules.find(m => m.id === moduleId);
+      if (goal && mod) {
+        const moduleWithFallback = withFallback(goal, mod);
+        const match = moduleWithFallback.tasks.find(t => {
+          if (!taskTitle) return false;
+          return t.title.trim().toLowerCase() === taskTitle.trim().toLowerCase();
+        });
+        if (match) {
+          console.log('Mapped legacy taskId to UUID via title match:', { legacy: taskId, uuid: match.id, title: taskTitle });
+          marketingTaskId = match.id;
+        } else {
+          console.warn('Could not map legacy taskId; proceeding with original id', { legacy: taskId, taskTitle });
+        }
+      }
+    }
     let mainTaskId: string = '';
     
-    console.log('Using taskId as marketingTaskId:', marketingTaskId);
+    console.log('Using (resolved) marketingTaskId:', marketingTaskId);
     
     // Try to find the corresponding main task
     const mainTask = tasks.find(task => 
       task.marketingTrack && 
       task.marketingTrack.goalId === goalId && 
       task.marketingTrack.moduleId === moduleId && 
-      task.marketingTrack.marketingTaskId === taskId
+      task.marketingTrack.marketingTaskId === marketingTaskId
     );
     mainTaskId = mainTask?.id || '';
     console.log('Found main task:', mainTask ? { id: mainTask.id, status: mainTask.status } : 'not found');
@@ -4514,7 +4530,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                       onClick={() => {
                         console.log('Checkbox clicked!', { taskId: task.id, taskTitle: task.title });
                         if (selectedGoal) {
-                          toggleTaskCompletion(selectedGoal.id, selectedModule.id, task.id);
+                          toggleTaskCompletion(selectedGoal.id, selectedModule.id, task.id, task.title);
                         }
                       }}
                       style={{
