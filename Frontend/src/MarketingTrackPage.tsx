@@ -1644,7 +1644,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                               {/* Removed rationale copy from section per request; shown inside task modal instead */}
                               {/* Custom pillar input → creates a selectable pill */}
                               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                <input value={newPillarDraft} onChange={e => setNewPillarDraft(e.target.value)} placeholder="Add a custom pillar…" style={{ ...inputBaseStyle, flex: 1 }} />
+                                <input 
+                                  id="new-pillar-input"
+                                  name="new-pillar-input"
+                                  value={newPillarDraft} 
+                                  onChange={e => setNewPillarDraft(e.target.value)} 
+                                  placeholder="Add a custom pillar…" 
+                                  style={{ ...inputBaseStyle, flex: 1 }} 
+                                />
                                 <button onClick={() => {
                                   const trimmed = newPillarDraft.trim();
                                   if (!trimmed) return;
@@ -2658,10 +2665,42 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 ))}
                               </div>
                               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
-                                <label>Followers<input value={baseline[selectedPlatformTab].followers} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], followers: e.target.value } }))} style={inputBaseStyle} /></label>
-                                <label>Avg Likes<input value={baseline[selectedPlatformTab].avgLikes} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgLikes: e.target.value } }))} style={inputBaseStyle} /></label>
-                                <label>Avg Comments<input value={baseline[selectedPlatformTab].avgComments} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgComments: e.target.value } }))} style={inputBaseStyle} /></label>
-                                <label>Avg Story Views<input value={baseline[selectedPlatformTab].avgStoryViews} onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgStoryViews: e.target.value } }))} style={inputBaseStyle} /></label>
+                                <label htmlFor="baseline2-followers">Followers
+                                  <input 
+                                    id="baseline2-followers"
+                                    name="baseline2-followers"
+                                    value={baseline[selectedPlatformTab].followers} 
+                                    onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], followers: e.target.value } }))} 
+                                    style={inputBaseStyle} 
+                                  />
+                                </label>
+                                <label htmlFor="baseline2-avg-likes">Avg Likes
+                                  <input 
+                                    id="baseline2-avg-likes"
+                                    name="baseline2-avg-likes"
+                                    value={baseline[selectedPlatformTab].avgLikes} 
+                                    onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgLikes: e.target.value } }))} 
+                                    style={inputBaseStyle} 
+                                  />
+                                </label>
+                                <label htmlFor="baseline2-avg-comments">Avg Comments
+                                  <input 
+                                    id="baseline2-avg-comments"
+                                    name="baseline2-avg-comments"
+                                    value={baseline[selectedPlatformTab].avgComments} 
+                                    onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgComments: e.target.value } }))} 
+                                    style={inputBaseStyle} 
+                                  />
+                                </label>
+                                <label htmlFor="baseline2-avg-story-views">Avg Story Views
+                                  <input 
+                                    id="baseline2-avg-story-views"
+                                    name="baseline2-avg-story-views"
+                                    value={baseline[selectedPlatformTab].avgStoryViews} 
+                                    onChange={e => setBaseline(b => ({ ...b, [selectedPlatformTab]: { ...b[selectedPlatformTab], avgStoryViews: e.target.value } }))} 
+                                    style={inputBaseStyle} 
+                                  />
+                                </label>
                               </div>
                               <div style={{ marginTop: 8 }}>
                                 <button onClick={() => { saveBaseline(); }} style={{ padding: '6px 10px' }}>Save baseline</button>
