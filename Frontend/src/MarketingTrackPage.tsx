@@ -405,7 +405,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         const tasks = [
           { id: `${module.id}-w10-choose`, title: 'Step 1: Find a strong post to repurpose', description: 'Pick something with good engagement or a message worth repeating.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w10-remix`, title: 'Step 2: Choose how to refresh it', description: 'Carousel, reel/voiceover, BTS video, graphic quote/stat, testimonial with photo.', estimatedTime: '10m', isCompleted: false },
-          { id: `${module.id}-w10-repost`, title: 'Step 3: Repost with a slightly different CTA', description: 'Try "Did you miss this?" or "New followers—here's a tip worth repeating."', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w10-repost`, title: 'Step 3: Repost with a slightly different CTA', description: "Try \"Did you miss this?\" or \"New followers—here's a tip worth repeating.\"", estimatedTime: '5m', isCompleted: false },
         ] as any;
         return { ...module, title: 'Reuse a Past Post — Give It a Comeback', description: 'Repeat, remix, and stay visible without burnout.', content, tasks };
       }
