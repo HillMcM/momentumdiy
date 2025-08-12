@@ -1824,7 +1824,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     // Persist completion to backend; rollback if it fails
     (async () => {
       try {
-        const resp = await apiService.updateMarketingTaskCompletion(marketingTaskId, newCompletionStatus);
+        // Use the resolved UUID for the API call, not the original taskId
+        const apiTaskId = marketingTaskId.includes('-w') ? marketingTaskId.split('-w')[0] : marketingTaskId;
+        console.log('Calling API with resolved task ID:', { original: taskId, resolved: apiTaskId });
+        const resp = await apiService.updateMarketingTaskCompletion(apiTaskId, newCompletionStatus);
         if (!resp.success) {
           console.error('Failed to persist marketing task completion:', resp.error);
           
