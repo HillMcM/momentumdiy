@@ -1665,20 +1665,43 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const toggleTaskCompletion = (goalId: string, moduleId: string, taskId: string) => {
     console.log('toggleTaskCompletion called:', { goalId, moduleId, taskId });
     
-    // Find the main task first to get the marketingTaskId
-    const mainTask = tasks.find(task => 
-      task.marketingTrack && 
-      task.marketingTrack.goalId === goalId && 
-      task.marketingTrack.moduleId === moduleId && 
-      task.id === taskId
-    );
+    // Determine if this is a marketing task ID or main task ID
+    // Marketing task IDs typically contain the module ID + week info (e.g., '4dc2e4e4-0394-4d74-85f7-d039b959ac5a-w1-online')
+    // Main task IDs are typically UUIDs
+    const isMarketingTaskId = taskId.includes(moduleId) && taskId.includes('-w');
     
-    if (!mainTask || !mainTask.marketingTrack) {
-      console.error('Main task not found:', { goalId, moduleId, taskId });
-      return;
+    let marketingTaskId: string;
+    let mainTaskId: string;
+    
+    if (isMarketingTaskId) {
+      // This is a marketing task ID, use it directly
+      marketingTaskId = taskId;
+      
+      // Try to find the corresponding main task
+      const mainTask = tasks.find(task => 
+        task.marketingTrack && 
+        task.marketingTrack.goalId === goalId && 
+        task.marketingTrack.moduleId === moduleId && 
+        task.marketingTrack.marketingTaskId === taskId
+      );
+      mainTaskId = mainTask?.id || '';
+    } else {
+      // This is a main task ID, find the marketing task ID
+      const mainTask = tasks.find(task => 
+        task.marketingTrack && 
+        task.marketingTrack.goalId === goalId && 
+        task.marketingTrack.moduleId === moduleId && 
+        task.id === taskId
+      );
+      
+      if (!mainTask || !mainTask.marketingTrack) {
+        console.error('Main task not found:', { goalId, moduleId, taskId });
+        return;
+      }
+      
+      marketingTaskId = mainTask.marketingTrack.marketingTaskId;
+      mainTaskId = taskId;
     }
-    
-    const marketingTaskId = mainTask.marketingTrack.marketingTaskId;
     
     // Find the marketing goal task using the marketingTaskId
     const currentGoal = marketingGoals.find(g => g.id === goalId);
@@ -1709,9 +1732,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       return goal;
     });
     
-    // Update main tasks state to sync with marketing goals
+    // Update main tasks state to sync with marketing goals (only if we have a main task ID)
     const updatedTasks = tasks.map(task => {
-      if (task.id === taskId) {
+      if (mainTaskId && task.id === mainTaskId) {
         return { 
           ...task, 
           status: newCompletionStatus ? 'completed' as const : 'todo' as const 
@@ -1722,7 +1745,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     
     // Update both states immediately for responsive UI
     onMarketingGoalsChange(updatedGoals);
-    onTasksChange(updatedTasks);
+    if (mainTaskId) {
+      onTasksChange(updatedTasks);
+    }
     
     // Check if week is now completed for celebration
     const updatedModule = updatedGoals.find(g => g.id === goalId)?.modules.find(m => m.id === moduleId);
@@ -1739,14 +1764,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           
           // Rollback both states on failure
           onMarketingGoalsChange(marketingGoals);
-          onTasksChange(tasks);
+          if (mainTaskId) {
+            onTasksChange(tasks);
+          }
         }
       } catch (err) {
         console.error('Error persisting marketing task completion:', err);
         
         // Rollback both states on error
         onMarketingGoalsChange(marketingGoals);
-        onTasksChange(tasks);
+        if (mainTaskId) {
+          onTasksChange(tasks);
+        }
       }
     })();
   };
