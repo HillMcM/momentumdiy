@@ -274,7 +274,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       const reducedTasks = [
         { id: `${module.id}-w1-baseline`, title: 'Save baseline metrics', description: 'Enter metrics for your main platform and save.', estimatedTime: '5m', isCompleted: false },
         { id: `${module.id}-w1-bio`, title: 'Fix bio + link (if needed)', description: 'Make your profile clear and actionable.', estimatedTime: '10m', isCompleted: false },
-        { id: `${module.id}-w1-plan`, title: 'Plan this week's 3 posts', description: 'Educate, Connect, Promote. Short and simple.', estimatedTime: '10m', isCompleted: false },
+        { id: `${module.id}-w1-plan`, title: "Plan this week's 3 posts", description: 'Educate, Connect, Promote. Short and simple.', estimatedTime: '10m', isCompleted: false },
       ] as any;
       return { ...module, title: 'Social Audit & Baseline Tracking', description: 'Audit, baseline, and a simple 3‑post plan to start consistent.', content: conciseContent, tasks: reducedTasks };
       }
@@ -304,7 +304,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ].join('\n');
         const curatedTasks = [
           { id: `${module.id}-w2-pillars`, title: 'Choose your 3–4 content pillars', description: 'Select brand‑aligned pillars and save them.', estimatedTime: '10m', isCompleted: false },
-          { id: `${module.id}-w2-plan`, title: 'Create your refined 5‑day content plan', description: 'Draft 3–5 posts using the week's plan and your pillars.', estimatedTime: '15m', isCompleted: false },
+          { id: `${module.id}-w2-plan`, title: 'Create your refined 5‑day content plan', description: "Draft 3–5 posts using the week's plan and your pillars.", estimatedTime: '15m', isCompleted: false },
         ] as any;
         return { ...module, title: 'Content Pillars + Strategic Posting Flow', description: 'Lock your pillars and plan a refined 5‑day posting rhythm.', content: curatedContent, tasks: curatedTasks };
       }
@@ -344,7 +344,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       }
       if (module.weekNumber === 5) {
         const content = [
-          'This week: Connect the dots into a weekly rhythm you can repeat. Pick a frequency, match post types to days, and decide when you'll plan/schedule.',
+          "This week: Connect the dots into a weekly rhythm you can repeat. Pick a frequency, match post types to days, and decide when you'll plan/schedule.",
           '',
           'Beginner Flow: 3x/week (Mon–Wed–Fri). Confident Flow: 4–5x/week (Mon–Fri).',
           'Stories and quick check-ins can layer on top anytime!'
@@ -462,7 +462,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const getProTip = (module: MarketingModule): string => {
     const t = `${module.title} ${module.description}`.toLowerCase();
     if (activeGoal && activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 2) {
-      return 'You don't need to be everywhere—you just need to be consistent in the right places.';
+      return "You don't need to be everywhere—you just need to be consistent in the right places.";
     }
     if (t.includes('loyalty') || t.includes('repeat')) return 'This week, try sending a thank-you email to your top 10 customers from last month.';
     if (t.includes('social') || t.includes('engagement')) return 'Batch-create 3 post variations and schedule them to reduce decision fatigue.';
@@ -1213,7 +1213,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         </div>
       );
     }
-    if (lower.includes('plan this week') || lower.includes('plan this week's') || lower.includes('3 posts')) {
+    if (lower.includes('plan this week') || lower.includes("plan this week's") || lower.includes('3 posts')) {
       return (
         <div>
           <h2 style={{ marginTop: 0 }}>Plan this week's posts</h2>
@@ -1234,10 +1234,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
               <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Spotlight one offer and invite people to take the next step.</p>
               <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Examples: "Highlight 1 offer you love—show it, describe it, and invite people in." "Shout out a local business or share a light-hearted community post on Friday."</div>
             </div>
-          </div>
-          <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
-            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
-            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
           </div>
         </div>
       );
