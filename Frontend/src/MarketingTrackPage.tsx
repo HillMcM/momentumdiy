@@ -1734,20 +1734,25 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     );
     mainTaskId = mainTask?.id || '';
     console.log('Found main task:', mainTask ? { id: mainTask.id, status: mainTask.status } : 'not found');
+    console.log('Available main tasks:', tasks.map(t => ({ id: t.id, title: t.title, status: t.status, hasMarketingTrack: !!t.marketingTrack })));
     
     // Find the marketing goal task using the marketingTaskId
     const currentGoal = marketingGoals.find(g => g.id === goalId);
     const currentModule = currentGoal?.modules.find(m => m.id === moduleId);
     
     // Find task by ID. If not found and legacy id, try base UUID before '-w'
-    let currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
-    if (!currentTask && legacyBaseId) {
-      currentTask = currentModule?.tasks.find(t => t.id === legacyBaseId);
-      if (currentTask) {
-        console.log('Resolved legacy id to base UUID for currentTask', { legacy: marketingTaskId, base: legacyBaseId });
-        marketingTaskId = legacyBaseId;
-      }
+    let currentTask = currentModule?.tasks.find(t => t.id === resolvedMarketingTaskId);
+    if (!currentTask) {
+      console.log('Task not found with resolved ID, trying original marketingTaskId:', marketingTaskId);
+      currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
     }
+    
+    console.log('Task lookup result:', { 
+      resolvedId: resolvedMarketingTaskId, 
+      originalId: marketingTaskId, 
+      found: currentTask ? { id: currentTask.id, title: currentTask.title, isCompleted: currentTask.isCompleted } : 'not found',
+      availableTaskIds: currentModule?.tasks.map(t => t.id) || []
+    });
     
     console.log('Looking for goal with ID:', goalId);
     console.log('Looking for module with ID:', moduleId);
@@ -1778,7 +1783,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         const updatedModules = goal.modules.map(module => {
           if (module.id === moduleId) {
             const updatedTasks = module.tasks.map(task => 
-              task.id === marketingTaskId ? { ...task, isCompleted: newCompletionStatus } : task
+              task.id === resolvedMarketingTaskId ? { ...task, isCompleted: newCompletionStatus } : task
             );
             return { ...module, tasks: updatedTasks };
           }
