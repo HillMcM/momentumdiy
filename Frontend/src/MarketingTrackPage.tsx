@@ -458,16 +458,45 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
       switch (module.weekNumber) {
         case 1: {
-          const content = buildContent(
-            'Audit how and where people see you — online and from the street — and record baseline metrics to compare in Week 12.',
-            'Audit your online and physical visibility and capture baseline metrics.',
-            'Ask your partner to review your Google listing, signage or website and suggest quick updates. They can also help you interpret or gather metrics and offer quick‑win ideas.'
-          );
+          const content = [
+            'Welcome to Week 1 of your Momentum Marketing track!',
+            '',
+            'Before we start promoting and creating buzz, we\'re going to **slow down and take inventory**—because marketing only works when people can *find you* in the first place.',
+            '',
+            'This week\'s goal is to get a clear picture of where your business is showing up—and where it might be invisible. It\'s your *visibility baseline*, and it\'ll help us track real progress over the next 12 weeks.',
+            '',
+            '## Pro Tip',
+            'Before we build momentum, we find where you\'re stuck. Visibility is step one. Let\'s get the full picture so we know what progress looks like.',
+            '',
+            '## Online Presence Audit',
+            'Let\'s check how discoverable you are online:',
+            '- Google Business Profile: Is it claimed and accurate?',
+            '- Website: Does it reflect current hours, services, and offerings?',
+            '- Social Media: Are you posting consistently and engaging with locals?',
+            '- Online Reviews: What are people saying about finding you?',
+            '',
+            '## Baseline Metrics',
+            'Capture these numbers to track your progress:',
+            '- **Weekly Walk-ins**: Count how many people come in without an appointment',
+            '- **Google Views**: Monthly profile views from your Google Business Profile',
+            '- **Social Engagement**: Average likes/comments per post',
+            '- **Weekly Revenue**: Track weekly sales (optional but helpful)',
+            '',
+            '## Storefront & Signage Photos',
+            'Take photos from across the street to see what first-time visitors see:',
+            '- Storefront from across the street',
+            '- Window signage and displays',
+            '- Entryway and first impression',
+            '- Any outdoor seating or display areas',
+            '',
+            '## How Your Marketing Assistant Can Help',
+            'Ask your assistant to review your Google listing, signage, or website and suggest quick updates. They can also help you interpret or gather metrics and offer quick-win ideas.'
+          ].join('\n');
           const tasks = [
-            { id: `${module.id}-w1-online`, title: 'Audit Online Presence', description: 'Confirm Google Business Profile is claimed and accurate; website reflects current hours/services; recent posts on social.', estimatedTime: '30m', isCompleted: false },
+            { id: `${module.id}-w1-online`, title: 'Audit Online Presence', description: 'Review Google Business Profile, website accuracy, and social media presence. Note what needs updating.', estimatedTime: '30m', isCompleted: false },
             { id: `${module.id}-w1-signage`, title: 'Audit Physical Signage', description: 'Stand across the street: does signage clearly convey what you offer? Note upgrades needed.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w1-baseline`, title: 'Capture Baseline Metrics', description: 'Record weekly walk‑ins, avg monthly Google views, avg social engagement per post, and (optional) weekly revenue.', estimatedTime: '15m', isCompleted: false },
-            { id: `${module.id}-w1-photo`, title: 'Snap a Storefront Photo', description: 'Take a photo from across the street to see what first‑time visitors see.', estimatedTime: '5m', isCompleted: false },
+            { id: `${module.id}-w1-baseline`, title: 'Capture Baseline Metrics', description: 'Record weekly walk-ins, Google views, social engagement, and weekly revenue. This is your starting point.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w1-photo`, title: 'Upload Storefront Photos', description: 'Take and upload photos from across the street to see what first-time visitors see.', estimatedTime: '15m', isCompleted: false },
           ] as any;
           return { ...module, title: 'Audit Your Visibility', description: 'Where are people not seeing you? Build your visibility baseline.', content, tasks };
         }
@@ -475,7 +504,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const content = buildContent(
             'Optimize your Google Business Profile so more locals find — and choose — you when they search.',
             'Make it easy for locals to discover you by improving your Google listing and adding inviting photos.',
-            'Have your partner recommend keywords/categories, write a compelling description, create a post about your current offer, or design visuals.'
+            'Have your assistant recommend keywords/categories, write a compelling description, create a post about your current offer, or design visuals.'
           );
           const tasks = [
             { id: `${module.id}-w2-claim`, title: 'Claim or Verify Your Listing', description: 'Ensure your Google Business Profile is claimed and under your control.', estimatedTime: '15m', isCompleted: false },
@@ -490,7 +519,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const content = buildContent(
             'Design a limited‑time, in‑store‑only promotion to drive walk‑ins this week.',
             'Create an incentive that aligns with your brand and budget and encourages nearby customers to stop in.',
-            'Ask your partner to brainstorm offer ideas, write promo copy, and design a flyer or social graphic.'
+            'Ask your assistant to brainstorm offer ideas, write promo copy, and design a flyer or social graphic.'
           );
           const tasks = [
             { id: `${module.id}-w3-offer`, title: 'Choose Your Offer', description: 'Pick one: gift with purchase, bonus item, bundle, spin‑the‑wheel prize, QR‑code discount.', estimatedTime: '15m', isCompleted: false },
@@ -504,7 +533,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const content = buildContent(
             'Make your sidewalk and window signage bold, clear, and curiosity‑piquing to convert passers‑by.',
             'Create or update signage that communicates your current offer and brand at a glance.',
-            'Ask your partner to design a sidewalk sign/window poster, craft a punchy message, and create a branded QR code.'
+            'Ask your assistant to design a sidewalk sign/window poster, craft a punchy message, and create a branded QR code.'
           );
           const tasks = [
             { id: `${module.id}-w4-audit`, title: 'Audit Your Signage', description: 'From a distance, can someone tell what’s happening inside?', estimatedTime: '10m', isCompleted: false },
@@ -518,7 +547,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const content = buildContent(
             'Show up in local digital communities with friendly, community‑oriented updates that invite people in.',
             'Engage with local groups by sharing your story or current offer in a human way.',
-            'Ask your partner to draft posts, suggest groups to join, and create on‑brand images or photos.'
+            'Ask your assistant to draft posts, suggest groups to join, and create on‑brand images or photos.'
           );
           const tasks = [
             { id: `${module.id}-w5-groups`, title: 'Choose 2–3 Local Groups', description: 'Identify Facebook groups, Nextdoor communities, or community boards where your neighbors gather.', estimatedTime: '10m', isCompleted: false },
@@ -532,7 +561,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const content = buildContent(
             'Team up with a complementary neighboring business for double exposure and shared traffic.',
             'Select a partner, create a simple joint incentive, and promote it together.',
-            'Ask your partner to research potential collaborations, design co‑branded materials, and help with outreach.'
+            'Ask your assistant to research potential collaborations, design co‑branded materials, and help with outreach.'
           );
           const tasks = [
             { id: `${module.id}-w6-identify`, title: 'Identify a Partner', description: 'Nearby business with similar audience but different offering (e.g., florist + bakery).', estimatedTime: '15m', isCompleted: false },
@@ -547,7 +576,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const content = buildContent(
             'Refine your in‑store journey so customers instantly understand your vibe and want to return.',
             'Polish layout, signage, and ambience to elevate the experience and encourage word‑of‑mouth.',
-            'Ask your partner for a photo‑based walkthrough, small sign designs, or a simple customer journey map.'
+            'Ask your assistant for a photo‑based walkthrough, small sign designs, or a simple customer journey map.'
           );
           const tasks = [
             { id: `${module.id}-w7-walkthrough`, title: 'Do a Walk‑Through Audit', description: 'View your space as a first‑time customer; note navigation issues.', estimatedTime: '15m', isCompleted: false },
@@ -561,7 +590,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const content = buildContent(
             'Host a focused, time‑bound flash sale or mini in‑store event to create urgency and buzz.',
             'Run a one‑day sale or quick in‑store moment that drives people in now.',
-            'Your partner can help brainstorm, design promotional assets, write captions, and plan follow‑up.'
+            'Your assistant can help brainstorm, design promotional assets, write captions, and plan follow‑up.'
           );
           const tasks = [
             { id: `${module.id}-w8-type`, title: 'Pick an Event Type', description: 'Choose between a flash sale (e.g., 20% off one category) or an in‑store moment (sampling, Q&A, demo).', estimatedTime: '10m', isCompleted: false },
@@ -576,7 +605,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const content = buildContent(
             'Launch a low‑effort, high‑impact referral or “bring‑a‑friend” initiative.',
             'Turn foot traffic into more foot traffic by empowering fans to spread the word.',
-            'Ask your partner to design referral cards/posters, write a checkout script, and create social prompts.'
+            'Ask your assistant to design referral cards/posters, write a checkout script, and create social prompts.'
           );
           const tasks = [
             { id: `${module.id}-w9-incentive`, title: 'Choose a Referral Incentive', description: 'E.g., “Bring a friend, you both get 10% off,” or “Refer 3 friends, get a free item.”', estimatedTime: '10m', isCompleted: false },
@@ -591,7 +620,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const content = buildContent(
             'Work with a trusted local figure or favorite business to introduce your shop to new audiences.',
             'Borrow trust from community favorites with a simple collaboration.',
-            'Ask your partner to research collaborators, draft outreach, design co‑branded posts, and coordinate the giveaway.'
+            'Ask your assistant to research collaborators, draft outreach, design co‑branded posts, and coordinate the giveaway.'
           );
           const tasks = [
             { id: `${module.id}-w10-identify`, title: 'Identify a Local Influencer or Beloved Business', description: 'Look for someone whose followers align with your audience.', estimatedTime: '15m', isCompleted: false },
@@ -606,7 +635,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const content = buildContent(
             'Collect simple, actionable feedback from customers about their experience.',
             'Learn what’s working (and what’s missing) with a lightweight feedback process.',
-            'Ask your partner to design a mini feedback card, help analyze responses, and draft a follow‑up thank‑you note.'
+            'Ask your assistant to design a mini feedback card, help analyze responses, and draft a follow‑up thank‑you note.'
           );
           const tasks = [
             { id: `${module.id}-w11-card`, title: 'Create a 3‑Question Card', description: 'Ask: “What brought you in today?”, “What did you love?”, “What could be better?”', estimatedTime: '10m', isCompleted: false },
