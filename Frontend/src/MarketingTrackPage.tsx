@@ -2703,7 +2703,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                 Current Week: {activeGoal.currentWeek}
               </h4>
               {activeGoal.modules.filter(m => m.weekNumber === activeGoal.currentWeek).map(m0 => {
-                const module = withFallback(activeGoal, m0);
+                // Use the raw module from state, not withFallback to preserve real IDs and completion status
+                const module = m0;
                 return (
                 <div key={module.id}>
                   {/* Current Week Card Header */}
@@ -2725,10 +2726,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                       <div style={{ flex: 1 }}>
                         <h5 style={{ margin: 0, fontSize: '1.1rem', color: '#FFF1E7', marginBottom: '0.25rem' }}>
-                          {module.title}
+                          {withFallback(activeGoal, module).title}
                         </h5>
                         <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '0.9rem' }}>
-                          {module.description}
+                          {withFallback(activeGoal, module).description}
                         </p>
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -2846,7 +2847,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             overflowY: 'auto',
                             flex: 1
                           }}>
-                            {renderRichContent(module.content)}
+                            {renderRichContent(withFallback(activeGoal, module).content)}
                           </div>
                         </div>
 
@@ -3517,7 +3518,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                         {/* Pro Tip spanning both columns */}
                         <div style={{ gridColumn: '1 / -1' }}>
                           <div style={{ marginTop: '0.25rem', background: 'rgba(104,109,202,0.12)', border: '1px dashed rgba(104,109,202,0.4)', color: '#FFF1E7', borderRadius: 8, padding: '0.9rem' }}>
-                            <strong style={{ color: '#686DCA' }}>💡 Pro Tip:</strong> {getProTip(module)}
+                            <strong style={{ color: '#686DCA' }}>💡 Pro Tip:</strong> {getProTip(withFallback(activeGoal, module))}
                           </div>
                         </div>
                         {/* Week 1 Forms - Embedded directly in the view */}
