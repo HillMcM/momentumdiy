@@ -714,11 +714,17 @@ function ProtectedApp() {
             <Route path="marketing-track/local-foot-traffic" element={
               <LocalFootTrafficTrack 
                 marketingGoals={marketingGoals}
+                onMarketingGoalsChange={handleMarketingGoalsChange}
+                onProjectsChange={handleProjectsChange}
+                projects={projects}
               />
             } />
             <Route path="marketing-track/social-media-strategy" element={
               <SocialMediaStrategyTrack 
                 marketingGoals={marketingGoals}
+                onMarketingGoalsChange={handleMarketingGoalsChange}
+                onProjectsChange={handleProjectsChange}
+                projects={projects}
               />
             } />
             <Route

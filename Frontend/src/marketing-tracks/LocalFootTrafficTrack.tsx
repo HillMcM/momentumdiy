@@ -1,21 +1,26 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { MarketingGoal } from '../types';
+import type { MarketingGoal, Project } from '../types';
 
 
 
 interface LocalFootTrafficTrackProps {
   marketingGoals: MarketingGoal[];
+  onMarketingGoalsChange: (goals: MarketingGoal[]) => void;
+  onProjectsChange: (projects: Project[]) => void;
+  projects: Project[];
 }
 
 
 
 export default function LocalFootTrafficTrack({ 
-  marketingGoals
+  marketingGoals,
+  onMarketingGoalsChange,
+  onProjectsChange,
+  projects
 }: LocalFootTrafficTrackProps) {
 
   const navigate = useNavigate();
-
 
   // Find the Local Foot Traffic goal
   const activeGoal = marketingGoals.find(g => 
@@ -24,6 +29,71 @@ export default function LocalFootTrafficTrack({
     g.title.toLowerCase().includes('increase local foot traffic') ||
     g.title.toLowerCase().includes('improving local foot traffic')
   );
+
+  const startLocalFootTrafficTrack = () => {
+    if (!activeGoal) return;
+    
+    // Clear processed goals to prevent infinite loops
+    const updatedGoals = marketingGoals.map(g => {
+      if (g.id === activeGoal.id) {
+        return { 
+          ...g, 
+          isActive: true, 
+          startDate: new Date(), 
+          currentWeek: 1, 
+          progress: 0, 
+          weekStartDates: [new Date()], 
+          lastWeekAdvancement: new Date(),
+          modules: g.modules.map((module, index) => ({
+            ...module,
+            isUnlocked: index === 0, // Only unlock first week
+            isCompleted: false
+          }))
+        };
+      } else {
+        return { 
+          ...g, 
+          isActive: false, 
+          currentWeek: 0, 
+          progress: 0, 
+          modules: g.modules.map(module => ({ 
+            ...module, 
+            isUnlocked: false, 
+            isCompleted: false 
+          }))
+        };
+      }
+    });
+    
+    onMarketingGoalsChange(updatedGoals);
+    
+    // Create a new project for this track
+    const projectId = Math.max(0, ...projects.map(p => parseInt(p.id) || 0)) + 1;
+    const newProject: Project = {
+      id: projectId.toString(),
+      name: activeGoal.title,
+      description: activeGoal.description,
+      deadline: new Date(Date.now() + (activeGoal.duration * 7 * 24 * 60 * 60 * 1000)).toISOString(),
+      tasks: [],
+      progress: 0,
+      status: 'active',
+      timeline: activeGoal.modules.map((module) => ({
+        id: module.id,
+        name: `Week ${module.weekNumber}: ${module.title}`,
+        description: module.description,
+        startDate: new Date(Date.now() + ((module.weekNumber - 1) * 7 * 24 * 60 * 60 * 1000)),
+        endDate: new Date(Date.now() + (module.weekNumber * 7 * 24 * 60 * 60 * 1000)),
+        status: module.weekNumber === 1 ? 'in-progress' : 'not-started',
+        tasks: [],
+        order: module.weekNumber
+      }))
+    };
+    
+    onProjectsChange([...projects, newProject]);
+    
+    // Navigate to the marketing track page to see the activated track
+    navigate('/app/marketing-track');
+  };
 
   // If no Local Foot Traffic goal is found, redirect to overview
   useEffect(() => {
@@ -92,7 +162,7 @@ export default function LocalFootTrafficTrack({
               View All Tracks
             </button>
             <button 
-              onClick={() => navigate('/app/marketing-track')}
+              onClick={startLocalFootTrafficTrack}
               style={{ 
                 padding: '1rem 2rem', 
                 borderRadius: 8, 
