@@ -46,14 +46,73 @@ export default function SocialMediaStrategyTrack({
   if (!activeGoal) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: '#FFF1E7' }}>
-        <h2>Social Media Strategy Track Not Found</h2>
-        <p>Please activate the Social Media Strategy track from the marketing tracks overview.</p>
-        <button 
-          onClick={() => navigate('/app/marketing-track')}
-          style={{ padding: '0.75rem 1.5rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.2)', color: '#EF8E81', cursor: 'pointer' }}
-        >
-          Back to Marketing Tracks
-        </button>
+        <div style={{ 
+          background: 'linear-gradient(180deg, rgba(104,109,202,0.06), rgba(25,22,40,0.35))',
+          borderRadius: '16px',
+          padding: '3rem 2rem',
+          border: '2px solid rgba(104, 109, 202, 0.25)',
+          boxShadow: '0 10px 28px rgba(0,0,0,0.35)',
+          maxWidth: '600px',
+          margin: '0 auto'
+        }}>
+          <h2 style={{ margin: '0 0 1rem 0', fontSize: '2rem', color: '#FFF1E7' }}>
+            Start Your Social Media Strategy Journey
+          </h2>
+          <p style={{ margin: '0 0 2rem 0', color: '#FFF1E7', opacity: 0.8, fontSize: '1.1rem', lineHeight: 1.6 }}>
+            Transform your social media presence and build meaningful connections with your audience through our comprehensive 12-week Social Media Strategy program.
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => navigate('/app/marketing-track')}
+              style={{ 
+                padding: '1rem 2rem', 
+                borderRadius: 8, 
+                border: '1px solid rgba(104,109,202,0.3)', 
+                background: 'rgba(104,109,202,0.15)', 
+                color: '#686DCA', 
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 600,
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(104,109,202,0.25)';
+                e.currentTarget.style.borderColor = 'rgba(104,109,202,0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(104,109,202,0.15)';
+                e.currentTarget.style.borderColor = 'rgba(104,109,202,0.3)';
+              }}
+            >
+              View All Tracks
+            </button>
+            <button 
+              onClick={() => navigate('/app/marketing-track')}
+              style={{ 
+                padding: '1rem 2rem', 
+                borderRadius: 8, 
+                border: 'none', 
+                background: 'linear-gradient(135deg, #686DCA, #5A5FBD)', 
+                color: '#FFF1E7', 
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 600,
+                boxShadow: '0 4px 15px rgba(104,109,202,0.3)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(104,109,202,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(104,109,202,0.3)';
+              }}
+            >
+              Start Social Media Strategy Track
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
