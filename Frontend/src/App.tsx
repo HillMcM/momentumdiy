@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import './App.css';
 import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
@@ -677,7 +677,11 @@ function ProtectedApp() {
     <>
       <Header />
       <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
-        <Sidebar hidden={sidebarHidden} onToggle={() => setSidebarHidden(s => !s)} showProfileManager={Boolean(marketingGoals.find(g => g.isActive && g.currentWeek >= g.duration))} />
+        <Sidebar
+          hidden={sidebarHidden}
+          onToggle={() => setSidebarHidden(s => !s)}
+          showProfileManager={Boolean(marketingGoals.find(g => g.title === 'Improve Social Media Strategy & Engagement' && g.currentWeek >= g.duration))}
+        />
         {/* Attach opener only when collapsed */}
         {sidebarHidden && (
           <SidebarToggle className="sidebar-opener" onClick={() => setSidebarHidden(false)} />
@@ -705,7 +709,14 @@ function ProtectedApp() {
                 onProjectsChange={handleProjectsChange}
               />
             } />
-            <Route path="profile-manager" element={<SocialProfileManager marketingGoals={marketingGoals} />} />
+            <Route
+              path="profile-manager"
+              element={
+                marketingGoals.some(g => g.title === 'Improve Social Media Strategy & Engagement' && g.currentWeek >= g.duration)
+                  ? <SocialProfileManager marketingGoals={marketingGoals} />
+                  : <Navigate to="/app/marketing-track" replace />
+              }
+            />
             <Route path="task-tracker" element={
               <TaskTrackerPage 
                 tasks={tasks}
