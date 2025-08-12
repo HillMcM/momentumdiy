@@ -501,11 +501,52 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           return { ...module, title: 'Audit Your Visibility', description: 'Where are people not seeing you? Build your visibility baseline.', content, tasks };
         }
         case 2: {
-          const content = buildContent(
-            'Optimize your Google Business Profile so more locals find — and choose — you when they search.',
-            'Make it easy for locals to discover you by improving your Google listing and adding inviting photos.',
-            'Have your assistant recommend keywords/categories, write a compelling description, create a post about your current offer, or design visuals.'
-          );
+          const content = [
+            '**Hi [Client First Name],**',
+            '',
+            'When someone searches *"[your service] near me,"* is your business showing up—and if it does, does it make people want to walk in?',
+            '',
+            'This week, we\'re focused on **getting your Google Business Profile in top shape**. It\'s one of the most powerful (and free!) tools for attracting foot traffic, yet it\'s often overlooked.',
+            '',
+            'Think of it as your digital storefront—it should be clear, inviting, and up-to-date.',
+            '',
+            '## Pro Tip',
+            'Add a short post this week about your current in-store offer!',
+            '',
+            '## Google Business Profile Checklist',
+            'Double-check these essential items:',
+            '- **Business Name**: Exact match to your storefront signage',
+            '- **Address**: Correct street address and suite/unit number',
+            '- **Phone Number**: Current business phone (not personal)',
+            '- **Hours**: Accurate open/close times for each day',
+            '- **Categories**: Primary + secondary categories that match your services',
+            '- **Description**: Clear, compelling summary (150 characters max)',
+            '- **Photos**: High-quality exterior, interior, team, and product shots',
+            '- **Website**: Link to your current website or landing page',
+            '- **Attributes**: Free WiFi, wheelchair accessible, parking, etc.',
+            '',
+            '## Copy & Paste Review Request',
+            'Send this to recent customers via email or use in conversation:',
+            '',
+            '> "Hi [Name]! We loved having you in the shop [recently/last week]. If you had a great experience, would you mind leaving us a quick Google review? It helps other locals find us and means the world to our small business. Here\'s the link: [Your Google Business Profile URL]"',
+            '',
+            '## Create Your Google Business Profile Post',
+            'Fill in the blanks below, then copy and paste into your Google Business Profile:',
+            '',
+            '**Post Title:** [Your Business Name] - [Current Offer]',
+            '',
+            '**Post Content:**',
+            '🎉 [Current Offer Description]',
+            '',
+            '📍 [Your Address]',
+            '⏰ [Your Hours]',
+            '📞 [Your Phone]',
+            '',
+            'Come see us this week! [Optional: Add a personal touch or local reference]',
+            '',
+            '## How Your Marketing Assistant Can Help',
+            'Ask your assistant to recommend keywords/categories, write a compelling description, create a post about your current offer, or design visuals.'
+          ].join('\n');
           const tasks = [
             { id: `${module.id}-w2-claim`, title: 'Claim or Verify Your Listing', description: 'Ensure your Google Business Profile is claimed and under your control.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w2-details`, title: 'Review & Update Details', description: 'Double‑check hours, phone, address, categories, and description; add customer‑searched keywords.', estimatedTime: '20m', isCompleted: false },
