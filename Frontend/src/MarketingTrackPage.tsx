@@ -443,8 +443,204 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       ].join('\n');
       return { ...module, content: concise };
     }
+    // Local Foot Traffic track customization
+    if (title.includes('foot traffic') || title.includes('local foot traffic') || title.includes('increase local foot traffic') || title.includes('improving local foot traffic')) {
+      // Helper to build content blocks
+      const buildContent = (summary: string, focus: string, partner: string): string => [
+        `This week: ${summary}`,
+        '',
+        '## Focus',
+        focus,
+        '',
+        '## Suggested Use of Your Marketing Partner',
+        partner,
+      ].join('\n');
+
+      switch (module.weekNumber) {
+        case 1: {
+          const content = buildContent(
+            'Audit how and where people see you — online and from the street — and record baseline metrics to compare in Week 12.',
+            'Audit your online and physical visibility and capture baseline metrics.',
+            'Ask your partner to review your Google listing, signage or website and suggest quick updates. They can also help you interpret or gather metrics and offer quick‑win ideas.'
+          );
+          const tasks = [
+            { id: `${module.id}-w1-online`, title: 'Audit Online Presence', description: 'Confirm Google Business Profile is claimed and accurate; website reflects current hours/services; recent posts on social.', estimatedTime: '30m', isCompleted: false },
+            { id: `${module.id}-w1-signage`, title: 'Audit Physical Signage', description: 'Stand across the street: does signage clearly convey what you offer? Note upgrades needed.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w1-baseline`, title: 'Capture Baseline Metrics', description: 'Record weekly walk‑ins, avg monthly Google views, avg social engagement per post, and (optional) weekly revenue.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w1-photo`, title: 'Snap a Storefront Photo', description: 'Take a photo from across the street to see what first‑time visitors see.', estimatedTime: '5m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Audit Your Visibility', description: 'Where are people not seeing you? Build your visibility baseline.', content, tasks };
+        }
+        case 2: {
+          const content = buildContent(
+            'Optimize your Google Business Profile so more locals find — and choose — you when they search.',
+            'Make it easy for locals to discover you by improving your Google listing and adding inviting photos.',
+            'Have your partner recommend keywords/categories, write a compelling description, create a post about your current offer, or design visuals.'
+          );
+          const tasks = [
+            { id: `${module.id}-w2-claim`, title: 'Claim or Verify Your Listing', description: 'Ensure your Google Business Profile is claimed and under your control.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w2-details`, title: 'Review & Update Details', description: 'Double‑check hours, phone, address, categories, and description; add customer‑searched keywords.', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w2-photos`, title: 'Upload Fresh Photos', description: 'Add clear photos of exterior, interior, team, and products.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w2-post`, title: 'Post a Short Update', description: 'Share a one‑sentence post about your in‑store offer or what’s new.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w2-reviews`, title: 'Invite Reviews (optional)', description: 'Ask recent customers for a review via email or in‑person.', estimatedTime: '5m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Optimize Your Google Business Profile', description: 'Get found when people search.', content, tasks };
+        }
+        case 3: {
+          const content = buildContent(
+            'Design a limited‑time, in‑store‑only promotion to drive walk‑ins this week.',
+            'Create an incentive that aligns with your brand and budget and encourages nearby customers to stop in.',
+            'Ask your partner to brainstorm offer ideas, write promo copy, and design a flyer or social graphic.'
+          );
+          const tasks = [
+            { id: `${module.id}-w3-offer`, title: 'Choose Your Offer', description: 'Pick one: gift with purchase, bonus item, bundle, spin‑the‑wheel prize, QR‑code discount.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w3-urgency`, title: 'Set the Urgency', description: 'Decide on language like “This week only” or “Today only.”', estimatedTime: '5m', isCompleted: false },
+            { id: `${module.id}-w3-assets`, title: 'Prepare Promo Materials', description: 'Write a short caption and design a sign or social graphic.', estimatedTime: '30m', isCompleted: false },
+            { id: `${module.id}-w3-supplies`, title: 'Get Supplies Ready', description: 'Gather giveaways, set up a prize wheel, or prepare QR codes.', estimatedTime: '10m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Create an In‑Store‑Only Offer', description: 'Give locals a reason to come in.', content, tasks };
+        }
+        case 4: {
+          const content = buildContent(
+            'Make your sidewalk and window signage bold, clear, and curiosity‑piquing to convert passers‑by.',
+            'Create or update signage that communicates your current offer and brand at a glance.',
+            'Ask your partner to design a sidewalk sign/window poster, craft a punchy message, and create a branded QR code.'
+          );
+          const tasks = [
+            { id: `${module.id}-w4-audit`, title: 'Audit Your Signage', description: 'From a distance, can someone tell what’s happening inside?', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w4-design`, title: 'Design & Place a New Sign', description: 'Create a sandwich board or poster promoting your in‑store offer.', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w4-qr`, title: 'Generate a QR Code', description: 'Link to a digital bonus (coupon, email signup) and add to your sign.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w4-hidden`, title: 'Highlight Hidden Services (optional)', description: 'Create a small “Did you know we offer ___?” sign for lesser‑known offerings.', estimatedTime: '10m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Activate Your Sidewalk & Window Signage', description: 'Turn passers‑by into walk‑ins.', content, tasks };
+        }
+        case 5: {
+          const content = buildContent(
+            'Show up in local digital communities with friendly, community‑oriented updates that invite people in.',
+            'Engage with local groups by sharing your story or current offer in a human way.',
+            'Ask your partner to draft posts, suggest groups to join, and create on‑brand images or photos.'
+          );
+          const tasks = [
+            { id: `${module.id}-w5-groups`, title: 'Choose 2–3 Local Groups', description: 'Identify Facebook groups, Nextdoor communities, or community boards where your neighbors gather.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w5-post`, title: 'Create & Share a Post', description: 'Invite people in for your offer, share a BTS photo, or your origin story.', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w5-engage`, title: 'Engage with Responders', description: 'Like and reply to comments to build relationships.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w5-monitor`, title: 'Monitor Impact', description: 'Note traffic boosts or conversations sparked by your post.', estimatedTime: '10m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Post in Local Digital Communities', description: 'Be where your neighbors hang out.', content, tasks };
+        }
+        case 6: {
+          const content = buildContent(
+            'Team up with a complementary neighboring business for double exposure and shared traffic.',
+            'Select a partner, create a simple joint incentive, and promote it together.',
+            'Ask your partner to research potential collaborations, design co‑branded materials, and help with outreach.'
+          );
+          const tasks = [
+            { id: `${module.id}-w6-identify`, title: 'Identify a Partner', description: 'Nearby business with similar audience but different offering (e.g., florist + bakery).', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w6-reachout`, title: 'Reach Out', description: 'Send a friendly DM or email proposing a collaboration.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w6-incentive`, title: 'Decide on the Incentive', description: 'E.g., “Bring a receipt from Shop A and get 10% off at Shop B,” or shared loyalty card.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w6-materials`, title: 'Create Co‑Branded Materials', description: 'Design a flyer, Instagram post, or signage.', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w6-promote`, title: 'Set Dates & Promote', description: 'Agree on timing and promote on both channels.', estimatedTime: '10m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Partner with a Neighboring Business', description: 'Double exposure through collaboration.', content, tasks };
+        }
+        case 7: {
+          const content = buildContent(
+            'Refine your in‑store journey so customers instantly understand your vibe and want to return.',
+            'Polish layout, signage, and ambience to elevate the experience and encourage word‑of‑mouth.',
+            'Ask your partner for a photo‑based walkthrough, small sign designs, or a simple customer journey map.'
+          );
+          const tasks = [
+            { id: `${module.id}-w7-walkthrough`, title: 'Do a Walk‑Through Audit', description: 'View your space as a first‑time customer; note navigation issues.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w7-feature`, title: 'Feature Your Best Offerings', description: 'Rearrange or simplify front area; create a feature wall or seasonal display.', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w7-mood`, title: 'Enhance the Mood', description: 'Add gentle music, inviting scents, or improved lighting.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w7-brand`, title: 'Add a Branded Touch', description: 'Introduce loyalty cards, thank‑you notes, or a small QR at checkout.', estimatedTime: '10m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Upgrade the Customer Experience', description: 'Make your space irresistible.', content, tasks };
+        }
+        case 8: {
+          const content = buildContent(
+            'Host a focused, time‑bound flash sale or mini in‑store event to create urgency and buzz.',
+            'Run a one‑day sale or quick in‑store moment that drives people in now.',
+            'Your partner can help brainstorm, design promotional assets, write captions, and plan follow‑up.'
+          );
+          const tasks = [
+            { id: `${module.id}-w8-type`, title: 'Pick an Event Type', description: 'Choose between a flash sale (e.g., 20% off one category) or an in‑store moment (sampling, Q&A, demo).', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w8-plan`, title: 'Plan the Details', description: 'Decide the date, time, and exact offer.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w8-create`, title: 'Create Promotional Content', description: 'Design a flyer, social post, and short email announcement.', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w8-promote`, title: 'Promote Widely', description: 'Share in‑store, on social media, and in community groups.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w8-capture`, title: 'Capture & Share the Event', description: 'Take photos/video; share highlights afterward to keep momentum.', estimatedTime: '10m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Run a Flash Sale or Mini Event', description: 'Create urgency.', content, tasks };
+        }
+        case 9: {
+          const content = buildContent(
+            'Launch a low‑effort, high‑impact referral or “bring‑a‑friend” initiative.',
+            'Turn foot traffic into more foot traffic by empowering fans to spread the word.',
+            'Ask your partner to design referral cards/posters, write a checkout script, and create social prompts.'
+          );
+          const tasks = [
+            { id: `${module.id}-w9-incentive`, title: 'Choose a Referral Incentive', description: 'E.g., “Bring a friend, you both get 10% off,” or “Refer 3 friends, get a free item.”', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w9-print`, title: 'Design & Print Materials', description: 'Create a referral card or small sign at the register.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w9-script`, title: 'Script a Verbal Invite', description: 'Prepare a one‑sentence pitch to offer at checkout.', estimatedTime: '5m', isCompleted: false },
+            { id: `${module.id}-w9-share`, title: 'Share on Social', description: 'Encourage customers to tag you or share a story for a thank‑you.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w9-track`, title: 'Track & Thank Referrals', description: 'Record who refers whom and send thanks.', estimatedTime: '10m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Encourage Referrals', description: 'Turn foot traffic into more foot traffic.', content, tasks };
+        }
+        case 10: {
+          const content = buildContent(
+            'Work with a trusted local figure or favorite business to introduce your shop to new audiences.',
+            'Borrow trust from community favorites with a simple collaboration.',
+            'Ask your partner to research collaborators, draft outreach, design co‑branded posts, and coordinate the giveaway.'
+          );
+          const tasks = [
+            { id: `${module.id}-w10-identify`, title: 'Identify a Local Influencer or Beloved Business', description: 'Look for someone whose followers align with your audience.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w10-reachout`, title: 'Reach Out for a Collab', description: 'Send a DM/email proposing a shoutout swap, giveaway, or feature.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w10-plan`, title: 'Plan the Collaboration', description: 'Decide what each party will share and when; set simple rules for any giveaway.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w10-content`, title: 'Create Shared Content', description: 'Design a co‑branded post, story template, or giveaway graphic.', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w10-engage`, title: 'Engage & Measure', description: 'Respond to comments and track new followers or walk‑ins.', estimatedTime: '15m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Collaborate with a Local Favorite', description: 'Borrow trust from community favorites.', content, tasks };
+        }
+        case 11: {
+          const content = buildContent(
+            'Collect simple, actionable feedback from customers about their experience.',
+            'Learn what’s working (and what’s missing) with a lightweight feedback process.',
+            'Ask your partner to design a mini feedback card, help analyze responses, and draft a follow‑up thank‑you note.'
+          );
+          const tasks = [
+            { id: `${module.id}-w11-card`, title: 'Create a 3‑Question Card', description: 'Ask: “What brought you in today?”, “What did you love?”, “What could be better?”', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w11-gather`, title: 'Gather Responses', description: 'Hand out cards at checkout or ask verbally to 3–5 customers.', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w11-analyze`, title: 'Analyze & Identify Themes', description: 'Look for common points of praise or areas to improve.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w11-permission`, title: 'Request Testimonial Permission', description: 'Ask if you may use positive comments in marketing.', estimatedTime: '5m', isCompleted: false },
+            { id: `${module.id}-w11-thank`, title: 'Thank Participants & Act', description: 'Send a quick thank‑you and integrate insights into your store or messaging.', estimatedTime: '10m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Gather Customer Feedback', description: 'Learn what’s working (and what’s missing).', content, tasks };
+        }
+        case 12: {
+          const content = buildContent(
+            'Measure your results, celebrate wins, and set your next 12‑week focus using the baseline from Week 1.',
+            'Compare to baseline, reflect on what worked, and plan your next quarter.',
+            'Ask your partner to help evaluate metrics, summarize the quarter, write a “Quarter in Review” post, and suggest a new goal.'
+          );
+          const tasks = [
+            { id: `${module.id}-w12-remeasure`, title: 'Re‑measure Your Metrics', description: 'Record current weekly walk‑ins, Google views, social engagement, and revenue.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w12-compare`, title: 'Compare to Baseline', description: 'Note percentage increases and any surprising insights.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w12-reflect`, title: 'Reflect on the Experience', description: 'What changed? What worked best? What’s your next goal?', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w12-plan`, title: 'Plan the Next Quarter', description: 'Decide whether to build on gains or pivot to another focus.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w12-celebrate`, title: 'Celebrate & Thank Customers', description: 'Share a thank‑you post, offer a small gift, or hold a mini celebration.', estimatedTime: '15m', isCompleted: false },
+          ] as any;
+          return { ...module, title: 'Celebrate & Reflect', description: 'Measure wins and prepare for the next quarter.', content, tasks };
+        }
+      }
+      return module;
+    }
     return module;
   };
+
+  // Goal overview helper for header
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // Removed for now; header uses goal.description directly
 
   // Task helpers
   const getTaskIcon = (title: string): string => {
