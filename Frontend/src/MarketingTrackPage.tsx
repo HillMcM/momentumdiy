@@ -2735,37 +2735,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
                         {/* Week Tasks */}
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                          <div style={{ marginBottom: '1rem' }}>
                             <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>
                               Week Tasks
                             </h6>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                try {
-                                  if (!activeGoal) return;
-                                  const projectId = getOrCreateProjectForGoal(activeGoal);
-                                  const m = withFallback(activeGoal, module);
-                                  createTasksFromMarketingModule(activeGoal, m, projectId);
-                                  // Show success feedback
-                                  const button = event?.target as HTMLButtonElement;
-                                  if (button) {
-                                    const originalText = button.textContent;
-                                    button.textContent = '✓ Created!';
-                                    button.style.background = '#5ECD7D';
-                                    setTimeout(() => {
-                                      button.textContent = originalText;
-                                      button.style.background = '#EF8E81';
-                                    }, 2000);
-                                  }
-                                } catch (error) {
-                                  console.error('Error creating tasks:', error);
-                                }
-                              }}
-                              style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.2s ease' }}
-                            >
-                              Create Tasks
-                            </button>
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '320px', minHeight: '320px', overflowY: 'auto', flex: 1 }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
                             {module.tasks.length === 0 ? (
@@ -2782,7 +2755,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                               }}>
                                 <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📋</div>
                                 <div style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>No tasks yet</div>
-                                <div style={{ fontSize: '0.8rem' }}>Click "Create Tasks" to get started</div>
+                                <div style={{ fontSize: '0.8rem' }}>Tasks will appear here when the week is unlocked</div>
                               </div>
                             ) : (
                               module.tasks.map(task => (
