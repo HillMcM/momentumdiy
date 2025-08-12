@@ -2713,7 +2713,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
                         {/* Week Content */}
-                        <div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', marginBottom: '1rem', fontWeight: 600 }}>
                             Week Content
                           </h6>
@@ -2725,14 +2725,16 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             lineHeight: '1.6',
                             fontSize: '0.9rem',
                             height: '320px',
-                            overflowY: 'auto'
+                            minHeight: '320px',
+                            overflowY: 'auto',
+                            flex: 1
                           }}>
                             {renderRichContent(module.content)}
                           </div>
                         </div>
 
                         {/* Week Tasks */}
-                        <div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>
                               Week Tasks
@@ -2745,15 +2747,45 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   const projectId = getOrCreateProjectForGoal(activeGoal);
                                   const m = withFallback(activeGoal, module);
                                   createTasksFromMarketingModule(activeGoal, m, projectId);
-                                } catch {}
+                                  // Show success feedback
+                                  const button = event?.target as HTMLButtonElement;
+                                  if (button) {
+                                    const originalText = button.textContent;
+                                    button.textContent = '✓ Created!';
+                                    button.style.background = '#5ECD7D';
+                                    setTimeout(() => {
+                                      button.textContent = originalText;
+                                      button.style.background = '#EF8E81';
+                                    }, 2000);
+                                  }
+                                } catch (error) {
+                                  console.error('Error creating tasks:', error);
+                                }
                               }}
-                              style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                              style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.2s ease' }}
                             >
                               Create Tasks
                             </button>
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '320px', overflowY: 'auto' }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
-                            {module.tasks.map(task => (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '320px', minHeight: '320px', overflowY: 'auto', flex: 1 }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
+                            {module.tasks.length === 0 ? (
+                              <div style={{ 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                height: '100%', 
+                                color: '#FFF1E7', 
+                                opacity: 0.6,
+                                textAlign: 'center',
+                                padding: '2rem'
+                              }}>
+                                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📋</div>
+                                <div style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>No tasks yet</div>
+                                <div style={{ fontSize: '0.8rem' }}>Click "Create Tasks" to get started</div>
+                              </div>
+                            ) : (
+                              module.tasks.map(task => (
                               <div
                                 key={task.id}
                                 data-task-id={task.id}
@@ -2823,7 +2855,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   <div style={{ color: '#EF8E81', fontSize: '0.75rem', fontWeight: 600 }}>⏱️ {task.estimatedTime || '—'}</div>
                                 </div>
                               </div>
-                            ))}
+                            ))
+                            )}
                           </div>
                         </div>
                         {/* Week 2: Content Pillars selector (replaces baseline section) */}
