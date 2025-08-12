@@ -213,11 +213,32 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       if (currentList.length > 0) {
         nodes.push(
           <ul style={{ margin: '0.5rem 0 0.5rem 1.25rem' }}>
-            {currentList.map((li, i) => <li key={`li-${i}`} style={{ marginBottom: '0.25rem' }}>{li}</li>)}
-          </ul>
+            {currentList.map((li, i) => <li key={`li-${i}`} style={{ marginBottom: '0.25rem', lineHeight: '1.4' }}>{renderFormattedText(li)}</li>)}</ul>
         );
         currentList = [];
       }
+    };
+
+    // Helper function to render text with markdown formatting
+    const renderFormattedText = (text: string) => {
+      // Handle bold text (**text**)
+      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      // Handle italic text (*text*)
+      text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      
+      // Convert to JSX with proper styling
+      const parts = text.split(/(<strong>.*?<\/strong>|<em>.*?<\/em>)/);
+      return parts.map((part, i) => {
+        if (part.startsWith('<strong>') && part.endsWith('</strong>')) {
+          const content = part.replace(/<\/?strong>/g, '');
+          return <span key={i} style={{ fontWeight: 700, color: '#EF8E81' }}>{content}</span>;
+        }
+        if (part.startsWith('<em>') && part.endsWith('</em>')) {
+          const content = part.replace(/<\/?em>/g, '');
+          return <span key={i} style={{ fontStyle: 'italic', opacity: 0.9 }}>{content}</span>;
+        }
+        return part;
+      });
     };
 
     lines.forEach((raw, idx) => {
@@ -229,21 +250,22 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       }
       if (line.startsWith('## ')) {
         flushList();
-        nodes.push(<h4 key={`h2-${idx}`} style={{ margin: '0.5rem 0', color: '#FFF1E7' }}>{line.slice(3)}</h4>);
+        nodes.push(<h4 key={`h2-${idx}`} style={{ margin: '0.5rem 0', color: '#FFF1E7', fontSize: '1.1rem', fontWeight: 600 }}>{renderFormattedText(line.slice(3))}</h4>);
         return;
       }
       if (line.startsWith('### ')) {
         flushList();
-        nodes.push(<h5 key={`h3-${idx}`} style={{ margin: '0.5rem 0', color: '#FFF1E7', opacity: 0.9 }}>{line.slice(4)}</h5>);
+        nodes.push(<h5 key={`h3-${idx}`} style={{ margin: '0.5rem 0', color: '#FFF1E7', opacity: 0.9, fontSize: '1rem', fontWeight: 600 }}>{renderFormattedText(line.slice(4))}</h5>);
         return;
       }
       if (line.startsWith('•') || line.startsWith('- ') || line.startsWith('– ') || line.startsWith('* ')) {
-        currentList.push(line.replace(/^[-•–*]\s?/, ''));
+        const cleanLine = line.replace(/^[-•–*]\s?/, '');
+        currentList.push(cleanLine);
         return;
       }
       // Default paragraph
       flushList();
-      nodes.push(<p key={`ptext-${idx}`} style={{ margin: '0.25rem 0', color: '#FFF1E7', opacity: 0.9 }}>{line}</p>);
+      nodes.push(<p key={`ptext-${idx}`} style={{ margin: '0.25rem 0', color: '#FFF1E7', opacity: 0.9, lineHeight: '1.5' }}>{renderFormattedText(line)}</p>);
     });
     flushList();
     return nodes;
@@ -3374,14 +3396,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                           <div style={{ marginTop: '0.5rem', background: 'rgba(255,241,231,0.04)', border: '1px solid rgba(239,142,129,0.25)', borderRadius: 10, padding: '1.5rem' }}>
                             <h6 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#FFF1E7', fontWeight: 700 }}>Week 1: Complete Your Visibility Audit</h6>
                             
-                            {/* Online Presence Audit Form */}
+                            {/* Online Presence Audit Form - Two Column Layout */}
                             <div style={{ marginBottom: '2rem' }}>
                               <h6 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>Online Presence Audit</h6>
                               <p style={{ margin: '0 0 1rem 0', opacity: 0.85, fontSize: '0.9rem' }}>
                                 Let's check how discoverable you are online. Fill out this audit to see where you're visible and where you might be invisible.
                               </p>
                               
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
                                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
                                     Google Business Profile
