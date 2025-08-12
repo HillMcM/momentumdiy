@@ -1663,90 +1663,36 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   };
 
   const toggleTaskCompletion = (goalId: string, moduleId: string, taskId: string) => {
+    console.log('=== toggleTaskCompletion START ===');
     console.log('toggleTaskCompletion called:', { goalId, moduleId, taskId });
     console.log('marketingGoals length:', marketingGoals.length);
     console.log('tasks length:', tasks.length);
+    console.log('marketingGoals:', marketingGoals);
+    console.log('tasks (first 5):', tasks.slice(0, 5));
     
-    // Determine if this is a marketing task ID or main task ID
-    // Marketing task IDs typically contain the module ID + week info (e.g., '4dc2e4e4-0394-4d74-85f7-d039b959ac5a-w1-online')
-    // Main task IDs are typically UUIDs
-    const isMarketingTaskId = taskId.includes(moduleId) && taskId.includes('-w');
-    console.log('isMarketingTaskId:', isMarketingTaskId);
+    // Since we've cleaned up the database, taskId is now the actual marketing task ID (UUID)
+    // We don't need to parse descriptive IDs anymore
+    const marketingTaskId = taskId;
+    let mainTaskId: string = '';
     
-    let marketingTaskId: string;
-    let mainTaskId: string;
+    console.log('Using taskId as marketingTaskId:', marketingTaskId);
     
-    if (isMarketingTaskId) {
-      // This is a marketing task ID, use it directly
-      marketingTaskId = taskId;
-      console.log('Using taskId as marketingTaskId:', marketingTaskId);
-      
-      // Try to find the corresponding main task
-      const mainTask = tasks.find(task => 
-        task.marketingTrack && 
-        task.marketingTrack.goalId === goalId && 
-        task.marketingTrack.moduleId === moduleId && 
-        task.marketingTrack.marketingTaskId === taskId
-      );
-      mainTaskId = mainTask?.id || '';
-      console.log('Found main task:', mainTask ? { id: mainTask.id, status: mainTask.status } : 'not found');
-    } else {
-      // This is a main task ID, find the marketing task ID
-      const mainTask = tasks.find(task => 
-        task.marketingTrack && 
-        task.marketingTrack.goalId === goalId && 
-        task.marketingTrack.moduleId === moduleId && 
-        task.id === taskId
-      );
-      
-      if (!mainTask || !mainTask.marketingTrack) {
-        console.error('Main task not found:', { goalId, moduleId, taskId });
-        return;
-      }
-      
-      marketingTaskId = mainTask.marketingTrack.marketingTaskId;
-      mainTaskId = taskId;
-    }
+    // Try to find the corresponding main task
+    const mainTask = tasks.find(task => 
+      task.marketingTrack && 
+      task.marketingTrack.goalId === goalId && 
+      task.marketingTrack.moduleId === moduleId && 
+      task.marketingTrack.marketingTaskId === taskId
+    );
+    mainTaskId = mainTask?.id || '';
+    console.log('Found main task:', mainTask ? { id: mainTask.id, status: mainTask.status } : 'not found');
     
     // Find the marketing goal task using the marketingTaskId
     const currentGoal = marketingGoals.find(g => g.id === goalId);
     const currentModule = currentGoal?.modules.find(m => m.id === moduleId);
     
-    // Try to find task by ID first, then by title as fallback
-    let currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
-    
-    // If not found by ID, try to find by title (since the generated IDs don't match the marketing goals IDs)
-    if (!currentTask && currentModule) {
-      // The frontend is passing descriptive IDs like '4dc2e4e4-0394-4d74-85f7-d039b959ac5a-w1-online'
-      // We need to extract the task type and find the matching task by title
-      const taskType = marketingTaskId.split('-').pop(); // Gets 'online', 'baseline', 'photos', etc.
-      
-      console.log('Trying title fallback with task type:', taskType);
-      
-      // Find task by title that matches the task type
-      currentTask = currentModule.tasks.find(t => {
-        const title = t.title.toLowerCase();
-        
-        // Map task types to expected titles
-        if (taskType === 'online' && title.includes('online presence audit')) return true;
-        if (taskType === 'baseline' && title.includes('baseline metrics')) return true;
-        if (taskType === 'photos' && title.includes('storefront') && title.includes('signage')) return true;
-        
-        // Fallback: try to find by partial title matching
-        if (taskType === 'online' && (title.includes('audit') || title.includes('online'))) return true;
-        if (taskType === 'baseline' && (title.includes('metrics') || title.includes('baseline'))) return true;
-        if (taskType === 'photos' && (title.includes('photo') || title.includes('signage'))) return true;
-        
-        return false;
-      });
-      
-      if (currentTask) {
-        console.log('Found task by title fallback:', { id: currentTask.id, title: currentTask.title });
-      } else {
-        console.log('No task found by title fallback. Task type:', taskType);
-        console.log('Available task titles:', currentModule.tasks.map(t => t.title));
-      }
-    }
+    // Find task by ID (should work now since we're using actual UUIDs)
+    const currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
     
     console.log('Looking for goal with ID:', goalId);
     console.log('Looking for module with ID:', moduleId);
@@ -1800,6 +1746,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     });
     
     // Update both states immediately for responsive UI
+    console.log('Updating states...');
     onMarketingGoalsChange(updatedGoals);
     if (mainTaskId) {
       onTasksChange(updatedTasks);
@@ -1808,8 +1755,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     // Check if week is now completed for celebration
     const updatedModule = updatedGoals.find(g => g.id === goalId)?.modules.find(m => m.id === moduleId);
     if (updatedModule && updatedModule.tasks.length > 0 && updatedModule.tasks.every(t => t.isCompleted)) {
+      console.log('Week completed! Triggering confetti...');
       triggerConfetti();
     }
+    
+    console.log('=== toggleTaskCompletion SUCCESS ===');
     
     // Persist completion to backend; rollback if it fails
     (async () => {
@@ -4534,7 +4484,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                     }}
                   >
                     <button
-                      onClick={() => selectedGoal && toggleTaskCompletion(selectedGoal.id, selectedModule.id, task.id)}
+                      onClick={() => {
+                        console.log('Checkbox clicked!', { taskId: task.id, taskTitle: task.title });
+                        if (selectedGoal) {
+                          toggleTaskCompletion(selectedGoal.id, selectedModule.id, task.id);
+                        }
+                      }}
                       style={{
                         width: '20px',
                         height: '20px',
