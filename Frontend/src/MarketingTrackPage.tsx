@@ -1591,6 +1591,31 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     if (!activeGoal) return;
     const projectId = getOrCreateProjectForGoal(activeGoal);
     const unlockedModules = activeGoal.modules.filter(m => m.isUnlocked || m.weekNumber <= (activeGoal.currentWeek || 1));
+    
+    // Clean up old tasks with descriptive IDs and recreate them with correct UUIDs
+    const oldTasksWithDescriptiveIds = tasks.filter(t => 
+      t.marketingTrack && 
+      t.marketingTrack.goalId === activeGoal.id && 
+      t.id.includes('-w') // This identifies old descriptive IDs
+    );
+    
+    if (oldTasksWithDescriptiveIds.length > 0) {
+      console.log('Found old tasks with descriptive IDs, cleaning up...', oldTasksWithDescriptiveIds);
+      // Remove old tasks
+      const cleanedTasks = tasks.filter(t => !oldTasksWithDescriptiveIds.includes(t));
+      onTasksChange(cleanedTasks);
+      
+      // Recreate tasks with correct IDs
+      unlockedModules.forEach(m0 => {
+        const module = withFallback(activeGoal, m0);
+        const key = `${activeGoal.id}:${module.id}`;
+        createTasksFromMarketingModule(activeGoal, module, projectId);
+        createdModuleTasksRef.current.add(key);
+      });
+      return;
+    }
+    
+    // Normal flow: check if tasks exist and create if missing
     unlockedModules.forEach(m0 => {
       const module = withFallback(activeGoal, m0);
       const key = `${activeGoal.id}:${module.id}`;
@@ -1601,7 +1626,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         createdModuleTasksRef.current.add(key);
       }
     });
-  }, [activeGoal?.id, activeGoal?.currentWeek, marketingGoals, tasks, getOrCreateProjectForGoal, createTasksFromMarketingModule]);
+  }, [activeGoal?.id, activeGoal?.currentWeek, marketingGoals, tasks, getOrCreateProjectForGoal, createTasksFromMarketingModule, onTasksChange]);
 
   // Update current time every minute for accurate countdown
   useEffect(() => {
