@@ -1551,7 +1551,16 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       });
       
       const newTaskList = [...merged, ...createdTasks];
-      console.log('New task list:', newTaskList.map(t => ({ id: t.id, title: t.title, status: t.status, marketingTrack: t.marketingTrack })));
+      console.log('New task list:', newTaskList.map(t => ({ 
+      id: t.id, 
+      title: t.title, 
+      status: t.status, 
+      marketingTrack: t.marketingTrack ? {
+        goalId: t.marketingTrack.goalId,
+        moduleId: t.marketingTrack.moduleId,
+        marketingTaskId: t.marketingTrack.marketingTaskId
+      } : null
+    })));
       
       onTasksChange(newTaskList);
       if (createdTasks.length > 0) {
