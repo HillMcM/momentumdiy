@@ -1720,12 +1720,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     
     console.log('Using (resolved) marketingTaskId:', marketingTaskId);
     
-    // Try to find the corresponding main task
+    // Try to find the corresponding main task (accept base UUID if legacy id)
+    const legacyBaseId = marketingTaskId.includes('-w') ? marketingTaskId.split('-w')[0] : null;
     const mainTask = tasks.find(task => 
       task.marketingTrack && 
       task.marketingTrack.goalId === goalId && 
       task.marketingTrack.moduleId === moduleId && 
-      task.marketingTrack.marketingTaskId === marketingTaskId
+      (task.marketingTrack.marketingTaskId === marketingTaskId || (legacyBaseId !== null && task.marketingTrack.marketingTaskId === legacyBaseId))
     );
     mainTaskId = mainTask?.id || '';
     console.log('Found main task:', mainTask ? { id: mainTask.id, status: mainTask.status } : 'not found');
@@ -1734,8 +1735,15 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     const currentGoal = marketingGoals.find(g => g.id === goalId);
     const currentModule = currentGoal?.modules.find(m => m.id === moduleId);
     
-    // Find task by ID (should work now since we're using actual UUIDs)
-    const currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
+    // Find task by ID. If not found and legacy id, try base UUID before '-w'
+    let currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
+    if (!currentTask && legacyBaseId) {
+      currentTask = currentModule?.tasks.find(t => t.id === legacyBaseId);
+      if (currentTask) {
+        console.log('Resolved legacy id to base UUID for currentTask', { legacy: marketingTaskId, base: legacyBaseId });
+        marketingTaskId = legacyBaseId;
+      }
+    }
     
     console.log('Looking for goal with ID:', goalId);
     console.log('Looking for module with ID:', moduleId);
