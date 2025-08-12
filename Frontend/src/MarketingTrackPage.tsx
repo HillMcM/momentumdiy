@@ -2882,7 +2882,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   onClick={(e) => {
                                     console.log('Checkbox clicked!', { taskId: task.id, taskTitle: task.title });
                                     e.stopPropagation();
-                                    toggleTaskCompletion(activeGoal.id, module.id, task.id);
+                                    toggleTaskCompletion(activeGoal.id, module.id, task.id, task.title);
                                   }}
                                   style={{
                                     width: '28px',
