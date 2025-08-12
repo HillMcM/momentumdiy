@@ -468,35 +468,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             '## Pro Tip',
             'Before we build momentum, we find where you\'re stuck. Visibility is step one. Let\'s get the full picture so we know what progress looks like.',
             '',
-            '## Online Presence Audit',
-            'Let\'s check how discoverable you are online:',
-            '- Google Business Profile: Is it claimed and accurate?',
-            '- Website: Does it reflect current hours, services, and offerings?',
-            '- Social Media: Are you posting consistently and engaging with locals?',
-            '- Online Reviews: What are people saying about finding you?',
-            '',
-            '## Baseline Metrics',
-            'Capture these numbers to track your progress:',
-            '- **Weekly Walk-ins**: Count how many people come in without an appointment',
-            '- **Google Views**: Monthly profile views from your Google Business Profile',
-            '- **Social Engagement**: Average likes/comments per post',
-            '- **Weekly Revenue**: Track weekly sales (optional but helpful)',
-            '',
-            '## Storefront & Signage Photos',
-            'Take photos from across the street to see what first-time visitors see:',
-            '- Storefront from across the street',
-            '- Window signage and displays',
-            '- Entryway and first impression',
-            '- Any outdoor seating or display areas',
-            '',
             '## How Your Marketing Assistant Can Help',
             'Ask your assistant to review your Google listing, signage, or website and suggest quick updates. They can also help you interpret or gather metrics and offer quick-win ideas.'
           ].join('\n');
           const tasks = [
-            { id: `${module.id}-w1-online`, title: 'Audit Online Presence', description: 'Review Google Business Profile, website accuracy, and social media presence. Note what needs updating.', estimatedTime: '30m', isCompleted: false },
-            { id: `${module.id}-w1-signage`, title: 'Audit Physical Signage', description: 'Stand across the street: does signage clearly convey what you offer? Note upgrades needed.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w1-baseline`, title: 'Capture Baseline Metrics', description: 'Record weekly walk-ins, Google views, social engagement, and weekly revenue. This is your starting point.', estimatedTime: '15m', isCompleted: false },
-            { id: `${module.id}-w1-photo`, title: 'Upload Storefront Photos', description: 'Take and upload photos from across the street to see what first-time visitors see.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w1-online`, title: 'Online Presence Audit', description: 'Let\'s check how discoverable you are online. Click to fill out the interactive audit form.', estimatedTime: '30m', isCompleted: false },
+            { id: `${module.id}-w1-baseline`, title: 'Baseline Metrics', description: 'Capture these numbers to track your progress. Click to fill out the metrics form.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w1-photo`, title: 'Storefront & Signage Photos', description: 'Take photos from across the street to see what first-time visitors see. Click to upload photos.', estimatedTime: '15m', isCompleted: false },
           ] as any;
           return { ...module, title: 'Audit Your Visibility', description: 'Where are people not seeing you? Build your visibility baseline.', content, tasks };
         }
@@ -2155,6 +2133,334 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         </div>
       );
     }
+    
+    // Week 1 Interactive Sections
+    if (lower.includes('online presence audit')) {
+      return (
+        <div>
+          <h2 style={{ marginTop: 0 }}>Online Presence Audit</h2>
+          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
+            Let's check how discoverable you are online. Fill out this audit to see where you're visible and where you might be invisible.
+          </p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Google Business Profile
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Is it claimed and accurate?
+                </div>
+              </label>
+              <textarea
+                placeholder="Describe the current state of your Google Business Profile..."
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Website
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Does it reflect current hours, services, and offerings?
+                </div>
+              </label>
+              <textarea
+                placeholder="Describe your website's current state..."
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Social Media
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Are you posting consistently and engaging with locals?
+                </div>
+              </label>
+              <textarea
+                placeholder="Describe your social media presence..."
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Online Reviews
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  What are people saying about finding you?
+                </div>
+              </label>
+              <textarea
+                placeholder="Summarize your current reviews and reputation..."
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
+            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
+          </div>
+        </div>
+      );
+    }
+
+    if (lower.includes('baseline metrics')) {
+      return (
+        <div>
+          <h2 style={{ marginTop: 0 }}>Baseline Metrics</h2>
+          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
+            Capture these numbers to track your progress over the next 12 weeks. This is your starting point!
+          </p>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Weekly Walk-ins
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Count how many people come in without an appointment
+                </div>
+              </label>
+              <input
+                type="number"
+                placeholder="0"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+              />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Google Views
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Monthly profile views from your Google Business Profile
+                </div>
+              </label>
+              <input
+                type="number"
+                placeholder="0"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+              />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Social Engagement
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Average likes/comments per post
+                </div>
+              </label>
+              <input
+                type="number"
+                placeholder="0"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+              />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Weekly Revenue
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Track weekly sales (optional but helpful)
+                </div>
+              </label>
+              <input
+                type="number"
+                placeholder="0"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
+            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
+          </div>
+        </div>
+      );
+    }
+
+    if (lower.includes('storefront') || lower.includes('signage photos')) {
+      return (
+        <div>
+          <h2 style={{ marginTop: 0 }}>Storefront & Signage Photos</h2>
+          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
+            Take photos from across the street to see what first-time visitors see. This helps you understand your store's first impression.
+          </p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Storefront from across the street
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Upload a photo showing your store from a distance
+                </div>
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+              />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Window signage and displays
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Upload photos of your window displays and signage
+                </div>
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+              />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Entryway and first impression
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Upload photos of your entryway and entrance area
+                </div>
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+              />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Any outdoor seating or display areas
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                  Upload photos of outdoor areas if applicable
+                </div>
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  fontSize: '1rem'
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
+            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div>
         <h2 style={{ marginTop: 0 }}>{t.title}</h2>
