@@ -1710,6 +1710,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     
     if (!currentTask) {
       console.error('Marketing task not found:', { goalId, moduleId, marketingTaskId });
+      console.log('Available goals:', marketingGoals.map(g => ({ id: g.id, title: g.title })));
+      console.log('Current goal:', currentGoal ? { id: currentGoal.id, title: currentGoal.title } : 'not found');
+      console.log('Current module:', currentModule ? { id: currentModule.id, title: currentModule.title } : 'not found');
+      console.log('Available tasks in module:', currentModule?.tasks.map(t => ({ id: t.id, title: t.title })) || 'no module found');
       return;
     }
     
