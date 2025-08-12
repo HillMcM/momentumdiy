@@ -1532,6 +1532,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         projectId: projectId
       });
       
+      console.log('Creating main task with marketing task ID:', { 
+        marketingTaskId: marketingTask.id, 
+        mainTaskId: marketingTask.id, // Should be the same
+        title: marketingTask.title 
+      });
+      
       console.log('Created task:', { 
         taskId: marketingTask.id, 
         title: marketingTask.title, 
