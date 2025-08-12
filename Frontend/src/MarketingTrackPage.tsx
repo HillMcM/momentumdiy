@@ -1717,24 +1717,25 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     
     // If not found by ID, try to find by title (since the generated IDs don't match the marketing goals IDs)
     if (!currentTask && currentModule) {
-      // Extract the task title from the generated ID (e.g., '4dc2e4e4-0394-4d74-85f7-d039b959ac5a-w1-online' -> 'online')
-      const taskTitleFromId = marketingTaskId.split('-').pop(); // Gets 'online' from the end
+      // The frontend is passing descriptive IDs like '4dc2e4e4-0394-4d74-85f7-d039b959ac5a-w1-online'
+      // We need to extract the task type and find the matching task by title
+      const taskType = marketingTaskId.split('-').pop(); // Gets 'online', 'baseline', 'photos', etc.
       
-      console.log('Trying title fallback with identifier:', taskTitleFromId);
+      console.log('Trying title fallback with task type:', taskType);
       
-      // Find task by title that contains this identifier or related keywords
+      // Find task by title that matches the task type
       currentTask = currentModule.tasks.find(t => {
         const title = t.title.toLowerCase();
-        const identifier = taskTitleFromId?.toLowerCase() || '';
         
-        // Check for exact matches or contains
-        if (title.includes(identifier)) return true;
+        // Map task types to expected titles
+        if (taskType === 'online' && title.includes('online presence audit')) return true;
+        if (taskType === 'baseline' && title.includes('baseline metrics')) return true;
+        if (taskType === 'photos' && title.includes('storefront') && title.includes('signage')) return true;
         
-        // Check for common variations
-        if (identifier === 'online' && (title.includes('google') || title.includes('website') || title.includes('social'))) return true;
-        if (identifier === 'audit' && (title.includes('review') || title.includes('check') || title.includes('sweep'))) return true;
-        if (identifier === 'baseline' && (title.includes('metrics') || title.includes('walk-ins') || title.includes('revenue'))) return true;
-        if (identifier === 'photos' && (title.includes('photo') || title.includes('signage') || title.includes('storefront'))) return true;
+        // Fallback: try to find by partial title matching
+        if (taskType === 'online' && (title.includes('audit') || title.includes('online'))) return true;
+        if (taskType === 'baseline' && (title.includes('metrics') || title.includes('baseline'))) return true;
+        if (taskType === 'photos' && (title.includes('photo') || title.includes('signage'))) return true;
         
         return false;
       });
@@ -1742,7 +1743,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       if (currentTask) {
         console.log('Found task by title fallback:', { id: currentTask.id, title: currentTask.title });
       } else {
-        console.log('No task found by title fallback. Available titles:', currentModule.tasks.map(t => t.title));
+        console.log('No task found by title fallback. Task type:', taskType);
+        console.log('Available task titles:', currentModule.tasks.map(t => t.title));
       }
     }
     
