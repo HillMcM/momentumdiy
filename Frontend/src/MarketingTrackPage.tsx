@@ -2917,11 +2917,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     minWidth: '28px',
                                     minHeight: '28px',
                                     boxShadow: task.isCompleted ? '0 0 0 6px rgba(94,205,125,0.15)' : 'none',
-                                    transition: 'box-shadow 0.2s ease'
+                                    transition: 'all 0.2s ease-in-out'
                                   }}
                                 >
                                   {task.isCompleted && (
-                                    <span style={{ color: '#22202F', fontSize: '16px', fontWeight: 'bold' }}>✓</span>
+                                    <span style={{ 
+                                      color: '#22202F', 
+                                      fontSize: '16px', 
+                                      fontWeight: 'bold',
+                                      opacity: task.isCompleted ? 1 : 0,
+                                      transform: task.isCompleted ? 'scale(1)' : 'scale(0)',
+                                      transition: 'all 0.2s ease-in-out'
+                                    }}>✓</span>
                                   )}
                                 </button>
                                 <div style={{ flex: 1 }}>
@@ -2931,7 +2938,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     fontWeight: 600,
                                     marginBottom: '0.25rem',
                                     textDecoration: task.isCompleted ? 'line-through' : 'none',
-                                    opacity: task.isCompleted ? 0.7 : 1
+                                    opacity: task.isCompleted ? 0.7 : 1,
+                                    transition: 'all 0.2s ease-in-out'
                                   }}>
                                     <span style={{ marginRight: 6 }}>{getTaskIcon(task.title)}</span>
                                     {task.title}
