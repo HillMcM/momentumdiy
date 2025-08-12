@@ -1703,8 +1703,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       const goal = marketingGoals.find(g => g.id === goalId);
       const mod = goal?.modules.find(m => m.id === moduleId);
       if (goal && mod) {
-        const moduleWithFallback = withFallback(goal, mod);
-        const match = moduleWithFallback.tasks.find(t => {
+        // Use the live module tasks from state (not withFallback) to ensure IDs align with currentGoal/currentModule
+        const match = mod.tasks.find(t => {
           if (!taskTitle) return false;
           return t.title.trim().toLowerCase() === taskTitle.trim().toLowerCase();
         });
