@@ -48,6 +48,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   type BaselineState = Record<PlatformKey, BaselineMetrics> & { saved?: boolean };
   const [baseline, setBaseline] = useState<BaselineState>(() => ({ ...(emptyBaseline as Record<PlatformKey, BaselineMetrics>) } as BaselineState));
   const [selectedPlatformTab, setSelectedPlatformTab] = useState<PlatformKey>('instagram');
+  const [activeMetricTab, setActiveMetricTab] = useState<number>(0);
   const [, setPillars] = useState<string[]>(['', '', '', '']);
   const [loadingInline] = useState<boolean>(false);
   const [inlineError] = useState<string | null>(null);
@@ -3479,112 +3480,145 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                               </div>
                             </div>
 
-                            {/* Baseline Metrics Form */}
+                            {/* Baseline Metrics Form - Tabbed Interface */}
                             <div style={{ marginBottom: '2rem' }}>
                               <h6 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>Baseline Metrics</h6>
                               <p style={{ margin: '0 0 1rem 0', opacity: 0.85, fontSize: '0.9rem' }}>
                                 Capture these numbers to track your progress over the next 12 weeks. This is your starting point!
                               </p>
                               
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Weekly Walk-ins
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Count how many people come in without an appointment
-                                    </div>
-                                  </label>
-                                  <input
-                                    type="number"
-                                    placeholder="0"
+                              {/* Tab Navigation */}
+                              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                                {['Business Metrics', 'Instagram', 'Facebook', 'X (Twitter)', 'LinkedIn', 'Google Business Profile', 'TikTok', 'YouTube'].map((platform, index) => (
+                                  <button
+                                    key={platform}
+                                    onClick={() => setActiveMetricTab(index)}
                                     style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
+                                      padding: '0.5rem 1rem',
+                                      borderRadius: '20px',
                                       border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem'
+                                      background: activeMetricTab === index ? '#EF8E81' : 'transparent',
+                                      color: activeMetricTab === index ? '#22202F' : '#FFF1E7',
+                                      fontSize: '0.85rem',
+                                      fontWeight: 600,
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s ease'
                                     }}
-                                  />
-                                </div>
-
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Google Views
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Monthly profile views from your Google Business Profile
+                                  >
+                                    {platform}
+                                  </button>
+                                ))}
+                              </div>
+                              
+                              {/* Tab Content */}
+                              <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1.5rem' }}>
+                                {activeMetricTab === 0 && (
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                        Weekly Walk-ins
+                                        <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                          Count how many people come in without an appointment
+                                        </div>
+                                      </label>
+                                      <input
+                                        type="number"
+                                        placeholder="0"
+                                        style={{
+                                          width: 'calc(100% - 2rem)',
+                                          padding: '0.75rem',
+                                          borderRadius: 8,
+                                          border: '1px solid rgba(255,255,255,0.15)',
+                                          background: 'transparent',
+                                          color: '#FFF1E7',
+                                          fontSize: '1rem'
+                                        }}
+                                      />
                                     </div>
-                                  </label>
-                                  <input
-                                    type="number"
-                                    placeholder="0"
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem'
-                                    }}
-                                  />
-                                </div>
-
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Social Engagement
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Average likes/comments per post
+                                    <div>
+                                      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                        Weekly Revenue
+                                        <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                          Track weekly sales (optional but helpful)
+                                        </div>
+                                      </label>
+                                      <input
+                                        type="number"
+                                        placeholder="0"
+                                        style={{
+                                          width: 'calc(100% - 2rem)',
+                                          padding: '0.75rem',
+                                          borderRadius: 8,
+                                          border: '1px solid rgba(255,255,255,0.15)',
+                                          background: 'transparent',
+                                          color: '#FFF1E7',
+                                          fontSize: '1rem'
+                                        }}
+                                      />
                                     </div>
-                                  </label>
-                                  <input
-                                    type="number"
-                                    placeholder="0"
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem'
-                                    }}
-                                  />
-                                </div>
-
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Weekly Revenue
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Track weekly sales (optional but helpful)
+                                  </div>
+                                )}
+                                
+                                {activeMetricTab > 0 && (
+                                  <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                      {['Instagram', 'Facebook', 'X (Twitter)', 'LinkedIn', 'Google Business Profile', 'TikTok', 'YouTube'][activeMetricTab - 1]} Metrics
+                                      <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                        Track your performance on this platform
+                                      </div>
+                                    </label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                      <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                                          Followers/Subscribers
+                                        </label>
+                                        <input
+                                          type="number"
+                                          placeholder="0"
+                                          style={{
+                                            width: 'calc(100% - 2rem)',
+                                            padding: '0.75rem',
+                                            borderRadius: 8,
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            background: 'transparent',
+                                            color: '#FFF1E7',
+                                            fontSize: '1rem'
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                                          Avg. Engagement Rate
+                                        </label>
+                                        <input
+                                          type="number"
+                                          placeholder="0"
+                                          step="0.1"
+                                          style={{
+                                            width: 'calc(100% - 2rem)',
+                                            padding: '0.75rem',
+                                            borderRadius: 8,
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            background: 'transparent',
+                                            color: '#FFF1E7',
+                                            fontSize: '1rem'
+                                          }}
+                                        />
+                                      </div>
                                     </div>
-                                  </label>
-                                  <input
-                                    type="number"
-                                    placeholder="0"
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem'
-                                    }}
-                                  />
-                                </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
 
-                            {/* Storefront Photos Form */}
+                            {/* Storefront Photos Form - Two Column Layout */}
                             <div>
                               <h6 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>Storefront & Signage Photos</h6>
                               <p style={{ margin: '0 0 1rem 0', opacity: 0.85, fontSize: '0.9rem' }}>
                                 Take photos from across the street to see what first-time visitors see. This helps you understand your store's first impression.
                               </p>
                               
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                                 <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
                                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
                                     Storefront from across the street
