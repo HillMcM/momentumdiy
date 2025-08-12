@@ -307,6 +307,84 @@ export default function LocalFootTrafficTrack({
             ))}
           </div>
 
+          {/* Start Track CTA */}
+          <div style={{ 
+            marginTop: '3rem', 
+            padding: '2.5rem', 
+            background: 'linear-gradient(135deg, rgba(239, 142, 129, 0.1), rgba(239, 142, 129, 0.05))', 
+            borderRadius: '16px', 
+            border: '2px solid rgba(239, 142, 129, 0.3)',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            {/* Background accent */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: 'linear-gradient(90deg, #EF8E81, #E67E73)',
+              borderRadius: '16px 16px 0 0'
+            }} />
+            
+            <h3 style={{ 
+              margin: '0 0 1rem 0', 
+              fontSize: '1.75rem', 
+              color: '#FFF1E7', 
+              fontWeight: 700 
+            }}>
+              Ready to Start Your Local Foot Traffic Journey?
+            </h3>
+            <p style={{ 
+              margin: '0 0 2rem 0', 
+              color: '#FFF1E7', 
+              opacity: 0.8, 
+              fontSize: '1.1rem', 
+              lineHeight: 1.6,
+              maxWidth: '600px',
+              marginLeft: 'auto',
+              marginRight: 'auto'
+            }}>
+              Click the button below to activate this track and unlock Week 1 content. You'll get immediate access to your first week's tasks and can start building your local business visibility right away.
+            </p>
+            <button 
+              onClick={startLocalFootTrafficTrack}
+              style={{ 
+                padding: '1.25rem 3rem', 
+                borderRadius: '12px', 
+                border: 'none', 
+                background: 'linear-gradient(135deg, #EF8E81, #E67E73)', 
+                color: '#22202F', 
+                cursor: 'pointer',
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                boxShadow: '0 8px 25px rgba(239,142,129,0.4)',
+                transition: 'all 0.3s ease',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 12px 35px rgba(239,142,129,0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(239,142,129,0.4)';
+              }}
+            >
+              🚀 Start Track Now
+            </button>
+            <p style={{ 
+              margin: '1rem 0 0 0', 
+              color: '#FFF1E7', 
+              opacity: 0.6, 
+              fontSize: '0.9rem' 
+            }}>
+              Unlocks Week 1 content and creates your project timeline
+            </p>
+          </div>
 
         </div>
       </div>
