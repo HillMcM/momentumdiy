@@ -2,6 +2,7 @@ import type {
   Task, 
   Project, 
   MarketingGoal, 
+  MarketingTask,
   CalendarEvent,
   CreateTaskRequest,
   UpdateTaskRequest,
@@ -200,6 +201,14 @@ class ApiService {
     return this.request<MarketingGoal>(`/marketing/goals/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
+    });
+  }
+
+  // Marketing task completion
+  async updateMarketingTaskCompletion(id: string, isCompleted: boolean): Promise<ApiResponse<MarketingTask>> {
+    return this.request<MarketingTask>(`/marketing/tasks/${id}/completion`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isCompleted }),
     });
   }
 

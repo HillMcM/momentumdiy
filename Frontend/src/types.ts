@@ -161,6 +161,11 @@ export interface CreateTaskRequest {
   project?: string;
   status: TaskStatus;
   projectId?: string;
+  marketingTrack?: {
+    goalId: string;
+    moduleId: string;
+    marketingTaskId?: string;
+  };
 }
 
 export interface UpdateTaskRequest {
