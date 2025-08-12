@@ -3392,11 +3392,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     placeholder="Describe the current state of your Google Business Profile..."
                                     rows={3}
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem',
                                       resize: 'vertical',
@@ -3416,11 +3416,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     placeholder="Describe your website's current state..."
                                     rows={3}
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem',
                                       resize: 'vertical',
@@ -3440,11 +3440,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     placeholder="Describe your social media presence..."
                                     rows={3}
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem',
                                       resize: 'vertical',
@@ -3464,11 +3464,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     placeholder="Summarize your current reviews and reputation..."
                                     rows={3}
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem',
                                       resize: 'vertical',
@@ -3498,11 +3498,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     type="number"
                                     placeholder="0"
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem'
                                     }}
@@ -3520,11 +3520,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     type="number"
                                     placeholder="0"
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem'
                                     }}
@@ -3542,11 +3542,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     type="number"
                                     placeholder="0"
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem'
                                     }}
@@ -3564,11 +3564,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     type="number"
                                     placeholder="0"
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem'
                                     }}
@@ -3596,11 +3596,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     type="file"
                                     accept="image/*"
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem'
                                     }}
@@ -3618,11 +3618,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     type="file"
                                     accept="image/*"
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem'
                                     }}
@@ -3640,11 +3640,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     type="file"
                                     accept="image/*"
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem'
                                     }}
@@ -3662,11 +3662,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     type="file"
                                     accept="image/*"
                                     style={{
-                                      width: '100%',
+                                      width: 'calc(100% - 2rem)',
                                       padding: '0.75rem',
                                       borderRadius: 8,
-                                      border: '1px solid #444',
-                                      background: '#191628',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      background: 'transparent',
                                       color: '#FFF1E7',
                                       fontSize: '1rem'
                                     }}
