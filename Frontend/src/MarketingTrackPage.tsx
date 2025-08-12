@@ -1833,6 +1833,31 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           if (mainTaskId) {
             onTasksChange(tasks);
           }
+        } else {
+          console.log('Successfully persisted task completion to backend');
+          // Refresh data from backend to ensure UI is in sync
+          try {
+            const goalsResp = await apiService.getMarketingGoals();
+            if (goalsResp.success && goalsResp.data) {
+              console.log('Refreshing marketing goals from backend...');
+              onMarketingGoalsChange(goalsResp.data);
+            }
+            
+            // Also refresh main tasks to ensure task tracker is in sync
+            if (mainTaskId) {
+              try {
+                const tasksResp = await apiService.getTasks();
+                if (tasksResp.success && tasksResp.data) {
+                  console.log('Refreshing main tasks from backend...');
+                  onTasksChange(tasksResp.data);
+                }
+              } catch (tasksRefreshErr) {
+                console.warn('Failed to refresh main tasks:', tasksRefreshErr);
+              }
+            }
+          } catch (refreshErr) {
+            console.warn('Failed to refresh marketing goals:', refreshErr);
+          }
         }
       } catch (err) {
         console.error('Error persisting marketing task completion:', err);
