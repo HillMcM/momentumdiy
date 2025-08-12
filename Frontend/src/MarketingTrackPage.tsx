@@ -551,7 +551,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w2-claim`, title: 'Claim or Verify Your Listing', description: 'Ensure your Google Business Profile is claimed and under your control.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w2-details`, title: 'Review & Update Details', description: 'Double‑check hours, phone, address, categories, and description; add customer‑searched keywords.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w2-photos`, title: 'Upload Fresh Photos', description: 'Add clear photos of exterior, interior, team, and products.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w2-post`, title: 'Post a Short Update', description: 'Share a one‑sentence post about your in‑store offer or what’s new.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w2-post`, title: 'Post a Short Update', description: 'Share a one‑sentence post about your in‑store offer or what's new.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w2-reviews`, title: 'Invite Reviews (optional)', description: 'Ask recent customers for a review via email or in‑person.', estimatedTime: '5m', isCompleted: false },
           ] as any;
           return { ...module, title: 'Optimize Your Google Business Profile', description: 'Get found when people search.', content, tasks };
@@ -630,7 +630,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           ].join('\n');
           const tasks = [
             { id: `${module.id}-w3-offer`, title: 'Choose Your Offer', description: 'Pick one: gift with purchase, bonus item, bundle, spin‑the‑wheel prize, QR‑code discount.', estimatedTime: '15m', isCompleted: false },
-            { id: `${module.id}-w3-urgency`, title: 'Set the Urgency', description: 'Decide on language like “This week only” or “Today only.”', estimatedTime: '5m', isCompleted: false },
+            { id: `${module.id}-w3-urgency`, title: 'Set the Urgency', description: 'Decide on language like "This week only" or "Today only."', estimatedTime: '5m', isCompleted: false },
             { id: `${module.id}-w3-assets`, title: 'Prepare Promo Materials', description: 'Write a short caption and design a sign or social graphic.', estimatedTime: '30m', isCompleted: false },
             { id: `${module.id}-w3-supplies`, title: 'Get Supplies Ready', description: 'Gather giveaways, set up a prize wheel, or prepare QR codes.', estimatedTime: '10m', isCompleted: false },
           ] as any;
@@ -694,10 +694,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             'Ask your assistant to design a sidewalk sign/window poster, craft a punchy message, and create a branded QR code.'
           ].join('\n');
           const tasks = [
-            { id: `${module.id}-w4-audit`, title: 'Audit Your Signage', description: 'From a distance, can someone tell what’s happening inside?', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w4-audit`, title: 'Audit Your Signage', description: 'From a distance, can someone tell what's happening inside?', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w4-design`, title: 'Design & Place a New Sign', description: 'Create a sandwich board or poster promoting your in‑store offer.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w4-qr`, title: 'Generate a QR Code', description: 'Link to a digital bonus (coupon, email signup) and add to your sign.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w4-hidden`, title: 'Highlight Hidden Services (optional)', description: 'Create a small “Did you know we offer ___?” sign for lesser‑known offerings.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w4-hidden`, title: 'Highlight Hidden Services (optional)', description: 'Create a small "Did you know we offer ___?" sign for lesser‑known offerings.', estimatedTime: '10m', isCompleted: false },
           ] as any;
           return { ...module, title: 'Activate Your Sidewalk & Window Signage', description: 'Turn passers‑by into walk‑ins.', content, tasks };
         }
@@ -872,7 +872,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const tasks = [
             { id: `${module.id}-w6-identify`, title: 'Identify a Partner', description: 'Nearby business with similar audience but different offering (e.g., florist + bakery).', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w6-reachout`, title: 'Reach Out', description: 'Send a friendly DM or email proposing a collaboration.', estimatedTime: '15m', isCompleted: false },
-            { id: `${module.id}-w6-incentive`, title: 'Decide on the Incentive', description: 'E.g., “Bring a receipt from Shop A and get 10% off at Shop B,” or shared loyalty card.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w6-incentive`, title: 'Decide on the Incentive', description: 'E.g., "Bring a receipt from Shop A and get 10% off at Shop B," or shared loyalty card.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w6-materials`, title: 'Create Co‑Branded Materials', description: 'Design a flyer, Instagram post, or signage.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w6-promote`, title: 'Set Dates & Promote', description: 'Agree on timing and promote on both channels.', estimatedTime: '10m', isCompleted: false },
           ] as any;
@@ -1062,12 +1062,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         }
         case 9: {
           const content = buildContent(
-            'Launch a low‑effort, high‑impact referral or “bring‑a‑friend” initiative.',
+            'Launch a low‑effort, high‑impact referral or "bring‑a‑friend" initiative.',
             'Turn foot traffic into more foot traffic by empowering fans to spread the word.',
             'Ask your assistant to design referral cards/posters, write a checkout script, and create social prompts.'
           );
           const tasks = [
-            { id: `${module.id}-w9-incentive`, title: 'Choose a Referral Incentive', description: 'E.g., “Bring a friend, you both get 10% off,” or “Refer 3 friends, get a free item.”', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w9-incentive`, title: 'Choose a Referral Incentive', description: 'E.g., "Bring a friend, you both get 10% off," or "Refer 3 friends, get a free item."', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w9-print`, title: 'Design & Print Materials', description: 'Create a referral card or small sign at the register.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w9-script`, title: 'Script a Verbal Invite', description: 'Prepare a one‑sentence pitch to offer at checkout.', estimatedTime: '5m', isCompleted: false },
             { id: `${module.id}-w9-share`, title: 'Share on Social', description: 'Encourage customers to tag you or share a story for a thank‑you.', estimatedTime: '10m', isCompleted: false },
@@ -1097,24 +1097,24 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             'Pro Tip: Asking for feedback isn\'t a weakness, it\'s a marketing strength. You\'re not just getting input, you\'re showing your community that you care what they think. Ask your assistant to design a mini feedback card, help analyze responses, and draft a follow‑up thank‑you note.'
           );
           const tasks = [
-            { id: `${module.id}-w11-card`, title: 'Create a 3‑Question Card', description: 'Ask: “What brought you in today?”, “What did you love?”, “What could be better?”', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w11-card`, title: 'Create a 3‑Question Card', description: 'Ask: "What brought you in today?", "What did you love?", "What could be better?"', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w11-gather`, title: 'Gather Responses', description: 'Hand out cards at checkout or ask verbally to 3–5 customers.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w11-analyze`, title: 'Analyze & Identify Themes', description: 'Look for common points of praise or areas to improve.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w11-permission`, title: 'Request Testimonial Permission', description: 'Ask if you may use positive comments in marketing.', estimatedTime: '5m', isCompleted: false },
             { id: `${module.id}-w11-thank`, title: 'Thank Participants & Act', description: 'Send a quick thank‑you and integrate insights into your store or messaging.', estimatedTime: '10m', isCompleted: false },
           ] as any;
-          return { ...module, title: 'Gather Customer Feedback', description: 'Learn what’s working (and what’s missing).', content, tasks };
+          return { ...module, title: 'Gather Customer Feedback', description: 'Learn what's working (and what's missing).', content, tasks };
         }
         case 12: {
           const content = buildContent(
-            'Measure your results, celebrate wins, and set your next 12‑week focus using the baseline from Week 1.',
-            'Compare to baseline, reflect on what worked, and plan your next quarter.',
-            'Ask your partner to help evaluate metrics, summarize the quarter, write a “Quarter in Review” post, and suggest a new goal.'
+            '**Hey There!** You\'ve spent the last 12 weeks taking intentional steps to increase your local foot traffic—from visibility and signage, to offers, partnerships, and customer experience. This week is about **celebrating what you accomplished**—and setting a new intention to carry that momentum forward.',
+            'Compare your Week 1 baseline metrics to today\'s results. Reflect on: What changed? What worked best? What\'s your next goal? Then create a thank you post celebrating everyone who helped make this journey possible.',
+            'Pro Tip: This week is about celebrating progress, not perfection. Every step forward counts! Ask your assistant to help compare your Week 1 and Week 12 metrics, reflect on your journey, and craft a heartfelt thank you post to your community.'
           );
           const tasks = [
             { id: `${module.id}-w12-remeasure`, title: 'Re‑measure Your Metrics', description: 'Record current weekly walk‑ins, Google views, social engagement, and revenue.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w12-compare`, title: 'Compare to Baseline', description: 'Note percentage increases and any surprising insights.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w12-reflect`, title: 'Reflect on the Experience', description: 'What changed? What worked best? What’s your next goal?', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w12-reflect`, title: 'Reflect on the Experience', description: 'What changed? What worked best? What's your next goal?', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w12-plan`, title: 'Plan the Next Quarter', description: 'Decide whether to build on gains or pivot to another focus.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w12-celebrate`, title: 'Celebrate & Thank Customers', description: 'Share a thank‑you post, offer a small gift, or hold a mini celebration.', estimatedTime: '15m', isCompleted: false },
           ] as any;
