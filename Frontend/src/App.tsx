@@ -594,13 +594,15 @@ function ProtectedApp() {
         if (originalGoal && (
           originalGoal.isActive !== existingGoal.isActive ||
           originalGoal.currentWeek !== existingGoal.currentWeek ||
-          originalGoal.progress !== existingGoal.progress
+          originalGoal.progress !== existingGoal.progress ||
+          JSON.stringify(originalGoal.modules.map(m => m.tasks)) !== JSON.stringify(existingGoal.modules.map(m => m.tasks))
         )) {
           console.log('Updating marketing goal:', existingGoal.title);
           const response = await apiService.updateMarketingGoal(existingGoal.id, {
             isActive: existingGoal.isActive,
             currentWeek: existingGoal.currentWeek,
-            progress: existingGoal.progress
+            progress: existingGoal.progress,
+            modules: existingGoal.modules
           });
           
           if (!response.success) {
