@@ -1408,49 +1408,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 1000);
   };
 
-  // Guided Week Planner (UI-only for now)
-  type PostType = 'Educate' | 'Promote' | 'Connect';
-  const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'] as const;
-  type PlannerRow = { day: string; type: PostType; pillar: string; caption: string };
-  const defaultPlanner: PlannerRow[] = DAYS.map((d, idx) => ({
-    day: d,
-    type: (['Connect','Educate','Connect','Promote','Connect'] as PostType[])[idx],
-    pillar: (
-      [
-        'Behind the Scenes',
-        'Tip or FAQ',
-        'Personal Story',
-        'Product/Service Feature',
-        'Fun or Community Post'
-      ] as string[]
-    )[idx],
-    caption: ''
-  }));
-  const [planner, setPlanner] = useState<PlannerRow[]>(defaultPlanner);
-  // When Week 1 of Social track is active, enforce the fixed plan mapping
-  useEffect(() => {
-    if (!activeGoal) return;
-    const isSocial = activeGoal.title.toLowerCase().includes('improve social media');
-    if (!isSocial) return;
-    const currentWeek = activeGoal.currentWeek || 1;
-    if (currentWeek === 1) {
-    setPlanner(defaultPlanner);
-      return;
-    }
-    if (currentWeek === 2) {
-      const refinedWeek2: PlannerRow[] = [
-        { day: 'Monday', type: 'Connect', pillar: 'Personal Story / Behind the Scenes', caption: '' },
-        { day: 'Tuesday', type: 'Educate', pillar: 'Education / Products', caption: '' },
-        { day: 'Wednesday', type: 'Connect', pillar: 'Customer Love / Testimonial', caption: '' },
-        { day: 'Thursday', type: 'Promote', pillar: 'Offer or Product Feature', caption: '' },
-        { day: 'Friday', type: 'Connect', pillar: 'Community / Local / Fun', caption: '' },
-      ];
-      setPlanner(refinedWeek2);
-      return;
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeGoal?.id, activeGoal?.currentWeek]);
-  const [plannerMode, setPlannerMode] = useState<'beginner' | 'confident'>('beginner');
+  // Social content planning removed for Local Foot Traffic track
+
+  // Social content planning removed for Local Foot Traffic track
 
   // Week 2: content pillars selection (persist locally per-goal)
   const [contentPillarsByGoal, setContentPillarsByGoal] = useState<Record<string, string[]>>({});
@@ -3397,73 +3357,31 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                         <div style={{ gridColumn: '1 / -1' }}>
                           <div style={{ marginTop: '0.5rem', background: 'rgba(255,241,231,0.04)', border: '1px solid rgba(239,142,129,0.25)', borderRadius: 10, padding: '1rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                              <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 700 }}>Social Content Plan</h6>
+                              <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 700 }}>Week Progress</h6>
                               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>Rhythm</span>
-                                <button onClick={()=> setPlannerMode('beginner')} disabled={plannerMode==='beginner'} style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: plannerMode==='beginner' ? '#EF8E81' : 'transparent', color: plannerMode==='beginner' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Beginner 3x</button>
-                                <button onClick={()=> setPlannerMode('confident')} disabled={plannerMode==='confident'} style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: plannerMode==='confident' ? '#EF8E81' : 'transparent', color: plannerMode==='confident' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Confident 5x</button>
+                                <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>Focus Area</span>
+                                <span style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.2)', color: '#EF8E81', fontSize: '0.8rem' }}>Local Visibility</span>
+
                               </div>
                             </div>
-                            {/* Quick Wins removed per request */}
-                            {/* Planner Grid */}
-                              <div style={{ overflowX: 'hidden' }}>
-                               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, tableLayout: 'fixed' }}>
-                                <thead>
-                                  <tr style={{ textAlign: 'left', color: '#FFF1E7', opacity: 0.8 }}>
-                                    <th style={{ padding: '8px' }}>Day</th>
-                                    <th style={{ padding: '8px' }}>Type</th>
-                                    <th style={{ padding: '8px' }}>Pillar</th>
-                                    <th style={{ padding: '8px' }}>Caption (draft)</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {(plannerMode==='beginner' ? planner.filter(r => ['Monday','Wednesday','Friday'].includes(r.day)) : planner).map((row, idx) => (
-                                    <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
-                                      <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
-                                          <td style={{ padding: '8px', color: '#FFF1E7' }}>
-                                            {module.weekNumber >= 4 ? (
-                                              <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as any }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
-                                                <option value="Connect">Connect</option>
-                                                <option value="Educate">Educate</option>
-                                                <option value="Promote">Promote</option>
-                                              </select>
-                                            ) : (
-                                              <span>{row.type}</span>
-                                            )}
-                                          </td>
-                                      <td style={{ padding: '8px' }}>
-                                            {module.weekNumber >= 2 ? (
-                                              <select value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
-                                                {(contentPillarsByGoal[activeGoal.id] || DEFAULT_PILLAR_OPTIONS)
-                                                  .filter(p => (contentPillarsByGoal[activeGoal.id] || []).includes(p))
-                                                  .map(opt => (
-                                                    <option key={opt} value={opt}>{opt}</option>
-                                                  ))}
-                                                {(contentPillarsByGoal[activeGoal.id] || [])
-                                                  .filter(p => !DEFAULT_PILLAR_OPTIONS.includes(p))
-                                                  .map(opt => (
-                                                    <option key={`custom-${opt}`} value={opt}>{opt}</option>
-                                                  ))}
-                                              </select>
-                                            ) : (
-                                              <span style={{ color: '#FFF1E7' }}>{row.pillar}</span>
-                                            )}
-                                        </td>
-                                        <td style={{ padding: '8px' }}>
-                                          <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder={
-                                            module.weekNumber === 1 ? (
-                                              row.day === 'Monday' ? "Here's what we're working on this week…" :
-                                              row.day === 'Tuesday' ? "Answer a common customer question or give a useful tip" :
-                                              row.day === 'Wednesday' ? "Share why you started your business, or something you're proud of" :
-                                              row.day === 'Thursday' ? "Highlight 1 offer you love—describe it and invite people in" :
-                                              row.day === 'Friday' ? "Shout out a local business or share a light‑hearted moment" : 'Draft caption…'
-                                            ) : 'Draft caption…'
-                                          } style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                            {/* Week Progress Summary */}
+                            <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>Tasks Completed</span>
+                                  <span style={{ color: '#EF8E81', fontWeight: 600, fontSize: '0.9rem' }}>
+                                    {module.tasks.filter(t => t.isCompleted).length} of {module.tasks.length}
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>Week Focus</span>
+                                  <span style={{ color: '#686DCA', fontWeight: 600, fontSize: '0.9rem' }}>Local Visibility</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>Next Steps</span>
+                                  <span style={{ color: '#5ECD7D', fontWeight: 600, fontSize: '0.9rem' }}>Complete remaining tasks</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
