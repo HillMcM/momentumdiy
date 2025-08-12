@@ -1794,6 +1794,15 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     if (mainTaskId) {
       onTasksChange(updatedTasks);
     }
+    // Also refresh local selections so the UI reflects new isCompleted values instantly
+    const refreshedGoal = updatedGoals.find(g => g.id === goalId) || null;
+    if (selectedGoal?.id === goalId) {
+      setSelectedGoal(refreshedGoal);
+      const refreshedModule = refreshedGoal?.modules.find(m => m.id === moduleId) || null;
+      if (selectedModule?.id === moduleId && refreshedModule) {
+        setSelectedModule(refreshedModule);
+      }
+    }
     
     // Check if week is now completed for celebration
     const updatedModule = updatedGoals.find(g => g.id === goalId)?.modules.find(m => m.id === moduleId);
