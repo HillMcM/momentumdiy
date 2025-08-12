@@ -1711,7 +1711,26 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     // Find the marketing goal task using the marketingTaskId
     const currentGoal = marketingGoals.find(g => g.id === goalId);
     const currentModule = currentGoal?.modules.find(m => m.id === moduleId);
-    const currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
+    
+    // Try to find task by ID first, then by title as fallback
+    let currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
+    
+    // If not found by ID, try to find by title (since the generated IDs don't match the marketing goals IDs)
+    if (!currentTask && currentModule) {
+      // Extract the task title from the generated ID (e.g., '4dc2e4e4-0394-4d74-85f7-d039b959ac5a-w1-online' -> 'online')
+      const taskTitleFromId = marketingTaskId.split('-').pop(); // Gets 'online' from the end
+      
+      // Find task by title that contains this identifier
+      currentTask = currentModule.tasks.find(t => 
+        t.title.toLowerCase().includes(taskTitleFromId?.toLowerCase() || '') ||
+        t.title.toLowerCase().includes('online') ||
+        t.title.toLowerCase().includes('audit')
+      );
+      
+      if (currentTask) {
+        console.log('Found task by title fallback:', { id: currentTask.id, title: currentTask.title });
+      }
+    }
     
     console.log('Looking for goal with ID:', goalId);
     console.log('Looking for module with ID:', moduleId);
@@ -1729,6 +1748,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         console.log('Module tasks:', currentModule.tasks.map(t => ({ id: t.id, title: t.title })));
         console.log('Looking for task ID:', marketingTaskId);
         console.log('Available task IDs:', currentModule.tasks.map(t => t.id));
+        console.log('Available task titles:', currentModule.tasks.map(t => t.title));
       }
       return;
     }
