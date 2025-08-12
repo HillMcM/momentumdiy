@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
-import type { MarketingGoal, MarketingModule, Task, Project, TaskStatus } from './types';
+import type { MarketingGoal, MarketingModule, MarketingTask, Task, Project, TaskStatus } from './types';
 // TaskModal not used in this iteration
 // Removed mockData usage to avoid placeholder content
 import { apiService } from './services/api';
@@ -1158,6 +1158,181 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         onMarketingGoalsChange(updatedGoals);
       }
     };
+
+    // Handle "Create Task" case
+    if (lower.includes('create task')) {
+      const [newTaskTitle, setNewTaskTitle] = useState('');
+      const [newTaskDescription, setNewTaskDescription] = useState('');
+      const [newTaskEstimatedTime, setNewTaskEstimatedTime] = useState('');
+
+      const handleCreateTask = () => {
+        if (!newTaskTitle.trim() || !goalId || !moduleId) return;
+        
+        // Create new marketing task
+        const newMarketingTask: MarketingTask = {
+          id: `new-${Date.now()}`,
+          title: newTaskTitle.trim(),
+          description: newTaskDescription.trim(),
+          estimatedTime: newTaskEstimatedTime.trim(),
+          isCompleted: false
+        };
+
+        // Add to marketing goals
+        const updatedGoals = marketingGoals.map(g => {
+          if (g.id === goalId) {
+            return {
+              ...g,
+              modules: g.modules.map(m => m.id === moduleId ? {
+                ...m,
+                tasks: [...m.tasks, newMarketingTask]
+              } : m)
+            };
+          }
+          return g;
+        });
+        onMarketingGoalsChange(updatedGoals);
+
+        // Create main task
+        const newMainTask: Task = {
+          id: `task-${Date.now()}`,
+          title: newTaskTitle.trim(),
+          description: newTaskDescription.trim(),
+          responsible: 'Hillary',
+          deadline: null,
+          project: activeGoal?.title || '',
+          timeSpent: '',
+          notifications: false,
+          status: 'todo',
+          projectId: projects.find(p => p.name === activeGoal?.title)?.id,
+          marketingTrack: {
+            goalId,
+            moduleId,
+            marketingTaskId: newMarketingTask.id
+          }
+        };
+        onTasksChange([...tasks, newMainTask]);
+
+        // Close modal
+        closeInteractiveTask();
+      };
+
+      return (
+        <div>
+          <h2 style={{ marginTop: 0 }}>Create New Task</h2>
+          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
+            Add a new task for {activeGoal?.title} - Week {activeGoal?.modules.find(m => m.id === moduleId)?.weekNumber}
+          </p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <label>
+              Task Title *
+              <input
+                type="text"
+                value={newTaskTitle}
+                onChange={e => setNewTaskTitle(e.target.value)}
+                placeholder="Enter task title..."
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  marginTop: 4,
+                  transition: 'border-color 0.2s',
+                  outline: 'none',
+                  fontSize: '1rem'
+                }}
+                autoFocus
+              />
+            </label>
+
+            <label>
+              Description
+              <textarea
+                value={newTaskDescription}
+                onChange={e => setNewTaskDescription(e.target.value)}
+                placeholder="Enter task description..."
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  marginTop: 4,
+                  transition: 'border-color 0.2s',
+                  outline: 'none',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </label>
+
+            <label>
+              Estimated Time
+              <input
+                type="text"
+                value={newTaskEstimatedTime}
+                onChange={e => setNewTaskEstimatedTime(e.target.value)}
+                placeholder="e.g., 15m, 1h, 30m"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  border: '1px solid #444',
+                  background: '#191628',
+                  color: '#FFF1E7',
+                  marginTop: 4,
+                  transition: 'border-color 0.2s',
+                  outline: 'none',
+                  fontSize: '1rem'
+                }}
+              />
+            </label>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+            <button
+              onClick={handleCreateTask}
+              disabled={!newTaskTitle.trim()}
+              style={{
+                flex: 1,
+                padding: '0.75rem',
+                background: newTaskTitle.trim() ? '#EF8E81' : 'rgba(255, 255, 255, 0.1)',
+                color: '#FFF1E7',
+                border: 'none',
+                borderRadius: 8,
+                cursor: newTaskTitle.trim() ? 'pointer' : 'not-allowed',
+                fontSize: '1rem',
+                fontWeight: 600,
+                transition: 'all 0.2s'
+              }}
+            >
+              Create Task
+            </button>
+            <button
+              onClick={closeInteractiveTask}
+              style={{
+                padding: '0.75rem 1.5rem',
+                background: 'transparent',
+                color: '#FFF1E7',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 600,
+                transition: 'all 0.2s'
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     if (lower.includes('baseline metrics')) {
       return (
