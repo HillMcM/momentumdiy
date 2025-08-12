@@ -351,7 +351,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ].join('\n');
         const tasks = [
           { id: `${module.id}-w5-frequency`, title: 'Step 1: Choose your weekly posting frequency', description: 'Pick Beginner (3x) or Confident (4–5x) to fit your energy.', estimatedTime: '5m', isCompleted: false },
-          { id: `${module.id}-w5-schedule`, title: 'Step 3: Choose when you'll plan + post each week', description: 'Pick your content planning hour and scheduling habit.', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w5-schedule`, title: "Step 3: Choose when you'll plan + post each week", description: 'Pick your content planning hour and scheduling habit.', estimatedTime: '5m', isCompleted: false },
         ] as any;
         return { ...module, title: 'Your Weekly Social Plan', description: 'Simplified, systemized, and ready to roll.', content, tasks };
       }
