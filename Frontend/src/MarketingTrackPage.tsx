@@ -1501,9 +1501,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   // Define createTasksFromMarketingModule before it's used in useEffect
   const createTasksFromMarketingModule = useCallback((goal: MarketingGoal, module: MarketingModule, projectId: string) => {
     console.log('Creating tasks from marketing module:', { goal: goal.title, module: module.weekNumber, projectId });
-    // Calculate the next available task ID
-    const maxExistingId = Math.max(...tasks.map(t => parseInt(t.id) || 0), 0);
-    let nextTaskId = maxExistingId + 1;
     const createdTasks: Task[] = [];
     const updatedTasks: Task[] = [];
     module.tasks.forEach(marketingTask => {
@@ -1520,10 +1517,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         return;
       }
 
-      // 3) Create new task
-      const taskId = nextTaskId++;
+      // 3) Create new task - use the marketing task ID directly
       createdTasks.push({
-        id: taskId.toString(),
+        id: marketingTask.id, // Use the actual marketing task ID instead of generating a new one
         title: marketingTask.title,
         description: marketingTask.description,
         responsible: 'Hillary',
@@ -1534,6 +1530,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         status: 'todo' as const,
         marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: marketingTask.id },
         projectId: projectId
+      });
+      
+      console.log('Created task:', { 
+        taskId: marketingTask.id, 
+        title: marketingTask.title, 
+        marketingTaskId: marketingTask.id 
       });
     });
 
