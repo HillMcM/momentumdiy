@@ -1727,6 +1727,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       console.log('Current module:', currentModule ? { id: currentModule.id, title: currentModule.title } : 'not found');
       if (currentModule) {
         console.log('Module tasks:', currentModule.tasks.map(t => ({ id: t.id, title: t.title })));
+        console.log('Looking for task ID:', marketingTaskId);
+        console.log('Available task IDs:', currentModule.tasks.map(t => t.id));
       }
       return;
     }
