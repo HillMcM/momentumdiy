@@ -711,6 +711,41 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     setTimeout(() => setConfettiAt(0), 1500);
   };
 
+  // Local confetti burst on individual task completion
+  const burstConfettiAt = (x: number, y: number) => {
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '0px';
+    container.style.top = '0px';
+    container.style.width = '100vw';
+    container.style.height = '100vh';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '100000';
+    document.body.appendChild(container);
+    const colors = ['#EF8E81','#686DCA','#5ECD7D','#FF9D57'];
+    const pieces = 18;
+    for (let i = 0; i < pieces; i++) {
+      const piece = document.createElement('div');
+      piece.style.position = 'absolute';
+      piece.style.width = '8px';
+      piece.style.height = '8px';
+      piece.style.background = colors[i % colors.length];
+      piece.style.borderRadius = '2px';
+      piece.style.left = `${x}px`;
+      piece.style.top = `${y}px`;
+      const angle = (Math.PI * 2 * i) / pieces;
+      const distance = 50 + Math.random() * 40;
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance;
+      piece.animate([
+        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+        { transform: `translate(${dx}px, ${dy}px) rotate(${i * 40}deg)`, opacity: 0 }
+      ], { duration: 600 + Math.random() * 300, easing: 'ease-out' });
+      container.appendChild(piece);
+    }
+    setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 1000);
+  };
+
   // Guided Week Planner (UI-only for now)
   type PostType = 'Educate' | 'Promote' | 'Connect';
   const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'] as const;
@@ -1503,6 +1538,20 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>
                               Week Tasks
                             </h6>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try {
+                                  if (!activeGoal) return;
+                                  const projectId = getOrCreateProjectForGoal(activeGoal);
+                                  const m = withFallback(activeGoal, module);
+                                  createTasksFromMarketingModule(activeGoal, m, projectId);
+                                } catch {}
+                              }}
+                              style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                            >
+                              Create Tasks
+                            </button>
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '320px', overflowY: 'auto' }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
                             {module.tasks.map(task => (
@@ -1531,8 +1580,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     toggleTaskCompletion(activeGoal.id, module.id, task.id);
                                   }}
                                   style={{
-                                    width: '26px',
-                                    height: '26px',
+                                    width: '28px',
+                                    height: '28px',
                                     borderRadius: '50%',
                                     border: `2px solid ${task.isCompleted ? '#5ECD7D' : '#686DCA'}`,
                                     background: task.isCompleted ? '#5ECD7D' : 'transparent',
@@ -1543,14 +1592,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     flexShrink: 0,
                                     marginTop: '2px',
                                     padding: 0,
-                                    minWidth: '26px',
-                                    minHeight: '26px',
+                                    minWidth: '28px',
+                                    minHeight: '28px',
                                     boxShadow: task.isCompleted ? '0 0 0 6px rgba(94,205,125,0.15)' : 'none',
                                     transition: 'box-shadow 0.2s ease'
                                   }}
                                 >
                                   {task.isCompleted && (
-                                    <span style={{ color: '#22202F', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
+                                    <span style={{ color: '#22202F', fontSize: '16px', fontWeight: 'bold' }}>✓</span>
                                   )}
                                 </button>
                                 <div style={{ flex: 1 }}>
@@ -2510,7 +2559,20 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                               <h6 style={{ margin: 0, fontSize: '0.9rem', color: '#FFF1E7', fontWeight: 600 }}>
                                 Week Tasks
                               </h6>
-                              <div style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>Create Tasks</div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  try {
+                                    if (!activeGoal) return;
+                                    const projectId = getOrCreateProjectForGoal(activeGoal);
+                                    const m = withFallback(activeGoal, module);
+                                    createTasksFromMarketingModule(activeGoal, m, projectId);
+                                  } catch {}
+                                }}
+                                style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                              >
+                                Create Tasks
+                              </button>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto' }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
                               {module.tasks.map(task => (
@@ -2519,10 +2581,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       toggleTaskCompletion(activeGoal.id, module.id, task.id);
+                                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                      burstConfettiAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
                                     }}
                                     style={{
-                                      width: '18px',
-                                      height: '18px',
+                                      width: '22px',
+                                      height: '22px',
                                       borderRadius: '50%',
                                       border: `2px solid ${task.isCompleted ? '#5ECD7D' : '#686DCA'}`,
                                       background: task.isCompleted ? '#5ECD7D' : 'transparent',
@@ -2533,12 +2597,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                       flexShrink: 0,
                                       marginTop: '2px',
                                       padding: 0,
-                                      minWidth: '18px',
-                                      minHeight: '18px'
+                                      minWidth: '22px',
+                                      minHeight: '22px'
                                     }}
                                   >
                                     {task.isCompleted && (
-                                      <span style={{ color: '#22202F', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
+                                      <span style={{ color: '#22202F', fontSize: '12px', fontWeight: 'bold' }}>✓</span>
                                     )}
                                   </button>
                                   <div style={{ flex: 1 }}>
