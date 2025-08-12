@@ -1665,13 +1665,28 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const toggleTaskCompletion = (goalId: string, moduleId: string, taskId: string) => {
     console.log('toggleTaskCompletion called:', { goalId, moduleId, taskId });
     
-    // Find the current task to get its completion status
+    // Find the main task first to get the marketingTaskId
+    const mainTask = tasks.find(task => 
+      task.marketingTrack && 
+      task.marketingTrack.goalId === goalId && 
+      task.marketingTrack.moduleId === moduleId && 
+      task.id === taskId
+    );
+    
+    if (!mainTask || !mainTask.marketingTrack) {
+      console.error('Main task not found:', { goalId, moduleId, taskId });
+      return;
+    }
+    
+    const marketingTaskId = mainTask.marketingTrack.marketingTaskId;
+    
+    // Find the marketing goal task using the marketingTaskId
     const currentGoal = marketingGoals.find(g => g.id === goalId);
     const currentModule = currentGoal?.modules.find(m => m.id === moduleId);
-    const currentTask = currentModule?.tasks.find(t => t.id === taskId);
+    const currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
     
     if (!currentTask) {
-      console.error('Task not found:', { goalId, moduleId, taskId });
+      console.error('Marketing task not found:', { goalId, moduleId, marketingTaskId });
       return;
     }
     
@@ -1683,7 +1698,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         const updatedModules = goal.modules.map(module => {
           if (module.id === moduleId) {
             const updatedTasks = module.tasks.map(task => 
-              task.id === taskId ? { ...task, isCompleted: newCompletionStatus } : task
+              task.id === marketingTaskId ? { ...task, isCompleted: newCompletionStatus } : task
             );
             return { ...module, tasks: updatedTasks };
           }
@@ -1696,10 +1711,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     
     // Update main tasks state to sync with marketing goals
     const updatedTasks = tasks.map(task => {
-      if (task.marketingTrack && 
-          task.marketingTrack.goalId === goalId && 
-          task.marketingTrack.moduleId === moduleId && 
-          task.marketingTrack.marketingTaskId === taskId) {
+      if (task.id === taskId) {
         return { 
           ...task, 
           status: newCompletionStatus ? 'completed' as const : 'todo' as const 
@@ -1721,7 +1733,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     // Persist completion to backend; rollback if it fails
     (async () => {
       try {
-        const resp = await apiService.updateMarketingTaskCompletion(taskId, newCompletionStatus);
+        const resp = await apiService.updateMarketingTaskCompletion(marketingTaskId, newCompletionStatus);
         if (!resp.success) {
           console.error('Failed to persist marketing task completion:', resp.error);
           
