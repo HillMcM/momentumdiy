@@ -468,13 +468,35 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             '## Pro Tip',
             'Before we build momentum, we find where you\'re stuck. Visibility is step one. Let\'s get the full picture so we know what progress looks like.',
             '',
+            '## Online Presence Audit',
+            'Let\'s check how discoverable you are online:',
+            '- Google Business Profile: Is it claimed and accurate?',
+            '- Website: Does it reflect current hours, services, and offerings?',
+            '- Social Media: Are you posting consistently and engaging with locals?',
+            '- Online Reviews: What are people saying about finding you?',
+            '',
+            '## Baseline Metrics',
+            'Capture these numbers to track your progress:',
+            '- **Weekly Walk-ins**: Count how many people come in without an appointment',
+            '- **Google Views**: Monthly profile views from your Google Business Profile',
+            '- **Social Engagement**: Average likes/comments per post',
+            '- **Weekly Revenue**: Track weekly sales (optional but helpful)',
+            '',
+            '## Storefront & Signage Photos',
+            'Take photos from across the street to see what first-time visitors see:',
+            '- Storefront from across the street',
+            '- Window signage and displays',
+            '- Entryway and first impression',
+            '- Any outdoor seating or display areas',
+            '',
             '## How Your Marketing Assistant Can Help',
             'Ask your assistant to review your Google listing, signage, or website and suggest quick updates. They can also help you interpret or gather metrics and offer quick-win ideas.'
           ].join('\n');
           const tasks = [
-            { id: `${module.id}-w1-online`, title: 'Online Presence Audit', description: 'Let\'s check how discoverable you are online. Click to fill out the interactive audit form.', estimatedTime: '30m', isCompleted: false },
-            { id: `${module.id}-w1-baseline`, title: 'Baseline Metrics', description: 'Capture these numbers to track your progress. Click to fill out the metrics form.', estimatedTime: '15m', isCompleted: false },
-            { id: `${module.id}-w1-photo`, title: 'Storefront & Signage Photos', description: 'Take photos from across the street to see what first-time visitors see. Click to upload photos.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w1-online`, title: 'Audit Online Presence', description: 'Review Google Business Profile, website accuracy, and social media presence. Note what needs updating.', estimatedTime: '30m', isCompleted: false },
+            { id: `${module.id}-w1-signage`, title: 'Audit Physical Signage', description: 'Stand across the street: does signage clearly convey what you offer? Note upgrades needed.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w1-baseline`, title: 'Capture Baseline Metrics', description: 'Record weekly walk-ins, Google views, social engagement, and weekly revenue. This is your starting point.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w1-photo`, title: 'Upload Storefront Photos', description: 'Take and upload photos from across the street to see what first-time visitors see.', estimatedTime: '15m', isCompleted: false },
           ] as any;
           return { ...module, title: 'Audit Your Visibility', description: 'Where are people not seeing you? Build your visibility baseline.', content, tasks };
         }
@@ -1408,9 +1430,49 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 1000);
   };
 
-  // Social content planning removed for Local Foot Traffic track
-
-  // Social content planning removed for Local Foot Traffic track
+  // Guided Week Planner (UI-only for now)
+  type PostType = 'Educate' | 'Promote' | 'Connect';
+  const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'] as const;
+  type PlannerRow = { day: string; type: PostType; pillar: string; caption: string };
+  const defaultPlanner: PlannerRow[] = DAYS.map((d, idx) => ({
+    day: d,
+    type: (['Connect','Educate','Connect','Promote','Connect'] as PostType[])[idx],
+    pillar: (
+      [
+        'Behind the Scenes',
+        'Tip or FAQ',
+        'Personal Story',
+        'Product/Service Feature',
+        'Fun or Community Post'
+      ] as string[]
+    )[idx],
+    caption: ''
+  }));
+  const [planner, setPlanner] = useState<PlannerRow[]>(defaultPlanner);
+  // When Week 1 of Social track is active, enforce the fixed plan mapping
+  useEffect(() => {
+    if (!activeGoal) return;
+    const isSocial = activeGoal.title.toLowerCase().includes('improve social media');
+    if (!isSocial) return;
+    const currentWeek = activeGoal.currentWeek || 1;
+    if (currentWeek === 1) {
+    setPlanner(defaultPlanner);
+      return;
+    }
+    if (currentWeek === 2) {
+      const refinedWeek2: PlannerRow[] = [
+        { day: 'Monday', type: 'Connect', pillar: 'Personal Story / Behind the Scenes', caption: '' },
+        { day: 'Tuesday', type: 'Educate', pillar: 'Education / Products', caption: '' },
+        { day: 'Wednesday', type: 'Connect', pillar: 'Customer Love / Testimonial', caption: '' },
+        { day: 'Thursday', type: 'Promote', pillar: 'Offer or Product Feature', caption: '' },
+        { day: 'Friday', type: 'Connect', pillar: 'Community / Local / Fun', caption: '' },
+      ];
+      setPlanner(refinedWeek2);
+      return;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGoal?.id, activeGoal?.currentWeek]);
+  const [plannerMode, setPlannerMode] = useState<'beginner' | 'confident'>('beginner');
 
   // Week 2: content pillars selection (persist locally per-goal)
   const [contentPillarsByGoal, setContentPillarsByGoal] = useState<Record<string, string[]>>({});
@@ -2093,334 +2155,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         </div>
       );
     }
-    
-    // Week 1 Interactive Sections
-    if (lower.includes('online presence audit')) {
-      return (
-        <div>
-          <h2 style={{ marginTop: 0 }}>Online Presence Audit</h2>
-          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
-            Let's check how discoverable you are online. Fill out this audit to see where you're visible and where you might be invisible.
-          </p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Google Business Profile
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Is it claimed and accurate?
-                </div>
-              </label>
-              <textarea
-                placeholder="Describe the current state of your Google Business Profile..."
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Website
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Does it reflect current hours, services, and offerings?
-                </div>
-              </label>
-              <textarea
-                placeholder="Describe your website's current state..."
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Social Media
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Are you posting consistently and engaging with locals?
-                </div>
-              </label>
-              <textarea
-                placeholder="Describe your social media presence..."
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Online Reviews
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  What are people saying about finding you?
-                </div>
-              </label>
-              <textarea
-                placeholder="Summarize your current reviews and reputation..."
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
-            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
-          </div>
-        </div>
-      );
-    }
-
-    if (lower.includes('baseline metrics')) {
-      return (
-        <div>
-          <h2 style={{ marginTop: 0 }}>Baseline Metrics</h2>
-          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
-            Capture these numbers to track your progress over the next 12 weeks. This is your starting point!
-          </p>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Weekly Walk-ins
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Count how many people come in without an appointment
-                </div>
-              </label>
-              <input
-                type="number"
-                placeholder="0"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Google Views
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Monthly profile views from your Google Business Profile
-                </div>
-              </label>
-              <input
-                type="number"
-                placeholder="0"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Social Engagement
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Average likes/comments per post
-                </div>
-              </label>
-              <input
-                type="number"
-                placeholder="0"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Weekly Revenue
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Track weekly sales (optional but helpful)
-                </div>
-              </label>
-              <input
-                type="number"
-                placeholder="0"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
-            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
-          </div>
-        </div>
-      );
-    }
-
-    if (lower.includes('storefront') || lower.includes('signage photos')) {
-      return (
-        <div>
-          <h2 style={{ marginTop: 0 }}>Storefront & Signage Photos</h2>
-          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
-            Take photos from across the street to see what first-time visitors see. This helps you understand your store's first impression.
-          </p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Storefront from across the street
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Upload a photo showing your store from a distance
-                </div>
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Window signage and displays
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Upload photos of your window displays and signage
-                </div>
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Entryway and first impression
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Upload photos of your entryway and entrance area
-                </div>
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Any outdoor seating or display areas
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Upload photos of outdoor areas if applicable
-                </div>
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
-            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div>
         <h2 style={{ marginTop: 0 }}>{t.title}</h2>
@@ -3357,31 +3091,73 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                         <div style={{ gridColumn: '1 / -1' }}>
                           <div style={{ marginTop: '0.5rem', background: 'rgba(255,241,231,0.04)', border: '1px solid rgba(239,142,129,0.25)', borderRadius: 10, padding: '1rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                              <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 700 }}>Week Progress</h6>
+                              <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 700 }}>Social Content Plan</h6>
                               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>Focus Area</span>
-                                <span style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(239,142,129,0.2)', color: '#EF8E81', fontSize: '0.8rem' }}>Local Visibility</span>
-
+                                <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>Rhythm</span>
+                                <button onClick={()=> setPlannerMode('beginner')} disabled={plannerMode==='beginner'} style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: plannerMode==='beginner' ? '#EF8E81' : 'transparent', color: plannerMode==='beginner' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Beginner 3x</button>
+                                <button onClick={()=> setPlannerMode('confident')} disabled={plannerMode==='confident'} style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: plannerMode==='confident' ? '#EF8E81' : 'transparent', color: plannerMode==='confident' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Confident 5x</button>
                               </div>
                             </div>
-                            {/* Week Progress Summary */}
-                            <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>Tasks Completed</span>
-                                  <span style={{ color: '#EF8E81', fontWeight: 600, fontSize: '0.9rem' }}>
-                                    {module.tasks.filter(t => t.isCompleted).length} of {module.tasks.length}
-                                  </span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>Week Focus</span>
-                                  <span style={{ color: '#686DCA', fontWeight: 600, fontSize: '0.9rem' }}>Local Visibility</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>Next Steps</span>
-                                  <span style={{ color: '#5ECD7D', fontWeight: 600, fontSize: '0.9rem' }}>Complete remaining tasks</span>
-                                </div>
-                              </div>
+                            {/* Quick Wins removed per request */}
+                            {/* Planner Grid */}
+                              <div style={{ overflowX: 'hidden' }}>
+                               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, tableLayout: 'fixed' }}>
+                                <thead>
+                                  <tr style={{ textAlign: 'left', color: '#FFF1E7', opacity: 0.8 }}>
+                                    <th style={{ padding: '8px' }}>Day</th>
+                                    <th style={{ padding: '8px' }}>Type</th>
+                                    <th style={{ padding: '8px' }}>Pillar</th>
+                                    <th style={{ padding: '8px' }}>Caption (draft)</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {(plannerMode==='beginner' ? planner.filter(r => ['Monday','Wednesday','Friday'].includes(r.day)) : planner).map((row, idx) => (
+                                    <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
+                                      <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
+                                          <td style={{ padding: '8px', color: '#FFF1E7' }}>
+                                            {module.weekNumber >= 4 ? (
+                                              <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as any }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
+                                                <option value="Connect">Connect</option>
+                                                <option value="Educate">Educate</option>
+                                                <option value="Promote">Promote</option>
+                                              </select>
+                                            ) : (
+                                              <span>{row.type}</span>
+                                            )}
+                                          </td>
+                                      <td style={{ padding: '8px' }}>
+                                            {module.weekNumber >= 2 ? (
+                                              <select value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
+                                                {(contentPillarsByGoal[activeGoal.id] || DEFAULT_PILLAR_OPTIONS)
+                                                  .filter(p => (contentPillarsByGoal[activeGoal.id] || []).includes(p))
+                                                  .map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                  ))}
+                                                {(contentPillarsByGoal[activeGoal.id] || [])
+                                                  .filter(p => !DEFAULT_PILLAR_OPTIONS.includes(p))
+                                                  .map(opt => (
+                                                    <option key={`custom-${opt}`} value={opt}>{opt}</option>
+                                                  ))}
+                                              </select>
+                                            ) : (
+                                              <span style={{ color: '#FFF1E7' }}>{row.pillar}</span>
+                                            )}
+                                        </td>
+                                        <td style={{ padding: '8px' }}>
+                                          <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder={
+                                            module.weekNumber === 1 ? (
+                                              row.day === 'Monday' ? "Here's what we're working on this week…" :
+                                              row.day === 'Tuesday' ? "Answer a common customer question or give a useful tip" :
+                                              row.day === 'Wednesday' ? "Share why you started your business, or something you're proud of" :
+                                              row.day === 'Thursday' ? "Highlight 1 offer you love—describe it and invite people in" :
+                                              row.day === 'Friday' ? "Shout out a local business or share a light‑hearted moment" : 'Draft caption…'
+                                            ) : 'Draft caption…'
+                                          } style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
                             </div>
                           </div>
                         </div>
@@ -3918,79 +3694,45 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                     </p>
                     {/* Stage legend inline hint could be added here if needed */}
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log('Start Track button clicked for goal:', goal.title, 'shouldDisableTracks:', shouldDisableTracks);
-                        console.log('Button click event:', e);
-                        console.log('Goal details:', { id: goal.id, title: goal.title, isActive: goal.isActive });
-                        if (!shouldDisableTracks) {
-                          console.log('Calling startMarketingTrack...');
-                          startMarketingTrack(goal);
-                        } else {
-                          console.log('Track start disabled because shouldDisableTracks is true');
-                          console.log('Active goal causing disable:', activeGoal);
-                        }
-                      }}
-                      style={{
-                        padding: '0.75rem 1.5rem',
-                        background: shouldDisableTracks ? 'rgba(255, 255, 255, 0.1)' : '#EF8E81',
-                        color: '#FFF1E7',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: shouldDisableTracks ? 'not-allowed' : 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        transition: 'all 0.2s',
-                        opacity: shouldDisableTracks ? 0.5 : 1
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!shouldDisableTracks) {
-                          e.currentTarget.style.background = '#ffb09e';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!shouldDisableTracks) {
-                          e.currentTarget.style.background = '#EF8E81';
-                        }
-                      }}
-                    >
-                      {shouldDisableTracks ? '🔒 Locked' : 'Start Track'}
-                    </button>
-                    
-                    {/* View Track Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const trackPath = goal.title.toLowerCase().includes('foot traffic') || goal.title.toLowerCase().includes('local foot traffic') || goal.title.toLowerCase().includes('increase local foot traffic') || goal.title.toLowerCase().includes('improving local foot traffic')
-                          ? '/app/marketing-track/local-foot-traffic'
-                          : goal.title.toLowerCase().includes('social media') || goal.title.toLowerCase().includes('social media strategy') || goal.title.toLowerCase().includes('improve social media')
-                          ? '/app/marketing-track/social-media-strategy'
-                          : '/app/marketing-track';
-                        window.location.href = trackPath;
-                      }}
-                      style={{
-                        padding: '0.75rem 1.5rem',
-                        background: 'rgba(104,109,202,0.2)',
-                        color: '#686DCA',
-                        border: '1px solid rgba(104,109,202,0.3)',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(104,109,202,0.3)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(104,109,202,0.2)';
-                      }}
-                    >
-                      View Track
-                    </button>
-                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Start Track button clicked for goal:', goal.title, 'shouldDisableTracks:', shouldDisableTracks);
+                      console.log('Button click event:', e);
+                      console.log('Goal details:', { id: goal.id, title: goal.title, isActive: goal.isActive });
+                      if (!shouldDisableTracks) {
+                        console.log('Calling startMarketingTrack...');
+                        startMarketingTrack(goal);
+                      } else {
+                        console.log('Track start disabled because shouldDisableTracks is true');
+                        console.log('Active goal causing disable:', activeGoal);
+                      }
+                    }}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      background: shouldDisableTracks ? 'rgba(255, 255, 255, 0.1)' : '#EF8E81',
+                      color: '#FFF1E7',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: shouldDisableTracks ? 'not-allowed' : 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      transition: 'all 0.2s',
+                      opacity: shouldDisableTracks ? 0.5 : 1
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!shouldDisableTracks) {
+                        e.currentTarget.style.background = '#ffb09e';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!shouldDisableTracks) {
+                        e.currentTarget.style.background = '#EF8E81';
+                      }
+                    }}
+                  >
+                    {shouldDisableTracks ? '🔒 Locked' : 'Start Track'}
+                  </button>
                 </div>
               </div>
             ))}

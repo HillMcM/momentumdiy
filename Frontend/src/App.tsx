@@ -4,6 +4,7 @@ import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
 import MarketingTrackWidget from './MarketingTrackWidget';
 import MarketingTrackPage from './MarketingTrackPage';
+import { LocalFootTrafficTrack, SocialMediaStrategyTrack } from './marketing-tracks';
 import SocialProfileManager from './SocialProfileManager';
 import ProfilePage from './ProfilePage';
 import { useState, useEffect } from 'react';
@@ -708,6 +709,18 @@ function ProtectedApp() {
                 tasks={tasks}
                 projects={projects}
                 onProjectsChange={handleProjectsChange}
+              />
+            } />
+            <Route path="marketing-track/local-foot-traffic" element={
+              <LocalFootTrafficTrack 
+                marketingGoals={marketingGoals}
+                onMarketingGoalsChange={handleMarketingGoalsChange}
+              />
+            } />
+            <Route path="marketing-track/social-media-strategy" element={
+              <SocialMediaStrategyTrack 
+                marketingGoals={marketingGoals}
+                onMarketingGoalsChange={handleMarketingGoalsChange}
               />
             } />
             <Route
