@@ -1775,6 +1775,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       } : null
     })));
     
+    // Also log the full task objects to see their complete structure
+    console.log('Full main task objects:', tasks);
+    
     // Find the marketing goal task using the marketingTaskId
     const currentGoal = marketingGoals.find(g => g.id === goalId);
     const currentModule = currentGoal?.modules.find(m => m.id === moduleId);
