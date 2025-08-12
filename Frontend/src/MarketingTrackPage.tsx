@@ -1085,9 +1085,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         }
         case 12: {
           const content = buildContent(
-            'Hey There! You\'ve spent the last 12 weeks taking intentional steps to increase your local foot traffic. This week is about celebrating what you accomplished and setting a new intention to carry that momentum forward.',
-            'Compare your Week 1 baseline metrics to today\'s results. Reflect on what changed, what worked best, and what your next goal should be. Then create a thank you post celebrating everyone who helped make this journey possible.',
-            'Pro Tip: This week is about celebrating progress, not perfection. Every step forward counts! Ask your assistant to help compare your metrics, reflect on your journey, and craft a heartfelt thank you post to your community.'
+            'Measure your results, celebrate wins, and set your next 12‑week focus using the baseline from Week 1.',
+            'Compare to baseline, reflect on what worked, and plan your next quarter.',
+            'Ask your partner to help evaluate metrics, summarize the quarter, write a “Quarter in Review” post, and suggest a new goal.'
           );
           const tasks = [
             { id: `${module.id}-w12-remeasure`, title: 'Re‑measure Your Metrics', description: 'Record current weekly walk‑ins, Google views, social engagement, and revenue.', estimatedTime: '10m', isCompleted: false },
