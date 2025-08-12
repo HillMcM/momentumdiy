@@ -1720,15 +1720,29 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       // Extract the task title from the generated ID (e.g., '4dc2e4e4-0394-4d74-85f7-d039b959ac5a-w1-online' -> 'online')
       const taskTitleFromId = marketingTaskId.split('-').pop(); // Gets 'online' from the end
       
-      // Find task by title that contains this identifier
-      currentTask = currentModule.tasks.find(t => 
-        t.title.toLowerCase().includes(taskTitleFromId?.toLowerCase() || '') ||
-        t.title.toLowerCase().includes('online') ||
-        t.title.toLowerCase().includes('audit')
-      );
+      console.log('Trying title fallback with identifier:', taskTitleFromId);
+      
+      // Find task by title that contains this identifier or related keywords
+      currentTask = currentModule.tasks.find(t => {
+        const title = t.title.toLowerCase();
+        const identifier = taskTitleFromId?.toLowerCase() || '';
+        
+        // Check for exact matches or contains
+        if (title.includes(identifier)) return true;
+        
+        // Check for common variations
+        if (identifier === 'online' && (title.includes('google') || title.includes('website') || title.includes('social'))) return true;
+        if (identifier === 'audit' && (title.includes('review') || title.includes('check') || title.includes('sweep'))) return true;
+        if (identifier === 'baseline' && (title.includes('metrics') || title.includes('walk-ins') || title.includes('revenue'))) return true;
+        if (identifier === 'photos' && (title.includes('photo') || title.includes('signage') || title.includes('storefront'))) return true;
+        
+        return false;
+      });
       
       if (currentTask) {
         console.log('Found task by title fallback:', { id: currentTask.id, title: currentTask.title });
+      } else {
+        console.log('No task found by title fallback. Available titles:', currentModule.tasks.map(t => t.title));
       }
     }
     
