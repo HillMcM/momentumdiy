@@ -326,38 +326,9 @@ export default function SocialMediaStrategyTrack({
             <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', color: '#FFF1E7', fontWeight: 600 }}>
               Ready to Get Started?
             </h4>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>Rhythm</span>
-                <button 
-                  onClick={() => setPlannerMode('beginner')} 
-                  disabled={plannerMode === 'beginner'} 
-                  style={{ 
-                    padding: '0.3rem 0.6rem', 
-                    borderRadius: 999, 
-                    border: '1px solid rgba(255,255,255,0.15)', 
-                    background: plannerMode === 'beginner' ? '#686DCA' : 'transparent', 
-                    color: plannerMode === 'beginner' ? '#191628' : '#FFF1E7', 
-                    cursor: 'pointer' 
-                  }}
-                >
-                  Beginner 3x
-                </button>
-                <button 
-                  onClick={() => setPlannerMode('confident')} 
-                  disabled={plannerMode === 'confident'} 
-                  style={{ 
-                    padding: '0.3rem 0.6rem', 
-                    borderRadius: 999, 
-                    border: '1px solid rgba(255,255,255,0.15)', 
-                    background: plannerMode === 'confident' ? '#686DCA' : 'transparent', 
-                    color: plannerMode === 'confident' ? '#191628' : '#FFF1E7', 
-                    cursor: 'pointer' 
-                  }}
-                >
-                  Confident 5x
-                </button>
-              </div>
-            </div>
+            <p style={{ margin: '0 0 1rem 0', color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>
+              Go back to the overview and activate this track to begin your Social Media Strategy journey
+            </p>
 
             <button 
               onClick={() => navigate('/app/marketing-track')}
