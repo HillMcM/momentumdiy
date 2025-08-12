@@ -1,13 +1,11 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { MarketingGoal } from '../types';
-import { apiService } from '../services/api';
 
 
 
 interface SocialMediaStrategyTrackProps {
   marketingGoals: MarketingGoal[];
-  onMarketingGoalsChange: (goals: MarketingGoal[]) => void;
 }
 
 
@@ -15,8 +13,7 @@ interface SocialMediaStrategyTrackProps {
 
 
 export default function SocialMediaStrategyTrack({ 
-  marketingGoals, 
-  onMarketingGoalsChange 
+  marketingGoals
 }: SocialMediaStrategyTrackProps) {
 
   const navigate = useNavigate();
@@ -44,147 +41,9 @@ export default function SocialMediaStrategyTrack({
 
 
 
-  const renderInteractiveContentForTask = (t: { id: string; title: string; description: string } | null): React.ReactNode => {
-    if (!t) return null;
 
-    const lower = t.title.toLowerCase();
 
-    // Social Media specific interactive sections
-    if (lower.includes('content pillars') || lower.includes('choose your content pillars')) {
-      return (
-        <div>
-          <h2 style={{ marginTop: 0 }}>Choose Your Content Pillars</h2>
-          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem', marginBottom: '1rem' }}>
-            <div style={{ fontWeight: 700, color: '#FFF1E7', marginBottom: '0.25rem' }}>Why create content pillars?</div>
-            <p style={{ margin: 0, opacity: 0.85 }}>
-              Content pillars are the repeatable themes that shape your message. They give you clarity, make planning faster,
-              and help your audience understand what you stand for. Once you lock them, your weekly plan becomes plug‑and‑play.
-            </p>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Pillar 1
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Your main content theme
-                </div>
-              </label>
-              <input
-                placeholder="e.g., Behind the Scenes, Tips & Tricks, Customer Stories"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Pillar 2
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Your secondary content theme
-                </div>
-              </label>
-              <input
-                placeholder="e.g., Product Features, Industry Insights, Team Spotlights"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Pillar 3
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Your third content theme
-                </div>
-              </label>
-              <input
-                placeholder="e.g., Community Engagement, Local Events, Fun Facts"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button style={{ padding: '0.75rem 1.5rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(104,109,202,0.2)', color: '#686DCA', cursor: 'pointer' }}>Save Pillars</button>
-          </div>
-        </div>
-      );
-    }
-
-    if (lower.includes('plan this week') || lower.includes("plan this week's") || lower.includes('3 posts')) {
-      return (
-        <div>
-          <h2 style={{ marginTop: 0 }}>Plan This Week's Posts</h2>
-          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
-            We'll use three post types to keep things clear and consistent. Draft your captions below.
-          </p>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
-              <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Educate</div>
-              <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Teach something useful that relates to your product or service.</p>
-              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Example: "Answer a common customer question or give a useful tip related to your work."</div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
-              <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Connect</div>
-              <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Humanize your brand and build trust with small stories.</p>
-              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
-                Examples: "Here's what we're working on this week…", "Share why you started your business, or something you're proud of."
-              </div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
-              <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Promote</div>
-              <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Spotlight one offer and invite people to take the next step.</p>
-              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
-                Examples: "Highlight 1 offer you love—show it, describe it, and invite people in."
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button style={{ padding: '0.75rem 1.5rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(104,109,202,0.2)', color: '#686DCA', cursor: 'pointer' }}>Save Plan</button>
-          </div>
-        </div>
-      );
-    }
-
-    // Default fallback
-    return (
-      <div>
-        <h2 style={{ marginTop: 0 }}>{t.title}</h2>
-        <p style={{ opacity: 0.85 }}>{t.description}</p>
-        <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button style={{ padding: '0.75rem 1.5rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(104,109,202,0.2)', color: '#686DCA', cursor: 'pointer' }}>Mark In Progress</button>
-          <button style={{ padding: '0.75rem 1.5rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(94,205,125,0.2)', color: '#5ECD7D', cursor: 'pointer' }}>Completed</button>
-        </div>
-      </div>
-    );
-  };
-
-  if (!activeGoal || !currentModule) {
+  if (!activeGoal) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: '#FFF1E7' }}>
         <h2>Social Media Strategy Track Not Found</h2>
