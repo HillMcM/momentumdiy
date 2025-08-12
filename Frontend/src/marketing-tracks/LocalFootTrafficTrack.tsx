@@ -91,8 +91,8 @@ export default function LocalFootTrafficTrack({
     
     onProjectsChange([...projects, newProject]);
     
-    // Navigate to the marketing track page to see the activated track
-    navigate('/app/marketing-track');
+    // Stay on the current track page - the track is now active and content will update
+    // No navigation needed - user stays on /app/marketing-track/local-foot-traffic
   };
 
   // If no Local Foot Traffic goal is found, redirect to overview
@@ -118,6 +118,7 @@ export default function LocalFootTrafficTrack({
 
 
 
+  // If no goal found, show the start track CTA
   if (!activeGoal) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: '#FFF1E7' }}>
@@ -165,7 +166,7 @@ export default function LocalFootTrafficTrack({
               onClick={startLocalFootTrafficTrack}
               style={{ 
                 padding: '1rem 2rem', 
-                borderRadius: 8, 
+                borderRadius: '8', 
                 border: 'none', 
                 background: 'linear-gradient(135deg, #EF8E81, #E67E73)', 
                 color: '#FFF1E7', 
@@ -191,6 +192,9 @@ export default function LocalFootTrafficTrack({
       </div>
     );
   }
+
+  // If goal is found but not active, show the preview with start track CTA
+  if (!activeGoal.isActive) {
 
   return (
     <div className="widget" style={{ padding: '2rem', minHeight: '100vh', color: '#FFF1E7' }}>
@@ -393,8 +397,60 @@ export default function LocalFootTrafficTrack({
 
         </div>
       </div>
+    );
+  }
 
+  // If track is active, show the active track content
+  return (
+    <div className="widget" style={{ padding: '2rem', minHeight: '100vh', color: '#FFF1E7' }}>
+      {/* Header with back button */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+        <button 
+          onClick={() => navigate('/app/marketing-track')}
+          style={{ padding: '0.5rem 1rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#FFF1E7', cursor: 'pointer' }}
+        >
+          ← Back to Tracks
+        </button>
+        <div style={{ flex: 1 }}>
+          <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 700, color: '#FFF1E7' }}>
+            {activeGoal.title}
+          </h1>
+          <p style={{ margin: '0.5rem 0 0 0', color: '#FFF1E7', opacity: 0.7, fontSize: '1.1rem' }}>
+            {activeGoal.description}
+          </p>
+        </div>
+      </div>
 
+      {/* Active Track Status */}
+      <div style={{ 
+        marginBottom: '2rem', 
+        padding: '1.5rem', 
+        background: 'rgba(239, 142, 129, 0.1)', 
+        borderRadius: '12px', 
+        border: '1px solid rgba(239, 142, 129, 0.2)' 
+      }}>
+        <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#FFF1E7' }}>
+          🎯 Track Active - Week {activeGoal.currentWeek} of {activeGoal.duration}
+        </h2>
+        <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.8 }}>
+          Your Local Foot Traffic track is now active! You can view your progress and manage tasks from the main Marketing Track page.
+        </p>
+        <button 
+          onClick={() => navigate('/app/marketing-track')}
+          style={{ 
+            marginTop: '1rem',
+            padding: '0.75rem 1.5rem', 
+            borderRadius: 8, 
+            border: 'none', 
+            background: '#EF8E81', 
+            color: '#22202F', 
+            cursor: 'pointer',
+            fontWeight: 600
+          }}
+        >
+          Go to Marketing Track Dashboard
+        </button>
+      </div>
     </div>
   );
 }
