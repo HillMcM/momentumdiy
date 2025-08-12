@@ -1664,16 +1664,27 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   const toggleTaskCompletion = (goalId: string, moduleId: string, taskId: string) => {
     console.log('toggleTaskCompletion called:', { goalId, moduleId, taskId });
-    console.log('Current marketingGoals:', marketingGoals);
-    console.log('Current tasks:', tasks);
     
+    // Find the current task to get its completion status
+    const currentGoal = marketingGoals.find(g => g.id === goalId);
+    const currentModule = currentGoal?.modules.find(m => m.id === moduleId);
+    const currentTask = currentModule?.tasks.find(t => t.id === taskId);
+    
+    if (!currentTask) {
+      console.error('Task not found:', { goalId, moduleId, taskId });
+      return;
+    }
+    
+    const newCompletionStatus = !currentTask.isCompleted;
+    
+    // Update marketing goals state immediately for UI responsiveness
     const updatedGoals = marketingGoals.map(goal => {
       if (goal.id === goalId) {
         const updatedModules = goal.modules.map(module => {
           if (module.id === moduleId) {
-            console.log('Updating module:', module.id, 'task:', taskId);
-            const updatedTasks = module.tasks.map(task => task.id === taskId ? { ...task, isCompleted: !task.isCompleted } : task);
-            console.log('Updated tasks:', updatedTasks);
+            const updatedTasks = module.tasks.map(task => 
+              task.id === taskId ? { ...task, isCompleted: newCompletionStatus } : task
+            );
             return { ...module, tasks: updatedTasks };
           }
           return module;
@@ -1682,49 +1693,48 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       }
       return goal;
     });
-    console.log('Updated goals:', updatedGoals);
-    onMarketingGoalsChange(updatedGoals);
-
-    // If week now completed, celebrate
-    const g = updatedGoals.find(g => g.id === goalId);
-    const m = g?.modules.find(m => m.id === moduleId);
-    const toggledTask = m?.tasks.find(t => t.id === taskId);
-    if (m && m.tasks.length > 0 && m.tasks.every(t => t.isCompleted)) {
-      triggerConfetti();
-    }
+    
+    // Update main tasks state to sync with marketing goals
     const updatedTasks = tasks.map(task => {
-      if (task.marketingTrack && task.marketingTrack.goalId === goalId && task.marketingTrack.moduleId === moduleId && task.marketingTrack.marketingTaskId === taskId) {
-        console.log('Updating main task:', task.id, 'status to:', task.status === 'completed' ? 'todo' : 'completed');
-        return { ...task, status: task.status === 'completed' ? 'todo' as const : 'completed' as const };
+      if (task.marketingTrack && 
+          task.marketingTrack.goalId === goalId && 
+          task.marketingTrack.moduleId === moduleId && 
+          task.marketingTrack.marketingTaskId === taskId) {
+        return { 
+          ...task, 
+          status: newCompletionStatus ? 'completed' as const : 'todo' as const 
+        };
       }
       return task;
     });
-    console.log('Updated main tasks:', updatedTasks);
+    
+    // Update both states immediately for responsive UI
+    onMarketingGoalsChange(updatedGoals);
     onTasksChange(updatedTasks);
-
+    
+    // Check if week is now completed for celebration
+    const updatedModule = updatedGoals.find(g => g.id === goalId)?.modules.find(m => m.id === moduleId);
+    if (updatedModule && updatedModule.tasks.length > 0 && updatedModule.tasks.every(t => t.isCompleted)) {
+      triggerConfetti();
+    }
+    
     // Persist completion to backend; rollback if it fails
     (async () => {
       try {
-        if (!toggledTask) return;
-        const resp = await apiService.updateMarketingTaskCompletion(taskId, toggledTask.isCompleted);
+        const resp = await apiService.updateMarketingTaskCompletion(taskId, newCompletionStatus);
         if (!resp.success) {
           console.error('Failed to persist marketing task completion:', resp.error);
-          const rolledBackGoals = marketingGoals.map(goal => {
-            if (goal.id === goalId) {
-              return {
-                ...goal,
-                modules: goal.modules.map(module => module.id === moduleId
-                  ? { ...module, tasks: module.tasks.map(t => t.id === taskId ? { ...t, isCompleted: !toggledTask.isCompleted } : t) }
-                  : module
-                )
-              };
-            }
-            return goal;
-          });
-          onMarketingGoalsChange(rolledBackGoals);
+          
+          // Rollback both states on failure
+          onMarketingGoalsChange(marketingGoals);
+          onTasksChange(tasks);
         }
       } catch (err) {
         console.error('Error persisting marketing task completion:', err);
+        
+        // Rollback both states on error
+        onMarketingGoalsChange(marketingGoals);
+        onTasksChange(tasks);
       }
     })();
   };
@@ -2783,8 +2793,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     console.log('Checkbox clicked!', { taskId: task.id, taskTitle: task.title });
                                     e.stopPropagation();
                                     toggleTaskCompletion(activeGoal.id, module.id, task.id);
-                                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                                    burstConfettiAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
                                   }}
                                   style={{
                                     width: '28px',
