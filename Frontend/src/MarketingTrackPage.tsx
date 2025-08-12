@@ -1722,11 +1722,15 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     
     // Try to find the corresponding main task (accept base UUID if legacy id)
     const legacyBaseId = marketingTaskId.includes('-w') ? marketingTaskId.split('-w')[0] : null;
+    const resolvedMarketingTaskId = legacyBaseId || marketingTaskId;
+    
+    // Since we're using marketing task IDs as main task IDs, look for the task directly
     const mainTask = tasks.find(task => 
-      task.marketingTrack && 
-      task.marketingTrack.goalId === goalId && 
-      task.marketingTrack.moduleId === moduleId && 
-      (task.marketingTrack.marketingTaskId === marketingTaskId || (legacyBaseId !== null && task.marketingTrack.marketingTaskId === legacyBaseId))
+      task.id === resolvedMarketingTaskId ||
+      (task.marketingTrack && 
+       task.marketingTrack.goalId === goalId && 
+       task.marketingTrack.moduleId === moduleId && 
+       task.marketingTrack.marketingTaskId === resolvedMarketingTaskId)
     );
     mainTaskId = mainTask?.id || '';
     console.log('Found main task:', mainTask ? { id: mainTask.id, status: mainTask.status } : 'not found');
@@ -1788,6 +1792,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     // Update main tasks state to sync with marketing goals (only if we have a main task ID)
     const updatedTasks = tasks.map(task => {
       if (mainTaskId && task.id === mainTaskId) {
+        console.log('Updating main task status:', { taskId: task.id, oldStatus: task.status, newStatus: newCompletionStatus ? 'completed' : 'todo' });
         return { 
           ...task, 
           status: newCompletionStatus ? 'completed' as const : 'todo' as const 
@@ -1798,8 +1803,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     
     // Update both states immediately for responsive UI
     console.log('Updating states...');
+    console.log('Marketing goals update:', { updatedGoalsLength: updatedGoals.length, updatedModuleTasks: updatedGoals.find(g => g.id === goalId)?.modules.find(m => m.id === moduleId)?.tasks.map(t => ({ id: t.id, title: t.title, isCompleted: t.isCompleted })) });
     onMarketingGoalsChange(updatedGoals);
     if (mainTaskId) {
+      console.log('Main tasks update:', { updatedTasksLength: updatedTasks.length, updatedTask: updatedTasks.find(t => t.id === mainTaskId) });
       onTasksChange(updatedTasks);
     }
     // Also refresh local selections so the UI reflects new isCompleted values instantly
