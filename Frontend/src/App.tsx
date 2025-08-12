@@ -601,8 +601,7 @@ function ProtectedApp() {
           const response = await apiService.updateMarketingGoal(existingGoal.id, {
             isActive: existingGoal.isActive,
             currentWeek: existingGoal.currentWeek,
-            progress: existingGoal.progress,
-            modules: existingGoal.modules
+            progress: existingGoal.progress
           });
           
           if (!response.success) {

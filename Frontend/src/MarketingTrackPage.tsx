@@ -265,11 +265,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         'Posting rhythm: Beginner 3x (Mon/Wed/Fri) or Confident 5x (Mon–Fri).',
         '',
         'Example prompts to help draft your captions:',
-        '- Monday (Behind the Scenes): Here's what we're working on this week… (show workspace/product prep/plan)',
-        '- Tuesday (Tip or FAQ): Answer a common customer question or give a useful tip related to your work',
-        '- Wednesday (Personal Story): Share why you started your business, or something you're proud of',
-        '- Thursday (Product/Service Feature): Highlight 1 offer you love—show it, describe it, and invite people in',
-        '- Friday (Fun or Community): Shout out a local business, share a favorite spot, or post something light‑hearted'
+        "- Monday (Behind the Scenes): Here's what we're working on this week… (show workspace/product prep/plan)",
+        "- Tuesday (Tip or FAQ): Answer a common customer question or give a useful tip related to your work",
+        "- Wednesday (Personal Story): Share why you started your business, or something you're proud of",
+        "- Thursday (Product/Service Feature): Highlight 1 offer you love—show it, describe it, and invite people in",
+        "- Friday (Fun or Community): Shout out a local business, share a favorite spot, or post something light‑hearted"
       ].join('\n');
       const reducedTasks = [
         { id: `${module.id}-w1-baseline`, title: 'Save baseline metrics', description: 'Enter metrics for your main platform and save.', estimatedTime: '5m', isCompleted: false },
@@ -320,7 +320,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           '',
           'Step 2 — Visual Basics',
           '- Choose a heading font and a body font',
-          '- Pick 3–5 colors you'll use repeatedly',
+          "- Pick 3–5 colors you'll use repeatedly",
         ].join('\n');
         const tasks = [
           { id: `${module.id}-w3-style`, title: 'Step 1: Complete your mini style guide', description: 'Fill in voice, audience, adjectives, and brand promise.', estimatedTime: '10m', isCompleted: false },
@@ -415,30 +415,30 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         ].join('\n');
         const tasks = [
           { id: `${module.id}-w11-pick`, title: 'Step 1: Pick your campaign type', description: 'Story Poll/Quiz, Giveaway, Fun Feed Question, or Q&A', estimatedTime: '5m', isCompleted: false },
-          { id: `${module.id}-w11-promote`, title: 'Step 2: Promote it clearly', description: 'Tell people how to participate and when you'll announce results.', estimatedTime: '5m', isCompleted: false },
+          { id: `${module.id}-w11-promote`, title: 'Step 2: Promote it clearly', description: "Tell people how to participate and when you'll announce results.", estimatedTime: '5m', isCompleted: false },
         ] as any;
         return { ...module, title: 'Create a Mini Engagement Campaign', description: 'Fast, fun, and effective.', content, tasks };
       }
       if (module.weekNumber === 12) {
         const content = [
-          'This week: Reflect, celebrate, and plan what's next. Gather insights from the last 12 weeks and pick a simple 30‑day focus.',
+          "This week: Reflect, celebrate, and plan what's next. Gather insights from the last 12 weeks and pick a simple 30‑day focus.",
         ].join('\n');
         const tasks = [
           { id: `${module.id}-w12-reflect`, title: 'Step 1: Reflect on your progress', description: 'Answer prompts: What changed? What worked best? Keep/stop? Next social goal?', estimatedTime: '10m', isCompleted: false },
           { id: `${module.id}-w12-metrics`, title: 'Step 2: Check your metrics (optional)', description: 'Compare baseline to now: followers, engagement, story views, reach.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w12-plan`, title: 'Step 3: Set a 30‑day plan', description: 'Pick one focus for the next month and write a short plan.', estimatedTime: '10m', isCompleted: false },
         ] as any;
-        return { ...module, title: 'Celebrate + Plan What's Next', description: 'Review insights and pick your next 30‑day focus.', content, tasks };
+        return { ...module, title: "Celebrate + Plan What's Next", description: 'Review insights and pick your next 30‑day focus.', content, tasks };
       }
       // For all other weeks, replace long email content with concise template summary + prompts
       const concise = [
         `This week: ${module.title}.`,
         '',
         'Keep momentum with a clear rhythm (Beginner 3x or Confident 5x). Draft captions in your Social Content Plan using these prompts:',
-        '- Behind the Scenes: Here's what we're working on this week…',
+        "- Behind the Scenes: Here's what we're working on this week…",
         '- Tip or FAQ: Answer a common customer question or give a useful tip related to your work',
-        '- Personal Story: Share why you started your business, or something you're proud of',
-        '- Product/Service Feature: Highlight 1 offer you love—show it, describe it, and invite people in',
+        "- Personal Story: Share why you started your business, or something you're proud of",
+        "- Product/Service Feature: Highlight 1 offer you love—show it, describe it, and invite people in",
         '- Fun or Community: Shout out a local business, share a favorite spot, or post something light‑hearted'
       ].join('\n');
       return { ...module, content: concise };
@@ -1216,8 +1216,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     if (lower.includes('plan this week') || lower.includes("plan this week's") || lower.includes('3 posts')) {
       return (
         <div>
-          <h2 style={{ marginTop: 0 }}>Plan this week's posts</h2>
-          <p style={{ opacity: 0.85 }}>We'll use three post types to keep things clear and consistent. Draft your captions below in the Social Content Plan.</p>
+          <h2 style={{ marginTop: 0 }}>{"Plan this week's posts"}</h2>
+          <p style={{ opacity: 0.85 }}>{"We'll use three post types to keep things clear and consistent. Draft your captions below in the Social Content Plan."}</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
               <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Educate</div>
@@ -1227,12 +1227,16 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
               <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Connect</div>
               <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Humanize your brand and build trust with small stories.</p>
-              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Examples: "Here's what we're working on this week…", "Share why you started your business, or something you're proud of."</div>
+              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
+                {"Examples: \"Here's what we're working on this week…\", \"Share why you started your business, or something you're proud of.\""}
+              </div>
             </div>
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '0.9rem' }}>
               <div style={{ fontWeight: 700, color: '#FFF1E7' }}>Promote</div>
               <p style={{ margin: '0.25rem 0', opacity: 0.85 }}>Spotlight one offer and invite people to take the next step.</p>
-              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Examples: "Highlight 1 offer you love—show it, describe it, and invite people in." "Shout out a local business or share a light-hearted community post on Friday."</div>
+              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
+                {"Examples: \"Highlight 1 offer you love—show it, describe it, and invite people in.\" \"Shout out a local business or share a light-hearted community post on Friday.\""}
+              </div>
             </div>
           </div>
         </div>
@@ -1498,14 +1502,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 </div>
                                 <p style={{ margin: '0.25rem 0' }}>Welcome to your new quarter of <span style={{ fontStyle: 'italic' }}>Momentum Marketing!</span> 🎉</p>
                                 <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Over the next 12 weeks, we'll strengthen your social media presence by focusing on smart strategy, easy systems, and engaging content that reflects the heart of your business.</p>
-                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week we're kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress.</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>{"This week we're kicking off with a full audit of where you are now, plus a simple week‑long content plan you can follow to build consistency without stress."}</p>
                               </>
                             ) : module.weekNumber === 2 ? (
                               <>
                                 <div style={{ fontWeight: 700, marginBottom: 6 }}>{`Hi${profile?.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''},`}</div>
                                 <p style={{ margin: '0.25rem 0', opacity: 0.95 }}>One of the hardest parts of showing up consistently on social media is knowing <strong>what to say</strong>.</p>
-                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>This week, we're solving that by defining your <strong>Content Pillars</strong>—the 3–4 themes that represent your brand and connect with your audience. These become your "go‑to" buckets for content creation, making it easier to plan posts that feel intentional, not random.</p>
-                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>Once you've got your pillars, you'll also try a more <strong>strategy‑driven weekly content plan</strong> that builds from last week.</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>{"This week, we're solving that by defining your "}<strong>Content Pillars</strong>{"—the 3–4 themes that represent your brand and connect with your audience. These become your \"go‑to\" buckets for content creation, making it easier to plan posts that feel intentional, not random."}</p>
+                                <p style={{ margin: '0.25rem 0', opacity: 0.9 }}>{"Once you've got your pillars, you'll also try a more "}<strong>strategy‑driven weekly content plan</strong>{" that builds from last week."}</p>
                               </>
                             ) : (
                               <>
