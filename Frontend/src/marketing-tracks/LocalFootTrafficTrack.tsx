@@ -307,44 +307,7 @@ export default function LocalFootTrafficTrack({
             ))}
           </div>
 
-          {/* Call to Action */}
-          <div style={{ 
-            marginTop: '2rem', 
-            padding: '1.5rem', 
-            background: 'rgba(239, 142, 129, 0.1)', 
-            borderRadius: 10, 
-            border: '1px solid rgba(239, 142, 129, 0.2)',
-            textAlign: 'center'
-          }}>
-            <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', color: '#FFF1E7', fontWeight: 600 }}>
-              Ready to Get Started?
-            </h4>
-            <p style={{ margin: '0 0 1rem 0', color: '#FFF1E7', opacity: 0.8, fontSize: '0.9rem' }}>
-              Go back to the overview and activate this track to begin your Local Foot Traffic journey
-            </p>
-            <button 
-              onClick={() => navigate('/app/marketing-track')}
-              style={{ 
-                padding: '0.75rem 1.5rem', 
-                borderRadius: 8, 
-                border: 'none', 
-                background: '#EF8E81', 
-                color: '#22202F', 
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#ffb09e';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#EF8E81';
-              }}
-            >
-              Back to Marketing Tracks
-            </button>
-          </div>
+
         </div>
       </div>
 
