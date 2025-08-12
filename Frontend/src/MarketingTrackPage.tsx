@@ -1540,11 +1540,20 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     });
 
     if (createdTasks.length > 0 || updatedTasks.length > 0) {
+      console.log('Creating/updating tasks:', { 
+        created: createdTasks.map(t => ({ id: t.id, title: t.title, marketingTrack: t.marketingTrack })),
+        updated: updatedTasks.map(t => ({ id: t.id, title: t.title, marketingTrack: t.marketingTrack }))
+      });
+      
       const merged = tasks.map(t => {
         const upd = updatedTasks.find(u => u.id === t.id);
         return upd ? upd : t;
       });
-      onTasksChange([...merged, ...createdTasks]);
+      
+      const newTaskList = [...merged, ...createdTasks];
+      console.log('New task list:', newTaskList.map(t => ({ id: t.id, title: t.title, status: t.status, marketingTrack: t.marketingTrack })));
+      
+      onTasksChange(newTaskList);
       if (createdTasks.length > 0) {
         const updatedProjects = projects.map(project => {
           if (project.id === projectId) {
@@ -1555,6 +1564,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         });
         onProjectsChange(updatedProjects);
       }
+    } else {
+      console.log('No tasks created or updated for module:', { moduleId: module.id, moduleTitle: module.title });
     }
   }, [tasks, projects, marketingGoals, onTasksChange, onProjectsChange, onMarketingGoalsChange]);
 
@@ -1588,9 +1599,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   // Auto-sync: add unlocked week tasks to Kanban if missing
   useEffect(() => {
+    console.log('Auto-sync useEffect running:', { 
+      hasActiveGoal: !!activeGoal, 
+      activeGoalId: activeGoal?.id, 
+      currentWeek: activeGoal?.currentWeek,
+      tasksCount: tasks.length 
+    });
+    
     if (!activeGoal) return;
     const projectId = getOrCreateProjectForGoal(activeGoal);
     const unlockedModules = activeGoal.modules.filter(m => m.isUnlocked || m.weekNumber <= (activeGoal.currentWeek || 1));
+    
+    console.log('Unlocked modules:', unlockedModules.map(m => ({ id: m.id, weekNumber: m.weekNumber, title: m.title })));
     
     // Clean up old tasks with descriptive IDs and recreate them with correct UUIDs
     const oldTasksWithDescriptiveIds = tasks.filter(t => 
