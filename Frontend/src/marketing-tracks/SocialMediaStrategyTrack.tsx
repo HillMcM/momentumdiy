@@ -211,10 +211,10 @@ export default function SocialMediaStrategyTrack({
       {/* Track Overview Section */}
       <div style={{ marginBottom: '3rem' }}>
         <div style={{
-          background: 'linear-gradient(180deg, rgba(104,109,202,0.06), rgba(25,22,40,0.35))',
+          background: 'linear-gradient(180deg, rgba(239,142,129,0.06), rgba(25,22,40,0.35))',
           borderRadius: '16px',
           padding: '2rem',
-          border: '2px solid rgba(104, 109, 202, 0.25)',
+          border: '2px solid rgba(239, 142, 129, 0.25)',
           boxShadow: '0 10px 28px rgba(0,0,0,0.35)',
           position: 'relative',
           overflow: 'hidden'
@@ -244,7 +244,7 @@ export default function SocialMediaStrategyTrack({
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.borderColor = 'rgba(104, 109, 202, 0.3)';
+                  e.currentTarget.style.borderColor = 'rgba(239, 142, 129, 0.3)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
@@ -254,8 +254,8 @@ export default function SocialMediaStrategyTrack({
                 {/* Week Number Badge */}
                 <div style={{ 
                   display: 'inline-block',
-                  background: 'rgba(104, 109, 202, 0.2)',
-                  color: '#686DCA',
+                  background: 'rgba(239, 142, 129, 0.2)',
+                  color: '#EF8E81',
                   padding: '0.25rem 0.75rem',
                   borderRadius: '20px',
                   fontSize: '0.875rem',
@@ -292,7 +292,7 @@ export default function SocialMediaStrategyTrack({
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: '0.5rem',
-                  color: '#686DCA',
+                  color: '#EF8E81',
                   fontSize: '0.875rem',
                   fontWeight: 500
                 }}>
