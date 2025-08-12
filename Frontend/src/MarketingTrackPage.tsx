@@ -5,6 +5,7 @@ import type { MarketingGoal, MarketingModule, MarketingTask, Task, Project, Task
 // Removed mockData usage to avoid placeholder content
 import { apiService } from './services/api';
 import { supabase } from './lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 interface MarketingTrackPageProps {
   marketingGoals: MarketingGoal[];
@@ -16,6 +17,7 @@ interface MarketingTrackPageProps {
 }
 
 export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsChange, onTasksChange, tasks, projects, onProjectsChange }: MarketingTrackPageProps) {
+  const navigate = useNavigate();
   const [selectedGoal, setSelectedGoal] = useState<MarketingGoal | null>(null);
   const [selectedModule, setSelectedModule] = useState<MarketingModule | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -1737,6 +1739,16 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     if (firstModule) {
       createTasksFromMarketingModule(goal, firstModule, projectId.toString());
       createdModuleTasksRef.current.add(`${goal.id}:${firstModule.id}`);
+    }
+    
+    // Navigate to the dedicated track page after starting the track
+    if (goal.title.toLowerCase().includes('foot traffic') || goal.title.toLowerCase().includes('local foot traffic') || goal.title.toLowerCase().includes('increase local foot traffic') || goal.title.toLowerCase().includes('improving local foot traffic')) {
+      navigate('/app/marketing-track/local-foot-traffic');
+    } else if (goal.title.toLowerCase().includes('social media') || goal.title.toLowerCase().includes('social media strategy') || goal.title.toLowerCase().includes('improve social media')) {
+      navigate('/app/marketing-track/social-media-strategy');
+    } else {
+      // Fallback to overview page if track type is not recognized
+      navigate('/app/marketing-track');
     }
   };
 
