@@ -154,9 +154,9 @@ const SimpleTest: React.FC = () => {
                 </pre>
               </div>
             )}
-            {!result.success && result.data?.error && (
+            {!result.success && (result.data as any)?.error && (
               <div style={{ margin: '0.5rem 0', color: '#f87171' }}>
-                <strong>Error:</strong> {result.data.error}
+                <strong>Error:</strong> {(result.data as any).error}
               </div>
             )}
           </div>

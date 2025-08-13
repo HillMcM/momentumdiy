@@ -140,7 +140,7 @@ export default function SocialProfileManager({ marketingGoals }: Props) {
         <Card title="Templates">
           {templates.length ? (
             <ul>
-              {templates.map((t, i) => (
+              {templates.map((t: any, i) => (
                 <li key={i}><strong>{t.name || 'Untitled'}</strong> — {t.type || '—'} {t.canvaUrl ? (<a href={t.canvaUrl} target="_blank" rel="noreferrer">open</a>) : null}</li>
               ))}
             </ul>

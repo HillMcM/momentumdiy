@@ -60,7 +60,7 @@ export default function ProjectTrackerPage({ projects, tasks, onProjectsChange }
     if (editingProject) {
       setEditingProject({
         ...editingProject,
-        [field]: field === 'deadline' && value ? value.toISOString() : value
+        [field]: field === 'deadline' && value ? (value instanceof Date ? value.toISOString() : value) : value
       });
     }
   };

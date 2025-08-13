@@ -76,23 +76,23 @@ const TestPage: React.FC = () => {
     return (
       <div key={name} className="test-result">
         <h4>{name}</h4>
-        <div className={`status ${result.success ? 'success' : 'error'}`}>
-          {result.success ? '✅ Success' : '❌ Failed'}
+        <div className={`status ${(result as any).success ? 'success' : 'error'}`}>
+          {(result as any).success ? '✅ Success' : '❌ Failed'}
         </div>
-        {result.success && result.data && (
+        {(result as any).success && (result as any).data && (
           <div className="data-preview">
             <strong>Data Preview:</strong>
-            <pre>{JSON.stringify(result.data, null, 2).substring(0, 200)}...</pre>
+            <pre>{JSON.stringify((result as any).data, null, 2).substring(0, 200)}...</pre>
           </div>
         )}
-        {result.message && (
+        {(result as any).message && (
           <div className="message">
-            <strong>Message:</strong> {result.message}
+            <strong>Message:</strong> {(result as any).message}
           </div>
         )}
-        {!result.success && result.error && (
+        {!(result as any).success && (result as any).error && (
           <div className="error-message">
-            <strong>Error:</strong> {result.error}
+            <strong>Error:</strong> {(result as any).error}
           </div>
         )}
       </div>

@@ -16,9 +16,12 @@ import type {
 } from '../types';
 
 // Prefer explicit env at build time; fall back to heuristics
-const fromEnv = (typeof import.meta !== 'undefined' && (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env && (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env.VITE_API_BASE_URL)
-  ? (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env.VITE_API_BASE_URL as string
-  : '';
+const fromEnv = (() => {
+  if (typeof import.meta === 'undefined') return '';
+  const meta = import.meta as { env?: { VITE_API_BASE_URL?: string } };
+  if (!meta.env) return '';
+  return meta.env.VITE_API_BASE_URL || '';
+})();
 
 function isLocalHost(hostname: string | undefined): boolean {
   if (!hostname) return false;
