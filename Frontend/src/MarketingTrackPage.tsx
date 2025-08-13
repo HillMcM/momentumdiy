@@ -1720,6 +1720,46 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     return () => clearInterval(interval);
   }, [activeGoal, marketingGoals, onMarketingGoalsChange, projects, onProjectsChange, currentTime, createTasksFromMarketingModule]);
 
+  // Keep module task completion in sync with main task statuses on navigation/rerender
+  useEffect(() => {
+    if (!activeGoal || marketingGoals.length === 0 || tasks.length === 0) return;
+    const normalized = (s: string) => s.trim().toLowerCase();
+    let anyChanged = false;
+    const nextGoals = marketingGoals.map(g => {
+      if (g.id !== activeGoal.id) return g;
+      let goalChanged = false;
+      const updatedModules = g.modules.map(mod => {
+        let moduleChanged = false;
+        const updatedTasks = mod.tasks.map(mt => {
+          const main = tasks.find(t => t.marketingTrack &&
+            t.marketingTrack.goalId === g.id &&
+            t.marketingTrack.moduleId === mod.id &&
+            (t.marketingTrack.marketingTaskId === mt.id || normalized(t.title) === normalized(mt.title))
+          );
+          const shouldBeCompleted = main ? (main.status === 'completed') : mt.isCompleted;
+          if (shouldBeCompleted !== mt.isCompleted) {
+            moduleChanged = true;
+            return { ...mt, isCompleted: shouldBeCompleted };
+          }
+          return mt;
+        });
+        if (moduleChanged) {
+          goalChanged = true;
+          return { ...mod, tasks: updatedTasks };
+        }
+        return mod;
+      });
+      if (goalChanged) {
+        anyChanged = true;
+        return { ...g, modules: updatedModules };
+      }
+      return g;
+    });
+    if (anyChanged) {
+      onMarketingGoalsChange(nextGoals);
+    }
+  }, [activeGoal?.id, tasks, marketingGoals, onMarketingGoalsChange]);
+
   const handleGoalSelect = (goal: MarketingGoal) => {
     if (selectedGoal?.id === goal.id) {
       setSelectedGoal(null);
