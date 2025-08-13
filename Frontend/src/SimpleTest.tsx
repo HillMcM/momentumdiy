@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const SimpleTest: React.FC = () => {
-  const [results, setResults] = useState<any>({});
+  const [results, setResults] = useState<Record<string, { success: boolean; data: unknown; status: number }>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
@@ -18,7 +18,7 @@ const SimpleTest: React.FC = () => {
       });
       const data = await response.json();
       
-      setResults((prev: any) => ({ 
+      setResults((prev) => ({ 
         ...prev, 
         [name]: { 
           success: response.ok, 
@@ -119,7 +119,7 @@ const SimpleTest: React.FC = () => {
 
       <div style={{ marginTop: '2rem' }}>
         <h3 style={{ color: '#ffffff' }}>Test Results</h3>
-        {Object.entries(results).map(([name, result]: [string, any]) => (
+        {Object.entries(results).map(([name, result]) => (
           <div key={name} style={{
             border: '1px solid #444',
             borderRadius: '8px',

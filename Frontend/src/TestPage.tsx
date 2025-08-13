@@ -3,15 +3,15 @@ import apiService from './services/api';
 
 const TestPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<Record<string, any>>({});
+  const [results, setResults] = useState<Record<string, { success?: boolean; data?: unknown; message?: string; error?: string }>>({});
   const [error, setError] = useState<string>('');
 
-  const testEndpoint = async (name: string, testFn: () => Promise<any>) => {
+  const testEndpoint = async (name: string, testFn: () => Promise<unknown>) => {
     setLoading(true);
     setError('');
     try {
       const result = await testFn();
-      setResults(prev => ({ ...prev, [name]: result }));
+      setResults(prev => ({ ...prev, [name]: result as { success?: boolean; data?: unknown; message?: string; error?: string } }));
       console.log(`${name} result:`, result);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -70,7 +70,7 @@ const TestPage: React.FC = () => {
     await testEndpoint('Create Calendar Event', () => apiService.createCalendarEvent(testEvent));
   };
 
-  const renderResult = (name: string, result: any) => {
+  const renderResult = (name: string, result: unknown) => {
     if (!result) return null;
     
     return (

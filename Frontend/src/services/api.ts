@@ -16,8 +16,8 @@ import type {
 } from '../types';
 
 // Prefer explicit env at build time; fall back to heuristics
-const fromEnv = (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_BASE_URL)
-  ? (import.meta as any).env.VITE_API_BASE_URL as string
+const fromEnv = (typeof import.meta !== 'undefined' && (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env && (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env.VITE_API_BASE_URL)
+  ? (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env.VITE_API_BASE_URL as string
   : '';
 
 function isLocalHost(hostname: string | undefined): boolean {
@@ -67,13 +67,13 @@ class ApiService {
             await new Promise(res => setTimeout(res, isFinite(retryAfterMs) ? retryAfterMs : 1000));
             return attempt(triesLeft - 1);
           }
-          const message = (data as any)?.error || `HTTP error! status: ${response.status}`;
+          const message = (data as { error?: string })?.error || `HTTP error! status: ${response.status}`;
           throw new Error(message);
         }
 
         return data as ApiResponse<T>;
       } catch (error) {
-        if (retryOn429 && triesLeft > 0 && (error as any)?.message?.includes('Too many requests')) {
+        if (retryOn429 && triesLeft > 0 && (error as { message?: string })?.message?.includes('Too many requests')) {
           await new Promise(res => setTimeout(res, 1000 * Math.pow(2, 3 - triesLeft)));
           return attempt(triesLeft - 1);
         }
@@ -219,22 +219,22 @@ class ApiService {
   }
 
   // Notion sync endpoints
-  async syncMarketingFromNotion(payload: { databaseId?: string; url?: string; title?: string } = {}): Promise<ApiResponse<any>> {
-    return this.request<any>('/marketing/sync-notion', {
+  async syncMarketingFromNotion(payload: { databaseId?: string; url?: string; title?: string } = {}): Promise<ApiResponse<unknown>> {
+    return this.request<unknown>('/marketing/sync-notion', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   }
 
-  async syncMarketingFromContainer(payload: { url: string }): Promise<ApiResponse<any>> {
-    return this.request<any>('/marketing/sync-notion/container', {
+  async syncMarketingFromContainer(payload: { url: string }): Promise<ApiResponse<unknown>> {
+    return this.request<unknown>('/marketing/sync-notion/container', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   }
 
-  async syncMarketingGoalFromPage(payload: { title: string; url: string }): Promise<ApiResponse<any>> {
-    return this.request<any>('/marketing/sync-notion/goal', {
+  async syncMarketingGoalFromPage(payload: { title: string; url: string }): Promise<ApiResponse<unknown>> {
+    return this.request<unknown>('/marketing/sync-notion/goal', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
@@ -286,12 +286,12 @@ class ApiService {
   }
 
   // Profile API methods
-  async getBaselineMetrics(): Promise<ApiResponse<any>> {
-    return this.request<any>('/profile/baseline-metrics');
+  async getBaselineMetrics(): Promise<ApiResponse<unknown>> {
+    return this.request<unknown>('/profile/baseline-metrics');
   }
 
-  async saveBaselineMetrics(payload: { platform?: string; followers?: number; avgLikes?: number; avgComments?: number; avgStoryViews?: number; platforms?: Record<string, { followers?: number; avgLikes?: number; avgComments?: number; avgStoryViews?: number; }>; }): Promise<ApiResponse<any>> {
-    return this.request<any>('/profile/baseline-metrics', {
+  async saveBaselineMetrics(payload: { platform?: string; followers?: number; avgLikes?: number; avgComments?: number; avgStoryViews?: number; platforms?: Record<string, { followers?: number; avgLikes?: number; avgComments?: number; avgStoryViews?: number; }>; }): Promise<ApiResponse<unknown>> {
+    return this.request<unknown>('/profile/baseline-metrics', {
       method: 'POST',
       body: JSON.stringify(payload),
     });

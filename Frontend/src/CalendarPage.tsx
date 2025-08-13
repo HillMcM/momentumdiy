@@ -21,7 +21,7 @@ export default function CalendarPage({ tasks, projects, customEvents, onCustomEv
   const [view, setView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'>('dayGridMonth');
   const [creatingEvent, setCreatingEvent] = useState<{ start: string; end: string } | null>(null);
   const [quickEvent, setQuickEvent] = useState<{ start: string; end: string } | null>(null);
-  const [calendarRef, setCalendarRef] = useState<any>(null);
+  const [calendarRef, setCalendarRef] = useState<{ getApi: () => { view: { type: string }; changeView: (view: string) => void } } | null>(null);
   const events = useMemo(() => getCalendarEvents(tasks, projects, customEvents), [tasks, projects, customEvents]);
 
   // Handle view changes
@@ -34,7 +34,7 @@ export default function CalendarPage({ tasks, projects, customEvents, onCustomEv
     }
   }, [view, calendarRef]);
 
-  const handleDateSelect = (selectInfo: any) => {
+  const handleDateSelect = (selectInfo: { startStr: string; endStr: string }) => {
     // For month view, we want to create an all-day event on the selected date
     if (view === 'dayGridMonth') {
       const selectedDate = new Date(selectInfo.startStr);
@@ -52,7 +52,7 @@ export default function CalendarPage({ tasks, projects, customEvents, onCustomEv
     }
   };
 
-  const handleEventClick = (clickInfo: any) => {
+  const handleEventClick = (clickInfo: { event: { id: string } }) => {
     const calEvent = events.find(e => e.id === clickInfo.event.id);
     if (calEvent) onEventClick(calEvent);
   };

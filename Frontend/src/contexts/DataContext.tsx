@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useState, useEffect, type ReactNode } from 'react';
 import { DatabaseService } from '../services/database';
 import type { 
   Task, 
@@ -82,13 +82,7 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export const useData = () => {
-  const context = useContext(DataContext);
-  if (context === undefined) {
-    throw new Error('useData must be used within a DataProvider');
-  }
-  return context;
-};
+
 
 interface DataProviderProps {
   children: ReactNode;
@@ -119,11 +113,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
       const [
         tasksData,
-        projectsData,
         marketingGoalsData,
         marketingModulesData,
         marketingTasksData,
-        calendarEventsData,
         assetsData,
         assetCategoriesData,
         brandingKitsData,
@@ -132,11 +124,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         activeGoalData
       ] = await Promise.all([
         DatabaseService.getTasks(),
-        DatabaseService.getProjects(),
         DatabaseService.getMarketingGoals(),
         DatabaseService.getMarketingModules(),
         DatabaseService.getMarketingTasks(),
-        DatabaseService.getCalendarEvents(),
         DatabaseService.getAssets(),
         DatabaseService.getAssetCategories(),
         DatabaseService.getBrandingKits(),
@@ -146,11 +136,11 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       ]);
 
       setTasks(tasksData);
-      setProjects(projectsData);
+      setProjects([]); // DISABLED: Projects feature deactivated
       setMarketingGoals(marketingGoalsData);
       setMarketingModules(marketingModulesData);
       setMarketingTasks(marketingTasksData);
-      setCalendarEvents(calendarEventsData);
+      setCalendarEvents([]); // DISABLED: Calendar feature deactivated
       setAssets(assetsData);
       setAssetCategories(assetCategoriesData);
       setBrandingKits(brandingKitsData);

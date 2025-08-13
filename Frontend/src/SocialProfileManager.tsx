@@ -9,18 +9,18 @@ export default function SocialProfileManager({ marketingGoals }: Props) {
 
   // Load pieces saved during the track
   const [pillars, setPillars] = useState<string[]>([]);
-  const [styleGuide, setStyleGuide] = useState<any>(null);
-  const [typography, setTypography] = useState<any>(null);
+  const [styleGuide, setStyleGuide] = useState<{ voice?: string; audience?: string; adjectives?: string; brandPromise?: string } | null>(null);
+  const [typography, setTypography] = useState<{ headingFont?: string; bodyFont?: string } | null>(null);
   const [palette, setPalette] = useState<string[]>([]);
-  const [postTypes, setPostTypes] = useState<any>(null);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [bio, setBio] = useState<any>(null);
-  const [links, setLinks] = useState<any[]>([]);
-  const [highlights, setHighlights] = useState<any[]>([]);
-  const [baseline, setBaseline] = useState<any>(null);
-  const [currentMetrics, setCurrentMetrics] = useState<any>(null);
-  const [reflection, setReflection] = useState<any>(null);
-  const [plan30, setPlan30] = useState<any>(null);
+  const [postTypes, setPostTypes] = useState<{ educate?: { angle?: string }; promote?: { angle?: string }; connect?: { angle?: string } } | null>(null);
+  const [templates, setTemplates] = useState<unknown[]>([]);
+  const [bio, setBio] = useState<{ what?: string; location?: string; cta?: string } | null>(null);
+  const [links, setLinks] = useState<{ label?: string; url?: string }[]>([]);
+  const [highlights, setHighlights] = useState<{ title?: string }[]>([]);
+  const [baseline, setBaseline] = useState<unknown>(null);
+  const [currentMetrics, setCurrentMetrics] = useState<unknown>(null);
+  const [reflection, setReflection] = useState<unknown>(null);
+  const [plan30, setPlan30] = useState<unknown>(null);
 
   useEffect(() => {
     const load = (key: string) => {
@@ -42,14 +42,14 @@ export default function SocialProfileManager({ marketingGoals }: Props) {
     setPlan30(wk12?.plan || null);
   }, [goalId]);
 
-  const Card = ({ title, children }: { title: string; children: any }) => (
+  const Card = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div style={{ background: '#23233a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '1rem' }}>
       <h3 style={{ marginTop: 0, color: '#FFF1E7' }}>{title}</h3>
       <div style={{ color: '#FFF1E7' }}>{children}</div>
     </div>
   );
 
-  const Label = ({ children }: any) => <span style={{ fontWeight: 700, color: '#FFF1E7' }}>{children}</span>;
+  const Label = ({ children }: { children: React.ReactNode }) => <span style={{ fontWeight: 700, color: '#FFF1E7' }}>{children}</span>;
 
   return (
     <div className="widget" style={{ padding: '1rem', borderRadius: 12 }}>
