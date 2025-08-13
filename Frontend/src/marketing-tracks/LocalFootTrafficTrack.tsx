@@ -26,19 +26,19 @@ export default function LocalFootTrafficTrack({
 }: LocalFootTrafficTrackProps) {
   const navigate = useNavigate();
   
-  // Generate tasks for a module based on its content and week number
+  // Generate tasks for a module based on the real database structure
   const generateTasksForModule = (module: any, goal: any) => {
     const weekNumber = module.weekNumber;
     const moduleId = module.id;
     
-    // Generate tasks based on the Local Foot Traffic track structure
+    // Generate tasks based on the actual Local Foot Traffic track structure from the database
     switch (weekNumber) {
-      case 1: // Audit Visibility
+      case 1: // Audit Visibility - 3 tasks
         return [
           {
-            id: `${moduleId}-w1-audit-online`,
-            title: 'Audit Online Presence',
-            description: 'Review Google Business Profile, website accuracy, and social media presence',
+            id: `${moduleId}-w1-online`,
+            title: 'Online Presence Audit',
+            description: 'Review and assess your current online presence across all platforms',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -46,25 +46,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w1-audit-online` }
-          },
-          {
-            id: `${moduleId}-w1-audit-signage`,
-            title: 'Audit Physical Signage',
-            description: 'Stand across the street: does signage clearly convey what you offer?',
-            responsible: 'Hillary',
-            deadline: null,
-            project: goal.title,
-            timeSpent: '',
-            notifications: false,
-            status: 'todo' as const,
-            projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w1-audit-signage` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w1-online` }
           },
           {
             id: `${moduleId}-w1-baseline`,
-            title: 'Capture Baseline Metrics',
-            description: 'Record weekly walk-ins, Google views, social engagement, and weekly revenue',
+            title: 'Baseline Metrics',
+            description: 'Establish current performance metrics and benchmarks',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -76,8 +63,8 @@ export default function LocalFootTrafficTrack({
           },
           {
             id: `${moduleId}-w1-photos`,
-            title: 'Upload Storefront Photos',
-            description: 'Take and upload photos from across the street to see what first-time visitors see',
+            title: 'Storefront & Signage Photos',
+            description: 'Document current storefront appearance and signage',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -88,12 +75,12 @@ export default function LocalFootTrafficTrack({
             marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w1-photos` }
           }
         ];
-      case 2: // Content Strategy
+      case 2: // Content Strategy - 3 tasks
         return [
           {
-            id: `${moduleId}-w2-content-pillars`,
-            title: 'Define Content Pillars',
-            description: 'Choose 3-4 brand-aligned content themes for consistent messaging',
+            id: `${moduleId}-w2-content`,
+            title: 'Content Pillars',
+            description: 'Define your core content themes and messaging',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -101,12 +88,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w2-content-pillars` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w2-content` }
           },
           {
-            id: `${moduleId}-w2-posting-plan`,
-            title: 'Create Posting Schedule',
-            description: 'Develop a weekly content calendar with specific themes for each day',
+            id: `${moduleId}-w2-calendar`,
+            title: 'Content Calendar',
+            description: 'Create your posting schedule and content plan',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -114,28 +101,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w2-posting-plan` }
-          }
-        ];
-      case 3: // Social Media Setup
-        return [
-          {
-            id: `${moduleId}-w3-profile-optimization`,
-            title: 'Optimize Social Profiles',
-            description: 'Update profile photos, bios, and links across all social platforms',
-            responsible: 'Hillary',
-            deadline: null,
-            project: goal.title,
-            timeSpent: '',
-            notifications: false,
-            status: 'todo' as const,
-            projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w3-profile-optimization` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w2-calendar` }
           },
           {
-            id: `${moduleId}-w3-content-batch`,
-            title: 'Create Content Batch',
-            description: 'Develop 2 weeks worth of content following your content pillars',
+            id: `${moduleId}-w2-templates`,
+            title: 'Content Templates',
+            description: 'Develop reusable templates for consistent posting',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -143,15 +114,15 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w3-content-batch` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w2-templates` }
           }
         ];
-      case 4: // Local SEO & Google
+      case 3: // Social Media Setup - 3 tasks
         return [
           {
-            id: `${moduleId}-w4-google-business`,
-            title: 'Optimize Google Business Profile',
-            description: 'Update hours, services, photos, and respond to reviews',
+            id: `${moduleId}-w3-profiles`,
+            title: 'Profile Optimization',
+            description: 'Optimize all social media profiles for local SEO',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -159,12 +130,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w4-google-business` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w3-profiles` }
           },
           {
-            id: `${moduleId}-w4-local-keywords`,
-            title: 'Research Local Keywords',
-            description: 'Identify location-based search terms your customers use',
+            id: `${moduleId}-w3-strategy`,
+            title: 'Platform Strategy',
+            description: 'Develop platform-specific content strategies',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -172,28 +143,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w4-local-keywords` }
-          }
-        ];
-      case 5: // Community Engagement
-        return [
-          {
-            id: `${moduleId}-w5-local-research`,
-            title: 'Research Local Community',
-            description: 'Identify local events, groups, and influencers in your area',
-            responsible: 'Hillary',
-            deadline: null,
-            project: goal.title,
-            timeSpent: '',
-            notifications: false,
-            status: 'todo' as const,
-            projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w5-local-research` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w3-strategy` }
           },
           {
-            id: `${moduleId}-w5-engagement-plan`,
-            title: 'Create Engagement Plan',
-            description: 'Plan how to participate in local community events and discussions',
+            id: `${moduleId}-w3-automation`,
+            title: 'Posting Automation',
+            description: 'Set up automated posting and scheduling tools',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -201,15 +156,15 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w5-engagement-plan` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w3-automation` }
           }
         ];
-      case 6: // Paid Local Advertising
+      case 4: // Local SEO & Google - 2 tasks
         return [
           {
-            id: `${moduleId}-w6-ad-strategy`,
-            title: 'Develop Ad Strategy',
-            description: 'Create targeted local advertising campaigns for your audience',
+            id: `${moduleId}-w4-seo`,
+            title: 'Local SEO Audit',
+            description: 'Conduct comprehensive local SEO audit',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -217,12 +172,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w6-ad-strategy` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w4-seo` }
           },
           {
-            id: `${moduleId}-w6-ad-setup`,
-            title: 'Setup Ad Campaigns',
-            description: 'Launch Facebook/Google ads targeting local customers',
+            id: `${moduleId}-w4-google`,
+            title: 'Google Business Optimization',
+            description: 'Optimize Google Business Profile',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -230,15 +185,15 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w6-ad-setup` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w4-google` }
           }
         ];
-      case 7: // Partnership Marketing
+      case 5: // Community Engagement - 2 tasks
         return [
           {
-            id: `${moduleId}-w7-partner-research`,
-            title: 'Research Local Partners',
-            description: 'Identify complementary businesses for cross-promotion opportunities',
+            id: `${moduleId}-w5-community`,
+            title: 'Community Outreach',
+            description: 'Identify and engage with local community leaders',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -246,12 +201,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w7-partner-research` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w5-community` }
           },
           {
-            id: `${moduleId}-w7-partnership-plan`,
-            title: 'Create Partnership Plan',
-            description: 'Develop strategy for collaborating with local businesses',
+            id: `${moduleId}-w5-influencers`,
+            title: 'Local Influencer Research',
+            description: 'Research and connect with local influencers',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -259,15 +214,15 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w7-partnership-plan` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w5-influencers` }
           }
         ];
-      case 8: // Event Marketing
+      case 6: // Paid Local Advertising - 2 tasks
         return [
           {
-            id: `${moduleId}-w8-event-planning`,
-            title: 'Plan Local Events',
-            description: 'Design events or activations to bring people to your location',
+            id: `${moduleId}-w6-ads`,
+            title: 'Local Ad Campaigns',
+            description: 'Create targeted local advertising campaigns',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -275,12 +230,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w8-event-planning` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w6-ads` }
           },
           {
-            id: `${moduleId}-w8-event-promotion`,
-            title: 'Promote Events',
-            description: 'Create marketing materials and social media campaigns for events',
+            id: `${moduleId}-w6-targeting`,
+            title: 'Audience Targeting',
+            description: 'Define and target local audience segments',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -288,15 +243,15 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w8-event-promotion` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w6-targeting` }
           }
         ];
-      case 9: // Customer Referral Program
+      case 7: // Partnership Marketing - 2 tasks
         return [
           {
-            id: `${moduleId}-w9-referral-design`,
-            title: 'Design Referral Program',
-            description: 'Create incentives and structure for customer referrals',
+            id: `${moduleId}-w7-partners`,
+            title: 'Partner Identification',
+            description: 'Identify potential local business partners',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -304,12 +259,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w9-referral-design` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w7-partners` }
           },
           {
-            id: `${moduleId}-w9-referral-launch`,
-            title: 'Launch Referral Program',
-            description: 'Announce program to existing customers and track referrals',
+            id: `${moduleId}-w7-collaboration`,
+            title: 'Collaboration Planning',
+            description: 'Plan collaborative marketing initiatives',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -317,15 +272,15 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w9-referral-launch` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w7-collaboration` }
           }
         ];
-      case 10: // Analytics & Optimization
+      case 8: // Event Marketing - 2 tasks
         return [
           {
-            id: `${moduleId}-w10-analytics-setup`,
-            title: 'Setup Analytics Tracking',
-            description: 'Implement tracking for all marketing activities and conversions',
+            id: `${moduleId}-w8-events`,
+            title: 'Event Planning',
+            description: 'Plan local marketing events and activations',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -333,12 +288,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w10-analytics-setup` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w8-events` }
           },
           {
-            id: `${moduleId}-w10-optimize-strategies`,
-            title: 'Optimize Strategies',
-            description: 'Analyze performance data and adjust marketing approaches',
+            id: `${moduleId}-w8-promotion`,
+            title: 'Event Promotion',
+            description: 'Create event promotion strategy',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -346,15 +301,15 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w10-optimize-strategies` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w8-promotion` }
           }
         ];
-      case 11: // Advanced Local SEO
+      case 9: // Customer Referral Program - 2 tasks
         return [
           {
-            id: `${moduleId}-w11-advanced-seo`,
-            title: 'Implement Advanced SEO',
-            description: 'Apply advanced local SEO techniques and schema markup',
+            id: `${moduleId}-w9-referral`,
+            title: 'Referral Program Design',
+            description: 'Design customer referral program',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -362,12 +317,12 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w11-advanced-seo` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w9-referral` }
           },
           {
-            id: `${moduleId}-w11-technical-seo`,
-            title: 'Technical SEO Audit',
-            description: 'Address technical SEO issues and improve site performance',
+            id: `${moduleId}-w9-loyalty`,
+            title: 'Loyalty Program',
+            description: 'Create customer loyalty program',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -375,15 +330,15 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w11-technical-seo` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w9-loyalty` }
           }
         ];
-      case 12: // Scale & Automate
+      case 10: // Analytics & Optimization - 2 tasks
         return [
           {
-            id: `${moduleId}-w12-scale-strategies`,
-            title: 'Scale Successful Strategies',
-            description: 'Expand what\'s working to reach more local customers',
+            id: `${moduleId}-w10-analytics`,
+            title: 'Performance Tracking',
+            description: 'Set up comprehensive performance tracking',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
@@ -391,12 +346,70 @@ export default function LocalFootTrafficTrack({
             notifications: false,
             status: 'todo' as const,
             projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w12-scale-strategies` }
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w10-analytics` }
+          },
+          {
+            id: `${moduleId}-w10-optimization`,
+            title: 'Strategy Optimization',
+            description: 'Optimize strategies based on data',
+            responsible: 'Hillary',
+            deadline: null,
+            project: goal.title,
+            timeSpent: '',
+            notifications: false,
+            status: 'todo' as const,
+            projectId: undefined,
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w10-optimization` }
+          }
+        ];
+      case 11: // Advanced Local SEO - 2 tasks
+        return [
+          {
+            id: `${moduleId}-w11-advanced`,
+            title: 'Advanced SEO Techniques',
+            description: 'Implement advanced local SEO strategies',
+            responsible: 'Hillary',
+            deadline: null,
+            project: goal.title,
+            timeSpent: '',
+            notifications: false,
+            status: 'todo' as const,
+            projectId: undefined,
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w11-advanced` }
+          },
+          {
+            id: `${moduleId}-w11-technical`,
+            title: 'Technical SEO',
+            description: 'Address technical SEO issues',
+            responsible: 'Hillary',
+            deadline: null,
+            project: goal.title,
+            timeSpent: '',
+            notifications: false,
+            status: 'todo' as const,
+            projectId: undefined,
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w11-technical` }
+          }
+        ];
+      case 12: // Scale & Automate - 2 tasks
+        return [
+          {
+            id: `${moduleId}-w12-scale`,
+            title: 'Scale Strategies',
+            description: 'Scale successful marketing strategies',
+            responsible: 'Hillary',
+            deadline: null,
+            project: goal.title,
+            timeSpent: '',
+            notifications: false,
+            status: 'todo' as const,
+            projectId: undefined,
+            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w12-scale` }
           },
           {
             id: `${moduleId}-w12-automation`,
-            title: 'Automate Processes',
-            description: 'Set up automation for repetitive marketing tasks',
+            title: 'Process Automation',
+            description: 'Automate marketing processes',
             responsible: 'Hillary',
             deadline: null,
             project: goal.title,
