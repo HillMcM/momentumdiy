@@ -1511,9 +1511,21 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       // 2) Try to find by title/project and attach marketingTrack (pre-existing manual task)
       const matchByTitle = tasks.find(t => t.title.trim().toLowerCase() === marketingTask.title.trim().toLowerCase() && ((t.project && t.project === goal.title) || (t.projectId && t.projectId.toString() === projectId.toString())));
       if (matchByTitle) {
-        if (!matchByTitle.marketingTrack) {
-          updatedTasks.push({ ...matchByTitle, marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: marketingTask.id } });
+        if (!matchByTitle.marketingTrack || matchByTitle.project !== goal.title || matchByTitle.projectId?.toString() !== projectId.toString()) {
+          updatedTasks.push({ ...matchByTitle, project: goal.title, projectId, marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: marketingTask.id } });
         }
+        return;
+      }
+
+      // 2b) Relaxed match: find by title only, then attach project and marketingTrack
+      const relaxedMatch = tasks.find(t => t.title.trim().toLowerCase() === marketingTask.title.trim().toLowerCase());
+      if (relaxedMatch) {
+        updatedTasks.push({ 
+          ...relaxedMatch, 
+          project: goal.title, 
+          projectId, 
+          marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: marketingTask.id }
+        });
         return;
       }
 
