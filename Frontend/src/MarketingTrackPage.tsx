@@ -5,6 +5,7 @@ import type { MarketingGoal, MarketingModule, MarketingTask, Task, Project, Task
 // Removed mockData usage to avoid placeholder content
 import { apiService } from './services/api';
 import { supabase } from './lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 interface MarketingTrackPageProps {
   marketingGoals: MarketingGoal[];
@@ -16,6 +17,7 @@ interface MarketingTrackPageProps {
 }
 
 export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsChange, onTasksChange, tasks, projects, onProjectsChange }: MarketingTrackPageProps) {
+  const navigate = useNavigate();
   const [selectedGoal, setSelectedGoal] = useState<MarketingGoal | null>(null);
   const [selectedModule, setSelectedModule] = useState<MarketingModule | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -91,6 +93,19 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   // Determine if tracks should be disabled
   const shouldDisableTracks = activeGoal && activeGoal.currentWeek < activeGoal.duration;
   const isTrackCompleted = activeGoal && activeGoal.currentWeek >= activeGoal.duration;
+
+  // Navigate to specific track page
+  const navigateToTrack = (goal: MarketingGoal) => {
+    const title = goal.title.toLowerCase();
+    if (title.includes('foot traffic') || title.includes('local foot traffic')) {
+      navigate('/app/marketing-track/local-foot-traffic');
+    } else if (title.includes('social media') || title.includes('social media strategy')) {
+      navigate('/app/marketing-track/social-media-strategy');
+    } else {
+      // Fallback to main marketing track page
+      handleGoalSelect(goal);
+    }
+  };
 
   // Prefetch saved baseline and pillars
   useEffect(() => {
@@ -3823,7 +3838,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                       onClick={(e) => {
                         e.stopPropagation();
                         console.log('View Track button clicked for goal:', goal.title);
-                        handleGoalSelect(goal);
+                        navigateToTrack(goal);
                       }}
                       style={{
                         padding: '0.75rem 1.5rem',
