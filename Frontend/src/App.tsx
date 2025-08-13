@@ -697,7 +697,7 @@ function ProtectedApp() {
 
     if (changed) {
       console.log('App: Auto-synced dashboard tasks with marketing track');
-      onTasksChange(updatedTasks);
+      handleTasksChange(updatedTasks);
     }
   }, [marketingGoals, tasks, projects]);
 
