@@ -3818,45 +3818,73 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                     </p>
                     {/* Stage legend inline hint could be added here if needed */}
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log('Start Track button clicked for goal:', goal.title, 'shouldDisableTracks:', shouldDisableTracks);
-                      console.log('Button click event:', e);
-                      console.log('Goal details:', { id: goal.id, title: goal.title, isActive: goal.isActive });
-                      if (!shouldDisableTracks) {
-                        console.log('Calling startMarketingTrack...');
-                        startMarketingTrack(goal);
-                      } else {
-                        console.log('Track start disabled because shouldDisableTracks is true');
-                        console.log('Active goal causing disable:', activeGoal);
-                      }
-                    }}
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      background: shouldDisableTracks ? 'rgba(255, 255, 255, 0.1)' : '#EF8E81',
-                      color: '#FFF1E7',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: shouldDisableTracks ? 'not-allowed' : 'pointer',
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      transition: 'all 0.2s',
-                      opacity: shouldDisableTracks ? 0.5 : 1
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!shouldDisableTracks) {
-                        e.currentTarget.style.background = '#ffb09e';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!shouldDisableTracks) {
-                        e.currentTarget.style.background = '#EF8E81';
-                      }
-                    }}
-                  >
-                    {shouldDisableTracks ? '🔒 Locked' : 'Start Track'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('View Track button clicked for goal:', goal.title);
+                        handleGoalSelect(goal);
+                      }}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        background: 'transparent',
+                        color: '#FFF1E7',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      View Track
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('Start Track button clicked for goal:', goal.title, 'shouldDisableTracks:', shouldDisableTracks);
+                        console.log('Button click event:', e);
+                        console.log('Goal details:', { id: goal.id, title: goal.title, isActive: goal.isActive });
+                        if (!shouldDisableTracks) {
+                          console.log('Calling startMarketingTrack...');
+                          startMarketingTrack(goal);
+                        } else {
+                          console.log('Track start disabled because shouldDisableTracks is true');
+                          console.log('Active goal causing disable:', activeGoal);
+                        }
+                      }}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        background: shouldDisableTracks ? 'rgba(255, 255, 255, 0.1)' : '#EF8E81',
+                        color: '#FFF1E7',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: shouldDisableTracks ? 'not-allowed' : 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        transition: 'all 0.2s',
+                        opacity: shouldDisableTracks ? 0.5 : 1
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!shouldDisableTracks) {
+                          e.currentTarget.style.background = '#ffb09e';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!shouldDisableTracks) {
+                          e.currentTarget.style.background = '#EF8E81';
+                        }
+                      }}
+                    >
+                      {shouldDisableTracks ? '🔒 Locked' : 'Start Track'}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
