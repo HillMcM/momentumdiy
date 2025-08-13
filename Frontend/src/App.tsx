@@ -663,6 +663,44 @@ function ProtectedApp() {
     });
   }, [marketingGoals]);
 
+  // Auto-sync tasks with active marketing goal so dashboard reflects correct state without visiting the track page
+  useEffect(() => {
+    if (!marketingGoals.length || !tasks.length || !projects.length) return;
+    const activeGoal = marketingGoals.find(g => g.isActive);
+    if (!activeGoal) return;
+    const activeProject = projects.find(p => p.name === activeGoal.title);
+    if (!activeProject) return;
+
+    let changed = false;
+    const normalized = (s: string) => s.trim().toLowerCase();
+    const modulesToCheck = activeGoal.modules.filter(m => m.weekNumber <= activeGoal.currentWeek);
+
+    const updatedTasks = tasks.map(t => {
+      let updated = t;
+      if (t.projectId === activeProject.id) {
+        for (const mod of modulesToCheck) {
+          const mt = mod.tasks.find(mt => normalized(mt.title) === normalized(t.title));
+          if (mt) {
+            const newTrack = { goalId: activeGoal.id, moduleId: mod.id, marketingTaskId: mt.id } as Task['marketingTrack'];
+            const needsTrack = !t.marketingTrack || t.marketingTrack.marketingTaskId !== mt.id || t.marketingTrack.goalId !== activeGoal.id;
+            const needsStatus = mt.isCompleted && t.status !== 'completed';
+            if (needsTrack || needsStatus) {
+              updated = { ...t, marketingTrack: newTrack, status: mt.isCompleted ? 'completed' : t.status };
+              changed = true;
+            }
+            break;
+          }
+        }
+      }
+      return updated;
+    });
+
+    if (changed) {
+      console.log('App: Auto-synced dashboard tasks with marketing track');
+      onTasksChange(updatedTasks);
+    }
+  }, [marketingGoals, tasks, projects]);
+
   console.log('App component about to render JSX...');
 
   if (isLoading) {
