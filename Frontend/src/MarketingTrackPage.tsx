@@ -1538,6 +1538,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         title: marketingTask.title 
       });
       
+      console.log('Marketing task details:', {
+        id: marketingTask.id,
+        title: marketingTask.title,
+        isCompleted: (marketingTask as any).isCompleted
+      });
+      
       console.log('Created task:', { 
         taskId: marketingTask.id, 
         title: marketingTask.title, 
@@ -1757,7 +1763,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     
     // Try to find the corresponding main task (accept base UUID if legacy id)
     const legacyBaseId = marketingTaskId.includes('-w') ? marketingTaskId.split('-w')[0] : null;
-    const resolvedMarketingTaskId = legacyBaseId || marketingTaskId;
+    let resolvedMarketingTaskId = legacyBaseId || marketingTaskId;
     
     // Since we're using marketing task IDs as main task IDs, look for the task directly
     const mainTask = tasks.find(task => 
@@ -1788,11 +1794,25 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     const currentGoal = marketingGoals.find(g => g.id === goalId);
     const currentModule = currentGoal?.modules.find(m => m.id === moduleId);
     
-    // Find task by ID. If not found and legacy id, try base UUID before '-w'
+    // Find task by ID first, then by title as fallback since IDs may not match
     let currentTask = currentModule?.tasks.find(t => t.id === resolvedMarketingTaskId);
     if (!currentTask) {
       console.log('Task not found with resolved ID, trying original marketingTaskId:', marketingTaskId);
       currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
+    }
+    
+    // If still not found, try to find by title (this handles the ID mismatch issue)
+    if (!currentTask && taskTitle) {
+      console.log('Task not found by ID, trying to find by title:', taskTitle);
+      currentTask = currentModule?.tasks.find(t => 
+        t.title.trim().toLowerCase() === taskTitle.trim().toLowerCase()
+      );
+      if (currentTask) {
+        console.log('Found task by title:', { id: currentTask.id, title: currentTask.title });
+        // Update the marketingTaskId to use the actual task ID from the module
+        marketingTaskId = currentTask.id;
+        resolvedMarketingTaskId = currentTask.id;
+      }
     }
     
     console.log('Task lookup result:', { 
