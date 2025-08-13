@@ -221,9 +221,18 @@ function Dashboard({
   onMarketingGoalsChange
 }: DashboardProps) {
   const activeGoal = marketingGoals.find(g => g.isActive);
-  const visibleTasks = activeGoal 
-    ? tasks.filter(t => t.marketingTrack && t.marketingTrack.goalId === activeGoal.id)
-    : tasks;
+    // Include tasks linked via marketingTrack OR via the active goal's projectId
+    const activeProject = activeGoal ? projects.find(p => p.name === activeGoal.title) : undefined;
+    let visibleTasks = activeGoal 
+      ? tasks.filter(t => (
+          (t.marketingTrack && t.marketingTrack.goalId === activeGoal.id) ||
+          (activeProject && t.projectId === activeProject.id)
+        ))
+      : tasks;
+    // Fallback: if none found via filters, show all tasks so dashboard isn't empty
+    if (activeGoal && visibleTasks.length === 0) {
+      visibleTasks = tasks;
+    }
 
   const handleSubsetTasksChange = (updatedVisible: Task[]) => {
     if (!activeGoal) {
