@@ -685,9 +685,9 @@ function ProtectedApp() {
           if (mt) {
             const newTrack = { goalId: activeGoal.id, moduleId: mod.id, marketingTaskId: mt.id } as Task['marketingTrack'];
             const needsTrack = !t.marketingTrack || t.marketingTrack.marketingTaskId !== mt.id || t.marketingTrack.goalId !== activeGoal.id;
-            const needsStatus = mt.isCompleted && t.status !== 'completed';
-            if (needsTrack || needsStatus) {
-              updated = { ...t, marketingTrack: newTrack, status: mt.isCompleted ? 'completed' : t.status };
+            if (needsTrack) {
+              // Only attach marketingTrack. Do NOT force status from module to avoid overriding user toggles.
+              updated = { ...t, marketingTrack: newTrack };
               changed = true;
             }
             break;
