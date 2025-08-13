@@ -5,7 +5,6 @@ import type { MarketingGoal, MarketingModule, MarketingTask, Task, Project, Task
 // Removed mockData usage to avoid placeholder content
 import { apiService } from './services/api';
 import { supabase } from './lib/supabase';
-import { useNavigate } from 'react-router-dom';
 
 interface MarketingTrackPageProps {
   marketingGoals: MarketingGoal[];
@@ -17,7 +16,6 @@ interface MarketingTrackPageProps {
 }
 
 export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsChange, onTasksChange, tasks, projects, onProjectsChange }: MarketingTrackPageProps) {
-  const navigate = useNavigate();
   const [selectedGoal, setSelectedGoal] = useState<MarketingGoal | null>(null);
   const [selectedModule, setSelectedModule] = useState<MarketingModule | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -30,6 +28,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const [interactiveOpen, setInteractiveOpen] = useState<boolean>(false);
   const [interactiveTask, setInteractiveTask] = useState<{ id: string; title: string; description: string } | null>(null);
   const [interactiveMeta, setInteractiveMeta] = useState<{ goalId: string; moduleId: string } | null>(null);
+  
+  // Task creation state (moved from renderInteractiveContentForTask)
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDescription, setNewTaskDescription] = useState('');
+  const [newTaskEstimatedTime, setNewTaskEstimatedTime] = useState('');
 
   // Inline form state (used inside interactive modal)
   type BaselineMetrics = { followers: string; avgLikes: string; avgComments: string; avgStoryViews: string; };
@@ -48,14 +51,20 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   type BaselineState = Record<PlatformKey, BaselineMetrics> & { saved?: boolean };
   const [baseline, setBaseline] = useState<BaselineState>(() => ({ ...(emptyBaseline as Record<PlatformKey, BaselineMetrics>) } as BaselineState));
   const [selectedPlatformTab, setSelectedPlatformTab] = useState<PlatformKey>('instagram');
-  const [activeMetricTab, setActiveMetricTab] = useState<number>(0);
   const [, setPillars] = useState<string[]>(['', '', '', '']);
   const [loadingInline] = useState<boolean>(false);
   const [inlineError] = useState<string | null>(null);
 
   // Save helpers
   const saveBaseline = async () => {
-    const platforms: Record<PlatformKey, { followers: number; avgLikes: number; avgComments: number; avgStoryViews: number }> = {} as any;
+    const platforms: Record<PlatformKey, { followers: number; avgLikes: number; avgComments: number; avgStoryViews: number }> = {
+      instagram: { followers: 0, avgLikes: 0, avgComments: 0, avgStoryViews: 0 },
+      facebook: { followers: 0, avgLikes: 0, avgComments: 0, avgStoryViews: 0 },
+      x: { followers: 0, avgLikes: 0, avgComments: 0, avgStoryViews: 0 },
+      linkedin: { followers: 0, avgLikes: 0, avgComments: 0, avgStoryViews: 0 },
+      google_business_profile: { followers: 0, avgLikes: 0, avgComments: 0, avgStoryViews: 0 },
+      tiktok: { followers: 0, avgLikes: 0, avgComments: 0, avgStoryViews: 0 }
+    };
     for (const { key } of PLATFORM_KEYS) {
       const v = baseline[key] || { followers: '', avgLikes: '', avgComments: '', avgStoryViews: '' };
       platforms[key] = {
@@ -92,11 +101,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           apiService.getContentPillars(),
         ]);
         if (bm.success && bm.data) {
-          const data = bm.data;
+          const data = bm.data as { platforms?: Record<PlatformKey, BaselineMetrics & Partial<Record<string, unknown>>> };
           if (data.platforms && typeof data.platforms === 'object') {
             const next: Record<PlatformKey, BaselineMetrics> = { ...(emptyBaseline as Record<PlatformKey, BaselineMetrics>) };
             for (const { key } of PLATFORM_KEYS) {
-              const v = (data.platforms || {})[key] || {};
+              const v = (data.platforms as Record<PlatformKey, BaselineMetrics>)[key] || {};
               next[key] = {
                 followers: String(v.followers ?? ''),
                 avgLikes: String(v.avgLikes ?? ''),
@@ -107,12 +116,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             setBaseline({ ...(next as Record<PlatformKey, BaselineMetrics>), saved: true });
           } else {
             // Back-compat single platform
+            // Fix: Use correct property access for back-compat single platform baseline metrics
             const next: Record<PlatformKey, BaselineMetrics> = { ...(emptyBaseline as Record<PlatformKey, BaselineMetrics>) };
             next.instagram = {
-              followers: String(data.followers ?? ''),
-              avgLikes: String(data.avgLikes ?? ''),
-              avgComments: String(data.avgComments ?? ''),
-              avgStoryViews: String(data.avgStoryViews ?? ''),
+              followers: String((data as { followers?: unknown; avgLikes?: unknown; avgComments?: unknown; avgStoryViews?: unknown }).followers ?? ''),
+              avgLikes: String((data as { followers?: unknown; avgLikes?: unknown; avgComments?: unknown; avgStoryViews?: unknown }).avgLikes ?? ''),
+              avgComments: String((data as { followers?: unknown; avgLikes?: unknown; avgComments?: unknown; avgStoryViews?: unknown }).avgComments ?? ''),
+              avgStoryViews: String((data as { followers?: unknown; avgLikes?: unknown; avgComments?: unknown; avgStoryViews?: unknown }).avgStoryViews ?? ''),
             };
             setBaseline({ ...(next as Record<PlatformKey, BaselineMetrics>), saved: true });
           }
@@ -121,7 +131,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const vals = cp.data.concat(['', '', '', '']).slice(0, 4);
           setPillars(vals);
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     })();
@@ -213,32 +223,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       if (currentList.length > 0) {
         nodes.push(
           <ul style={{ margin: '0.5rem 0 0.5rem 1.25rem' }}>
-            {currentList.map((li, i) => <li key={`li-${i}`} style={{ marginBottom: '0.25rem', lineHeight: '1.4' }}>{renderFormattedText(li)}</li>)}</ul>
+            {currentList.map((li, i) => <li key={`li-${i}`} style={{ marginBottom: '0.25rem' }}>{li}</li>)}
+          </ul>
         );
         currentList = [];
       }
-    };
-
-    // Helper function to render text with markdown formatting
-    const renderFormattedText = (text: string) => {
-      // Handle bold text (**text**)
-      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      // Handle italic text (*text*)
-      text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-      
-      // Convert to JSX with proper styling
-      const parts = text.split(/(<strong>.*?<\/strong>|<em>.*?<\/em>)/);
-      return parts.map((part, i) => {
-        if (part.startsWith('<strong>') && part.endsWith('</strong>')) {
-          const content = part.replace(/<\/?strong>/g, '');
-          return <span key={i} style={{ fontWeight: 700, color: '#EF8E81' }}>{content}</span>;
-        }
-        if (part.startsWith('<em>') && part.endsWith('</em>')) {
-          const content = part.replace(/<\/?em>/g, '');
-          return <span key={i} style={{ fontStyle: 'italic', opacity: 0.9 }}>{content}</span>;
-        }
-        return part;
-      });
     };
 
     lines.forEach((raw, idx) => {
@@ -250,22 +239,21 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       }
       if (line.startsWith('## ')) {
         flushList();
-        nodes.push(<h4 key={`h2-${idx}`} style={{ margin: '0.5rem 0', color: '#FFF1E7', fontSize: '1.1rem', fontWeight: 600 }}>{renderFormattedText(line.slice(3))}</h4>);
+        nodes.push(<h4 key={`h2-${idx}`} style={{ margin: '0.5rem 0', color: '#FFF1E7' }}>{line.slice(3)}</h4>);
         return;
       }
       if (line.startsWith('### ')) {
         flushList();
-        nodes.push(<h5 key={`h3-${idx}`} style={{ margin: '0.5rem 0', color: '#FFF1E7', opacity: 0.9, fontSize: '1rem', fontWeight: 600 }}>{renderFormattedText(line.slice(4))}</h5>);
+        nodes.push(<h5 key={`h3-${idx}`} style={{ margin: '0.5rem 0', color: '#FFF1E7', opacity: 0.9 }}>{line.slice(4)}</h5>);
         return;
       }
       if (line.startsWith('•') || line.startsWith('- ') || line.startsWith('– ') || line.startsWith('* ')) {
-        const cleanLine = line.replace(/^[-•–*]\s?/, '');
-        currentList.push(cleanLine);
+        currentList.push(line.replace(/^[-•–*]\s?/, ''));
         return;
       }
       // Default paragraph
       flushList();
-      nodes.push(<p key={`ptext-${idx}`} style={{ margin: '0.25rem 0', color: '#FFF1E7', opacity: 0.9, lineHeight: '1.5' }}>{renderFormattedText(line)}</p>);
+      nodes.push(<p key={`ptext-${idx}`} style={{ margin: '0.25rem 0', color: '#FFF1E7', opacity: 0.9 }}>{line}</p>);
     });
     flushList();
     return nodes;
@@ -300,7 +288,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         { id: `${module.id}-w1-baseline`, title: 'Save baseline metrics', description: 'Enter metrics for your main platform and save.', estimatedTime: '5m', isCompleted: false },
         { id: `${module.id}-w1-bio`, title: 'Fix bio + link (if needed)', description: 'Make your profile clear and actionable.', estimatedTime: '10m', isCompleted: false },
         { id: `${module.id}-w1-plan`, title: "Plan this week's 3 posts", description: 'Educate, Connect, Promote. Short and simple.', estimatedTime: '10m', isCompleted: false },
-      ] as any;
+      ] as MarketingTask[];
       return { ...module, title: 'Social Audit & Baseline Tracking', description: 'Audit, baseline, and a simple 3‑post plan to start consistent.', content: conciseContent, tasks: reducedTasks };
       }
       if (module.weekNumber === 2) {
@@ -328,9 +316,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           '- Friday — Community Boost (Local / Fun): Shout out a local business or something light to close the week',
         ].join('\n');
         const curatedTasks = [
-          { id: `${module.id}-w2-pillars`, title: 'Choose your 3–4 content pillars', description: 'Select brand‑aligned pillars and save them.', estimatedTime: '10m', isCompleted: false },
-          { id: `${module.id}-w2-plan`, title: 'Create your refined 5‑day content plan', description: "Draft 3–5 posts using the week's plan and your pillars.", estimatedTime: '15m', isCompleted: false },
-        ] as any;
+                  { id: `${module.id}-w2-pillars`, title: 'Choose your 3–4 content pillars', description: 'Select brand‑aligned pillars and save them.', estimatedTime: '10m', isCompleted: false },
+        { id: `${module.id}-w2-plan`, title: 'Create your refined 5‑day content plan', description: "Draft 3–5 posts using the week's plan and your pillars.", estimatedTime: '15m', isCompleted: false },
+      ] as MarketingTask[];
         return { ...module, title: 'Content Pillars + Strategic Posting Flow', description: 'Lock your pillars and plan a refined 5‑day posting rhythm.', content: curatedContent, tasks: curatedTasks };
       }
       if (module.weekNumber === 3) {
@@ -348,9 +336,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           "- Pick 3–5 colors you'll use repeatedly",
         ].join('\n');
         const tasks = [
-          { id: `${module.id}-w3-style`, title: 'Step 1: Complete your mini style guide', description: 'Fill in voice, audience, adjectives, and brand promise.', estimatedTime: '10m', isCompleted: false },
-          { id: `${module.id}-w3-visuals`, title: 'Step 2: Choose fonts and colors', description: 'Pick heading/body fonts and select 3–5 colors for your palette.', estimatedTime: '10m', isCompleted: false },
-        ] as any;
+                  { id: `${module.id}-w3-style`, title: 'Step 1: Complete your mini style guide', description: 'Fill in voice, audience, adjectives, and brand promise.', estimatedTime: '10m', isCompleted: false },
+        { id: `${module.id}-w3-visuals`, title: 'Step 2: Choose fonts and colors', description: 'Pick heading/body fonts and select 3–5 colors for your palette.', estimatedTime: '10m', isCompleted: false },
+      ] as MarketingTask[];
         return { ...module, title: 'Brand Voice + Visual Basics', description: 'Clarify how you sound and look so content is recognizable.', content, tasks };
       }
       if (module.weekNumber === 4) {
@@ -362,9 +350,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           'Connect: Humanize your brand with stories, BTS, and moments.',
         ].join('\n');
         const tasks = [
-          { id: `${module.id}-w4-define`, title: 'Define your 3 core post types', description: 'Write a short angle and 1–2 prompts for Educate, Promote, Connect based on your industry and voice.', estimatedTime: '10m', isCompleted: false },
-          { id: `${module.id}-w4-draft`, title: 'Draft 3 sample captions (one per type)', description: 'Draft short captions you can reuse or refine for each type.', estimatedTime: '15m', isCompleted: false },
-        ] as any;
+                  { id: `${module.id}-w4-define`, title: 'Define your 3 core post types', description: 'Write a short angle and 1–2 prompts for Educate, Promote, Connect based on your industry and voice.', estimatedTime: '10m', isCompleted: false },
+        { id: `${module.id}-w4-draft`, title: 'Draft 3 sample captions (one per type)', description: 'Draft short captions you can reuse or refine for each type.', estimatedTime: '15m', isCompleted: false },
+      ] as MarketingTask[];
         return { ...module, title: 'Your 3 Go‑To Post Types', description: 'Never wonder what to post — rotate Educate, Promote, Connect.', content, tasks };
       }
       if (module.weekNumber === 5) {
@@ -375,9 +363,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           'Stories and quick check-ins can layer on top anytime!'
         ].join('\n');
         const tasks = [
-          { id: `${module.id}-w5-frequency`, title: 'Step 1: Choose your weekly posting frequency', description: 'Pick Beginner (3x) or Confident (4–5x) to fit your energy.', estimatedTime: '5m', isCompleted: false },
-          { id: `${module.id}-w5-schedule`, title: "Step 3: Choose when you'll plan + post each week", description: 'Pick your content planning hour and scheduling habit.', estimatedTime: '5m', isCompleted: false },
-        ] as any;
+                  { id: `${module.id}-w5-frequency`, title: 'Step 1: Choose your weekly posting frequency', description: 'Pick Beginner (3x) or Confident (4–5x) to fit your energy.', estimatedTime: '5m', isCompleted: false },
+        { id: `${module.id}-w5-schedule`, title: "Step 3: Choose when you'll plan + post each week", description: 'Pick your content planning hour and scheduling habit.', estimatedTime: '5m', isCompleted: false },
+      ] as MarketingTask[];
         return { ...module, title: 'Your Weekly Social Plan', description: 'Simplified, systemized, and ready to roll.', content, tasks };
       }
       if (module.weekNumber === 6) {
@@ -386,9 +374,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           'Focus on clarity, readability, and consistency over fancy effects.'
         ].join('\n');
         const tasks = [
-          { id: `${module.id}-w6-choose`, title: 'Step 1: Choose 2–4 post types to template', description: 'Pick the types you share most (Tip/FAQ, Promo, Testimonial, Local).', estimatedTime: '5m', isCompleted: false },
-          { id: `${module.id}-w6-design`, title: 'Step 2: Design branded templates', description: 'Create simple, reusable Canva templates with logo, fonts, and colors.', estimatedTime: '15m', isCompleted: false },
-        ] as any;
+                  { id: `${module.id}-w6-choose`, title: 'Step 1: Choose 2–4 post types to template', description: 'Pick the types you share most (Tip/FAQ, Promo, Testimonial, Local).', estimatedTime: '5m', isCompleted: false },
+        { id: `${module.id}-w6-design`, title: 'Step 2: Design branded templates', description: 'Create simple, reusable Canva templates with logo, fonts, and colors.', estimatedTime: '15m', isCompleted: false },
+      ] as MarketingTask[];
         return { ...module, title: 'Design Your Go‑To Social Templates', description: 'Branded templates that are fast to edit and consistent.', content, tasks };
       }
       if (module.weekNumber === 7) {
@@ -399,7 +387,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           { id: `${module.id}-w7-bio`, title: 'Step 1: Refresh your bio', description: 'Use the simple formula: What you do • Where you are • Clear CTA • Link below.', estimatedTime: '10m', isCompleted: false },
           { id: `${module.id}-w7-links`, title: 'Step 2: Clean up your links', description: 'Use Linktree/Stan or a key page; fix/remove broken links and surface your main CTA.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w7-highlights`, title: 'Step 3: Update highlights or pinned posts', description: 'Pin top posts; update highlights (About, Services, BTS, Testimonials, Events).', estimatedTime: '10m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: 'Polish Your Bio, Links, and Highlights', description: 'Make your profile clear, appealing, and actionable.', content, tasks };
       }
       if (module.weekNumber === 8) {
@@ -410,7 +398,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           { id: `${module.id}-w8-pickdays`, title: 'Step 1: Pick your post days (3–5)', description: 'Choose days that match your weekly plan.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w8-prep`, title: 'Step 2: Prep your content', description: 'Draft captions, plug visuals, align with pillars and types.', estimatedTime: '10m', isCompleted: false },
           { id: `${module.id}-w8-schedule`, title: 'Step 3: Schedule your posts', description: 'Use Meta Business Suite, Later, Planoly, Buffer, or post manually.', estimatedTime: '10m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: 'Schedule 1 Full Week of Content', description: 'Plan, design, write, and schedule ahead for consistency.', content, tasks };
       }
       if (module.weekNumber === 9) {
@@ -420,7 +408,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         const tasks = [
           { id: `${module.id}-w9-routine`, title: 'Define your 10‑minute routine', description: 'Warm up (2m), Give love (5m), Start a conversation (3m)', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w9-track`, title: 'Track engagement 5 days this week', description: 'Check off your routine daily to build the habit.', estimatedTime: '5m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: 'Boost Engagement with 10 Minutes Daily', description: 'Simple, consistent engagement that compounds.', content, tasks };
       }
       if (module.weekNumber === 10) {
@@ -431,7 +419,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           { id: `${module.id}-w10-choose`, title: 'Step 1: Find a strong post to repurpose', description: 'Pick something with good engagement or a message worth repeating.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w10-remix`, title: 'Step 2: Choose how to refresh it', description: 'Carousel, reel/voiceover, BTS video, graphic quote/stat, testimonial with photo.', estimatedTime: '10m', isCompleted: false },
           { id: `${module.id}-w10-repost`, title: 'Step 3: Repost with a slightly different CTA', description: "Try \"Did you miss this?\" or \"New followers—here's a tip worth repeating.\"", estimatedTime: '5m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: 'Reuse a Past Post — Give It a Comeback', description: 'Repeat, remix, and stay visible without burnout.', content, tasks };
       }
       if (module.weekNumber === 11) {
@@ -441,7 +429,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         const tasks = [
           { id: `${module.id}-w11-pick`, title: 'Step 1: Pick your campaign type', description: 'Story Poll/Quiz, Giveaway, Fun Feed Question, or Q&A', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w11-promote`, title: 'Step 2: Promote it clearly', description: "Tell people how to participate and when you'll announce results.", estimatedTime: '5m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: 'Create a Mini Engagement Campaign', description: 'Fast, fun, and effective.', content, tasks };
       }
       if (module.weekNumber === 12) {
@@ -452,7 +440,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           { id: `${module.id}-w12-reflect`, title: 'Step 1: Reflect on your progress', description: 'Answer prompts: What changed? What worked best? Keep/stop? Next social goal?', estimatedTime: '10m', isCompleted: false },
           { id: `${module.id}-w12-metrics`, title: 'Step 2: Check your metrics (optional)', description: 'Compare baseline to now: followers, engagement, story views, reach.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w12-plan`, title: 'Step 3: Set a 30‑day plan', description: 'Pick one focus for the next month and write a short plan.', estimatedTime: '10m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: "Celebrate + Plan What's Next", description: 'Review insights and pick your next 30‑day focus.', content, tasks };
       }
       // For all other weeks, replace long email content with concise template summary + prompts
@@ -490,14 +478,39 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             '',
             'This week\'s goal is to get a clear picture of where your business is showing up—and where it might be invisible. It\'s your *visibility baseline*, and it\'ll help us track real progress over the next 12 weeks.',
             '',
+            '## Pro Tip',
+            'Before we build momentum, we find where you\'re stuck. Visibility is step one. Let\'s get the full picture so we know what progress looks like.',
+            '',
+            '## Online Presence Audit',
+            'Let\'s check how discoverable you are online:',
+            '- Google Business Profile: Is it claimed and accurate?',
+            '- Website: Does it reflect current hours, services, and offerings?',
+            '- Social Media: Are you posting consistently and engaging with locals?',
+            '- Online Reviews: What are people saying about finding you?',
+            '',
+            '## Baseline Metrics',
+            'Capture these numbers to track your progress:',
+            '- **Weekly Walk-ins**: Count how many people come in without an appointment',
+            '- **Google Views**: Monthly profile views from your Google Business Profile',
+            '- **Social Engagement**: Average likes/comments per post',
+            '- **Weekly Revenue**: Track weekly sales (optional but helpful)',
+            '',
+            '## Storefront & Signage Photos',
+            'Take photos from across the street to see what first-time visitors see:',
+            '- Storefront from across the street',
+            '- Window signage and displays',
+            '- Entryway and first impression',
+            '- Any outdoor seating or display areas',
+            '',
             '## How Your Marketing Assistant Can Help',
             'Ask your assistant to review your Google listing, signage, or website and suggest quick updates. They can also help you interpret or gather metrics and offer quick-win ideas.'
           ].join('\n');
           const tasks = [
-            { id: `${module.id}-w1-online`, title: 'Online Presence Audit', description: 'Let\'s check how discoverable you are online. Click to fill out the interactive audit form.', estimatedTime: '30m', isCompleted: false },
-            { id: `${module.id}-w1-baseline`, title: 'Baseline Metrics', description: 'Capture these numbers to track your progress. Click to fill out the metrics form.', estimatedTime: '15m', isCompleted: false },
-            { id: `${module.id}-w1-photo`, title: 'Storefront & Signage Photos', description: 'Take photos from across the street to see what first-time visitors see. Click to upload photos.', estimatedTime: '15m', isCompleted: false },
-          ] as any;
+            { id: `${module.id}-w1-online`, title: 'Audit Online Presence', description: 'Review Google Business Profile, website accuracy, and social media presence. Note what needs updating.', estimatedTime: '30m', isCompleted: false },
+            { id: `${module.id}-w1-signage`, title: 'Audit Physical Signage', description: 'Stand across the street: does signage clearly convey what you offer? Note upgrades needed.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w1-baseline`, title: 'Capture Baseline Metrics', description: 'Record weekly walk-ins, Google views, social engagement, and weekly revenue. This is your starting point.', estimatedTime: '15m', isCompleted: false },
+            { id: `${module.id}-w1-photo`, title: 'Upload Storefront Photos', description: 'Take and upload photos from across the street to see what first-time visitors see.', estimatedTime: '15m', isCompleted: false },
+          ] as MarketingTask[];
           return { ...module, title: 'Audit Your Visibility', description: 'Where are people not seeing you? Build your visibility baseline.', content, tasks };
         }
         case 2: {
@@ -551,9 +564,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w2-claim`, title: 'Claim or Verify Your Listing', description: 'Ensure your Google Business Profile is claimed and under your control.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w2-details`, title: 'Review & Update Details', description: 'Double‑check hours, phone, address, categories, and description; add customer‑searched keywords.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w2-photos`, title: 'Upload Fresh Photos', description: 'Add clear photos of exterior, interior, team, and products.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w2-post`, title: 'Post a Short Update', description: 'Share a one‑sentence post about your in‑store offer or what’s new.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w2-post`, title: 'Post a Short Update', description: 'Share a one‑sentence post about your in‑store offer or what\'s new.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w2-reviews`, title: 'Invite Reviews (optional)', description: 'Ask recent customers for a review via email or in‑person.', estimatedTime: '5m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Optimize Your Google Business Profile', description: 'Get found when people search.', content, tasks };
         }
         case 3: {
@@ -630,10 +643,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           ].join('\n');
           const tasks = [
             { id: `${module.id}-w3-offer`, title: 'Choose Your Offer', description: 'Pick one: gift with purchase, bonus item, bundle, spin‑the‑wheel prize, QR‑code discount.', estimatedTime: '15m', isCompleted: false },
-            { id: `${module.id}-w3-urgency`, title: 'Set the Urgency', description: 'Decide on language like “This week only” or “Today only.”', estimatedTime: '5m', isCompleted: false },
+            { id: `${module.id}-w3-urgency`, title: 'Set the Urgency', description: 'Decide on language like "This week only" or "Today only."', estimatedTime: '5m', isCompleted: false },
             { id: `${module.id}-w3-assets`, title: 'Prepare Promo Materials', description: 'Write a short caption and design a sign or social graphic.', estimatedTime: '30m', isCompleted: false },
             { id: `${module.id}-w3-supplies`, title: 'Get Supplies Ready', description: 'Gather giveaways, set up a prize wheel, or prepare QR codes.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Create an In‑Store‑Only Offer', description: 'Give locals a reason to come in.', content, tasks };
         }
         case 4: {
@@ -694,11 +707,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             'Ask your assistant to design a sidewalk sign/window poster, craft a punchy message, and create a branded QR code.'
           ].join('\n');
           const tasks = [
-            { id: `${module.id}-w4-audit`, title: 'Audit Your Signage', description: 'From a distance, can someone tell what’s happening inside?', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w4-audit`, title: 'Audit Your Signage', description: 'From a distance, can someone tell what\'s happening inside?', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w4-design`, title: 'Design & Place a New Sign', description: 'Create a sandwich board or poster promoting your in‑store offer.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w4-qr`, title: 'Generate a QR Code', description: 'Link to a digital bonus (coupon, email signup) and add to your sign.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w4-hidden`, title: 'Highlight Hidden Services (optional)', description: 'Create a small “Did you know we offer ___?” sign for lesser‑known offerings.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+            { id: `${module.id}-w4-hidden`, title: 'Highlight Hidden Services (optional)', description: 'Create a small "Did you know we offer ___?" sign for lesser‑known offerings.', estimatedTime: '10m', isCompleted: false },
+          ] as MarketingTask[];
           return { ...module, title: 'Activate Your Sidewalk & Window Signage', description: 'Turn passers‑by into walk‑ins.', content, tasks };
         }
         case 5: {
@@ -775,7 +788,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w5-post`, title: 'Create & Share a Post', description: 'Invite people in for your offer, share a BTS photo, or your origin story.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w5-engage`, title: 'Engage with Responders', description: 'Like and reply to comments to build relationships.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w5-monitor`, title: 'Monitor Impact', description: 'Note traffic boosts or conversations sparked by your post.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Post in Local Digital Communities', description: 'Be where your neighbors hang out.', content, tasks };
         }
         case 6: {
@@ -872,10 +885,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const tasks = [
             { id: `${module.id}-w6-identify`, title: 'Identify a Partner', description: 'Nearby business with similar audience but different offering (e.g., florist + bakery).', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w6-reachout`, title: 'Reach Out', description: 'Send a friendly DM or email proposing a collaboration.', estimatedTime: '15m', isCompleted: false },
-            { id: `${module.id}-w6-incentive`, title: 'Decide on the Incentive', description: 'E.g., “Bring a receipt from Shop A and get 10% off at Shop B,” or shared loyalty card.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w6-incentive`, title: 'Decide on the Incentive', description: 'E.g., "Bring a receipt from Shop A and get 10% off at Shop B," or shared loyalty card.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w6-materials`, title: 'Create Co‑Branded Materials', description: 'Design a flyer, Instagram post, or signage.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w6-promote`, title: 'Set Dates & Promote', description: 'Agree on timing and promote on both channels.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Partner with a Neighboring Business', description: 'Double exposure through collaboration.', content, tasks };
         }
         case 7: {
@@ -954,7 +967,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w7-feature`, title: 'Feature Your Best Offerings', description: 'Rearrange or simplify front area; create a feature wall or seasonal display.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w7-mood`, title: 'Enhance the Mood', description: 'Add gentle music, inviting scents, or improved lighting.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w7-brand`, title: 'Add a Branded Touch', description: 'Introduce loyalty cards, thank‑you notes, or a small QR at checkout.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Upgrade the Customer Experience', description: 'Make your space irresistible.', content, tasks };
         }
         case 8: {
@@ -1057,22 +1070,22 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w8-create`, title: 'Create Promotional Content', description: 'Design a flyer, social post, and short email announcement.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w8-promote`, title: 'Promote Widely', description: 'Share in‑store, on social media, and in community groups.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w8-capture`, title: 'Capture & Share the Event', description: 'Take photos/video; share highlights afterward to keep momentum.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Run a Flash Sale or Mini Event', description: 'Create urgency.', content, tasks };
         }
         case 9: {
           const content = buildContent(
-            'Launch a low‑effort, high‑impact referral or “bring‑a‑friend” initiative.',
+            'Launch a low‑effort, high‑impact referral or "bring‑a‑friend" initiative.',
             'Turn foot traffic into more foot traffic by empowering fans to spread the word.',
             'Ask your assistant to design referral cards/posters, write a checkout script, and create social prompts.'
           );
           const tasks = [
-            { id: `${module.id}-w9-incentive`, title: 'Choose a Referral Incentive', description: 'E.g., “Bring a friend, you both get 10% off,” or “Refer 3 friends, get a free item.”', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w9-incentive`, title: 'Choose a Referral Incentive', description: 'E.g., "Bring a friend, you both get 10% off," or "Refer 3 friends, get a free item."', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w9-print`, title: 'Design & Print Materials', description: 'Create a referral card or small sign at the register.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w9-script`, title: 'Script a Verbal Invite', description: 'Prepare a one‑sentence pitch to offer at checkout.', estimatedTime: '5m', isCompleted: false },
             { id: `${module.id}-w9-share`, title: 'Share on Social', description: 'Encourage customers to tag you or share a story for a thank‑you.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w9-track`, title: 'Track & Thank Referrals', description: 'Record who refers whom and send thanks.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Encourage Referrals', description: 'Turn foot traffic into more foot traffic.', content, tasks };
         }
         case 10: {
@@ -1087,37 +1100,37 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w10-plan`, title: 'Plan the Collaboration', description: 'Decide what each party will share and when; set simple rules for any giveaway.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w10-content`, title: 'Create Shared Content', description: 'Design a co‑branded post, story template, or giveaway graphic.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w10-engage`, title: 'Engage & Measure', description: 'Respond to comments and track new followers or walk‑ins.', estimatedTime: '15m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Collaborate with a Local Favorite', description: 'Borrow trust from community favorites.', content, tasks };
         }
         case 11: {
           const content = buildContent(
             'Collect simple, actionable feedback from customers about their experience.',
-            'Learn what’s working (and what’s missing) with a lightweight feedback process.',
+            'Learn what\'s working (and what\'s missing) with a lightweight feedback process.',
             'Ask your assistant to design a mini feedback card, help analyze responses, and draft a follow‑up thank‑you note.'
           );
           const tasks = [
-            { id: `${module.id}-w11-card`, title: 'Create a 3‑Question Card', description: 'Ask: “What brought you in today?”, “What did you love?”, “What could be better?”', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w11-card`, title: 'Create a 3‑Question Card', description: 'Ask: "What brought you in today?", "What did you love?", "What could be better?"', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w11-gather`, title: 'Gather Responses', description: 'Hand out cards at checkout or ask verbally to 3–5 customers.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w11-analyze`, title: 'Analyze & Identify Themes', description: 'Look for common points of praise or areas to improve.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w11-permission`, title: 'Request Testimonial Permission', description: 'Ask if you may use positive comments in marketing.', estimatedTime: '5m', isCompleted: false },
             { id: `${module.id}-w11-thank`, title: 'Thank Participants & Act', description: 'Send a quick thank‑you and integrate insights into your store or messaging.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
-          return { ...module, title: 'Gather Customer Feedback', description: 'Learn what’s working (and what’s missing).', content, tasks };
+          ] as MarketingTask[];
+          return { ...module, title: 'Gather Customer Feedback', description: 'Learn what\'s working (and what\'s missing).', content, tasks };
         }
         case 12: {
           const content = buildContent(
             'Measure your results, celebrate wins, and set your next 12‑week focus using the baseline from Week 1.',
             'Compare to baseline, reflect on what worked, and plan your next quarter.',
-            'Ask your partner to help evaluate metrics, summarize the quarter, write a “Quarter in Review” post, and suggest a new goal.'
+            'Ask your partner to help evaluate metrics, summarize the quarter, write a "Quarter in Review" post, and suggest a new goal.'
           );
           const tasks = [
             { id: `${module.id}-w12-remeasure`, title: 'Re‑measure Your Metrics', description: 'Record current weekly walk‑ins, Google views, social engagement, and revenue.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w12-compare`, title: 'Compare to Baseline', description: 'Note percentage increases and any surprising insights.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w12-reflect`, title: 'Reflect on the Experience', description: 'What changed? What worked best? What’s your next goal?', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w12-reflect`, title: 'Reflect on the Experience', description: 'What changed? What worked best? What\'s your next goal?', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w12-plan`, title: 'Plan the Next Quarter', description: 'Decide whether to build on gains or pivot to another focus.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w12-celebrate`, title: 'Celebrate & Thank Customers', description: 'Share a thank‑you post, offer a small gift, or hold a mini celebration.', estimatedTime: '15m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Celebrate & Reflect', description: 'Measure wins and prepare for the next quarter.', content, tasks };
         }
       }
@@ -1127,7 +1140,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   };
 
   // Goal overview helper for header
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // Removed for now; header uses goal.description directly
 
   // Task helpers
@@ -1145,12 +1157,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   // Pro Tip helper (simple seed tips based on common themes)
   const getProTip = (module: MarketingModule): string => {
     const t = `${module.title} ${module.description}`.toLowerCase();
-    
-    // Special case for Week 1 of Local Foot Traffic track
-    if (activeGoal && activeGoal.title.toLowerCase().includes('foot traffic') && module.weekNumber === 1) {
-      return 'Before we build momentum, we find where you\'re stuck. Visibility is step one. Let\'s get the full picture so we know what progress looks like.';
-    }
-    
     if (activeGoal && activeGoal.title.toLowerCase().includes('improve social media') && module.weekNumber === 2) {
       return "You don't need to be everywhere—you just need to be consistent in the right places.";
     }
@@ -1191,11 +1197,34 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       if (sgRaw) setStyleGuideByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(sgRaw) as MiniStyleGuide }));
       if (tpRaw) setTypographyByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(tpRaw) as TypographyChoice }));
       if (palRaw) setPaletteByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(palRaw) as Palette }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load style guide data:', error);
+    }
   }, [activeGoal?.id]);
-  const saveStyleGuide = (goalId: string, sg: MiniStyleGuide) => { setStyleGuideByGoal(prev => ({ ...prev, [goalId]: sg })); try { localStorage.setItem(`styleguide:${goalId}`, JSON.stringify(sg)); } catch {} };
-  const saveTypography = (goalId: string, tp: TypographyChoice) => { setTypographyByGoal(prev => ({ ...prev, [goalId]: tp })); try { localStorage.setItem(`typography:${goalId}`, JSON.stringify(tp)); } catch {} };
-  const savePalette = (goalId: string, pal: Palette) => { setPaletteByGoal(prev => ({ ...prev, [goalId]: pal })); try { localStorage.setItem(`palette:${goalId}`, JSON.stringify(pal)); } catch {} };
+  const saveStyleGuide = (goalId: string, sg: MiniStyleGuide) => { 
+    setStyleGuideByGoal(prev => ({ ...prev, [goalId]: sg })); 
+    try { 
+      localStorage.setItem(`styleguide:${goalId}`, JSON.stringify(sg)); 
+    } catch (error) {
+      console.warn('Failed to save style guide:', error);
+    }
+  };
+  const saveTypography = (goalId: string, tp: TypographyChoice) => { 
+    setTypographyByGoal(prev => ({ ...prev, [goalId]: tp })); 
+    try { 
+      localStorage.setItem(`typography:${goalId}`, JSON.stringify(tp)); 
+    } catch (error) {
+      console.warn('Failed to save typography:', error);
+    }
+  };
+  const savePalette = (goalId: string, pal: Palette) => { 
+    setPaletteByGoal(prev => ({ ...prev, [goalId]: pal })); 
+    try { 
+      localStorage.setItem(`palette:${goalId}`, JSON.stringify(pal)); 
+    } catch (error) {
+      console.warn('Failed to save palette:', error);
+    }
+  };
 
   // Week 4: 3 core post types definitions (persist per-goal)
   type PostTypeDef = { angle: string; prompts: string[]; caption: string };
@@ -1211,11 +1240,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`posttypes:${activeGoal.id}`);
       if (raw) setPostTypesByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as PostTypes }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load post types data:', error);
+    }
   }, [activeGoal?.id]);
   const savePostTypes = (goalId: string, next: PostTypes) => {
     setPostTypesByGoal(prev => ({ ...prev, [goalId]: next }));
-    try { localStorage.setItem(`posttypes:${goalId}`, JSON.stringify(next)); } catch {}
+    try { 
+      localStorage.setItem(`posttypes:${goalId}`, JSON.stringify(next)); 
+    } catch (error) {
+      console.warn('Failed to save post types:', error);
+    }
   };
 
   // Week 5: Weekly plan settings (persist per-goal)
@@ -1226,11 +1261,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`weeklyplan:${activeGoal.id}`);
       if (raw) setWeeklyPlanByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as WeeklyPlan }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load weekly plan data:', error);
+    }
   }, [activeGoal?.id]);
   const saveWeeklyPlan = (goalId: string, wp: WeeklyPlan) => {
     setWeeklyPlanByGoal(prev => ({ ...prev, [goalId]: wp }));
-    try { localStorage.setItem(`weeklyplan:${goalId}`, JSON.stringify(wp)); } catch {}
+    try { 
+      localStorage.setItem(`weeklyplan:${goalId}`, JSON.stringify(wp)); 
+    } catch (error) {
+      console.warn('Failed to save weekly plan:', error);
+    }
   };
 
   // Week 6: Branded template definitions (persist per-goal)
@@ -1242,11 +1283,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`templates:${activeGoal.id}`);
       if (raw) setTemplatesByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as TemplateDef[] }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load templates data:', error);
+    }
   }, [activeGoal?.id]);
   const saveTemplates = (goalId: string, list: TemplateDef[]) => {
     setTemplatesByGoal(prev => ({ ...prev, [goalId]: list }));
-    try { localStorage.setItem(`templates:${goalId}`, JSON.stringify(list)); } catch {}
+    try { 
+      localStorage.setItem(`templates:${goalId}`, JSON.stringify(list)); 
+    } catch (error) {
+      console.warn('Failed to save templates:', error);
+    }
   };
 
   // Week 7: Profile polish (bio, links, highlights) persisted per-goal
@@ -1265,11 +1312,34 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       if (bioRaw) setBioByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(bioRaw) as BioForm }));
       if (linksRaw) setLinksByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(linksRaw) as LinkItem[] }));
       if (hiRaw) setHighlightsByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(hiRaw) as HighlightItem[] }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load profile data:', error);
+    }
   }, [activeGoal?.id]);
-  const saveBio = (goalId: string, bio: BioForm) => { setBioByGoal(prev => ({ ...prev, [goalId]: bio })); try { localStorage.setItem(`profilebio:${goalId}`, JSON.stringify(bio)); } catch {} };
-  const saveLinks = (goalId: string, items: LinkItem[]) => { setLinksByGoal(prev => ({ ...prev, [goalId]: items })); try { localStorage.setItem(`profilelinks:${goalId}`, JSON.stringify(items)); } catch {} };
-  const saveHighlights = (goalId: string, items: HighlightItem[]) => { setHighlightsByGoal(prev => ({ ...prev, [goalId]: items })); try { localStorage.setItem(`profilehi:${goalId}`, JSON.stringify(items)); } catch {} };
+  const saveBio = (goalId: string, bio: BioForm) => { 
+    setBioByGoal(prev => ({ ...prev, [goalId]: bio })); 
+    try { 
+      localStorage.setItem(`profilebio:${goalId}`, JSON.stringify(bio)); 
+    } catch (error) {
+      console.warn('Failed to save bio:', error);
+    }
+  };
+  const saveLinks = (goalId: string, items: LinkItem[]) => { 
+    setLinksByGoal(prev => ({ ...prev, [goalId]: items })); 
+    try { 
+      localStorage.setItem(`profilelinks:${goalId}`, JSON.stringify(items)); 
+    } catch (error) {
+      console.warn('Failed to save links:', error);
+    }
+  };
+  const saveHighlights = (goalId: string, items: HighlightItem[]) => { 
+    setHighlightsByGoal(prev => ({ ...prev, [goalId]: items })); 
+    try { 
+      localStorage.setItem(`profilehi:${goalId}`, JSON.stringify(items)); 
+    } catch (error) {
+      console.warn('Failed to save highlights:', error);
+    }
+  };
 
   // Week 8: Scheduling helper (persist per-goal)
   type ScheduleTool = 'Meta Business Suite' | 'Later' | 'Planoly' | 'Buffer' | 'Manual';
@@ -1282,9 +1352,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk8:${activeGoal.id}`);
       if (raw) setWk8ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week8Plan }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 8 plan:', error);
+    }
   }, [activeGoal?.id]);
-  const saveWk8 = (goalId: string, plan: Week8Plan) => { setWk8ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk8:${goalId}`, JSON.stringify(plan)); } catch {} };
+  const saveWk8 = (goalId: string, plan: Week8Plan) => { 
+    setWk8ByGoal(prev => ({ ...prev, [goalId]: plan })); 
+    try { 
+      localStorage.setItem(`wk8:${goalId}`, JSON.stringify(plan)); 
+    } catch (error) {
+      console.warn('Failed to save week 8 plan:', error);
+    }
+  };
 
   // Week 9: Daily engagement habit (persist per-goal)
   type DayEngagement = { warmUp: boolean; giveLove: number; conversation: boolean };
@@ -1295,9 +1374,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk9:${activeGoal.id}`);
       if (raw) setWk9ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week9Plan }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 9 plan:', error);
+    }
   }, [activeGoal?.id]);
-  const saveWk9 = (goalId: string, plan: Week9Plan) => { setWk9ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk9:${goalId}`, JSON.stringify(plan)); } catch {} };
+  const saveWk9 = (goalId: string, plan: Week9Plan) => { 
+    setWk9ByGoal(prev => ({ ...prev, [goalId]: plan })); 
+    try { 
+      localStorage.setItem(`wk9:${goalId}`, JSON.stringify(plan)); 
+    } catch (error) {
+      console.warn('Failed to save week 9 plan:', error);
+    }
+  };
 
   // Week 10: Repurpose a past post (persist per-goal)
   type PastPost = { title: string; url: string; date: string; format: 'Photo' | 'Caption' | 'Promo' | 'Long Caption' | 'Testimonial' | 'Other' };
@@ -1309,9 +1397,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk10:${activeGoal.id}`);
       if (raw) setWk10ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week10Plan }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 10 plan:', error);
+    }
   }, [activeGoal?.id]);
-  const saveWk10 = (goalId: string, plan: Week10Plan) => { setWk10ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk10:${goalId}`, JSON.stringify(plan)); } catch {} };
+  const saveWk10 = (goalId: string, plan: Week10Plan) => { 
+    setWk10ByGoal(prev => ({ ...prev, [goalId]: plan })); 
+    try { 
+      localStorage.setItem(`wk10:${goalId}`, JSON.stringify(plan)); 
+    } catch (error) {
+      console.warn('Failed to save week 10 plan:', error);
+    }
+  };
 
   // Week 11: Engagement campaign (persist per-goal)
   type CampaignType = 'Story Poll/Quiz' | 'Giveaway' | 'Fun Feed Question' | 'Q&A';
@@ -1330,9 +1427,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk11:${activeGoal.id}`);
       if (raw) setWk11ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week11Plan }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 11 plan:', error);
+    }
   }, [activeGoal?.id]);
-  const saveWk11 = (goalId: string, plan: Week11Plan) => { setWk11ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk11:${goalId}`, JSON.stringify(plan)); } catch {} };
+  const saveWk11 = (goalId: string, plan: Week11Plan) => { 
+    setWk11ByGoal(prev => ({ ...prev, [goalId]: plan })); 
+    try { 
+      localStorage.setItem(`wk11:${goalId}`, JSON.stringify(plan)); 
+    } catch (error) {
+      console.warn('Failed to save week 11 plan:', error);
+    }
+  };
 
   // Week 12: Reflection + next 30‑day plan (persist per-goal)
   type Week12Reflection = {
@@ -1352,9 +1458,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk12:${activeGoal.id}`);
       if (raw) setWk12ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week12State }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 12 plan:', error);
+    }
   }, [activeGoal?.id]);
-  const saveWk12 = (goalId: string, s: Week12State) => { setWk12ByGoal(prev => ({ ...prev, [goalId]: s })); try { localStorage.setItem(`wk12:${goalId}`, JSON.stringify(s)); } catch {} };
+  const saveWk12 = (goalId: string, s: Week12State) => { 
+    setWk12ByGoal(prev => ({ ...prev, [goalId]: s })); 
+    try { 
+      localStorage.setItem(`wk12:${goalId}`, JSON.stringify(s)); 
+    } catch (error) {
+      console.warn('Failed to save week 12 plan:', error);
+    }
+  };
 
   // Week 12: Current metrics per platform (separate from saved baseline)
   const [wk12MetricsByGoal, setWk12MetricsByGoal] = useState<Record<string, Record<PlatformKey, BaselineMetrics>>>({});
@@ -1363,11 +1478,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk12metrics:${activeGoal.id}`);
       if (raw) setWk12MetricsByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Record<PlatformKey, BaselineMetrics> }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 12 metrics:', error);
+    }
   }, [activeGoal?.id]);
   const saveWk12Metrics = (goalId: string, data: Record<PlatformKey, BaselineMetrics>) => {
     setWk12MetricsByGoal(prev => ({ ...prev, [goalId]: data }));
-    try { localStorage.setItem(`wk12metrics:${goalId}`, JSON.stringify(data)); } catch {}
+    try { 
+      localStorage.setItem(`wk12metrics:${goalId}`, JSON.stringify(data)); 
+    } catch (error) {
+      console.warn('Failed to save week 12 metrics:', error);
+    }
   };
 
   type Stage = 'early' | 'mid' | 'growth';
@@ -1436,17 +1557,57 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 1000);
   };
 
-  // Social content planning removed for Local Foot Traffic track
-
-  // Social content planning removed for Local Foot Traffic track
+  // Guided Week Planner (UI-only for now)
+  type PostType = 'Educate' | 'Promote' | 'Connect';
+  const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'] as const;
+  type PlannerRow = { day: string; type: PostType; pillar: string; caption: string };
+  const defaultPlanner: PlannerRow[] = DAYS.map((d, idx) => ({
+    day: d,
+    type: (['Connect','Educate','Connect','Promote','Connect'] as PostType[])[idx],
+    pillar: (
+      [
+        'Behind the Scenes',
+        'Tip or FAQ',
+        'Personal Story',
+        'Product/Service Feature',
+        'Fun or Community Post'
+      ] as string[]
+    )[idx],
+    caption: ''
+  }));
+  const [planner, setPlanner] = useState<PlannerRow[]>(defaultPlanner);
+  // When Week 1 of Social track is active, enforce the fixed plan mapping
+  useEffect(() => {
+    if (!activeGoal) return;
+    const isSocial = activeGoal.title.toLowerCase().includes('improve social media');
+    if (!isSocial) return;
+    const currentWeek = activeGoal.currentWeek || 1;
+    if (currentWeek === 1) {
+    setPlanner(defaultPlanner);
+      return;
+    }
+    if (currentWeek === 2) {
+      const refinedWeek2: PlannerRow[] = [
+        { day: 'Monday', type: 'Connect', pillar: 'Personal Story / Behind the Scenes', caption: '' },
+        { day: 'Tuesday', type: 'Educate', pillar: 'Education / Products', caption: '' },
+        { day: 'Wednesday', type: 'Connect', pillar: 'Customer Love / Testimonial', caption: '' },
+        { day: 'Thursday', type: 'Promote', pillar: 'Offer or Product Feature', caption: '' },
+        { day: 'Friday', type: 'Connect', pillar: 'Community / Local / Fun', caption: '' },
+      ];
+      setPlanner(refinedWeek2);
+      return;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGoal?.id, activeGoal?.currentWeek]);
+  const [plannerMode, setPlannerMode] = useState<'beginner' | 'confident'>('beginner');
 
   // Week 2: content pillars selection (persist locally per-goal)
   const [contentPillarsByGoal, setContentPillarsByGoal] = useState<Record<string, string[]>>({});
   const [newPillarDraft, setNewPillarDraft] = useState<string>('');
   const savePillarsLocalAndRemote = useCallback(async (goalId: string, pillars: string[]) => {
     setContentPillarsByGoal(prev => ({ ...prev, [goalId]: pillars }));
-    try { localStorage.setItem(`pillars:${goalId}`, JSON.stringify(pillars)); } catch {}
-    try { await apiService.saveContentPillars(pillars); } catch {}
+    try { localStorage.setItem(`pillars:${goalId}`, JSON.stringify(pillars)); } catch { /* Ignore localStorage errors */ }
+    try { await apiService.saveContentPillars(pillars); } catch { /* Ignore API errors */ }
   }, []);
   useEffect(() => {
     if (!activeGoal) return;
@@ -1458,7 +1619,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           setContentPillarsByGoal(prev => ({ ...prev, [activeGoal.id]: saved as string[] }));
         }
       }
-    } catch {}
+    } catch { /* Ignore localStorage errors */ }
   }, [activeGoal?.id]);
   // removed unused legacy function savePillarsLocal
 
@@ -1468,11 +1629,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     (async () => {
       try {
         const cp = await apiService.getContentPillars();
-        if (cp && (cp as any).success && Array.isArray((cp as any).data)) {
-          const list = (cp as any).data as string[];
+        if (cp && cp.success && Array.isArray(cp.data)) {
+          const list = cp.data as string[];
           setContentPillarsByGoal(prev => ({ ...prev, [activeGoal.id]: list.slice(0, 4) }));
         }
-      } catch {}
+      } catch { /* Ignore API errors */ }
     })();
   }, [activeGoal?.id]);
 
@@ -1501,6 +1662,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   // Define createTasksFromMarketingModule before it's used in useEffect
   const createTasksFromMarketingModule = useCallback((goal: MarketingGoal, module: MarketingModule, projectId: string) => {
     console.log('Creating tasks from marketing module:', { goal: goal.title, module: module.weekNumber, projectId });
+    // Calculate the next available task ID
+    const maxExistingId = Math.max(...tasks.map(t => parseInt(t.id) || 0), 0);
+    let nextTaskId = maxExistingId + 1;
     const createdTasks: Task[] = [];
     const updatedTasks: Task[] = [];
     module.tasks.forEach(marketingTask => {
@@ -1511,31 +1675,20 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       // 2) Try to find by title/project and attach marketingTrack (pre-existing manual task)
       const matchByTitle = tasks.find(t => t.title.trim().toLowerCase() === marketingTask.title.trim().toLowerCase() && ((t.project && t.project === goal.title) || (t.projectId && t.projectId.toString() === projectId.toString())));
       if (matchByTitle) {
-        if (!matchByTitle.marketingTrack || matchByTitle.project !== goal.title || matchByTitle.projectId?.toString() !== projectId.toString()) {
-          updatedTasks.push({ ...matchByTitle, project: goal.title, projectId, marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: marketingTask.id } });
+        if (!matchByTitle.marketingTrack) {
+          updatedTasks.push({ ...matchByTitle, marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: marketingTask.id } });
         }
         return;
       }
 
-      // 2b) Relaxed match: find by title only, then attach project and marketingTrack
-      const relaxedMatch = tasks.find(t => t.title.trim().toLowerCase() === marketingTask.title.trim().toLowerCase());
-      if (relaxedMatch) {
-        updatedTasks.push({ 
-          ...relaxedMatch, 
-          project: goal.title, 
-          projectId, 
-          marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: marketingTask.id }
-        });
-        return;
-      }
-
-      // 3) Create new task - use the marketing task ID directly
+      // 3) Create new task
+      const taskId = nextTaskId++;
       createdTasks.push({
-        id: marketingTask.id, // Use the actual marketing task ID instead of generating a new one
+        id: taskId.toString(),
         title: marketingTask.title,
         description: marketingTask.description,
         responsible: 'Hillary',
-        deadline: (marketingTask as any).dueDate || null,
+        deadline: (marketingTask as MarketingTask).dueDate ? (marketingTask as MarketingTask).dueDate!.toISOString() : null,
         project: goal.title,
         timeSpent: '',
         notifications: false,
@@ -1543,50 +1696,14 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: marketingTask.id },
         projectId: projectId
       });
-      
-      console.log('Creating main task with marketing task ID:', { 
-        marketingTaskId: marketingTask.id, 
-        mainTaskId: marketingTask.id, // Should be the same
-        title: marketingTask.title 
-      });
-      
-      console.log('Marketing task details:', {
-        id: marketingTask.id,
-        title: marketingTask.title,
-        isCompleted: (marketingTask as any).isCompleted
-      });
-      
-      console.log('Created task:', { 
-        taskId: marketingTask.id, 
-        title: marketingTask.title, 
-        marketingTaskId: marketingTask.id 
-      });
     });
 
     if (createdTasks.length > 0 || updatedTasks.length > 0) {
-      console.log('Creating/updating tasks:', { 
-        created: createdTasks.map(t => ({ id: t.id, title: t.title, marketingTrack: t.marketingTrack })),
-        updated: updatedTasks.map(t => ({ id: t.id, title: t.title, marketingTrack: t.marketingTrack }))
-      });
-      
       const merged = tasks.map(t => {
         const upd = updatedTasks.find(u => u.id === t.id);
         return upd ? upd : t;
       });
-      
-      const newTaskList = [...merged, ...createdTasks];
-      console.log('New task list:', newTaskList.map(t => ({ 
-      id: t.id, 
-      title: t.title, 
-      status: t.status, 
-      marketingTrack: t.marketingTrack ? {
-        goalId: t.marketingTrack.goalId,
-        moduleId: t.marketingTrack.moduleId,
-        marketingTaskId: t.marketingTrack.marketingTaskId
-      } : null
-    })));
-      
-      onTasksChange(newTaskList);
+      onTasksChange([...merged, ...createdTasks]);
       if (createdTasks.length > 0) {
         const updatedProjects = projects.map(project => {
           if (project.id === projectId) {
@@ -1597,14 +1714,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         });
         onProjectsChange(updatedProjects);
       }
-    } else {
-      console.log('No tasks created or updated for module:', { moduleId: module.id, moduleTitle: module.title });
     }
   }, [tasks, projects, marketingGoals, onTasksChange, onProjectsChange, onMarketingGoalsChange]);
 
   // Helper: ensure a marketing project exists for the goal; return its id
   const getOrCreateProjectForGoal = useCallback((goal: MarketingGoal): string => {
-    let project = projects.find(p => p.name === goal.title);
+    const project = projects.find(p => p.name === goal.title);
     if (project) return project.id.toString();
     const newId = (Math.max(0, ...projects.map(p => parseInt(p.id) || 0)) + 1).toString();
     const newProject: Project = {
@@ -1632,43 +1747,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   // Auto-sync: add unlocked week tasks to Kanban if missing
   useEffect(() => {
-    console.log('Auto-sync useEffect running:', { 
-      hasActiveGoal: !!activeGoal, 
-      activeGoalId: activeGoal?.id, 
-      currentWeek: activeGoal?.currentWeek,
-      tasksCount: tasks.length 
-    });
-    
     if (!activeGoal) return;
     const projectId = getOrCreateProjectForGoal(activeGoal);
     const unlockedModules = activeGoal.modules.filter(m => m.isUnlocked || m.weekNumber <= (activeGoal.currentWeek || 1));
-    
-    console.log('Unlocked modules:', unlockedModules.map(m => ({ id: m.id, weekNumber: m.weekNumber, title: m.title })));
-    
-    // Clean up old tasks with descriptive IDs and recreate them with correct UUIDs
-    const oldTasksWithDescriptiveIds = tasks.filter(t => 
-      t.marketingTrack && 
-      t.marketingTrack.goalId === activeGoal.id && 
-      t.id.includes('-w') // This identifies old descriptive IDs
-    );
-    
-    if (oldTasksWithDescriptiveIds.length > 0) {
-      console.log('Found old tasks with descriptive IDs, cleaning up...', oldTasksWithDescriptiveIds);
-      // Remove old tasks
-      const cleanedTasks = tasks.filter(t => !oldTasksWithDescriptiveIds.includes(t));
-      onTasksChange(cleanedTasks);
-      
-      // Recreate tasks with correct IDs
-      unlockedModules.forEach(m0 => {
-        const module = withFallback(activeGoal, m0);
-        const key = `${activeGoal.id}:${module.id}`;
-        createTasksFromMarketingModule(activeGoal, module, projectId);
-        createdModuleTasksRef.current.add(key);
-      });
-      return;
-    }
-    
-    // Normal flow: check if tasks exist and create if missing
     unlockedModules.forEach(m0 => {
       const module = withFallback(activeGoal, m0);
       const key = `${activeGoal.id}:${module.id}`;
@@ -1679,7 +1760,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         createdModuleTasksRef.current.add(key);
       }
     });
-  }, [activeGoal?.id, activeGoal?.currentWeek, marketingGoals, tasks, getOrCreateProjectForGoal, createTasksFromMarketingModule, onTasksChange]);
+  }, [activeGoal?.id, activeGoal?.currentWeek, marketingGoals, tasks, getOrCreateProjectForGoal, createTasksFromMarketingModule]);
 
   // Update current time every minute for accurate countdown
   useEffect(() => {
@@ -1732,46 +1813,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     return () => clearInterval(interval);
   }, [activeGoal, marketingGoals, onMarketingGoalsChange, projects, onProjectsChange, currentTime, createTasksFromMarketingModule]);
 
-  // Keep module task completion in sync with main task statuses on navigation/rerender
-  useEffect(() => {
-    if (!activeGoal || marketingGoals.length === 0 || tasks.length === 0) return;
-    const normalized = (s: string) => s.trim().toLowerCase();
-    let anyChanged = false;
-    const nextGoals = marketingGoals.map(g => {
-      if (g.id !== activeGoal.id) return g;
-      let goalChanged = false;
-      const updatedModules = g.modules.map(mod => {
-        let moduleChanged = false;
-        const updatedTasks = mod.tasks.map(mt => {
-          const main = tasks.find(t => t.marketingTrack &&
-            t.marketingTrack.goalId === g.id &&
-            t.marketingTrack.moduleId === mod.id &&
-            (t.marketingTrack.marketingTaskId === mt.id || normalized(t.title) === normalized(mt.title))
-          );
-          const shouldBeCompleted = main ? (main.status === 'completed') : mt.isCompleted;
-          if (shouldBeCompleted !== mt.isCompleted) {
-            moduleChanged = true;
-            return { ...mt, isCompleted: shouldBeCompleted };
-          }
-          return mt;
-        });
-        if (moduleChanged) {
-          goalChanged = true;
-          return { ...mod, tasks: updatedTasks };
-        }
-        return mod;
-      });
-      if (goalChanged) {
-        anyChanged = true;
-        return { ...g, modules: updatedModules };
-      }
-      return g;
-    });
-    if (anyChanged) {
-      onMarketingGoalsChange(nextGoals);
-    }
-  }, [activeGoal?.id, tasks, marketingGoals, onMarketingGoalsChange]);
-
   const handleGoalSelect = (goal: MarketingGoal) => {
     if (selectedGoal?.id === goal.id) {
       setSelectedGoal(null);
@@ -1782,130 +1823,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     }
   };
 
-  const toggleTaskCompletion = (goalId: string, moduleId: string, taskId: string, taskTitle?: string) => {
-    console.log('=== toggleTaskCompletion START ===');
+  const toggleTaskCompletion = (goalId: string, moduleId: string, taskId: string) => {
     console.log('toggleTaskCompletion called:', { goalId, moduleId, taskId });
-    console.log('marketingGoals length:', marketingGoals.length);
-    console.log('tasks length:', tasks.length);
-    console.log('marketingGoals:', marketingGoals);
-    console.log('tasks (first 5):', tasks.slice(0, 5));
+    console.log('Current marketingGoals:', marketingGoals);
+    console.log('Current tasks:', tasks);
     
-    // Map any legacy descriptive IDs (that include -w) to the real UUID by matching title within the module
-    let marketingTaskId = taskId;
-    if (taskId.includes('-w')) {
-      const goal = marketingGoals.find(g => g.id === goalId);
-      const mod = goal?.modules.find(m => m.id === moduleId);
-      if (goal && mod) {
-        // Use the live module tasks from state (not withFallback) to ensure IDs align with currentGoal/currentModule
-        const match = mod.tasks.find(t => {
-          if (!taskTitle) return false;
-          return t.title.trim().toLowerCase() === taskTitle.trim().toLowerCase();
-        });
-        if (match) {
-          console.log('Mapped legacy taskId to UUID via title match:', { legacy: taskId, uuid: match.id, title: taskTitle });
-          marketingTaskId = match.id;
-        } else {
-          console.warn('Could not map legacy taskId; proceeding with original id', { legacy: taskId, taskTitle });
-        }
-      }
-    }
-    let mainTaskId: string = '';
-    
-    console.log('Using (resolved) marketingTaskId:', marketingTaskId);
-    
-    // Try to find the corresponding main task (accept base UUID if legacy id)
-    const legacyBaseId = marketingTaskId.includes('-w') ? marketingTaskId.split('-w')[0] : null;
-    let resolvedMarketingTaskId = legacyBaseId || marketingTaskId;
-    
-    // Since we're using marketing task IDs as main task IDs, look for the task directly
-    const mainTask = tasks.find(task => 
-      task.id === resolvedMarketingTaskId ||
-      (task.marketingTrack && 
-       task.marketingTrack.goalId === goalId && 
-       task.marketingTrack.moduleId === moduleId && 
-       task.marketingTrack.marketingTaskId === resolvedMarketingTaskId)
-    );
-    mainTaskId = mainTask?.id || '';
-    console.log('Found main task:', mainTask ? { id: mainTask.id, status: mainTask.status } : 'not found');
-    console.log('Available main tasks:', tasks.map(t => ({ 
-      id: t.id, 
-      title: t.title, 
-      status: t.status, 
-      hasMarketingTrack: !!t.marketingTrack,
-      marketingTrack: t.marketingTrack ? {
-        goalId: t.marketingTrack.goalId,
-        moduleId: t.marketingTrack.moduleId,
-        marketingTaskId: t.marketingTrack.marketingTaskId
-      } : null
-    })));
-    
-    // Also log the full task objects to see their complete structure
-    console.log('Full main task objects:', tasks);
-    
-    // Find the marketing goal task using the marketingTaskId
-    const currentGoal = marketingGoals.find(g => g.id === goalId);
-    const currentModule = currentGoal?.modules.find(m => m.id === moduleId);
-    
-    // Find task by ID first, then by title as fallback since IDs may not match
-    let currentTask = currentModule?.tasks.find(t => t.id === resolvedMarketingTaskId);
-    if (!currentTask) {
-      console.log('Task not found with resolved ID, trying original marketingTaskId:', marketingTaskId);
-      currentTask = currentModule?.tasks.find(t => t.id === marketingTaskId);
-    }
-    
-    // If still not found, try to find by title (this handles the ID mismatch issue)
-    if (!currentTask && taskTitle) {
-      console.log('Task not found by ID, trying to find by title:', taskTitle);
-      currentTask = currentModule?.tasks.find(t => 
-        t.title.trim().toLowerCase() === taskTitle.trim().toLowerCase()
-      );
-      if (currentTask) {
-        console.log('Found task by title:', { id: currentTask.id, title: currentTask.title });
-        // Update the marketingTaskId to use the actual task ID from the module
-        marketingTaskId = currentTask.id;
-        resolvedMarketingTaskId = currentTask.id;
-      }
-    }
-    
-    console.log('Task lookup result:', { 
-      resolvedId: resolvedMarketingTaskId, 
-      originalId: marketingTaskId, 
-      found: currentTask ? { id: currentTask.id, title: currentTask.title, isCompleted: currentTask.isCompleted } : 'not found',
-      availableTaskIds: currentModule?.tasks.map(t => t.id) || [],
-      allMarketingTasks: currentModule?.tasks.map(t => ({ id: t.id, title: t.title, isCompleted: t.isCompleted })) || []
-    });
-    
-    console.log('Looking for goal with ID:', goalId);
-    console.log('Looking for module with ID:', moduleId);
-    console.log('Looking for task with ID:', marketingTaskId);
-    
-    if (!currentTask) {
-      console.error('Marketing task not found:', { goalId, moduleId, marketingTaskId });
-      console.log('Available goals:', marketingGoals.map(g => ({ id: g.id, title: g.title })));
-      console.log('Current goal:', currentGoal ? { id: currentGoal.id, title: currentGoal.title } : 'not found');
-      if (currentGoal) {
-        console.log('Goal modules:', currentGoal.modules.map(m => ({ id: m.id, title: m.title })));
-      }
-      console.log('Current module:', currentModule ? { id: currentModule.id, title: currentModule.title } : 'not found');
-      if (currentModule) {
-        console.log('Module tasks:', currentModule.tasks.map(t => ({ id: t.id, title: t.title })));
-        console.log('Looking for task ID:', marketingTaskId);
-        console.log('Available task IDs:', currentModule.tasks.map(t => t.id));
-        console.log('Available task titles:', currentModule.tasks.map(t => t.title));
-      }
-      return;
-    }
-    
-    const newCompletionStatus = !currentTask.isCompleted;
-    
-    // Update marketing goals state immediately for UI responsiveness
     const updatedGoals = marketingGoals.map(goal => {
       if (goal.id === goalId) {
         const updatedModules = goal.modules.map(module => {
           if (module.id === moduleId) {
-            const updatedTasks = module.tasks.map(task => 
-              task.id === resolvedMarketingTaskId ? { ...task, isCompleted: newCompletionStatus } : task
-            );
+            console.log('Updating module:', module.id, 'task:', taskId);
+            const updatedTasks = module.tasks.map(task => task.id === taskId ? { ...task, isCompleted: !task.isCompleted } : task);
+            console.log('Updated tasks:', updatedTasks);
             return { ...module, tasks: updatedTasks };
           }
           return module;
@@ -1914,95 +1843,49 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       }
       return goal;
     });
-    
-    // Update main tasks state to sync with marketing goals (only if we have a main task ID)
+    console.log('Updated goals:', updatedGoals);
+    onMarketingGoalsChange(updatedGoals);
+
+    // If week now completed, celebrate
+    const g = updatedGoals.find(g => g.id === goalId);
+    const m = g?.modules.find(m => m.id === moduleId);
+    const toggledTask = m?.tasks.find(t => t.id === taskId);
+    if (m && m.tasks.length > 0 && m.tasks.every(t => t.isCompleted)) {
+      triggerConfetti();
+    }
     const updatedTasks = tasks.map(task => {
-      if (mainTaskId && task.id === mainTaskId) {
-        console.log('Updating main task status:', { taskId: task.id, oldStatus: task.status, newStatus: newCompletionStatus ? 'completed' : 'todo' });
-        return { 
-          ...task, 
-          status: newCompletionStatus ? 'completed' as const : 'todo' as const 
-        };
+      if (task.marketingTrack && task.marketingTrack.goalId === goalId && task.marketingTrack.moduleId === moduleId && task.marketingTrack.marketingTaskId === taskId) {
+        console.log('Updating main task:', task.id, 'status to:', task.status === 'completed' ? 'todo' : 'completed');
+        return { ...task, status: task.status === 'completed' ? 'todo' as const : 'completed' as const };
       }
       return task;
     });
-    
-    // Update both states immediately for responsive UI
-    console.log('Updating states...');
-    console.log('Marketing goals update:', { updatedGoalsLength: updatedGoals.length, updatedModuleTasks: updatedGoals.find(g => g.id === goalId)?.modules.find(m => m.id === moduleId)?.tasks.map(t => ({ id: t.id, title: t.title, isCompleted: t.isCompleted })) });
-    onMarketingGoalsChange(updatedGoals);
-    if (mainTaskId) {
-      console.log('Main tasks update:', { updatedTasksLength: updatedTasks.length, updatedTask: updatedTasks.find(t => t.id === mainTaskId) });
-      onTasksChange(updatedTasks);
-    }
-    // Also refresh local selections so the UI reflects new isCompleted values instantly
-    const refreshedGoal = updatedGoals.find(g => g.id === goalId) || null;
-    if (selectedGoal?.id === goalId) {
-      setSelectedGoal(refreshedGoal);
-      const refreshedModule = refreshedGoal?.modules.find(m => m.id === moduleId) || null;
-      if (selectedModule?.id === moduleId && refreshedModule) {
-        setSelectedModule(refreshedModule);
-      }
-    }
-    
-    // Check if week is now completed for celebration
-    const updatedModule = updatedGoals.find(g => g.id === goalId)?.modules.find(m => m.id === moduleId);
-    if (updatedModule && updatedModule.tasks.length > 0 && updatedModule.tasks.every(t => t.isCompleted)) {
-      console.log('Week completed! Triggering confetti...');
-      triggerConfetti();
-    }
-    
-    console.log('=== toggleTaskCompletion SUCCESS ===');
-    
+    console.log('Updated main tasks:', updatedTasks);
+    onTasksChange(updatedTasks);
+
     // Persist completion to backend; rollback if it fails
     (async () => {
       try {
-        // Use the resolved UUID for the API call, not the original taskId
-        const apiTaskId = marketingTaskId.includes('-w') ? marketingTaskId.split('-w')[0] : marketingTaskId;
-        console.log('Calling API with resolved task ID:', { original: taskId, resolved: apiTaskId });
-        const resp = await apiService.updateMarketingTaskCompletion(apiTaskId, newCompletionStatus);
+        if (!toggledTask) return;
+        const resp = await apiService.updateMarketingTaskCompletion(taskId, toggledTask.isCompleted);
         if (!resp.success) {
           console.error('Failed to persist marketing task completion:', resp.error);
-          
-          // Rollback both states on failure
-          onMarketingGoalsChange(marketingGoals);
-          if (mainTaskId) {
-            onTasksChange(tasks);
-          }
-        } else {
-          console.log('Successfully persisted task completion to backend');
-          // Refresh data from backend to ensure UI is in sync
-          try {
-            const goalsResp = await apiService.getMarketingGoals();
-            if (goalsResp.success && goalsResp.data) {
-              console.log('Refreshing marketing goals from backend...');
-              onMarketingGoalsChange(goalsResp.data);
+          const rolledBackGoals = marketingGoals.map(goal => {
+            if (goal.id === goalId) {
+              return {
+                ...goal,
+                modules: goal.modules.map(module => module.id === moduleId
+                  ? { ...module, tasks: module.tasks.map(t => t.id === taskId ? { ...t, isCompleted: !toggledTask.isCompleted } : t) }
+                  : module
+                )
+              };
             }
-            
-            // Also refresh main tasks to ensure task tracker is in sync
-            if (mainTaskId) {
-              try {
-                const tasksResp = await apiService.getTasks();
-                if (tasksResp.success && tasksResp.data) {
-                  console.log('Refreshing main tasks from backend...');
-                  onTasksChange(tasksResp.data);
-                }
-              } catch (tasksRefreshErr) {
-                console.warn('Failed to refresh main tasks:', tasksRefreshErr);
-              }
-            }
-          } catch (refreshErr) {
-            console.warn('Failed to refresh marketing goals:', refreshErr);
-          }
+            return goal;
+          });
+          onMarketingGoalsChange(rolledBackGoals);
         }
       } catch (err) {
         console.error('Error persisting marketing task completion:', err);
-        
-        // Rollback both states on error
-        onMarketingGoalsChange(marketingGoals);
-        if (mainTaskId) {
-          onTasksChange(tasks);
-        }
       }
     })();
   };
@@ -2044,21 +1927,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       createTasksFromMarketingModule(goal, firstModule, projectId.toString());
       createdModuleTasksRef.current.add(`${goal.id}:${firstModule.id}`);
     }
-    
-    // Navigate to the dedicated track page after starting the track
-    if (goal.title.toLowerCase().includes('foot traffic') || goal.title.toLowerCase().includes('local foot traffic') || goal.title.toLowerCase().includes('increase local foot traffic') || goal.title.toLowerCase().includes('improving local foot traffic')) {
-      navigate('/app/marketing-track/local-foot-traffic');
-    } else if (goal.title.toLowerCase().includes('social media') || goal.title.toLowerCase().includes('social media strategy') || goal.title.toLowerCase().includes('improve social media')) {
-      navigate('/app/marketing-track/social-media-strategy');
-    } else {
-      // Fallback to overview page if track type is not recognized
-      navigate('/app/marketing-track');
-    }
   };
 
   // Open interactive modal for a given task
   const openInteractiveTask = (goalId: string, moduleId: string, taskId: string, title: string, description: string) => {
-    try { console.log('[MarketingTrackPage] openInteractiveTask:', title); } catch {}
+    try { console.log('[MarketingTrackPage] openInteractiveTask:', title); } catch { /* Ignore console errors */ }
     setInteractiveMeta({ goalId, moduleId });
     setInteractiveTask({ id: taskId, title, description });
     setInteractiveOpen(true);
@@ -2099,9 +1972,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
     // Handle "Create Task" case
     if (lower.includes('create task')) {
-      const [newTaskTitle, setNewTaskTitle] = useState('');
-      const [newTaskDescription, setNewTaskDescription] = useState('');
-      const [newTaskEstimatedTime, setNewTaskEstimatedTime] = useState('');
 
       const handleCreateTask = () => {
         if (!newTaskTitle.trim() || !goalId || !moduleId) return;
@@ -2409,334 +2279,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         </div>
       );
     }
-    
-    // Week 1 Interactive Sections
-    if (lower.includes('online presence audit')) {
-      return (
-        <div>
-          <h2 style={{ marginTop: 0 }}>Online Presence Audit</h2>
-          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
-            Let's check how discoverable you are online. Fill out this audit to see where you're visible and where you might be invisible.
-          </p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Google Business Profile
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Is it claimed and accurate?
-                </div>
-              </label>
-              <textarea
-                placeholder="Describe the current state of your Google Business Profile..."
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Website
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Does it reflect current hours, services, and offerings?
-                </div>
-              </label>
-              <textarea
-                placeholder="Describe your website's current state..."
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Social Media
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Are you posting consistently and engaging with locals?
-                </div>
-              </label>
-              <textarea
-                placeholder="Describe your social media presence..."
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Online Reviews
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  What are people saying about finding you?
-                </div>
-              </label>
-              <textarea
-                placeholder="Summarize your current reviews and reputation..."
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
-            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
-          </div>
-        </div>
-      );
-    }
-
-    if (lower.includes('baseline metrics')) {
-      return (
-        <div>
-          <h2 style={{ marginTop: 0 }}>Baseline Metrics</h2>
-          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
-            Capture these numbers to track your progress over the next 12 weeks. This is your starting point!
-          </p>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Weekly Walk-ins
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Count how many people come in without an appointment
-                </div>
-              </label>
-              <input
-                type="number"
-                placeholder="0"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Google Views
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Monthly profile views from your Google Business Profile
-                </div>
-              </label>
-              <input
-                type="number"
-                placeholder="0"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Social Engagement
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Average likes/comments per post
-                </div>
-              </label>
-              <input
-                type="number"
-                placeholder="0"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Weekly Revenue
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Track weekly sales (optional but helpful)
-                </div>
-              </label>
-              <input
-                type="number"
-                placeholder="0"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
-            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
-          </div>
-        </div>
-      );
-    }
-
-    if (lower.includes('storefront') || lower.includes('signage photos')) {
-      return (
-        <div>
-          <h2 style={{ marginTop: 0 }}>Storefront & Signage Photos</h2>
-          <p style={{ opacity: 0.85, marginBottom: '1.5rem' }}>
-            Take photos from across the street to see what first-time visitors see. This helps you understand your store's first impression.
-          </p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Storefront from across the street
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Upload a photo showing your store from a distance
-                </div>
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Window signage and displays
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Upload photos of your window displays and signage
-                </div>
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Entryway and first impression
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Upload photos of your entryway and entrance area
-                </div>
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Any outdoor seating or display areas
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                  Upload photos of outdoor areas if applicable
-                </div>
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: 8,
-                  border: '1px solid #444',
-                  background: '#191628',
-                  color: '#FFF1E7',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button onClick={() => setMainStatus('in-progress')} style={actionButtonStyle(statusAccentColors['in-progress'])}>Mark In Progress</button>
-            <button onClick={() => setMainStatus('completed')} style={actionButtonStyle(statusAccentColors['completed'])}>Completed</button>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div>
         <h2 style={{ marginTop: 0 }}>{t.title}</h2>
@@ -2864,8 +2406,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                 Current Week: {activeGoal.currentWeek}
               </h4>
               {activeGoal.modules.filter(m => m.weekNumber === activeGoal.currentWeek).map(m0 => {
-                // Use the raw module from state, not withFallback to preserve real IDs and completion status
-                const module = m0;
+                const module = withFallback(activeGoal, m0);
                 return (
                 <div key={module.id}>
                   {/* Current Week Card Header */}
@@ -2887,10 +2428,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                       <div style={{ flex: 1 }}>
                         <h5 style={{ margin: 0, fontSize: '1.1rem', color: '#FFF1E7', marginBottom: '0.25rem' }}>
-                          {withFallback(activeGoal, module).title}
+                          {module.title}
                         </h5>
                         <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.7, fontSize: '0.9rem' }}>
-                          {withFallback(activeGoal, module).description}
+                          {module.description}
                         </p>
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -2992,7 +2533,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
                         {/* Week Content */}
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div>
                           <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', marginBottom: '1rem', fontWeight: 600 }}>
                             Week Content
                           </h6>
@@ -3004,40 +2545,35 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                             lineHeight: '1.6',
                             fontSize: '0.9rem',
                             height: '320px',
-                            minHeight: '320px',
-                            overflowY: 'auto',
-                            flex: 1
+                            overflowY: 'auto'
                           }}>
-                            {renderRichContent(withFallback(activeGoal, module).content)}
+                            {renderRichContent(module.content)}
                           </div>
                         </div>
 
                         {/* Week Tasks */}
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <div style={{ marginBottom: '1rem' }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>
                               Week Tasks
                             </h6>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try {
+                                  if (!activeGoal) return;
+                                  const projectId = getOrCreateProjectForGoal(activeGoal);
+                                  const m = withFallback(activeGoal, module);
+                                  createTasksFromMarketingModule(activeGoal, m, projectId);
+                                } catch { /* Ignore task creation errors */ }
+                              }}
+                              style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                            >
+                              Create Tasks
+                            </button>
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '320px', minHeight: '320px', overflowY: 'auto', flex: 1 }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
-                            {module.tasks.length === 0 ? (
-                              <div style={{ 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                height: '100%', 
-                                color: '#FFF1E7', 
-                                opacity: 0.6,
-                                textAlign: 'center',
-                                padding: '2rem'
-                              }}>
-                                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📋</div>
-                                <div style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>No tasks yet</div>
-                                <div style={{ fontSize: '0.8rem' }}>Tasks will appear here when the week is unlocked</div>
-                              </div>
-                            ) : (
-                              module.tasks.map(task => (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '320px', overflowY: 'auto' }} onClick={handleTaskListClick} data-module-id={module.id} data-goal-id={activeGoal.id}>
+                            {module.tasks.map(task => (
                               <div
                                 key={task.id}
                                 data-task-id={task.id}
@@ -3061,7 +2597,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   onClick={(e) => {
                                     console.log('Checkbox clicked!', { taskId: task.id, taskTitle: task.title });
                                     e.stopPropagation();
-                                    toggleTaskCompletion(activeGoal.id, module.id, task.id, task.title);
+                                    toggleTaskCompletion(activeGoal.id, module.id, task.id);
+                                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                    burstConfettiAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
                                   }}
                                   style={{
                                     width: '28px',
@@ -3079,18 +2617,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     minWidth: '28px',
                                     minHeight: '28px',
                                     boxShadow: task.isCompleted ? '0 0 0 6px rgba(94,205,125,0.15)' : 'none',
-                                    transition: 'all 0.2s ease-in-out'
+                                    transition: 'box-shadow 0.2s ease'
                                   }}
                                 >
                                   {task.isCompleted && (
-                                    <span style={{ 
-                                      color: '#22202F', 
-                                      fontSize: '16px', 
-                                      fontWeight: 'bold',
-                                      opacity: task.isCompleted ? 1 : 0,
-                                      transform: task.isCompleted ? 'scale(1)' : 'scale(0)',
-                                      transition: 'all 0.2s ease-in-out'
-                                    }}>✓</span>
+                                    <span style={{ color: '#22202F', fontSize: '16px', fontWeight: 'bold' }}>✓</span>
                                   )}
                                 </button>
                                 <div style={{ flex: 1 }}>
@@ -3100,8 +2631,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     fontWeight: 600,
                                     marginBottom: '0.25rem',
                                     textDecoration: task.isCompleted ? 'line-through' : 'none',
-                                    opacity: task.isCompleted ? 0.7 : 1,
-                                    transition: 'all 0.2s ease-in-out'
+                                    opacity: task.isCompleted ? 0.7 : 1
                                   }}>
                                     <span style={{ marginRight: 6 }}>{getTaskIcon(task.title)}</span>
                                     {task.title}
@@ -3113,8 +2643,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   <div style={{ color: '#EF8E81', fontSize: '0.75rem', fontWeight: 600 }}>⏱️ {task.estimatedTime || '—'}</div>
                                 </div>
                               </div>
-                            ))
-                            )}
+                            ))}
                           </div>
                         </div>
                         {/* Week 2: Content Pillars selector (replaces baseline section) */}
@@ -3208,19 +2737,19 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 return (
                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
                                     <label>Heading Font
-                                      <select value={tp.headingFont} onChange={e => saveTypography(activeGoal.id, { ...tp, headingFont: e.target.value })} style={{ ...inputBaseStyle, height: '3rem', fontSize: '1rem' } as any}>
-                                        {FONT_OPTIONS.map(f => <option key={f} value={f} style={{ fontFamily: f as any }}>{f}</option>)}
+                                      <select value={tp.headingFont} onChange={e => saveTypography(activeGoal.id, { ...tp, headingFont: e.target.value })} style={{ ...inputBaseStyle, height: '3rem', fontSize: '1rem' }}>
+                                        {FONT_OPTIONS.map(f => <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>)}
                                       </select>
                                       <div style={{ marginTop: 6, padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.2)', color: '#FFF1E7' }}>
-                                        <div style={{ fontFamily: tp.headingFont as any, fontSize: '1.25rem' }}>The quick brown fox jumps over the lazy dog</div>
+                                        <div style={{ fontFamily: tp.headingFont, fontSize: '1.25rem' }}>The quick brown fox jumps over the lazy dog</div>
                                       </div>
                                     </label>
                                     <label>Body Font
-                                      <select value={tp.bodyFont} onChange={e => saveTypography(activeGoal.id, { ...tp, bodyFont: e.target.value })} style={{ ...inputBaseStyle, height: '3rem', fontSize: '1rem' } as any}>
-                                        {FONT_OPTIONS.map(f => <option key={`b-${f}`} value={f} style={{ fontFamily: f as any }}>{f}</option>)}
+                                      <select value={tp.bodyFont} onChange={e => saveTypography(activeGoal.id, { ...tp, bodyFont: e.target.value })} style={{ ...inputBaseStyle, height: '3rem', fontSize: '1rem' }}>
+                                        {FONT_OPTIONS.map(f => <option key={`b-${f}`} value={f} style={{ fontFamily: f }}>{f}</option>)}
                                       </select>
                                       <div style={{ marginTop: 6, padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.2)', color: '#FFF1E7' }}>
-                                        <div style={{ fontFamily: tp.bodyFont as any }}>Readable preview text set in your body font.</div>
+                                        <div style={{ fontFamily: tp.bodyFont }}>Readable preview text set in your body font.</div>
                                       </div>
                                     </label>
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', alignItems: 'center' }}>
@@ -3336,7 +2865,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     {list.map((t, idx) => (
                                       <div key={idx} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '0.75rem' }}>
                                         <label>Name<input value={t.name} onChange={e => update(idx, { name: e.target.value })} style={inputBaseStyle} placeholder="e.g., Tip/FAQ Template" /></label>
-                                        <label>Type<select value={t.type} onChange={e => update(idx, { type: e.target.value as TemplateType })} style={inputBaseStyle as any}>
+                                        <label>Type<select value={t.type} onChange={e => update(idx, { type: e.target.value as TemplateType })} style={inputBaseStyle}>
                                           {(['Educate','Promote','Connect','Other'] as TemplateType[]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                         </select></label>
                                         <label>Canva URL<input value={t.canvaUrl} onChange={e => update(idx, { canvaUrl: e.target.value })} style={inputBaseStyle} placeholder="https://canva.com/… (optional)" /></label>
@@ -3461,7 +2990,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   </div>
                                   <div style={{ marginBottom: '0.75rem' }}>
                                     <label>Scheduler Tool
-                                      <select value={plan.tool} onChange={e => setTool(e.target.value as ScheduleTool)} style={inputBaseStyle as any}>
+                                      <select value={plan.tool} onChange={e => setTool(e.target.value as ScheduleTool)} style={inputBaseStyle}>
                                         {(['Meta Business Suite','Later','Planoly','Buffer','Manual'] as ScheduleTool[]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                       </select>
                                     </label>
@@ -3470,12 +2999,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     {posts.map((p, idx) => (
                                       <div key={p.day} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '0.75rem' }}>
                                         <div style={{ fontWeight: 700, color: '#FFF1E7', marginBottom: 6 }}>{p.day}</div>
-                                        <label>Type<select value={p.type} onChange={e => updatePost(idx, { type: e.target.value as any })} style={inputBaseStyle as any}>
+                                        <label>Type<select value={p.type} onChange={e => updatePost(idx, { type: e.target.value as 'Educate' | 'Promote' | 'Connect' })} style={inputBaseStyle}>
                                           <option value="Educate">Educate</option>
                                           <option value="Promote">Promote</option>
                                           <option value="Connect">Connect</option>
                                         </select></label>
-                                        <label>Pillar<select value={p.pillar} onChange={e => updatePost(idx, { pillar: e.target.value })} style={inputBaseStyle as any}>
+                                        <label>Pillar<select value={p.pillar} onChange={e => updatePost(idx, { pillar: e.target.value })} style={inputBaseStyle}>
                                           {(contentPillarsByGoal[activeGoal.id] || DEFAULT_PILLAR_OPTIONS)
                                             .filter(pl => (contentPillarsByGoal[activeGoal.id] || []).includes(pl))
                                             .map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -3551,7 +3080,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     <label>Title/description<input value={p.title} onChange={e => update({ title: e.target.value })} style={inputBaseStyle} /></label>
                                     <label>URL<input value={p.url} onChange={e => update({ url: e.target.value })} style={inputBaseStyle} placeholder="https://… (optional)" /></label>
                                     <label>Date<input value={p.date} onChange={e => update({ date: e.target.value })} style={inputBaseStyle} placeholder="YYYY-MM-DD" /></label>
-                                    <label>Original format<select value={p.format} onChange={e => update({ format: e.target.value as any })} style={inputBaseStyle as any}>
+                                    <label>Original format<select value={p.format} onChange={e => update({ format: e.target.value as PastPost['format'] })} style={inputBaseStyle}>
                                       {(['Photo','Caption','Promo','Long Caption','Testimonial','Other'] as PastPost['format'][]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                     </select></label>
                                   </div>
@@ -3567,7 +3096,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 const update = (upd: Partial<RemixPlan>) => saveWk10(activeGoal.id, { ...plan, remix: { ...r, ...upd } });
                                 return (
                                   <div>
-                                    <label>New version<select value={r.newFormat} onChange={e => update({ newFormat: e.target.value as any })} style={inputBaseStyle as any}>
+                                    <label>New version<select value={r.newFormat} onChange={e => update({ newFormat: e.target.value as RemixPlan['newFormat'] })} style={inputBaseStyle}>
                                       {(['Carousel','Reel/Video','BTS Video','Graphic Quote/Stat','Photo+Testimonial','Other'] as RemixPlan['newFormat'][]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                     </select></label>
                                     <label>Notes<textarea value={r.notes} onChange={e => update({ notes: e.target.value })} style={{ ...inputBaseStyle, minHeight: 80 }} placeholder="How will you refresh it?" /></label>
@@ -3589,7 +3118,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                   <div>
                                     <label>Campaign Type
-                                      <select value={plan.type} onChange={e => update({ type: e.target.value as CampaignType })} style={inputBaseStyle as any}>
+                                      <select value={plan.type} onChange={e => update({ type: e.target.value as CampaignType })} style={inputBaseStyle}>
                                         {(['Story Poll/Quiz','Giveaway','Fun Feed Question','Q&A'] as CampaignType[]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                       </select>
                                     </label>
@@ -3622,10 +3151,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   {/* Reflection */}
                                   <div>
                                     <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 1: Reflect</h6>
-                                    <label>What changed?<textarea value={s.reflection.changed} onChange={e => upd({ reflection: { changed: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
-                                    <label>What worked best?<textarea value={s.reflection.worked} onChange={e => upd({ reflection: { worked: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
-                                    <label>Keep doing / Stop doing<textarea value={s.reflection.keepStop} onChange={e => upd({ reflection: { keepStop: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
-                                    <label>Next social goal<textarea value={s.reflection.nextGoal} onChange={e => upd({ reflection: { nextGoal: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>What changed?<textarea value={s.reflection.changed} onChange={e => upd({ reflection: { ...s.reflection, changed: e.target.value } })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>What worked best?<textarea value={s.reflection.worked} onChange={e => upd({ reflection: { ...s.reflection, worked: e.target.value } })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>Keep doing / Stop doing<textarea value={s.reflection.keepStop} onChange={e => upd({ reflection: { ...s.reflection, keepStop: e.target.value } })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>Next social goal<textarea value={s.reflection.nextGoal} onChange={e => upd({ reflection: { ...s.reflection, nextGoal: e.target.value } })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
                                   </div>
                                   {/* Metrics + Plan */}
                                   <div>
@@ -3667,8 +3196,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                       </div>
                                     </div>
                                     <h6 style={{ marginTop: '1rem', color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 3: 30‑day plan</h6>
-                                    <label>Focus<input value={s.plan.focus} onChange={e => upd({ plan: { focus: e.target.value } as any })} style={inputBaseStyle} placeholder="Ex: 3x Stories/week; Tuesday Tips; run a giveaway" /></label>
-                                    <label>Notes<textarea value={s.plan.notes} onChange={e => upd({ plan: { notes: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 80 }} /></label>
+                                    <label>Focus<input value={s.plan.focus} onChange={e => upd({ plan: { ...s.plan, focus: e.target.value } })} style={inputBaseStyle} placeholder="Ex: 3x Stories/week; Tuesday Tips; run a giveaway" /></label>
+                                    <label>Notes<textarea value={s.plan.notes} onChange={e => upd({ plan: { ...s.plan, notes: e.target.value } })} style={{ ...inputBaseStyle, minHeight: 80 }} /></label>
                                   </div>
                                 </div>
                               );
@@ -3679,347 +3208,80 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                         {/* Pro Tip spanning both columns */}
                         <div style={{ gridColumn: '1 / -1' }}>
                           <div style={{ marginTop: '0.25rem', background: 'rgba(104,109,202,0.12)', border: '1px dashed rgba(104,109,202,0.4)', color: '#FFF1E7', borderRadius: 8, padding: '0.9rem' }}>
-                            <strong style={{ color: '#686DCA' }}>💡 Pro Tip:</strong> {getProTip(withFallback(activeGoal, module))}
+                            <strong style={{ color: '#686DCA' }}>💡 Pro Tip:</strong> {getProTip(module)}
                           </div>
                         </div>
-                        {/* Week 1 Forms - Embedded directly in the view */}
+                        {/* Guided Week (Planner + Quick Wins) */}
                         <div style={{ gridColumn: '1 / -1' }}>
-                          <div style={{ marginTop: '0.5rem', background: 'rgba(255,241,231,0.04)', border: '1px solid rgba(239,142,129,0.25)', borderRadius: 10, padding: '1.5rem' }}>
-                            <h6 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#FFF1E7', fontWeight: 700 }}>Week 1: Complete Your Visibility Audit</h6>
-                            
-                            {/* Online Presence Audit Form - Two Column Layout */}
-                            <div style={{ marginBottom: '2rem' }}>
-                              <h6 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>Online Presence Audit</h6>
-                              <p style={{ margin: '0 0 1rem 0', opacity: 0.85, fontSize: '0.9rem' }}>
-                                Let's check how discoverable you are online. Fill out this audit to see where you're visible and where you might be invisible.
-                              </p>
-                              
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Google Business Profile
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Is it claimed and accurate?
-                                    </div>
-                                  </label>
-                                  <textarea
-                                    placeholder="Describe the current state of your Google Business Profile..."
-                                    rows={3}
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem',
-                                      resize: 'vertical',
-                                      fontFamily: 'inherit'
-                                    }}
-                                  />
-                                </div>
-
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Website
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Does it reflect current hours, services, and offerings?
-                                    </div>
-                                  </label>
-                                  <textarea
-                                    placeholder="Describe your website's current state..."
-                                    rows={3}
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem',
-                                      resize: 'vertical',
-                                      fontFamily: 'inherit'
-                                    }}
-                                  />
-                                </div>
-
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Social Media
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Are you posting consistently and engaging with locals?
-                                    </div>
-                                  </label>
-                                  <textarea
-                                    placeholder="Describe your social media presence..."
-                                    rows={3}
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem',
-                                      resize: 'vertical',
-                                      fontFamily: 'inherit'
-                                    }}
-                                  />
-                                </div>
-
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Online Reviews
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      What are people saying about finding you?
-                                    </div>
-                                  </label>
-                                  <textarea
-                                    placeholder="Summarize your current reviews and reputation..."
-                                    rows={3}
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem',
-                                      resize: 'vertical',
-                                      fontFamily: 'inherit'
-                                    }}
-                                  />
-                                </div>
+                          <div style={{ marginTop: '0.5rem', background: 'rgba(255,241,231,0.04)', border: '1px solid rgba(239,142,129,0.25)', borderRadius: 10, padding: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                              <h6 style={{ margin: 0, fontSize: '1rem', color: '#FFF1E7', fontWeight: 700 }}>Social Content Plan</h6>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <span style={{ color: '#FFF1E7', opacity: 0.8, fontSize: 12 }}>Rhythm</span>
+                                <button onClick={()=> setPlannerMode('beginner')} disabled={plannerMode==='beginner'} style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: plannerMode==='beginner' ? '#EF8E81' : 'transparent', color: plannerMode==='beginner' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Beginner 3x</button>
+                                <button onClick={()=> setPlannerMode('confident')} disabled={plannerMode==='confident'} style={{ padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)', background: plannerMode==='confident' ? '#EF8E81' : 'transparent', color: plannerMode==='confident' ? '#191628' : '#FFF1E7', cursor: 'pointer' }}>Confident 5x</button>
                               </div>
                             </div>
-
-                            {/* Baseline Metrics Form - Tabbed Interface */}
-                            <div style={{ marginBottom: '2rem' }}>
-                              <h6 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>Baseline Metrics</h6>
-                              <p style={{ margin: '0 0 1rem 0', opacity: 0.85, fontSize: '0.9rem' }}>
-                                Capture these numbers to track your progress over the next 12 weeks. This is your starting point!
-                              </p>
-                              
-                              {/* Tab Navigation */}
-                              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                                {['Business Metrics', 'Instagram', 'Facebook', 'X (Twitter)', 'LinkedIn', 'Google Business Profile', 'TikTok', 'YouTube'].map((platform, index) => (
-                                  <button
-                                    key={platform}
-                                    onClick={() => setActiveMetricTab(index)}
-                                    style={{
-                                      padding: '0.5rem 1rem',
-                                      borderRadius: '20px',
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: activeMetricTab === index ? '#EF8E81' : 'transparent',
-                                      color: activeMetricTab === index ? '#22202F' : '#FFF1E7',
-                                      fontSize: '0.85rem',
-                                      fontWeight: 600,
-                                      cursor: 'pointer',
-                                      transition: 'all 0.2s ease'
-                                    }}
-                                  >
-                                    {platform}
-                                  </button>
-                                ))}
-                              </div>
-                              
-                              {/* Tab Content */}
-                              <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1.5rem' }}>
-                                {activeMetricTab === 0 && (
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div>
-                                      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                        Weekly Walk-ins
-                                        <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                          Count how many people come in without an appointment
-                                        </div>
-                                      </label>
-                                      <input
-                                        type="number"
-                                        placeholder="0"
-                                        style={{
-                                          width: 'calc(100% - 2rem)',
-                                          padding: '0.75rem',
-                                          borderRadius: 8,
-                                          border: '1px solid rgba(255,255,255,0.15)',
-                                          background: 'transparent',
-                                          color: '#FFF1E7',
-                                          fontSize: '1rem'
-                                        }}
-                                      />
-                                    </div>
-                                    <div>
-                                      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                        Weekly Revenue
-                                        <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                          Track weekly sales (optional but helpful)
-                                        </div>
-                                      </label>
-                                      <input
-                                        type="number"
-                                        placeholder="0"
-                                        style={{
-                                          width: 'calc(100% - 2rem)',
-                                          padding: '0.75rem',
-                                          borderRadius: 8,
-                                          border: '1px solid rgba(255,255,255,0.15)',
-                                          background: 'transparent',
-                                          color: '#FFF1E7',
-                                          fontSize: '1rem'
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                {activeMetricTab > 0 && (
-                                  <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                      {['Instagram', 'Facebook', 'X (Twitter)', 'LinkedIn', 'Google Business Profile', 'TikTok', 'YouTube'][activeMetricTab - 1]} Metrics
-                                      <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                        Track your performance on this platform
-                                      </div>
-                                    </label>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                      <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
-                                          Followers/Subscribers
-                                        </label>
-                                        <input
-                                          type="number"
-                                          placeholder="0"
-                                          style={{
-                                            width: 'calc(100% - 2rem)',
-                                            padding: '0.75rem',
-                                            borderRadius: 8,
-                                            border: '1px solid rgba(255,255,255,0.15)',
-                                            background: 'transparent',
-                                            color: '#FFF1E7',
-                                            fontSize: '1rem'
-                                          }}
-                                        />
-                                      </div>
-                                      <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
-                                          Avg. Engagement Rate
-                                        </label>
-                                        <input
-                                          type="number"
-                                          placeholder="0"
-                                          step="0.1"
-                                          style={{
-                                            width: 'calc(100% - 2rem)',
-                                            padding: '0.75rem',
-                                            borderRadius: 8,
-                                            border: '1px solid rgba(255,255,255,0.15)',
-                                            background: 'transparent',
-                                            color: '#FFF1E7',
-                                            fontSize: '1rem'
-                                          }}
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Storefront Photos Form - Two Column Layout */}
-                            <div>
-                              <h6 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#FFF1E7', fontWeight: 600 }}>Storefront & Signage Photos</h6>
-                              <p style={{ margin: '0 0 1rem 0', opacity: 0.85, fontSize: '0.9rem' }}>
-                                Take photos from across the street to see what first-time visitors see. This helps you understand your store's first impression.
-                              </p>
-                              
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Storefront from across the street
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Upload a photo showing your store from a distance
-                                    </div>
-                                  </label>
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem'
-                                    }}
-                                  />
-                                </div>
-
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Window signage and displays
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Upload photos of your window displays and signage
-                                    </div>
-                                  </label>
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem'
-                                    }}
-                                  />
-                                </div>
-
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Entryway and first impression
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Upload photos of your entryway and entrance area
-                                    </div>
-                                  </label>
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem'
-                                    }}
-                                  />
-                                </div>
-
-                                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '1rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    Any outdoor seating or display areas
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                      Upload photos of outdoor areas if applicable
-                                    </div>
-                                  </label>
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    style={{
-                                      width: 'calc(100% - 2rem)',
-                                      padding: '0.75rem',
-                                      borderRadius: 8,
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      background: 'transparent',
-                                      color: '#FFF1E7',
-                                      fontSize: '1rem'
-                                    }}
-                                  />
-                                </div>
-                              </div>
+                            {/* Quick Wins removed per request */}
+                            {/* Planner Grid */}
+                              <div style={{ overflowX: 'hidden' }}>
+                               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, tableLayout: 'fixed' }}>
+                                <thead>
+                                  <tr style={{ textAlign: 'left', color: '#FFF1E7', opacity: 0.8 }}>
+                                    <th style={{ padding: '8px' }}>Day</th>
+                                    <th style={{ padding: '8px' }}>Type</th>
+                                    <th style={{ padding: '8px' }}>Pillar</th>
+                                    <th style={{ padding: '8px' }}>Caption (draft)</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {(plannerMode==='beginner' ? planner.filter(r => ['Monday','Wednesday','Friday'].includes(r.day)) : planner).map((row, idx) => (
+                                    <tr key={row.day} style={{ background: idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
+                                      <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
+                                          <td style={{ padding: '8px', color: '#FFF1E7' }}>
+                                            {module.weekNumber >= 4 ? (
+                                              <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as 'Connect' | 'Educate' | 'Promote' }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
+                                                <option value="Connect">Connect</option>
+                                                <option value="Educate">Educate</option>
+                                                <option value="Promote">Promote</option>
+                                              </select>
+                                            ) : (
+                                              <span>{row.type}</span>
+                                            )}
+                                          </td>
+                                      <td style={{ padding: '8px' }}>
+                                            {module.weekNumber >= 2 ? (
+                                              <select value={row.pillar} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], pillar: e.target.value }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
+                                                {(contentPillarsByGoal[activeGoal.id] || DEFAULT_PILLAR_OPTIONS)
+                                                  .filter(p => (contentPillarsByGoal[activeGoal.id] || []).includes(p))
+                                                  .map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                  ))}
+                                                {(contentPillarsByGoal[activeGoal.id] || [])
+                                                  .filter(p => !DEFAULT_PILLAR_OPTIONS.includes(p))
+                                                  .map(opt => (
+                                                    <option key={`custom-${opt}`} value={opt}>{opt}</option>
+                                                  ))}
+                                              </select>
+                                            ) : (
+                                              <span style={{ color: '#FFF1E7' }}>{row.pillar}</span>
+                                            )}
+                                        </td>
+                                        <td style={{ padding: '8px' }}>
+                                          <input value={row.caption} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], caption: e.target.value }; return next; })} placeholder={
+                                            module.weekNumber === 1 ? (
+                                              row.day === 'Monday' ? "Here's what we're working on this week…" :
+                                              row.day === 'Tuesday' ? "Answer a common customer question or give a useful tip" :
+                                              row.day === 'Wednesday' ? "Share why you started your business, or something you're proud of" :
+                                              row.day === 'Thursday' ? "Highlight 1 offer you love—describe it and invite people in" :
+                                              row.day === 'Friday' ? "Shout out a local business or share a light‑hearted moment" : 'Draft caption…'
+                                            ) : 'Draft caption…'
+                                          } style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }} />
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
                             </div>
                           </div>
                         </div>
@@ -4335,7 +3597,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     setInteractiveMeta({ goalId: activeGoal.id, moduleId: module.id });
                                     setInteractiveTask({ id: '', title: 'Create Task', description: '' });
                                     setInteractiveOpen(true);
-                                  } catch {}
+                                  } catch { /* Ignore modal errors */ }
                                 }}
                                 style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
                               >
@@ -4556,79 +3818,45 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                     </p>
                     {/* Stage legend inline hint could be added here if needed */}
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log('Start Track button clicked for goal:', goal.title, 'shouldDisableTracks:', shouldDisableTracks);
-                        console.log('Button click event:', e);
-                        console.log('Goal details:', { id: goal.id, title: goal.title, isActive: goal.isActive });
-                        if (!shouldDisableTracks) {
-                          console.log('Calling startMarketingTrack...');
-                          startMarketingTrack(goal);
-                        } else {
-                          console.log('Track start disabled because shouldDisableTracks is true');
-                          console.log('Active goal causing disable:', activeGoal);
-                        }
-                      }}
-                      style={{
-                        padding: '0.75rem 1.5rem',
-                        background: shouldDisableTracks ? 'rgba(255, 255, 255, 0.1)' : '#EF8E81',
-                        color: '#FFF1E7',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: shouldDisableTracks ? 'not-allowed' : 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        transition: 'all 0.2s',
-                        opacity: shouldDisableTracks ? 0.5 : 1
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!shouldDisableTracks) {
-                          e.currentTarget.style.background = '#ffb09e';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!shouldDisableTracks) {
-                          e.currentTarget.style.background = '#EF8E81';
-                        }
-                      }}
-                    >
-                      {shouldDisableTracks ? '🔒 Locked' : 'Start Track'}
-                    </button>
-                    
-                    {/* View Track Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const trackPath = goal.title.toLowerCase().includes('foot traffic') || goal.title.toLowerCase().includes('local foot traffic') || goal.title.toLowerCase().includes('increase local foot traffic') || goal.title.toLowerCase().includes('improving local foot traffic')
-                          ? '/app/marketing-track/local-foot-traffic'
-                          : goal.title.toLowerCase().includes('social media') || goal.title.toLowerCase().includes('social media strategy') || goal.title.toLowerCase().includes('improve social media')
-                          ? '/app/marketing-track/social-media-strategy'
-                          : '/app/marketing-track';
-                        window.location.href = trackPath;
-                      }}
-                      style={{
-                        padding: '0.75rem 1.5rem',
-                        background: 'rgba(104,109,202,0.2)',
-                        color: '#686DCA',
-                        border: '1px solid rgba(104,109,202,0.3)',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(104,109,202,0.3)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(104,109,202,0.2)';
-                      }}
-                    >
-                      View Track
-                    </button>
-                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Start Track button clicked for goal:', goal.title, 'shouldDisableTracks:', shouldDisableTracks);
+                      console.log('Button click event:', e);
+                      console.log('Goal details:', { id: goal.id, title: goal.title, isActive: goal.isActive });
+                      if (!shouldDisableTracks) {
+                        console.log('Calling startMarketingTrack...');
+                        startMarketingTrack(goal);
+                      } else {
+                        console.log('Track start disabled because shouldDisableTracks is true');
+                        console.log('Active goal causing disable:', activeGoal);
+                      }
+                    }}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      background: shouldDisableTracks ? 'rgba(255, 255, 255, 0.1)' : '#EF8E81',
+                      color: '#FFF1E7',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: shouldDisableTracks ? 'not-allowed' : 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      transition: 'all 0.2s',
+                      opacity: shouldDisableTracks ? 0.5 : 1
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!shouldDisableTracks) {
+                        e.currentTarget.style.background = '#ffb09e';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!shouldDisableTracks) {
+                        e.currentTarget.style.background = '#EF8E81';
+                      }
+                    }}
+                  >
+                    {shouldDisableTracks ? '🔒 Locked' : 'Start Track'}
+                  </button>
                 </div>
               </div>
             ))}
@@ -4714,12 +3942,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                     }}
                   >
                     <button
-                      onClick={() => {
-                        console.log('Checkbox clicked!', { taskId: task.id, taskTitle: task.title });
-                        if (selectedGoal) {
-                          toggleTaskCompletion(selectedGoal.id, selectedModule.id, task.id, task.title);
-                        }
-                      }}
+                      onClick={() => selectedGoal && toggleTaskCompletion(selectedGoal.id, selectedModule.id, task.id)}
                       style={{
                         width: '20px',
                         height: '20px',
@@ -4801,7 +4024,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
               <button onClick={closeInteractiveTask} style={{ background: 'transparent', color: '#FFF1E7', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>×</button>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.25rem' }}>
-              {(() => { try { console.log('[MarketingTrackPage] render modal for:', interactiveTask?.title); } catch {} return renderInteractiveContentForTask(interactiveTask); })()}
+              {(() => { try { console.log('[MarketingTrackPage] render modal for:', interactiveTask?.title); } catch { /* Ignore console errors */ } return renderInteractiveContentForTask(interactiveTask); })()}
             </div>
           </div>
         </div>

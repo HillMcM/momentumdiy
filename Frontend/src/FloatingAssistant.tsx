@@ -75,7 +75,7 @@ export default function FloatingAssistant() {
       } else {
         throw new Error(data.error || 'Failed to get response');
       }
-    } catch (err) {
+    } catch {
       const aiMsg: ChatMessage = {
         id: String(Date.now() + 1),
         role: 'assistant',

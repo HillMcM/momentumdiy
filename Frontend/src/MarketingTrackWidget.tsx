@@ -16,13 +16,13 @@ interface MarketingTrackModalProps {
 function MarketingTrackModal({ isOpen, onClose, goal, module }: MarketingTrackModalProps) {
   if (!isOpen || !goal || !module) return null;
 
-  // Removed mock fallback to avoid placeholder content
-  const withFallback = (_g: MarketingGoal, m: MarketingModule): MarketingModule => m;
+  // REMOVED: withFallback function that generated fake data
+  // If you see this error, marketing data is incomplete
 
   const renderRichContent = (text: string) => {
     if (!text) return null;
     const lines = text.split('\n');
-    const out: any[] = [];
+    const out: React.ReactNode[] = [];
     let list: string[] = [];
     const flush = () => { if (list.length) { out.push(
       <ul style={{ margin: '0.5rem 0 0.5rem 1.25rem' }}>{list.map((li, i) => <li key={`li-${i}`} style={{ marginBottom: '0.25rem' }}>{li}</li>)}</ul>
@@ -32,14 +32,29 @@ function MarketingTrackModal({ isOpen, onClose, goal, module }: MarketingTrackMo
       if (line.length === 0) { flush(); out.push(<div key={`sp-${idx}`} style={{ height: 6 }} />); return; }
       if (line.startsWith('## ')) { flush(); out.push(<h4 key={`h2-${idx}`} style={{ margin: '0.5rem 0' }}>{line.slice(3)}</h4>); return; }
       if (line.startsWith('### ')) { flush(); out.push(<h5 key={`h3-${idx}`} style={{ margin: '0.5rem 0', opacity: 0.9 }}>{line.slice(4)}</h5>); return; }
-      if (/^(\-|\*|•|–)\s/.test(line)) { list.push(line.replace(/^(\-|\*|•|–)\s/, '')); return; }
+      if (/^(-|\*|•|–)\s/.test(line)) { list.push(line.replace(/^(-|\*|•|–)\s/, '')); return; }
       flush(); out.push(<p key={`p-${idx}`} style={{ margin: '0.25rem 0', opacity: 0.9 }}>{line}</p>);
     });
     flush();
     return out;
   };
 
-  const filledModule = withFallback(goal, module);
+      // REMOVED: withFallback call that generated fake data
+    // If you see this error, marketing data is incomplete
+    const filledModule = module;
+    
+    // Validate that the module has real data
+    if (!filledModule.title || !filledModule.description || !filledModule.content) {
+      console.error('❌ MISSING MARKETING DATA:', {
+        goalTitle: goal.title,
+        weekNumber: filledModule.weekNumber,
+        moduleId: filledModule.id,
+        hasTitle: !!filledModule.title,
+        hasDescription: !!filledModule.description,
+        hasContent: !!filledModule.content
+      });
+      throw new Error(`Marketing module ${filledModule.weekNumber} for "${goal.title}" is missing required data. Check database seeding.`);
+    }
 
   return (
     <div style={{

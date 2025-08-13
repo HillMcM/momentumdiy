@@ -9,6 +9,13 @@ interface SocialMediaStrategyTrackProps {
   projects: Project[];
 }
 
+// REMOVED: withFallback function that generated fake data
+// This was masking real data issues and should not exist
+// If you see this error, it means the marketing track data is incomplete
+// and needs to be properly seeded from the database
+
+
+
 export default function SocialMediaStrategyTrack({ 
   marketingGoals, 
   onMarketingGoalsChange, 
@@ -210,76 +217,94 @@ export default function SocialMediaStrategyTrack({
 
             {/* Weekly Preview Cards Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              {activeGoal.modules.map((module) => (
-                <div
-                  key={module.id}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    borderRadius: '12px',
-                    padding: '1.5rem',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    transition: 'all 0.2s ease',
-                    cursor: 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                    e.currentTarget.style.borderColor = 'rgba(239, 142, 129, 0.3)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                  }}
-                >
-                  {/* Week Number Badge */}
-                  <div style={{ 
-                    display: 'inline-block',
-                    background: 'rgba(239, 142, 129, 0.2)',
-                    color: '#EF8E81',
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '20px',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    marginBottom: '1rem'
-                  }}>
-                    Week {module.weekNumber}
+              {activeGoal.modules.map((module) => {
+                // REMOVED: withFallback call that generated fake data
+                // If you see this error, marketing data is incomplete
+                const moduleWithTasks = module;
+                
+                // Validate that the module has real data
+                if (!moduleWithTasks.title || !moduleWithTasks.description || !moduleWithTasks.content) {
+                  console.error('❌ MISSING MARKETING DATA:', {
+                    goalTitle: activeGoal.title,
+                    weekNumber: moduleWithTasks.weekNumber,
+                    moduleId: moduleWithTasks.id,
+                    hasTitle: !!moduleWithTasks.title,
+                    hasDescription: !!moduleWithTasks.description,
+                    hasContent: !!moduleWithTasks.content
+                  });
+                  throw new Error(`Marketing module ${moduleWithTasks.weekNumber} for "${activeGoal.title}" is missing required data. Check database seeding.`);
+                }
+                return (
+                  <div
+                    key={module.id}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '12px',
+                      padding: '1.5rem',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      transition: 'all 0.2s ease',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.borderColor = 'rgba(239, 142, 129, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                  >
+                    {/* Week Number Badge */}
+                    <div style={{ 
+                      display: 'inline-block',
+                      background: 'rgba(239, 142, 129, 0.2)',
+                      color: '#EF8E81',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '20px',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      marginBottom: '1rem'
+                    }}>
+                      Week {module.weekNumber}
+                    </div>
+
+                    {/* Week Title */}
+                    <h3 style={{ 
+                      margin: '0 0 0.75rem 0', 
+                      fontSize: '1.1rem', 
+                      color: '#FFF1E7', 
+                      fontWeight: 600,
+                      lineHeight: '1.4'
+                    }}>
+                      {moduleWithTasks.title || module.title}
+                    </h3>
+
+                    {/* Week Description */}
+                    <p style={{ 
+                      margin: '0 0 1rem 0', 
+                      color: '#FFF1E7', 
+                      opacity: 0.7, 
+                      fontSize: '0.9rem',
+                      lineHeight: '1.5'
+                    }}>
+                      {moduleWithTasks.description || module.description}
+                    </p>
+
+                    {/* Task Count */}
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '0.5rem',
+                      color: '#EF8E81',
+                      fontSize: '0.875rem',
+                      fontWeight: 500
+                    }}>
+                      <span>📋</span>
+                      <span>{moduleWithTasks.tasks?.length || 0} tasks</span>
+                    </div>
                   </div>
-
-                  {/* Week Title */}
-                  <h3 style={{ 
-                    margin: '0 0 0.75rem 0', 
-                    fontSize: '1.1rem', 
-                    color: '#FFF1E7', 
-                    fontWeight: 600,
-                    lineHeight: '1.4'
-                  }}>
-                    {module.title}
-                  </h3>
-
-                  {/* Week Description */}
-                  <p style={{ 
-                    margin: '0 0 1rem 0', 
-                    color: '#FFF1E7', 
-                    opacity: 0.7, 
-                    fontSize: '0.9rem',
-                    lineHeight: '1.5'
-                  }}>
-                    {module.description}
-                  </p>
-
-                  {/* Task Count */}
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '0.5rem',
-                    color: '#EF8E81',
-                    fontSize: '0.875rem',
-                    fontWeight: 500
-                  }}>
-                    <span>📋</span>
-                    <span>{module.tasks.length} tasks</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Start Track CTA */}

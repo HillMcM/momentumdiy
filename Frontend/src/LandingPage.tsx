@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 export default function LandingPage() {
-  const waitlistUrl = (import.meta as any).env?.VITE_WAITLIST_URL || '/auth';
+  const waitlistUrl = (import.meta as { env?: { VITE_WAITLIST_URL?: string } }).env?.VITE_WAITLIST_URL || '/auth';
   return (
     <div className="landing-root">
       <header className="landing-header">

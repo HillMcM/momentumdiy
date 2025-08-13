@@ -7,7 +7,7 @@ import MarketingTrackPage from './MarketingTrackPage';
 import { LocalFootTrafficTrack, SocialMediaStrategyTrack } from './marketing-tracks';
 import SocialProfileManager from './SocialProfileManager';
 import ProfilePage from './ProfilePage';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Project, Task, MarketingGoal } from './types';
 import OctopusLogo from './assets/octopus_icon.png';
 import SidebarToggleIcon from './assets/sidebar_toggle.svg';
@@ -17,7 +17,7 @@ import FloatingAssistant from './FloatingAssistant';
 import ProtectedRoute from './ProtectedRoute';
 import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from './contexts/useAuth';
 import { supabase } from './lib/supabase';
 
 // Comment out deactivated component imports to prevent build errors
@@ -63,7 +63,7 @@ function SidebarToggle({ onClick, className }: { onClick: () => void; className?
 function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; onToggle: () => void; showProfileManager?: boolean }) {
   const location = useLocation();
   const { user } = useAuth();
-  const deriveNameFromUser = (u: any | null) => {
+  const deriveNameFromUser = (u: { user_metadata?: { full_name?: string; name?: string }; email?: string } | null) => {
     if (!u) return 'Business Name';
     const metaName = (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || '';
     const emailName = (u.email ? String(u.email).split('@')[0] : '') || '';
@@ -89,7 +89,7 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
       }
     })();
     return () => { mounted = false; };
-  }, [user?.id]);
+  }, [user, user?.id]);
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -344,38 +344,34 @@ function ProtectedApp() {
           console.error('❌ Failed to load tasks:', tasksResponse.error);
         }
         
-        // Load projects
-        console.log('Fetching projects from API...');
-        const projectsResponse = await apiService.getProjects();
-        console.log('Projects API response:', projectsResponse);
-        if (projectsResponse.success && projectsResponse.data) {
-          setProjects(projectsResponse.data);
-          console.log('✅ Loaded projects:', projectsResponse.data.length);
-        } else {
-          console.error('❌ Failed to load projects:', projectsResponse.error);
-        }
+        // Load projects (only if projects feature is active)
+        // NOTE: Projects feature is currently deactivated
+        console.log('🚫 Skipping projects API call - feature deactivated');
+        setProjects([]);
         
         // Load marketing goals directly from Supabase-backed API
         console.log('Fetching marketing goals from API...');
         const goalsResponse = await apiService.getMarketingGoals();
         console.log('Marketing goals API response:', goalsResponse);
         if (goalsResponse.success && goalsResponse.data) {
-          setMarketingGoals(goalsResponse.data);
+          // Never downgrade currentWeek when hydrating from backend
+          setMarketingGoals(prev => {
+            if (!prev || prev.length === 0) return goalsResponse.data!;
+            return goalsResponse.data!.map(incoming => {
+              const existing = prev.find(g => g.id === incoming.id);
+              if (!existing) return incoming;
+              const safeCurrentWeek = Math.max(existing.currentWeek || 0, incoming.currentWeek || 0);
+              return { ...incoming, currentWeek: safeCurrentWeek };
+            });
+          });
           console.log('✅ Loaded marketing goals:', goalsResponse.data.length);
         } else {
           console.error('❌ Failed to load marketing goals:', goalsResponse.error);
         }
         
-        // Load calendar events
-        console.log('Fetching calendar events from API...');
-        const eventsResponse = await apiService.getCalendarEvents();
-        console.log('Calendar events API response:', eventsResponse);
-        if (eventsResponse.success && eventsResponse.data) {
-          // setCustomEvents(eventsResponse.data); // This line was commented out in the new_code, so it's commented out here.
-          console.log('✅ Loaded calendar events:', eventsResponse.data.length);
-        } else {
-          console.log('ℹ️ No calendar events loaded or error occurred');
-        }
+        // Load calendar events (only if calendar feature is active)
+        // NOTE: Calendar feature is currently deactivated
+        console.log('🚫 Skipping calendar API call - feature deactivated');
 
         // Comment out asset loading since asset library is deactivated
         /*
@@ -400,7 +396,49 @@ function ProtectedApp() {
     loadData();
   }, []);
 
-  const handleTasksChange = async (updatedTasks: Task[]) => {
+  // Cleanup effect to clear pending task creation timeouts
+  // Debounced task creation to prevent rapid duplicate API calls
+  const taskCreationQueue = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  
+  useEffect(() => {
+    const currentQueue = taskCreationQueue.current;
+    return () => {
+      // Clear all pending timeouts when component unmounts
+      currentQueue.forEach(timeoutId => {
+        clearTimeout(timeoutId);
+      });
+      currentQueue.clear();
+    };
+  }, []);
+  
+  const debouncedCreateTask = useCallback(async (taskData: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string }) => {
+    const taskKey = `${taskData.title}:${taskData.project || taskData.projectId}`;
+    
+    // Clear existing timeout for this task
+    if (taskCreationQueue.current.has(taskKey)) {
+      clearTimeout(taskCreationQueue.current.get(taskKey)!);
+    }
+    
+    // Set new timeout
+    const timeoutId = setTimeout(async () => {
+      try {
+        console.log('Creating task after debounce:', taskData.title);
+        const response = await apiService.createTask(taskData);
+        if (!response.success) {
+          console.error('Failed to create task:', response.error);
+        }
+      } catch (error) {
+        console.error('Error creating task:', error);
+      } finally {
+        // Remove from queue
+        taskCreationQueue.current.delete(taskKey);
+      }
+    }, 500); // 500ms debounce
+    
+    taskCreationQueue.current.set(taskKey, timeoutId);
+  }, []);
+
+  const handleTasksChange = useCallback(async (updatedTasks: Task[]) => {
     console.log('App: handleTasksChange called with', updatedTasks.length, 'tasks');
     // Treat ids that contain "-w" as placeholders that must be created first
     const isPlaceholderId = (id: string) => id.includes('-w');
@@ -410,13 +448,13 @@ function ProtectedApp() {
     // Update local state immediately for UI responsiveness
     setTasks(dedupeTasks(updatedTasks));
     
-    // Persist changes to database
+    // Persist changes to database using debounced creation
     try {
-      // Handle new tasks
+      // Handle new tasks with debouncing
       for (const newTask of newTasks) {
-        console.log('Creating new task:', newTask.title);
+        console.log('Queueing new task for creation:', newTask.title);
         const looksLikeUuid = typeof newTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(newTask.projectId);
-        const payload: any = {
+        const payload: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string } = {
           title: newTask.title,
           description: newTask.description || '',
           responsible: newTask.responsible,
@@ -425,11 +463,9 @@ function ProtectedApp() {
           project: newTask.project,
         };
         if (looksLikeUuid) payload.projectId = newTask.projectId;
-        const response = await apiService.createTask(payload);
         
-        if (!response.success) {
-          console.error('Failed to create task:', response.error);
-        }
+        // Use debounced creation instead of immediate API call
+        await debouncedCreateTask(payload);
       }
       
       // Handle updated tasks
@@ -439,7 +475,7 @@ function ProtectedApp() {
         if (originalTask && !isPlaceholderId(updatedTask.id) && JSON.stringify(originalTask) !== JSON.stringify(updatedTask)) {
           console.log('Updating task:', updatedTask.title);
           const looksLikeUuid = typeof updatedTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(updatedTask.projectId);
-          const updatePayload: any = {
+          const updatePayload: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string; timeSpent?: string; notifications?: boolean } = {
             title: updatedTask.title,
             description: updatedTask.description || '',
             responsible: updatedTask.responsible,
@@ -500,8 +536,15 @@ function ProtectedApp() {
       };
     });
     
-    setMarketingGoals(updatedGoals);
-  };
+    // Never downgrade currentWeek during this sync; merge with previous state
+    setMarketingGoals(prevGoals => {
+      return prevGoals.map(prevGoal => {
+        const synced = updatedGoals.find(g => g.id === prevGoal.id) || prevGoal;
+        const safeCurrentWeek = Math.max(prevGoal.currentWeek || 0, synced.currentWeek || 0);
+        return { ...synced, currentWeek: safeCurrentWeek };
+      });
+    });
+  }, [tasks, marketingGoals, setTasks, setMarketingGoals, debouncedCreateTask]);
 
   const handleProjectsChange = async (updatedProjects: Project[]) => {
     console.log('App: handleProjectsChange called with', updatedProjects.length, 'projects');
@@ -580,7 +623,7 @@ function ProtectedApp() {
     // Update local state immediately for UI responsiveness
     setMarketingGoals(updatedGoals);
     
-    // Persist changes to database
+    // Persist changes to database, but never downgrade currentWeek
     try {
       const newGoals = updatedGoals.filter(g => !marketingGoals.find(existing => existing.id === g.id));
       
@@ -610,9 +653,10 @@ function ProtectedApp() {
           JSON.stringify(originalGoal.modules.map(m => m.tasks)) !== JSON.stringify(existingGoal.modules.map(m => m.tasks))
         )) {
           console.log('Updating marketing goal:', existingGoal.title);
+          const nextWeek = Math.max(existingGoal.currentWeek, originalGoal.currentWeek);
           const response = await apiService.updateMarketingGoal(existingGoal.id, {
             isActive: existingGoal.isActive,
-            currentWeek: existingGoal.currentWeek,
+            currentWeek: nextWeek,
             progress: existingGoal.progress
           });
           
@@ -701,7 +745,7 @@ function ProtectedApp() {
       console.log('App: Auto-synced dashboard tasks with marketing track');
       handleTasksChange(updatedTasks);
     }
-  }, [marketingGoals, tasks, projects]);
+  }, [marketingGoals, tasks, projects, handleTasksChange]);
 
   console.log('App component about to render JSX...');
 
@@ -766,6 +810,7 @@ function ProtectedApp() {
                 onMarketingGoalsChange={handleMarketingGoalsChange}
                 onProjectsChange={handleProjectsChange}
                 projects={projects}
+                tasks={tasks}
               />
             } />
             <Route path="marketing-track/social-media-strategy" element={

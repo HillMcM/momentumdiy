@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { EventCategory } from './types';
 
 interface QuickEventModalProps {
@@ -70,11 +70,9 @@ export default function QuickEventModal({ open, startDate, projects, onSave, onC
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open, onCancel, isValid]);
+  }, [open, onCancel, isValid, handleSave]);
 
-  if (!open) return null;
-
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (isValid) {
       onSave({ 
         title: title.trim(), 
@@ -84,7 +82,9 @@ export default function QuickEventModal({ open, startDate, projects, onSave, onC
         category
       });
     }
-  };
+  }, [isValid, onSave, title, description, duration, isAllDay, projectId, category]);
+
+  if (!open) return null;
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);

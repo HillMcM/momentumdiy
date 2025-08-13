@@ -23,6 +23,51 @@ import 'react-datepicker/dist/react-datepicker.css';
 import type { DragEndEvent, DragStartEvent, DragOverEvent } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import type { Task, Project, TaskStatus } from './types';
+import { apiService } from './services/api';
+
+// Small confetti burst around a target element (used when checking a task)
+function burstConfettiAround(element: HTMLElement) {
+  try {
+    const rect = element.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '0px';
+    container.style.top = '0px';
+    container.style.width = '100vw';
+    container.style.height = '100vh';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '100000';
+    document.body.appendChild(container);
+    const colors = ['#EF8E81','#686DCA','#5ECD7D','#FF9D57'];
+    const pieces = 26;
+    for (let i = 0; i < pieces; i++) {
+      const piece = document.createElement('div');
+      piece.style.position = 'absolute';
+      const size = 6 + Math.random() * 6;
+      piece.style.width = `${size}px`;
+      piece.style.height = `${size}px`;
+      piece.style.background = colors[i % colors.length];
+      piece.style.borderRadius = Math.random() > 0.6 ? '50%' : '2px';
+      piece.style.left = `${x}px`;
+      piece.style.top = `${y}px`;
+      const angle = (Math.PI * 2 * i) / pieces;
+      const distance = 70 + Math.random() * 60;
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance;
+      piece.animate([
+        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+        { transform: `translate(${dx}px, ${dy}px) rotate(${i * 35}deg)`, opacity: 0 }
+      ], { duration: 800 + Math.random() * 400, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      container.appendChild(piece);
+    }
+    setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 900);
+  } catch {
+    // Ignore errors in cleanup
+  }
+}
 
 const columns = [
   { key: 'todo' as TaskStatus, label: 'To-Do', accent: 'todo-accent' },
@@ -120,6 +165,9 @@ function SortableTaskCard({ task, onEdit, onCheck }: { task: Task; onEdit: (task
       <span
         onClick={(e) => {
           e.stopPropagation();
+          if (task.status !== 'completed') {
+            burstConfettiAround(e.currentTarget as HTMLElement);
+          }
           onCheck(task);
         }}
         style={{
@@ -235,8 +283,11 @@ interface TaskTrackerWidgetProps {
 }
 
 export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onProjectsChange }: TaskTrackerWidgetProps) {
-  console.log('TaskTrackerWidget render - tasks count:', tasks.length);
-  console.log('TaskTrackerWidget render - tasks:', tasks);
+  const DEBUG = (import.meta as { env?: { DEV?: boolean } }).env?.DEV && (typeof localStorage !== 'undefined' && localStorage.getItem('debugLogs') === '1');
+  if (DEBUG) {
+    console.log('TaskTrackerWidget render - tasks count:', tasks.length);
+    console.log('TaskTrackerWidget render - tasks:', tasks);
+  }
   
   const [viewMode, setViewMode] = useState<'kanban' | 'deadline' | 'archived'>('kanban');
   const [order, setOrder] = useState<ColumnOrder>(initialOrder);
@@ -250,17 +301,21 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
 
   // Initialize order from tasks
   useEffect(() => {
-    console.log('TaskTrackerWidget: tasks changed, updating order. Tasks count:', tasks.length);
-    console.log('TaskTrackerWidget: tasks:', tasks);
+    if (DEBUG) {
+      console.log('TaskTrackerWidget: tasks changed, updating order. Tasks count:', tasks.length);
+      console.log('TaskTrackerWidget: tasks:', tasks);
+    }
     
     const newOrder: ColumnOrder = {
       todo: tasks.filter(t => t.status === 'todo').map(t => t.id),
       'in-progress': tasks.filter(t => t.status === 'in-progress').map(t => t.id),
       completed: tasks.filter(t => t.status === 'completed').map(t => t.id),
     };
-    console.log('TaskTrackerWidget: new order:', newOrder);
+    if (DEBUG) {
+      console.log('TaskTrackerWidget: new order:', newOrder);
+    }
     setOrder(newOrder);
-  }, [tasks]);
+  }, [tasks, DEBUG]);
 
   // Update project progress when tasks change
   useEffect(() => {
@@ -268,7 +323,9 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
     const tasksChanged = JSON.stringify(tasks) !== JSON.stringify(prevTasksRef.current);
     if (!tasksChanged) return;
     
-    console.log('TaskTrackerWidget: Updating project progress due to task changes');
+    if (DEBUG) {
+      console.log('TaskTrackerWidget: Updating project progress due to task changes');
+    }
     
     const updatedProjects = projects.map(project => {
       const projectTasks = tasks.filter(task => project.tasks.includes(task.id));
@@ -301,7 +358,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
     
     // Update the ref with current tasks
     prevTasksRef.current = tasks;
-  }, [tasks]); // Removed projects and onProjectsChange from dependencies
+  }, [tasks, projects, onProjectsChange, DEBUG]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -316,7 +373,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
 
   const openCreateModal = () => {
     const newTask: Task = {
-      id: (Math.max(0, ...tasks.map(t => parseInt(t.id))) + 1).toString(),
+      id: `tmp:${Date.now()}`,
       title: '',
       description: '',
       responsible: '',
@@ -371,7 +428,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
   };
 
   const archiveTask = (task: Task) => {
-    onTasksChange(tasks.map(t => t.id === task.id ? ({ ...t, isArchived: true } as any) : t));
+    onTasksChange(tasks.map(t => t.id === task.id ? ({ ...t, isArchived: true } as Task) : t));
     setOrder({
       ...order,
       [task.status]: order[task.status].filter(id => id !== task.id),
@@ -461,13 +518,33 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
       [task.status]: order[task.status].filter(id => id !== task.id),
       [newStatus]: [...order[newStatus], task.id]
     });
+
+    // Persist changes asynchronously
+    (async () => {
+      try {
+        // Persist main task status if this is a real task id
+        if (!String(task.id).startsWith('tmp:')) {
+          await apiService.updateTaskStatus(task.id, newStatus);
+        }
+      } catch (err) {
+        if (DEBUG) console.warn('Failed to persist task status', err);
+      }
+      try {
+        // If this task is linked to a marketing task, sync that completion state as well
+        if (task.marketingTrack && task.marketingTrack.marketingTaskId) {
+          await apiService.updateMarketingTaskCompletion(task.marketingTrack.marketingTaskId, newStatus === 'completed');
+        }
+      } catch (err) {
+        if (DEBUG) console.warn('Failed to persist marketing task completion', err);
+      }
+    })();
   };
 
-  const updateField = (field: keyof Task, value: any) => {
+  const updateField = (field: keyof Task, value: string | Date | null) => {
     if (editingTask) {
       setEditingTask({
         ...editingTask,
-        [field]: field === 'deadline' && value ? value.toISOString() : value
+        [field]: field === 'deadline' && value ? (value instanceof Date ? value.toISOString() : value) : value
       });
     }
   };
@@ -592,7 +669,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
           </div>
           <div style={{ maxHeight: 420, overflowY: 'auto', paddingRight: 4 }}>
             {tasks
-              .filter(t => (t as any).isArchived)
+              .filter(t => (t as Task & { isArchived?: boolean }).isArchived)
               .map(task => (
                 <div key={task.id} style={{ display: 'flex', alignItems: 'center', padding: '0.6rem 0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                   <div style={{ flex: 1, color: '#FFF1E7' }}>

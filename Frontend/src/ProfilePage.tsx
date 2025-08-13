@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from './contexts/useAuth';
 import { supabase } from './lib/supabase';
 
 type SkillLevels = {
@@ -42,7 +42,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Input({ label, value, onChange, type = 'text' }: { label: string; value: any; onChange: (v: string) => void; type?: string }) {
+function Input({ label, value, onChange, type = 'text' }: { label: string; value: string | null | undefined; onChange: (v: string) => void; type?: string }) {
   return (
     <label style={{ display: 'block', marginBottom: '0.75rem' }}>
       <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>{label}</div>
@@ -124,7 +124,7 @@ export default function ProfilePage() {
       <h1 style={{ marginTop: 0 }}>My Profile</h1>
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
         {tabs.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key as any)} style={{ padding: '0.5rem 0.9rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: tab === t.key ? '#EF8E81' : 'transparent', color: tab === t.key ? '#22202F' : '#FFF1E7', cursor: 'pointer' }}>{t.label}</button>
+          <button key={t.key} onClick={() => setTab(t.key)} style={{ padding: '0.5rem 0.9rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: tab === t.key ? '#EF8E81' : 'transparent', color: tab === t.key ? '#22202F' : '#FFF1E7', cursor: 'pointer' }}>{t.label}</button>
         ))}
         <span style={{ marginLeft: 'auto' }} />
         <button onClick={save} disabled={saving} style={{ padding: '0.5rem 0.9rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: '#EF8E81', color: '#22202F', cursor: 'pointer' }}>{saving ? 'Saving…' : 'Save Changes'}</button>

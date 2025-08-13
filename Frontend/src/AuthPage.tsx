@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from './contexts/useAuth';
 import { supabase } from './lib/supabase';
 
 export default function AuthPage() {
@@ -41,7 +41,7 @@ export default function AuthPage() {
     }
 
     if (user) {
-      const redirectTo = (location.state as any)?.from || '/app';
+      const redirectTo = (location.state as { from?: string })?.from || '/app';
       navigate(redirectTo, { replace: true });
     }
   }, [user, navigate, location.state]);

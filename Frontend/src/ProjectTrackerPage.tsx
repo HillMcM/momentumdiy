@@ -56,7 +56,7 @@ export default function ProjectTrackerPage({ projects, tasks, onProjectsChange }
     }
   };
 
-  const updateProjectField = (field: keyof Project, value: any) => {
+  const updateProjectField = (field: keyof Project, value: string | Date | null) => {
     if (editingProject) {
       setEditingProject({
         ...editingProject,

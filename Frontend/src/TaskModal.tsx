@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Project } from './types';
 
 interface TaskModalProps {
@@ -49,6 +49,22 @@ export default function TaskModal({ open, onSave, onCancel, projects, marketingT
     setIsValid(titleValid);
   }, [title]);
 
+  const handleSave = useCallback(() => {
+    if (isValid) {
+      onSave({ 
+        title: title.trim(), 
+        description: description.trim(),
+        responsible: responsible.trim(),
+        deadline: deadline || null,
+        projectId,
+        marketingTrack: marketingTrack ? {
+          goalId: marketingTrack.goalId,
+          moduleId: marketingTrack.moduleId
+        } : undefined
+      });
+    }
+  }, [isValid, onSave, title, description, responsible, deadline, projectId, marketingTrack]);
+
   // Handle keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -63,25 +79,9 @@ export default function TaskModal({ open, onSave, onCancel, projects, marketingT
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open, onCancel, isValid]);
+  }, [open, onCancel, isValid, handleSave]);
 
   if (!open) return null;
-
-  const handleSave = () => {
-    if (isValid) {
-      onSave({ 
-        title: title.trim(), 
-        description: description.trim(),
-        responsible: responsible.trim(),
-        deadline: deadline || null,
-        projectId,
-        marketingTrack: marketingTrack ? {
-          goalId: marketingTrack.goalId,
-          moduleId: marketingTrack.moduleId
-        } : undefined
-      });
-    }
-  };
 
   const formatDate = (date: Date) => {
     return date.toISOString().split('T')[0];
