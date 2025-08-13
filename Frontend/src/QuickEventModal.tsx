@@ -56,6 +56,18 @@ export default function QuickEventModal({ open, startDate, projects, onSave, onC
     setIsValid(titleValid && durationValid);
   }, [title, duration]);
 
+  const handleSave = useCallback(() => {
+    if (isValid) {
+      onSave({ 
+        title: title.trim(), 
+        description: description.trim(),
+        duration: isAllDay ? 0 : duration, // 0 for all-day events
+        projectId,
+        category
+      });
+    }
+  }, [isValid, onSave, title, description, duration, isAllDay, projectId, category]);
+
   // Handle keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -71,18 +83,6 @@ export default function QuickEventModal({ open, startDate, projects, onSave, onC
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, onCancel, isValid, handleSave]);
-
-  const handleSave = useCallback(() => {
-    if (isValid) {
-      onSave({ 
-        title: title.trim(), 
-        description: description.trim(),
-        duration: isAllDay ? 0 : duration, // 0 for all-day events
-        projectId,
-        category
-      });
-    }
-  }, [isValid, onSave, title, description, duration, isAllDay, projectId, category]);
 
   if (!open) return null;
 

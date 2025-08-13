@@ -80,7 +80,7 @@ interface DataContextType {
   deleteTimelinePhase: (id: string) => Promise<void>;
 }
 
-const DataContext = createContext<DataContextType | undefined>(undefined);
+export const DataContext = createContext<DataContextType | undefined>(undefined);
 
 
 
