@@ -402,7 +402,9 @@ function ProtectedApp() {
 
   const handleTasksChange = async (updatedTasks: Task[]) => {
     console.log('App: handleTasksChange called with', updatedTasks.length, 'tasks');
-    const newTasks = updatedTasks.filter(t => !tasks.find(existing => existing.id === t.id));
+    // Treat ids that contain "-w" as placeholders that must be created first
+    const isPlaceholderId = (id: string) => id.includes('-w');
+    const newTasks = updatedTasks.filter(t => !tasks.find(existing => existing.id === t.id) || isPlaceholderId(t.id));
     console.log('App: New tasks:', newTasks);
     
     // Update local state immediately for UI responsiveness
@@ -434,7 +436,7 @@ function ProtectedApp() {
       const existingTasks = updatedTasks.filter(t => !newTasks.find(nt => nt.id === t.id));
       for (const updatedTask of existingTasks) {
         const originalTask = tasks.find(t => t.id === updatedTask.id);
-        if (originalTask && JSON.stringify(originalTask) !== JSON.stringify(updatedTask)) {
+        if (originalTask && !isPlaceholderId(updatedTask.id) && JSON.stringify(originalTask) !== JSON.stringify(updatedTask)) {
           console.log('Updating task:', updatedTask.title);
           const looksLikeUuid = typeof updatedTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(updatedTask.projectId);
           const updatePayload: any = {
