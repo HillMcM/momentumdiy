@@ -331,6 +331,40 @@ export class MarketingService {
   }
 
   /**
+   * Update marketing goal progress
+   */
+  static async updateMarketingGoalProgress(goalId: string, progress: number): Promise<ApiResponse<MarketingGoal>> {
+    try {
+      const { data, error } = await supabase
+        .from('marketing_goals')
+        .update({ progress: progress })
+        .eq('id', goalId)
+        .select()
+        .single();
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      const goal = await this.mapDatabaseGoalToGoal(data as DatabaseMarketingGoal);
+
+      return {
+        success: true,
+        data: goal,
+        message: 'Marketing goal progress updated successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  /**
    * Get marketing modules for a goal
    */
   static async getMarketingModules(goalId: string): Promise<ApiResponse<MarketingModule[]>> {

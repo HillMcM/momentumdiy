@@ -8,9 +8,9 @@ export function computeNextUnlockLabel(goal: MarketingGoal): string {
     const startDate = new Date(goal.startDate);
     const now = new Date();
 
-    // Calculate when the next week should unlock
+    // Calculate when the next week should unlock (7 days after previous week)
     const nextUnlockDate = new Date(startDate);
-    nextUnlockDate.setDate(startDate.getDate() + (goal.currentWeek * 7));
+    nextUnlockDate.setDate(startDate.getDate() + ((goal.currentWeek) * 7));
 
     if (now >= nextUnlockDate) {
       return 'unlocked';

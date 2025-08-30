@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+// Alternative: import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import './App.css';
 import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
@@ -18,8 +19,10 @@ import FloatingAssistant from './FloatingAssistant';
 import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
 import { useAuth } from './contexts/useAuth';
+import { MarketingProvider } from './contexts/MarketingContext';
 import { supabase } from './lib/supabase';
 import { mockTasks, mockMarketingGoals } from './mockData';
+import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketingService';
 
 // Comment out deactivated component imports to prevent build errors
 /*
@@ -43,6 +46,9 @@ function Header() {
         <span className="header-app-name">MomentumDIY</span>
       </div>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <button className="upgrade-btn" style={{ background: '#EF8E81', color: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '14px', border: 'none', cursor: 'pointer', fontWeight: '500' }}>
+          Upgrade
+        </button>
         {user ? (
           <button className="upgrade-btn" onClick={() => signOut()}>Sign out</button>
         ) : (
@@ -253,7 +259,7 @@ function Dashboard({
   };
   return (
     <div>
-      <MarketingTrackWidget marketingGoals={marketingGoals} onMarketingGoalsChange={onMarketingGoalsChange} />
+      <MarketingTrackWidget />
       <TaskTrackerWidget 
         projects={projects}
         tasks={visibleTasks}
@@ -337,9 +343,28 @@ function ProtectedApp() {
         // Load projects (empty in development)
         setProjects([]);
 
-        // Load mock marketing goals
-        setMarketingGoals(mockMarketingGoals);
-        console.log('✅ Loaded mock marketing goals:', mockMarketingGoals.length);
+        // Load marketing goals from service (same source as marketing track page)
+        try {
+          console.log('🔄 Attempting to load marketing goals from service...');
+          const activeGoalResponse = await getActiveGoal();
+          console.log('📡 Service response:', activeGoalResponse);
+          
+          if (activeGoalResponse.success && activeGoalResponse.data) {
+            // Create a marketing goals array with the active goal
+            const marketingGoalsArray = [activeGoalResponse.data];
+            setMarketingGoals(marketingGoalsArray);
+            console.log('✅ Loaded marketing goals from service:', marketingGoalsArray.length);
+            console.log('🎯 Active goal details:', activeGoalResponse.data);
+          } else {
+            // Fallback to mock data if service fails
+            console.log('⚠️ Service failed, using mock marketing goals');
+            setMarketingGoals(mockMarketingGoals);
+            console.log('📊 Mock goals loaded:', mockMarketingGoals.length);
+          }
+        } catch (error) {
+          console.warn('⚠️ Marketing service error, using mock data:', error);
+          setMarketingGoals(mockMarketingGoals);
+        }
 
         // Skip calendar events (deactivated)
         console.log('🚫 Skipping calendar API call - feature deactivated');
@@ -510,7 +535,7 @@ function ProtectedApp() {
     });
   }, [tasks, marketingGoals, setTasks, setMarketingGoals, debouncedCreateTask]);
 
-  const handleProjectsChange = async (updatedProjects: Project[]) => {
+  const handleProjectsChange = useCallback(async (updatedProjects: Project[]) => {
     console.log('App: handleProjectsChange called with', updatedProjects.length, 'projects');
     console.log('App: Projects:', updatedProjects.map(p => ({ id: p.id, name: p.name, status: p.status })));
     
@@ -575,9 +600,9 @@ function ProtectedApp() {
     } catch (error) {
       console.error('Error persisting project changes:', error);
     }
-  };
+  }, [projects, setProjects]);
 
-  const handleMarketingGoalsChange = async (updatedGoals: MarketingGoal[]) => {
+  const handleMarketingGoalsChange = useCallback(async (updatedGoals: MarketingGoal[]) => {
     console.log('App: handleMarketingGoalsChange called with', updatedGoals.length, 'goals');
     console.log('App: Updated goals details:');
     updatedGoals.forEach((g, index) => {
@@ -632,7 +657,7 @@ function ProtectedApp() {
     } catch (error) {
       console.error('Error persisting marketing goals:', error);
     }
-  };
+  }, [marketingGoals, setMarketingGoals]);
 
   // Comment out unused handlers for now
   /*
@@ -711,6 +736,62 @@ function ProtectedApp() {
     }
   }, [marketingGoals, tasks, projects, handleTasksChange]);
 
+  // Function to sync marketing task changes with regular tasks
+  const handleMarketingTaskStatusChange = useCallback((taskId: string, isCompleted: boolean) => {
+    console.log(`Marketing task ${taskId} status changed to ${isCompleted ? 'completed' : 'incomplete'}`);
+    
+    // Find the corresponding regular task and update its status
+    const regularTask = tasks.find(t => t.marketingTrack?.marketingTaskId === taskId);
+    if (regularTask) {
+      const newStatus: 'todo' | 'in-progress' | 'completed' = isCompleted ? 'completed' : 'todo';
+      if (regularTask.status !== newStatus) {
+        console.log(`Updating regular task ${regularTask.id} status to ${newStatus}`);
+        const updatedTasks = tasks.map(t => 
+          t.id === regularTask.id ? { ...t, status: newStatus } : t
+        );
+        setTasks(updatedTasks);
+      }
+    }
+  }, [tasks]);
+
+  // Automatically sync marketing tasks with regular tasks when marketing goals change
+  useEffect(() => {
+    console.log('🔄 Marketing goals sync effect triggered');
+    console.log('📊 Current marketing goals:', marketingGoals);
+    console.log('📋 Current tasks:', tasks);
+    
+    if (!marketingGoals.length) {
+      console.log('❌ No marketing goals to sync');
+      return;
+    }
+    
+    // Get the active marketing goal
+    const activeGoal = marketingGoals.find(goal => goal.isActive);
+    console.log('🎯 Active goal found:', activeGoal);
+    
+    if (!activeGoal) {
+      console.log('❌ No active marketing goal found');
+      return;
+    }
+    
+    // Convert marketing tasks to regular tasks
+    const marketingTasks = convertMarketingTasksToTasks(activeGoal);
+    console.log('🔄 Converted marketing tasks:', marketingTasks);
+    
+    // Merge with existing tasks, avoiding duplicates
+    const existingTaskIds = new Set(tasks.map(t => t.id));
+    const newMarketingTasks = marketingTasks.filter(t => !existingTaskIds.has(t.id));
+    console.log('🆕 New marketing tasks to add:', newMarketingTasks);
+    
+    if (newMarketingTasks.length > 0) {
+      console.log(`✅ Syncing ${newMarketingTasks.length} marketing tasks to task tracker`);
+      const updatedTasks = [...tasks, ...newMarketingTasks];
+      setTasks(updatedTasks);
+    } else {
+      console.log('ℹ️ No new marketing tasks to sync');
+    }
+  }, [marketingGoals, tasks]);
+
   console.log('App component about to render JSX...');
 
   if (isLoading) {
@@ -746,7 +827,8 @@ function ProtectedApp() {
           <SidebarToggle className="sidebar-opener" onClick={() => setSidebarHidden(false)} />
         )}
         <main className="main-content">
-          <Routes>
+          <MarketingProvider onTaskStatusChange={handleMarketingTaskStatusChange}>
+            <Routes>
             <Route index element={
               <Dashboard 
                 projects={projects}
@@ -803,6 +885,7 @@ function ProtectedApp() {
             <Route path="feedback" element={<Placeholder title="Feedback" />} />
           </Routes>
           <FloatingAssistant />
+          </MarketingProvider>
         </main>
       </div>
     </>
@@ -819,7 +902,11 @@ function App() {
         <Route path="/terms" element={<Placeholder title="Terms & Conditions" />} />
 
         {/* App - Now public (no auth required) */}
-        <Route path="/app/*" element={<ProtectedApp />} />
+        <Route path="/app/*" element={
+          <MarketingProvider>
+            <ProtectedApp />
+          </MarketingProvider>
+        } />
       </Routes>
     </Router>
   );

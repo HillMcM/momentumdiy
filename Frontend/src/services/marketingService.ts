@@ -1,4 +1,5 @@
-import type { MarketingGoal, MarketingModule, MarketingTask, ApiResponse } from '../types';
+import type { MarketingGoal, MarketingModule, MarketingTask, ApiResponse, Task } from '../types';
+import { BACKEND_BASE_URL } from './api';
 
 // Mock data for the 12-week Increase Local Foot Traffic track
 function getMockActiveGoal(): MarketingGoal {
@@ -10,7 +11,7 @@ function getMockActiveGoal(): MarketingGoal {
     duration: 12,
     isActive: true,
     startDate: new Date(),
-    currentWeek: 3,
+    currentWeek: 1,
     progress: 25,
     modules: getMockModulesForGoal('increase-local-foot-traffic')
   };
@@ -97,8 +98,8 @@ function getMockModulesForGoal(goalId: string): MarketingModule[] {
 <li>Mobile-friendly website optimization</li>
 </ul>
         `,
-        isUnlocked: true,
-        isCompleted: true,
+        isUnlocked: false, // Locked since we're on week 1
+        isCompleted: false,
         tasks: [
           {
             id: 'task-2-1',
@@ -150,7 +151,7 @@ function getMockModulesForGoal(goalId: string): MarketingModule[] {
 <li>User-generated content campaigns</li>
 </ul>
         `,
-        isUnlocked: true,
+        isUnlocked: false, // Locked since we're on week 1
         isCompleted: false,
         tasks: [
           {
@@ -226,10 +227,10 @@ function getMockModulesForGoal(goalId: string): MarketingModule[] {
   return [];
 }
 
-// Get the active marketing goal
-export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal | null>> {
+// Get active marketing goal
+export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
   try {
-    const response = await fetch('/api/marketing/goals?isActive=true', {
+          const response = await fetch(`${BACKEND_BASE_URL}/api/marketing/goals/active`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -258,7 +259,7 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal | null>
 // Get modules for a specific goal
 export async function getModulesForGoal(goalId: string): Promise<ApiResponse<MarketingModule[]>> {
   try {
-    const response = await fetch(`/api/marketing/modules?goalId=${goalId}`, {
+          const response = await fetch(`${BACKEND_BASE_URL}/api/marketing/goals/${goalId}/modules`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -287,7 +288,7 @@ export async function getModulesForGoal(goalId: string): Promise<ApiResponse<Mar
 // Toggle marketing task completion
 export async function toggleMarketingTask(taskId: string, isCompleted: boolean): Promise<ApiResponse<MarketingTask>> {
   try {
-    const response = await fetch(`/api/marketing/tasks/${taskId}`, {
+          const response = await fetch(`${BACKEND_BASE_URL}/api/marketing/tasks/${taskId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -331,7 +332,7 @@ export async function toggleMarketingTask(taskId: string, isCompleted: boolean):
 // Update goal progress
 export async function updateGoalProgress(goalId: string, progress: number): Promise<ApiResponse<MarketingGoal>> {
   try {
-    const response = await fetch(`/api/marketing/goals/${goalId}`, {
+          const response = await fetch(`${BACKEND_BASE_URL}/api/marketing/goals/${goalId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -358,4 +359,44 @@ export async function updateGoalProgress(goalId: string, progress: number): Prom
       data: { ...mockGoal, progress },
     };
   }
+}
+
+// Convert marketing tasks to regular tasks for the task tracker
+export function convertMarketingTasksToTasks(marketingGoal: MarketingGoal): Task[] {
+  const tasks: Task[] = [];
+  
+  marketingGoal.modules.forEach(module => {
+    module.tasks.forEach(marketingTask => {
+      // Convert marketing task status to task status
+      let status: 'todo' | 'in-progress' | 'completed' = 'todo';
+      if (marketingTask.isCompleted) {
+        status = 'completed';
+      } else if (module.weekNumber === marketingGoal.currentWeek) {
+        status = 'in-progress';
+      }
+      
+      const task: Task = {
+        id: marketingTask.id,
+        title: marketingTask.title,
+        description: marketingTask.description || '',
+        responsible: 'Marketing Team', // Default responsible person
+        deadline: marketingTask.dueDate ? new Date(marketingTask.dueDate).toISOString() : null,
+        project: marketingGoal.title,
+        timeSpent: '',
+        notifications: false,
+        status,
+        // Add marketing track metadata
+        marketingTrack: {
+          goalId: marketingGoal.id,
+          moduleId: module.id,
+          marketingTaskId: marketingTask.id,
+          weekNumber: module.weekNumber
+        }
+      };
+      
+      tasks.push(task);
+    });
+  });
+  
+  return tasks;
 }

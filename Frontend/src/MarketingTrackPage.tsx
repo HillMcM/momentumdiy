@@ -1,59 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { MarketingGoal, MarketingModule } from './types';
-import { getActiveGoal, getModulesForGoal, toggleMarketingTask, updateGoalProgress } from './services/marketingService';
-import WeekAccordion from './components/marketingTrack/WeekAccordion';
+import React, { useState, useCallback } from 'react';
+import { useMarketing } from './contexts/MarketingContext';
+import { toggleMarketingTask, updateGoalProgress } from './services/marketingService';
 import { calculateModuleProgress, computeNextUnlockLabel } from './utils/date';
+import { BACKEND_BASE_URL } from './services/api';
+import TrackHeader from './components/marketingTrack/TrackHeader';
+import WeekAccordion from './components/marketingTrack/WeekAccordion';
+import TaskModal from './components/marketingTrack/TaskModal';
+import type { MarketingGoal, MarketingModule, MarketingTask } from './types';
 
 interface MarketingTrackPageProps {
-  marketingGoals: MarketingGoal[];
-  onMarketingGoalsChange: (goals: MarketingGoal[]) => void;
+  // Props removed - using context instead
 }
 
 export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
-  const [activeGoal, setActiveGoal] = useState<MarketingGoal | null>(null);
-  const [currentModule, setCurrentModule] = useState<MarketingModule | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { activeGoal, currentModule, setActiveGoal, setCurrentModule, isLoading, error, setError, refreshMarketingData, onTaskStatusChange } = useMarketing();
+  const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  // Load active goal and its modules
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // Get active goal
-        const goalResponse = await getActiveGoal();
-        if (!goalResponse.success || !goalResponse.data) {
-          setError('No active marketing goal found');
-          return;
-        }
-
-        const goal = goalResponse.data;
-        setActiveGoal(goal);
-
-        // Get modules for this goal
-        const modulesResponse = await getModulesForGoal(goal.id);
-        if (modulesResponse.success && modulesResponse.data) {
-          const updatedGoal = { ...goal, modules: modulesResponse.data };
-          setActiveGoal(updatedGoal);
-
-          // Find current module
-          const currentMod = modulesResponse.data.find(m => m.weekNumber === goal.currentWeek);
-          if (currentMod) {
-            setCurrentModule(currentMod);
-          }
-        }
-
-      } catch (err) {
-        console.error('Failed to load marketing track data:', err);
-        setError('Failed to load marketing track data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
+  // Handle task click to open modal
+  const handleTaskClick = useCallback((task: MarketingTask) => {
+    setSelectedTask(task);
+    setIsTaskModalOpen(true);
   }, []);
 
   // Handle task toggle
@@ -102,6 +71,14 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
         console.error('Failed to update progress:', progressResponse.error);
       }
 
+      // Refresh context data to keep widget in sync
+      await refreshMarketingData();
+
+      // Also sync with regular task tracker
+      if (onTaskStatusChange) {
+        onTaskStatusChange(taskId, isCompleted);
+      }
+
     } catch (err) {
       console.error('Error toggling task:', err);
       // Revert on error
@@ -109,6 +86,56 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
       setCurrentModule(currentModule);
     }
   }, [activeGoal, currentModule]);
+
+
+
+  // Handle resetting the track back to week 1
+  const handleResetTrack = useCallback(async () => {
+    if (!activeGoal) return;
+    
+    try {
+      // Create an updated goal with only week 1 unlocked
+      const updatedGoal = {
+        ...activeGoal,
+        currentWeek: 1,
+        progress: 0,
+        modules: activeGoal.modules.map(module => ({
+          ...module,
+          isUnlocked: module.weekNumber === 1,
+          isCompleted: false
+        }))
+      };
+      
+      // Update the local state immediately for instant UI feedback
+      setActiveGoal(updatedGoal);
+      
+      // Try to update the backend (but don't wait for it to succeed)
+      try {
+        const response = await fetch(`${BACKEND_BASE_URL}/api/marketing/goals/${activeGoal.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentWeek: 1, progress: 0 })
+        });
+        
+        if (response.ok) {
+          console.log('✅ Backend reset successfully');
+        } else {
+          console.log('⚠️ Backend reset failed, but UI is updated locally');
+        }
+      } catch (backendErr) {
+        console.log('⚠️ Backend reset failed, but UI is updated locally:', backendErr);
+      }
+      
+      // Show reset message
+      setSuccessMessage('Track reset successfully! Back to week 1.');
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 5000);
+      
+      console.log('✅ Track reset finished - back to week 1 locally');
+    } catch (err) {
+      console.error('❌ Error resetting track:', err);
+    }
+  }, [activeGoal]);
 
   // Loading state
   if (isLoading) {
@@ -134,23 +161,36 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#141127] text-white p-6">
+    <div className="min-h-screen bg-transparent text-white p-6 marketing-track-page" style={{ background: 'transparent !important' }}>
       <div className="max-w-6xl mx-auto">
-        {/* Page Header */}
+        {/* Page Header - Transparent Background */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-white">Marketing Tracks</h1>
             <p className="text-gray-400 mt-1">Active Track</p>
           </div>
-          <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-            Upgrade
-          </button>
         </div>
 
+        {/* Success Message */}
+        {showSuccessMessage && (
+          <div className={`mb-6 rounded-lg p-4 ${
+            successMessage.includes('completed') 
+              ? 'bg-green-500/20 border border-green-500/30 text-green-300' 
+              : 'bg-blue-500/20 border border-blue-500/30 text-blue-300'
+          }`}>
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="font-medium">{successMessage}</span>
+            </div>
+          </div>
+        )}
+
         {/* Main Track Card */}
-        <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] overflow-hidden">
+        <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-[#2A243E]/60 overflow-hidden">
           {/* Header Row */}
-          <div className="p-8 border-b border-[#2A243E]">
+          <div className="p-8 border-b border-[#2A243E]/60">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">{activeGoal.title}</h2>
               <div className="flex gap-3">
@@ -159,9 +199,15 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
                     Active • Week {activeGoal.currentWeek} of {activeGoal.duration}
                   </div>
                 )}
-                <div className="bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full px-3 py-1 text-sm font-medium">
-                  {computeNextUnlockLabel(activeGoal)}
-                </div>
+                {activeGoal.currentWeek >= activeGoal.duration ? (
+                  <div className="bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full px-3 py-1 text-sm font-medium">
+                    Track Complete! 🎉
+                  </div>
+                ) : (
+                  <div className="bg-[#EF8E81]/20 text-[#EF8E81] border border-[#EF8E81]/30 rounded-full px-3 py-1 text-sm font-medium">
+                    {computeNextUnlockLabel(activeGoal)}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -174,36 +220,40 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-300">Overall Progress</span>
-                <span className="text-sm font-medium text-purple-300">{activeGoal.progress}%</span>
+                <span className="text-sm font-medium text-[#EF8E81]">{activeGoal.progress}%</span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
                 <div
-                  className="bg-purple-500 h-2 rounded-full transition-all duration-300 ease-out"
+                  className="bg-[#EF8E81] h-2 rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${Math.min(100, Math.max(0, activeGoal.progress))}%` }}
                 />
               </div>
             </div>
 
             {/* Phase Block */}
-            <div className="mt-8 pt-6 border-t border-[#2A243E]">
-              <h3 className="text-xl font-semibold text-white mb-2">Phase 1: Spark Traffic</h3>
-              <p className="text-purple-300 font-medium mb-3">Goal: Get people in the door immediately.</p>
-              <p className="text-gray-400 leading-relaxed text-sm">
-                Focus on quick wins and foundational marketing activities that create immediate visibility and drive initial foot traffic.
-                This phase emphasizes practical, actionable steps you can implement right away to start seeing results.
-              </p>
+            <div className="mt-8 pt-6 border-t border-[#2A243E]/60">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-2">Phase 1: Spark Traffic</h3>
+                  <p className="text-[#EF8E81] font-medium mb-3">Goal: Get people in the door immediately.</p>
+                  <p className="text-gray-400 leading-relaxed text-sm">
+                    Focus on quick wins and foundational marketing activities that create immediate visibility and drive initial foot traffic.
+                    This phase emphasizes practical, actionable steps you can implement right away to start seeing results.
+                  </p>
+                </div>
+                <button
+                  onClick={handleResetTrack}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  title="Reset track back to week 1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Reset Track
+                </button>
+              </div>
             </div>
           </div>
-
-          {/* Current Week Expanded */}
-          {currentModule && (
-            <WeekAccordion
-              module={currentModule}
-              currentWeek={activeGoal.currentWeek}
-              onTaskToggle={handleTaskToggle}
-              isExpanded={true}
-            />
-          )}
 
           {/* All Weeks Section */}
           <div className="border-t border-[#2A243E]">
@@ -213,12 +263,23 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
                 module={module}
                 currentWeek={activeGoal.currentWeek}
                 onTaskToggle={handleTaskToggle}
-                isExpanded={false}
+                onTaskClick={handleTaskClick}
               />
             ))}
           </div>
         </div>
       </div>
+
+      {/* Task Modal */}
+      <TaskModal
+        task={selectedTask}
+        isOpen={isTaskModalOpen}
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setSelectedTask(null);
+        }}
+        onToggle={handleTaskToggle}
+      />
     </div>
   );
 }

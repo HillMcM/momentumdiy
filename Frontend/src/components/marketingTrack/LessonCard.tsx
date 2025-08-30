@@ -15,16 +15,19 @@ export default function LessonCard({ module }: LessonCardProps) {
 
   const renderContent = (content: string) => {
     const sanitized = sanitizeHtml(content);
-
+    
+    // Remove Pro Tip section from the content
+    const contentWithoutProTip = sanitized.replace(/<h[1-6]>(Pro Tip:.*?)<\/h[1-6]>(.*?)(?=<h[1-6]|$)/is, '');
+    
     // Add some basic styling for common patterns
-    const styled = sanitized
+    const styled = contentWithoutProTip
       .replace(/<h[1-6]>(.*?)<\/h[1-6]>/gi, '<h3 class="text-lg font-semibold text-white mt-6 mb-3">$1</h3>')
-      .replace(/(Theme:|Why this matters:|Pro Tip:)/gi, '<span class="text-purple-300 font-medium">$1</span>')
+      .replace(/(Theme:|Why this matters:)/gi, '<span class="text-[#EF8E81] font-medium">$1</span>')
       .replace(/<p>/gi, '<p class="text-gray-300 mb-4 leading-relaxed">')
       .replace(/<ul>/gi, '<ul class="text-gray-300 mb-4 space-y-2 ml-6">')
       .replace(/<li>/gi, '<li class="list-disc">')
       .replace(/<strong>/gi, '<strong class="text-white font-semibold">')
-      .replace(/<em>/gi, '<em class="text-purple-300">');
+      .replace(/<em>/gi, '<em class="text-[#EF8E81]">');
 
     return styled;
   };

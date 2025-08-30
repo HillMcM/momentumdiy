@@ -346,6 +346,78 @@ router.patch('/tasks/:id/completion', routeRateLimit(60), validate((req) => {
   }
 });
 
+/**
+ * PUT /api/marketing/tasks/:id
+ * Update marketing task (for frontend compatibility)
+ */
+router.put('/tasks/:id', routeRateLimit(60), validate((req) => {
+  const { isCompleted } = req.body || {};
+  if (typeof isCompleted !== 'boolean') return 'isCompleted must be a boolean';
+  return undefined;
+}), async (req: Request, res: Response) => {
+  try {
+    const id = req.params['id'] as string;
+    const { isCompleted } = req.body;
+    
+    if (typeof isCompleted !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        error: 'isCompleted must be a boolean'
+      });
+    }
+
+    const result = await MarketingService.updateMarketingTaskCompletion(id, isCompleted);
+
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+
+    return res.json(result);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
+ * PUT /api/marketing/goals/:id
+ * Update marketing goal (for frontend compatibility)
+ */
+router.put('/goals/:id', routeRateLimit(10), validate((req) => {
+  const { progress } = req.body || {};
+  if (typeof progress !== 'number' || progress < 0 || progress > 100) {
+    return 'Progress must be a number between 0 and 100';
+  }
+  return undefined;
+}), async (req: Request, res: Response) => {
+  try {
+    const id = req.params['id'] as string;
+    const { progress } = req.body;
+    
+    if (typeof progress !== 'number' || progress < 0 || progress > 100) {
+      return res.status(400).json({
+        success: false,
+        error: 'Progress must be a number between 0 and 100'
+      });
+    }
+
+    const result = await MarketingService.updateMarketingGoalProgress(id, progress);
+
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+
+    return res.json(result);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 export default router; 
 
 /**
