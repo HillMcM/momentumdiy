@@ -1,99 +1,197 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { ReactNode } from 'react';
-import type { MarketingGoal, MarketingModule, MarketingTask, Task, Project, TaskStatus } from './types';
-// TaskModal not used in this iteration
-// Removed mockData usage to avoid placeholder content
-import { apiService } from './services/api';
-import { supabase } from './lib/supabase';
+import type { MarketingGoal, MarketingModule, MarketingTask } from './types';
+import { getActiveGoal, getModulesForGoal, toggleMarketingTask, updateGoalProgress } from './services/marketingService';
+import { useNavigate } from 'react-router-dom';
+import TrackHeader from './components/marketingTrack/TrackHeader';
+import WeekAccordion from './components/marketingTrack/WeekAccordion';
+import { calculateModuleProgress } from './utils/date';
 
 interface MarketingTrackPageProps {
   marketingGoals: MarketingGoal[];
   onMarketingGoalsChange: (goals: MarketingGoal[]) => void;
-  onTasksChange: (tasks: Task[]) => void;
-  tasks: Task[];
-  projects: Project[];
-  onProjectsChange: (projects: Project[]) => void;
 }
 
-export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsChange, onTasksChange, tasks, projects, onProjectsChange }: MarketingTrackPageProps) {
-  const [selectedGoal, setSelectedGoal] = useState<MarketingGoal | null>(null);
-  const [selectedModule, setSelectedModule] = useState<MarketingModule | null>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [isCurrentWeekExpanded, setIsCurrentWeekExpanded] = useState(true);
-  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
-  const [profile, setProfile] = useState<{ businessName?: string; fullName?: string; avatarUrl?: string } | null>(null);
-  // Legacy modal state removed
+export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsChange }: MarketingTrackPageProps) {
+  const navigate = useNavigate();
+  const [activeGoal, setActiveGoal] = useState<MarketingGoal | null>(null);
+  const [currentModule, setCurrentModule] = useState<MarketingModule | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Interactive task modal state
-  const [interactiveOpen, setInteractiveOpen] = useState<boolean>(false);
-  const [interactiveTask, setInteractiveTask] = useState<{ id: string; title: string; description: string } | null>(null);
-  const [interactiveMeta, setInteractiveMeta] = useState<{ goalId: string; moduleId: string } | null>(null);
-
-  // Inline form state (used inside interactive modal)
-  type BaselineMetrics = { followers: string; avgLikes: string; avgComments: string; avgStoryViews: string; };
-  const PLATFORM_KEYS = [
-    { key: 'instagram', label: 'Instagram' },
-    { key: 'facebook', label: 'Facebook' },
-    { key: 'x', label: 'X (Twitter)' },
-    { key: 'linkedin', label: 'LinkedIn' },
-    { key: 'google_business_profile', label: 'Google Business Profile' },
-    { key: 'tiktok', label: 'TikTok' },
-  ] as const;
-  type PlatformKey = typeof PLATFORM_KEYS[number]['key'];
-  const emptyBaseline: Record<PlatformKey, BaselineMetrics> = Object.fromEntries(
-    PLATFORM_KEYS.map(p => [p.key, { followers: '', avgLikes: '', avgComments: '', avgStoryViews: '' }])
-  ) as Record<PlatformKey, BaselineMetrics>;
-  type BaselineState = Record<PlatformKey, BaselineMetrics> & { saved?: boolean };
-  const [baseline, setBaseline] = useState<BaselineState>(() => ({ ...(emptyBaseline as Record<PlatformKey, BaselineMetrics>) } as BaselineState));
-  const [selectedPlatformTab, setSelectedPlatformTab] = useState<PlatformKey>('instagram');
-  const [, setPillars] = useState<string[]>(['', '', '', '']);
-  const [loadingInline] = useState<boolean>(false);
-  const [inlineError] = useState<string | null>(null);
-
-  // Save helpers
-  const saveBaseline = async () => {
-    const platforms: Record<PlatformKey, { followers: number; avgLikes: number; avgComments: number; avgStoryViews: number }> = {} as any;
-    for (const { key } of PLATFORM_KEYS) {
-      const v = baseline[key] || { followers: '', avgLikes: '', avgComments: '', avgStoryViews: '' };
-      platforms[key] = {
-        followers: Number(v.followers || 0),
-        avgLikes: Number(v.avgLikes || 0),
-        avgComments: Number(v.avgComments || 0),
-        avgStoryViews: Number(v.avgStoryViews || 0),
-      };
-    }
-    const resp = await apiService.saveBaselineMetrics({ platforms });
-    if (resp.success) setBaseline(prev => ({ ...(prev as BaselineState), saved: true }));
-  };
-
-  // Removed pillars saver in favor of selecting pillars in the main section
-
-  // Ref to track processed goals to prevent infinite loops
-  const processedGoalsRef = useRef<Set<string>>(new Set());
-  const filledModulesRef = useRef<boolean>(false);
-  const createdModuleTasksRef = useRef<Set<string>>(new Set());
-
-  const activeGoal = marketingGoals.find(goal => goal.isActive);
-  const inactiveGoals = marketingGoals.filter(goal => !goal.isActive);
-
-  // Determine if tracks should be disabled
-  const shouldDisableTracks = activeGoal && activeGoal.currentWeek < activeGoal.duration;
-  const isTrackCompleted = activeGoal && activeGoal.currentWeek >= activeGoal.duration;
-
-  // Prefetch saved baseline and pillars
+  // Load active goal and its modules
   useEffect(() => {
-    (async () => {
+    const loadData = async () => {
       try {
-        const [bm, cp] = await Promise.all([
-          apiService.getBaselineMetrics(),
-          apiService.getContentPillars(),
-        ]);
-        if (bm.success && bm.data) {
-          const data = bm.data;
+        setIsLoading(true);
+        setError(null);
+
+        // Get active goal
+        const goalResponse = await getActiveGoal();
+        if (!goalResponse.success || !goalResponse.data) {
+          setError('No active marketing goal found');
+          return;
+        }
+
+        const goal = goalResponse.data;
+        setActiveGoal(goal);
+
+        // Get modules for this goal
+        const modulesResponse = await getModulesForGoal(goal.id);
+        if (modulesResponse.success && modulesResponse.data) {
+          const updatedGoal = { ...goal, modules: modulesResponse.data };
+          setActiveGoal(updatedGoal);
+
+          // Find current module
+          const currentMod = modulesResponse.data.find(m => m.weekNumber === goal.currentWeek);
+          if (currentMod) {
+            setCurrentModule(currentMod);
+          }
+        }
+
+      } catch (err) {
+        console.error('Failed to load marketing track data:', err);
+        setError('Failed to load marketing track data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // Handle task toggle
+  const handleTaskToggle = useCallback(async (taskId: string, isCompleted: boolean) => {
+    if (!activeGoal || !currentModule) return;
+
+    try {
+      // Optimistic update
+      const updatedModule = {
+        ...currentModule,
+        tasks: currentModule.tasks.map(task =>
+          task.id === taskId ? { ...task, isCompleted } : task
+        )
+      };
+      setCurrentModule(updatedModule);
+
+      // Update the goal with the new module
+      const updatedGoal = {
+        ...activeGoal,
+        modules: activeGoal.modules.map(mod =>
+          mod.id === currentModule.id ? updatedModule : mod
+        )
+      };
+      setActiveGoal(updatedGoal);
+
+      // Calculate new progress based on current module
+      const newProgress = calculateModuleProgress(updatedModule);
+
+      // Update progress optimistically
+      const optimisticGoal = { ...updatedGoal, progress: newProgress };
+      setActiveGoal(optimisticGoal);
+
+      // Persist to backend
+      const taskResponse = await toggleMarketingTask(taskId, isCompleted);
+      if (!taskResponse.success) {
+        console.error('Failed to toggle task:', taskResponse.error);
+        // Revert on error
+        setActiveGoal(activeGoal);
+        setCurrentModule(currentModule);
+        return;
+      }
+
+      // Update goal progress
+      const progressResponse = await updateGoalProgress(activeGoal.id, newProgress);
+      if (!progressResponse.success) {
+        console.error('Failed to update progress:', progressResponse.error);
+      }
+
+    } catch (err) {
+      console.error('Error toggling task:', err);
+      // Revert on error
+      setActiveGoal(activeGoal);
+      setCurrentModule(currentModule);
+    }
+  }, [activeGoal, currentModule]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#141127] flex items-center justify-center">
+        <div className="text-white">Loading marketing track...</div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !activeGoal) {
+    return (
+      <div className="min-h-screen bg-[#141127] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Marketing Track</h1>
+          <p className="text-gray-400">
+            {error || 'No active marketing goal found. Please start a marketing track.'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#141127] text-white">
+      {/* Page Header */}
+      <div className="border-b border-[#2A243E] bg-[#1B1628]">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white">Marketing Tracks</h1>
+              <p className="text-gray-400 mt-1">Active Track</p>
+            </div>
+            <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+              Upgrade
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Active Track Card */}
+        <TrackHeader goal={activeGoal} />
+
+        {/* Current Week Expanded */}
+        {currentModule && (
+          <div className="mb-8">
+            <WeekAccordion
+              module={currentModule}
+              currentWeek={activeGoal.currentWeek}
+              onTaskToggle={handleTaskToggle}
+              isExpanded={true}
+            />
+          </div>
+        )}
+
+        {/* All Weeks Section */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-white mb-6">All Weeks</h2>
+          {activeGoal.modules.map((module) => (
+            <WeekAccordion
+              key={module.id}
+              module={module}
+              currentWeek={activeGoal.currentWeek}
+              onTaskToggle={handleTaskToggle}
+              isExpanded={false}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+          const data = bm.data as { platforms?: Record<PlatformKey, BaselineMetrics & Partial<Record<string, unknown>>> };
           if (data.platforms && typeof data.platforms === 'object') {
             const next: Record<PlatformKey, BaselineMetrics> = { ...(emptyBaseline as Record<PlatformKey, BaselineMetrics>) };
             for (const { key } of PLATFORM_KEYS) {
-              const v = (data.platforms || {})[key] || {};
+              const v = (data.platforms as Record<PlatformKey, BaselineMetrics>)[key] || {};
               next[key] = {
                 followers: String(v.followers ?? ''),
                 avgLikes: String(v.avgLikes ?? ''),
@@ -104,12 +202,13 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             setBaseline({ ...(next as Record<PlatformKey, BaselineMetrics>), saved: true });
           } else {
             // Back-compat single platform
+            // Fix: Use correct property access for back-compat single platform baseline metrics
             const next: Record<PlatformKey, BaselineMetrics> = { ...(emptyBaseline as Record<PlatformKey, BaselineMetrics>) };
             next.instagram = {
-              followers: String(data.followers ?? ''),
-              avgLikes: String(data.avgLikes ?? ''),
-              avgComments: String(data.avgComments ?? ''),
-              avgStoryViews: String(data.avgStoryViews ?? ''),
+              followers: String((data as { followers?: unknown; avgLikes?: unknown; avgComments?: unknown; avgStoryViews?: unknown }).followers ?? ''),
+              avgLikes: String((data as { followers?: unknown; avgLikes?: unknown; avgComments?: unknown; avgStoryViews?: unknown }).avgLikes ?? ''),
+              avgComments: String((data as { followers?: unknown; avgLikes?: unknown; avgComments?: unknown; avgStoryViews?: unknown }).avgComments ?? ''),
+              avgStoryViews: String((data as { followers?: unknown; avgLikes?: unknown; avgComments?: unknown; avgStoryViews?: unknown }).avgStoryViews ?? ''),
             };
             setBaseline({ ...(next as Record<PlatformKey, BaselineMetrics>), saved: true });
           }
@@ -118,7 +217,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const vals = cp.data.concat(['', '', '', '']).slice(0, 4);
           setPillars(vals);
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     })();
@@ -275,7 +374,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         { id: `${module.id}-w1-baseline`, title: 'Save baseline metrics', description: 'Enter metrics for your main platform and save.', estimatedTime: '5m', isCompleted: false },
         { id: `${module.id}-w1-bio`, title: 'Fix bio + link (if needed)', description: 'Make your profile clear and actionable.', estimatedTime: '10m', isCompleted: false },
         { id: `${module.id}-w1-plan`, title: "Plan this week's 3 posts", description: 'Educate, Connect, Promote. Short and simple.', estimatedTime: '10m', isCompleted: false },
-      ] as any;
+      ] as MarketingTask[];
       return { ...module, title: 'Social Audit & Baseline Tracking', description: 'Audit, baseline, and a simple 3‑post plan to start consistent.', content: conciseContent, tasks: reducedTasks };
       }
       if (module.weekNumber === 2) {
@@ -303,9 +402,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           '- Friday — Community Boost (Local / Fun): Shout out a local business or something light to close the week',
         ].join('\n');
         const curatedTasks = [
-          { id: `${module.id}-w2-pillars`, title: 'Choose your 3–4 content pillars', description: 'Select brand‑aligned pillars and save them.', estimatedTime: '10m', isCompleted: false },
-          { id: `${module.id}-w2-plan`, title: 'Create your refined 5‑day content plan', description: "Draft 3–5 posts using the week's plan and your pillars.", estimatedTime: '15m', isCompleted: false },
-        ] as any;
+                  { id: `${module.id}-w2-pillars`, title: 'Choose your 3–4 content pillars', description: 'Select brand‑aligned pillars and save them.', estimatedTime: '10m', isCompleted: false },
+        { id: `${module.id}-w2-plan`, title: 'Create your refined 5‑day content plan', description: "Draft 3–5 posts using the week's plan and your pillars.", estimatedTime: '15m', isCompleted: false },
+      ] as MarketingTask[];
         return { ...module, title: 'Content Pillars + Strategic Posting Flow', description: 'Lock your pillars and plan a refined 5‑day posting rhythm.', content: curatedContent, tasks: curatedTasks };
       }
       if (module.weekNumber === 3) {
@@ -323,9 +422,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           "- Pick 3–5 colors you'll use repeatedly",
         ].join('\n');
         const tasks = [
-          { id: `${module.id}-w3-style`, title: 'Step 1: Complete your mini style guide', description: 'Fill in voice, audience, adjectives, and brand promise.', estimatedTime: '10m', isCompleted: false },
-          { id: `${module.id}-w3-visuals`, title: 'Step 2: Choose fonts and colors', description: 'Pick heading/body fonts and select 3–5 colors for your palette.', estimatedTime: '10m', isCompleted: false },
-        ] as any;
+                  { id: `${module.id}-w3-style`, title: 'Step 1: Complete your mini style guide', description: 'Fill in voice, audience, adjectives, and brand promise.', estimatedTime: '10m', isCompleted: false },
+        { id: `${module.id}-w3-visuals`, title: 'Step 2: Choose fonts and colors', description: 'Pick heading/body fonts and select 3–5 colors for your palette.', estimatedTime: '10m', isCompleted: false },
+      ] as MarketingTask[];
         return { ...module, title: 'Brand Voice + Visual Basics', description: 'Clarify how you sound and look so content is recognizable.', content, tasks };
       }
       if (module.weekNumber === 4) {
@@ -337,9 +436,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           'Connect: Humanize your brand with stories, BTS, and moments.',
         ].join('\n');
         const tasks = [
-          { id: `${module.id}-w4-define`, title: 'Define your 3 core post types', description: 'Write a short angle and 1–2 prompts for Educate, Promote, Connect based on your industry and voice.', estimatedTime: '10m', isCompleted: false },
-          { id: `${module.id}-w4-draft`, title: 'Draft 3 sample captions (one per type)', description: 'Draft short captions you can reuse or refine for each type.', estimatedTime: '15m', isCompleted: false },
-        ] as any;
+                  { id: `${module.id}-w4-define`, title: 'Define your 3 core post types', description: 'Write a short angle and 1–2 prompts for Educate, Promote, Connect based on your industry and voice.', estimatedTime: '10m', isCompleted: false },
+        { id: `${module.id}-w4-draft`, title: 'Draft 3 sample captions (one per type)', description: 'Draft short captions you can reuse or refine for each type.', estimatedTime: '15m', isCompleted: false },
+      ] as MarketingTask[];
         return { ...module, title: 'Your 3 Go‑To Post Types', description: 'Never wonder what to post — rotate Educate, Promote, Connect.', content, tasks };
       }
       if (module.weekNumber === 5) {
@@ -350,9 +449,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           'Stories and quick check-ins can layer on top anytime!'
         ].join('\n');
         const tasks = [
-          { id: `${module.id}-w5-frequency`, title: 'Step 1: Choose your weekly posting frequency', description: 'Pick Beginner (3x) or Confident (4–5x) to fit your energy.', estimatedTime: '5m', isCompleted: false },
-          { id: `${module.id}-w5-schedule`, title: "Step 3: Choose when you'll plan + post each week", description: 'Pick your content planning hour and scheduling habit.', estimatedTime: '5m', isCompleted: false },
-        ] as any;
+                  { id: `${module.id}-w5-frequency`, title: 'Step 1: Choose your weekly posting frequency', description: 'Pick Beginner (3x) or Confident (4–5x) to fit your energy.', estimatedTime: '5m', isCompleted: false },
+        { id: `${module.id}-w5-schedule`, title: "Step 3: Choose when you'll plan + post each week", description: 'Pick your content planning hour and scheduling habit.', estimatedTime: '5m', isCompleted: false },
+      ] as MarketingTask[];
         return { ...module, title: 'Your Weekly Social Plan', description: 'Simplified, systemized, and ready to roll.', content, tasks };
       }
       if (module.weekNumber === 6) {
@@ -361,9 +460,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           'Focus on clarity, readability, and consistency over fancy effects.'
         ].join('\n');
         const tasks = [
-          { id: `${module.id}-w6-choose`, title: 'Step 1: Choose 2–4 post types to template', description: 'Pick the types you share most (Tip/FAQ, Promo, Testimonial, Local).', estimatedTime: '5m', isCompleted: false },
-          { id: `${module.id}-w6-design`, title: 'Step 2: Design branded templates', description: 'Create simple, reusable Canva templates with logo, fonts, and colors.', estimatedTime: '15m', isCompleted: false },
-        ] as any;
+                  { id: `${module.id}-w6-choose`, title: 'Step 1: Choose 2–4 post types to template', description: 'Pick the types you share most (Tip/FAQ, Promo, Testimonial, Local).', estimatedTime: '5m', isCompleted: false },
+        { id: `${module.id}-w6-design`, title: 'Step 2: Design branded templates', description: 'Create simple, reusable Canva templates with logo, fonts, and colors.', estimatedTime: '15m', isCompleted: false },
+      ] as MarketingTask[];
         return { ...module, title: 'Design Your Go‑To Social Templates', description: 'Branded templates that are fast to edit and consistent.', content, tasks };
       }
       if (module.weekNumber === 7) {
@@ -374,7 +473,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           { id: `${module.id}-w7-bio`, title: 'Step 1: Refresh your bio', description: 'Use the simple formula: What you do • Where you are • Clear CTA • Link below.', estimatedTime: '10m', isCompleted: false },
           { id: `${module.id}-w7-links`, title: 'Step 2: Clean up your links', description: 'Use Linktree/Stan or a key page; fix/remove broken links and surface your main CTA.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w7-highlights`, title: 'Step 3: Update highlights or pinned posts', description: 'Pin top posts; update highlights (About, Services, BTS, Testimonials, Events).', estimatedTime: '10m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: 'Polish Your Bio, Links, and Highlights', description: 'Make your profile clear, appealing, and actionable.', content, tasks };
       }
       if (module.weekNumber === 8) {
@@ -385,7 +484,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           { id: `${module.id}-w8-pickdays`, title: 'Step 1: Pick your post days (3–5)', description: 'Choose days that match your weekly plan.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w8-prep`, title: 'Step 2: Prep your content', description: 'Draft captions, plug visuals, align with pillars and types.', estimatedTime: '10m', isCompleted: false },
           { id: `${module.id}-w8-schedule`, title: 'Step 3: Schedule your posts', description: 'Use Meta Business Suite, Later, Planoly, Buffer, or post manually.', estimatedTime: '10m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: 'Schedule 1 Full Week of Content', description: 'Plan, design, write, and schedule ahead for consistency.', content, tasks };
       }
       if (module.weekNumber === 9) {
@@ -395,7 +494,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         const tasks = [
           { id: `${module.id}-w9-routine`, title: 'Define your 10‑minute routine', description: 'Warm up (2m), Give love (5m), Start a conversation (3m)', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w9-track`, title: 'Track engagement 5 days this week', description: 'Check off your routine daily to build the habit.', estimatedTime: '5m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: 'Boost Engagement with 10 Minutes Daily', description: 'Simple, consistent engagement that compounds.', content, tasks };
       }
       if (module.weekNumber === 10) {
@@ -406,7 +505,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           { id: `${module.id}-w10-choose`, title: 'Step 1: Find a strong post to repurpose', description: 'Pick something with good engagement or a message worth repeating.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w10-remix`, title: 'Step 2: Choose how to refresh it', description: 'Carousel, reel/voiceover, BTS video, graphic quote/stat, testimonial with photo.', estimatedTime: '10m', isCompleted: false },
           { id: `${module.id}-w10-repost`, title: 'Step 3: Repost with a slightly different CTA', description: "Try \"Did you miss this?\" or \"New followers—here's a tip worth repeating.\"", estimatedTime: '5m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: 'Reuse a Past Post — Give It a Comeback', description: 'Repeat, remix, and stay visible without burnout.', content, tasks };
       }
       if (module.weekNumber === 11) {
@@ -416,7 +515,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         const tasks = [
           { id: `${module.id}-w11-pick`, title: 'Step 1: Pick your campaign type', description: 'Story Poll/Quiz, Giveaway, Fun Feed Question, or Q&A', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w11-promote`, title: 'Step 2: Promote it clearly', description: "Tell people how to participate and when you'll announce results.", estimatedTime: '5m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: 'Create a Mini Engagement Campaign', description: 'Fast, fun, and effective.', content, tasks };
       }
       if (module.weekNumber === 12) {
@@ -427,7 +526,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           { id: `${module.id}-w12-reflect`, title: 'Step 1: Reflect on your progress', description: 'Answer prompts: What changed? What worked best? Keep/stop? Next social goal?', estimatedTime: '10m', isCompleted: false },
           { id: `${module.id}-w12-metrics`, title: 'Step 2: Check your metrics (optional)', description: 'Compare baseline to now: followers, engagement, story views, reach.', estimatedTime: '5m', isCompleted: false },
           { id: `${module.id}-w12-plan`, title: 'Step 3: Set a 30‑day plan', description: 'Pick one focus for the next month and write a short plan.', estimatedTime: '10m', isCompleted: false },
-        ] as any;
+        ] as MarketingTask[];
         return { ...module, title: "Celebrate + Plan What's Next", description: 'Review insights and pick your next 30‑day focus.', content, tasks };
       }
       // For all other weeks, replace long email content with concise template summary + prompts
@@ -497,7 +596,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w1-signage`, title: 'Audit Physical Signage', description: 'Stand across the street: does signage clearly convey what you offer? Note upgrades needed.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w1-baseline`, title: 'Capture Baseline Metrics', description: 'Record weekly walk-ins, Google views, social engagement, and weekly revenue. This is your starting point.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w1-photo`, title: 'Upload Storefront Photos', description: 'Take and upload photos from across the street to see what first-time visitors see.', estimatedTime: '15m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Audit Your Visibility', description: 'Where are people not seeing you? Build your visibility baseline.', content, tasks };
         }
         case 2: {
@@ -551,9 +650,9 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w2-claim`, title: 'Claim or Verify Your Listing', description: 'Ensure your Google Business Profile is claimed and under your control.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w2-details`, title: 'Review & Update Details', description: 'Double‑check hours, phone, address, categories, and description; add customer‑searched keywords.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w2-photos`, title: 'Upload Fresh Photos', description: 'Add clear photos of exterior, interior, team, and products.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w2-post`, title: 'Post a Short Update', description: 'Share a one‑sentence post about your in‑store offer or what’s new.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w2-post`, title: 'Post a Short Update', description: 'Share a one‑sentence post about your in‑store offer or what\'s new.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w2-reviews`, title: 'Invite Reviews (optional)', description: 'Ask recent customers for a review via email or in‑person.', estimatedTime: '5m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Optimize Your Google Business Profile', description: 'Get found when people search.', content, tasks };
         }
         case 3: {
@@ -630,10 +729,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           ].join('\n');
           const tasks = [
             { id: `${module.id}-w3-offer`, title: 'Choose Your Offer', description: 'Pick one: gift with purchase, bonus item, bundle, spin‑the‑wheel prize, QR‑code discount.', estimatedTime: '15m', isCompleted: false },
-            { id: `${module.id}-w3-urgency`, title: 'Set the Urgency', description: 'Decide on language like “This week only” or “Today only.”', estimatedTime: '5m', isCompleted: false },
+            { id: `${module.id}-w3-urgency`, title: 'Set the Urgency', description: 'Decide on language like "This week only" or "Today only."', estimatedTime: '5m', isCompleted: false },
             { id: `${module.id}-w3-assets`, title: 'Prepare Promo Materials', description: 'Write a short caption and design a sign or social graphic.', estimatedTime: '30m', isCompleted: false },
             { id: `${module.id}-w3-supplies`, title: 'Get Supplies Ready', description: 'Gather giveaways, set up a prize wheel, or prepare QR codes.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Create an In‑Store‑Only Offer', description: 'Give locals a reason to come in.', content, tasks };
         }
         case 4: {
@@ -694,11 +793,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             'Ask your assistant to design a sidewalk sign/window poster, craft a punchy message, and create a branded QR code.'
           ].join('\n');
           const tasks = [
-            { id: `${module.id}-w4-audit`, title: 'Audit Your Signage', description: 'From a distance, can someone tell what’s happening inside?', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w4-audit`, title: 'Audit Your Signage', description: 'From a distance, can someone tell what\'s happening inside?', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w4-design`, title: 'Design & Place a New Sign', description: 'Create a sandwich board or poster promoting your in‑store offer.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w4-qr`, title: 'Generate a QR Code', description: 'Link to a digital bonus (coupon, email signup) and add to your sign.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w4-hidden`, title: 'Highlight Hidden Services (optional)', description: 'Create a small “Did you know we offer ___?” sign for lesser‑known offerings.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+            { id: `${module.id}-w4-hidden`, title: 'Highlight Hidden Services (optional)', description: 'Create a small "Did you know we offer ___?" sign for lesser‑known offerings.', estimatedTime: '10m', isCompleted: false },
+          ] as MarketingTask[];
           return { ...module, title: 'Activate Your Sidewalk & Window Signage', description: 'Turn passers‑by into walk‑ins.', content, tasks };
         }
         case 5: {
@@ -775,7 +874,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w5-post`, title: 'Create & Share a Post', description: 'Invite people in for your offer, share a BTS photo, or your origin story.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w5-engage`, title: 'Engage with Responders', description: 'Like and reply to comments to build relationships.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w5-monitor`, title: 'Monitor Impact', description: 'Note traffic boosts or conversations sparked by your post.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Post in Local Digital Communities', description: 'Be where your neighbors hang out.', content, tasks };
         }
         case 6: {
@@ -872,10 +971,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           const tasks = [
             { id: `${module.id}-w6-identify`, title: 'Identify a Partner', description: 'Nearby business with similar audience but different offering (e.g., florist + bakery).', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w6-reachout`, title: 'Reach Out', description: 'Send a friendly DM or email proposing a collaboration.', estimatedTime: '15m', isCompleted: false },
-            { id: `${module.id}-w6-incentive`, title: 'Decide on the Incentive', description: 'E.g., “Bring a receipt from Shop A and get 10% off at Shop B,” or shared loyalty card.', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w6-incentive`, title: 'Decide on the Incentive', description: 'E.g., "Bring a receipt from Shop A and get 10% off at Shop B," or shared loyalty card.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w6-materials`, title: 'Create Co‑Branded Materials', description: 'Design a flyer, Instagram post, or signage.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w6-promote`, title: 'Set Dates & Promote', description: 'Agree on timing and promote on both channels.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Partner with a Neighboring Business', description: 'Double exposure through collaboration.', content, tasks };
         }
         case 7: {
@@ -954,7 +1053,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w7-feature`, title: 'Feature Your Best Offerings', description: 'Rearrange or simplify front area; create a feature wall or seasonal display.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w7-mood`, title: 'Enhance the Mood', description: 'Add gentle music, inviting scents, or improved lighting.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w7-brand`, title: 'Add a Branded Touch', description: 'Introduce loyalty cards, thank‑you notes, or a small QR at checkout.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Upgrade the Customer Experience', description: 'Make your space irresistible.', content, tasks };
         }
         case 8: {
@@ -1057,22 +1156,22 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w8-create`, title: 'Create Promotional Content', description: 'Design a flyer, social post, and short email announcement.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w8-promote`, title: 'Promote Widely', description: 'Share in‑store, on social media, and in community groups.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w8-capture`, title: 'Capture & Share the Event', description: 'Take photos/video; share highlights afterward to keep momentum.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Run a Flash Sale or Mini Event', description: 'Create urgency.', content, tasks };
         }
         case 9: {
           const content = buildContent(
-            'Launch a low‑effort, high‑impact referral or “bring‑a‑friend” initiative.',
+            'Launch a low‑effort, high‑impact referral or "bring‑a‑friend" initiative.',
             'Turn foot traffic into more foot traffic by empowering fans to spread the word.',
             'Ask your assistant to design referral cards/posters, write a checkout script, and create social prompts.'
           );
           const tasks = [
-            { id: `${module.id}-w9-incentive`, title: 'Choose a Referral Incentive', description: 'E.g., “Bring a friend, you both get 10% off,” or “Refer 3 friends, get a free item.”', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w9-incentive`, title: 'Choose a Referral Incentive', description: 'E.g., "Bring a friend, you both get 10% off," or "Refer 3 friends, get a free item."', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w9-print`, title: 'Design & Print Materials', description: 'Create a referral card or small sign at the register.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w9-script`, title: 'Script a Verbal Invite', description: 'Prepare a one‑sentence pitch to offer at checkout.', estimatedTime: '5m', isCompleted: false },
             { id: `${module.id}-w9-share`, title: 'Share on Social', description: 'Encourage customers to tag you or share a story for a thank‑you.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w9-track`, title: 'Track & Thank Referrals', description: 'Record who refers whom and send thanks.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Encourage Referrals', description: 'Turn foot traffic into more foot traffic.', content, tasks };
         }
         case 10: {
@@ -1087,37 +1186,37 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
             { id: `${module.id}-w10-plan`, title: 'Plan the Collaboration', description: 'Decide what each party will share and when; set simple rules for any giveaway.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w10-content`, title: 'Create Shared Content', description: 'Design a co‑branded post, story template, or giveaway graphic.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w10-engage`, title: 'Engage & Measure', description: 'Respond to comments and track new followers or walk‑ins.', estimatedTime: '15m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Collaborate with a Local Favorite', description: 'Borrow trust from community favorites.', content, tasks };
         }
         case 11: {
           const content = buildContent(
             'Collect simple, actionable feedback from customers about their experience.',
-            'Learn what’s working (and what’s missing) with a lightweight feedback process.',
+            'Learn what\'s working (and what\'s missing) with a lightweight feedback process.',
             'Ask your assistant to design a mini feedback card, help analyze responses, and draft a follow‑up thank‑you note.'
           );
           const tasks = [
-            { id: `${module.id}-w11-card`, title: 'Create a 3‑Question Card', description: 'Ask: “What brought you in today?”, “What did you love?”, “What could be better?”', estimatedTime: '10m', isCompleted: false },
+            { id: `${module.id}-w11-card`, title: 'Create a 3‑Question Card', description: 'Ask: "What brought you in today?", "What did you love?", "What could be better?"', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w11-gather`, title: 'Gather Responses', description: 'Hand out cards at checkout or ask verbally to 3–5 customers.', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w11-analyze`, title: 'Analyze & Identify Themes', description: 'Look for common points of praise or areas to improve.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w11-permission`, title: 'Request Testimonial Permission', description: 'Ask if you may use positive comments in marketing.', estimatedTime: '5m', isCompleted: false },
             { id: `${module.id}-w11-thank`, title: 'Thank Participants & Act', description: 'Send a quick thank‑you and integrate insights into your store or messaging.', estimatedTime: '10m', isCompleted: false },
-          ] as any;
-          return { ...module, title: 'Gather Customer Feedback', description: 'Learn what’s working (and what’s missing).', content, tasks };
+          ] as MarketingTask[];
+          return { ...module, title: 'Gather Customer Feedback', description: 'Learn what\'s working (and what\'s missing).', content, tasks };
         }
         case 12: {
           const content = buildContent(
             'Measure your results, celebrate wins, and set your next 12‑week focus using the baseline from Week 1.',
             'Compare to baseline, reflect on what worked, and plan your next quarter.',
-            'Ask your partner to help evaluate metrics, summarize the quarter, write a “Quarter in Review” post, and suggest a new goal.'
+            'Ask your partner to help evaluate metrics, summarize the quarter, write a "Quarter in Review" post, and suggest a new goal.'
           );
           const tasks = [
             { id: `${module.id}-w12-remeasure`, title: 'Re‑measure Your Metrics', description: 'Record current weekly walk‑ins, Google views, social engagement, and revenue.', estimatedTime: '10m', isCompleted: false },
             { id: `${module.id}-w12-compare`, title: 'Compare to Baseline', description: 'Note percentage increases and any surprising insights.', estimatedTime: '10m', isCompleted: false },
-            { id: `${module.id}-w12-reflect`, title: 'Reflect on the Experience', description: 'What changed? What worked best? What’s your next goal?', estimatedTime: '20m', isCompleted: false },
+            { id: `${module.id}-w12-reflect`, title: 'Reflect on the Experience', description: 'What changed? What worked best? What\'s your next goal?', estimatedTime: '20m', isCompleted: false },
             { id: `${module.id}-w12-plan`, title: 'Plan the Next Quarter', description: 'Decide whether to build on gains or pivot to another focus.', estimatedTime: '15m', isCompleted: false },
             { id: `${module.id}-w12-celebrate`, title: 'Celebrate & Thank Customers', description: 'Share a thank‑you post, offer a small gift, or hold a mini celebration.', estimatedTime: '15m', isCompleted: false },
-          ] as any;
+          ] as MarketingTask[];
           return { ...module, title: 'Celebrate & Reflect', description: 'Measure wins and prepare for the next quarter.', content, tasks };
         }
       }
@@ -1127,7 +1226,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   };
 
   // Goal overview helper for header
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // Removed for now; header uses goal.description directly
 
   // Task helpers
@@ -1185,11 +1283,34 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       if (sgRaw) setStyleGuideByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(sgRaw) as MiniStyleGuide }));
       if (tpRaw) setTypographyByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(tpRaw) as TypographyChoice }));
       if (palRaw) setPaletteByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(palRaw) as Palette }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load style guide data:', error);
+    }
   }, [activeGoal?.id]);
-  const saveStyleGuide = (goalId: string, sg: MiniStyleGuide) => { setStyleGuideByGoal(prev => ({ ...prev, [goalId]: sg })); try { localStorage.setItem(`styleguide:${goalId}`, JSON.stringify(sg)); } catch {} };
-  const saveTypography = (goalId: string, tp: TypographyChoice) => { setTypographyByGoal(prev => ({ ...prev, [goalId]: tp })); try { localStorage.setItem(`typography:${goalId}`, JSON.stringify(tp)); } catch {} };
-  const savePalette = (goalId: string, pal: Palette) => { setPaletteByGoal(prev => ({ ...prev, [goalId]: pal })); try { localStorage.setItem(`palette:${goalId}`, JSON.stringify(pal)); } catch {} };
+  const saveStyleGuide = (goalId: string, sg: MiniStyleGuide) => { 
+    setStyleGuideByGoal(prev => ({ ...prev, [goalId]: sg })); 
+    try { 
+      localStorage.setItem(`styleguide:${goalId}`, JSON.stringify(sg)); 
+    } catch (error) {
+      console.warn('Failed to save style guide:', error);
+    }
+  };
+  const saveTypography = (goalId: string, tp: TypographyChoice) => { 
+    setTypographyByGoal(prev => ({ ...prev, [goalId]: tp })); 
+    try { 
+      localStorage.setItem(`typography:${goalId}`, JSON.stringify(tp)); 
+    } catch (error) {
+      console.warn('Failed to save typography:', error);
+    }
+  };
+  const savePalette = (goalId: string, pal: Palette) => { 
+    setPaletteByGoal(prev => ({ ...prev, [goalId]: pal })); 
+    try { 
+      localStorage.setItem(`palette:${goalId}`, JSON.stringify(pal)); 
+    } catch (error) {
+      console.warn('Failed to save palette:', error);
+    }
+  };
 
   // Week 4: 3 core post types definitions (persist per-goal)
   type PostTypeDef = { angle: string; prompts: string[]; caption: string };
@@ -1205,11 +1326,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`posttypes:${activeGoal.id}`);
       if (raw) setPostTypesByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as PostTypes }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load post types data:', error);
+    }
   }, [activeGoal?.id]);
   const savePostTypes = (goalId: string, next: PostTypes) => {
     setPostTypesByGoal(prev => ({ ...prev, [goalId]: next }));
-    try { localStorage.setItem(`posttypes:${goalId}`, JSON.stringify(next)); } catch {}
+    try { 
+      localStorage.setItem(`posttypes:${goalId}`, JSON.stringify(next)); 
+    } catch (error) {
+      console.warn('Failed to save post types:', error);
+    }
   };
 
   // Week 5: Weekly plan settings (persist per-goal)
@@ -1220,11 +1347,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`weeklyplan:${activeGoal.id}`);
       if (raw) setWeeklyPlanByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as WeeklyPlan }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load weekly plan data:', error);
+    }
   }, [activeGoal?.id]);
   const saveWeeklyPlan = (goalId: string, wp: WeeklyPlan) => {
     setWeeklyPlanByGoal(prev => ({ ...prev, [goalId]: wp }));
-    try { localStorage.setItem(`weeklyplan:${goalId}`, JSON.stringify(wp)); } catch {}
+    try { 
+      localStorage.setItem(`weeklyplan:${goalId}`, JSON.stringify(wp)); 
+    } catch (error) {
+      console.warn('Failed to save weekly plan:', error);
+    }
   };
 
   // Week 6: Branded template definitions (persist per-goal)
@@ -1236,11 +1369,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`templates:${activeGoal.id}`);
       if (raw) setTemplatesByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as TemplateDef[] }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load templates data:', error);
+    }
   }, [activeGoal?.id]);
   const saveTemplates = (goalId: string, list: TemplateDef[]) => {
     setTemplatesByGoal(prev => ({ ...prev, [goalId]: list }));
-    try { localStorage.setItem(`templates:${goalId}`, JSON.stringify(list)); } catch {}
+    try { 
+      localStorage.setItem(`templates:${goalId}`, JSON.stringify(list)); 
+    } catch (error) {
+      console.warn('Failed to save templates:', error);
+    }
   };
 
   // Week 7: Profile polish (bio, links, highlights) persisted per-goal
@@ -1259,11 +1398,34 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
       if (bioRaw) setBioByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(bioRaw) as BioForm }));
       if (linksRaw) setLinksByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(linksRaw) as LinkItem[] }));
       if (hiRaw) setHighlightsByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(hiRaw) as HighlightItem[] }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load profile data:', error);
+    }
   }, [activeGoal?.id]);
-  const saveBio = (goalId: string, bio: BioForm) => { setBioByGoal(prev => ({ ...prev, [goalId]: bio })); try { localStorage.setItem(`profilebio:${goalId}`, JSON.stringify(bio)); } catch {} };
-  const saveLinks = (goalId: string, items: LinkItem[]) => { setLinksByGoal(prev => ({ ...prev, [goalId]: items })); try { localStorage.setItem(`profilelinks:${goalId}`, JSON.stringify(items)); } catch {} };
-  const saveHighlights = (goalId: string, items: HighlightItem[]) => { setHighlightsByGoal(prev => ({ ...prev, [goalId]: items })); try { localStorage.setItem(`profilehi:${goalId}`, JSON.stringify(items)); } catch {} };
+  const saveBio = (goalId: string, bio: BioForm) => { 
+    setBioByGoal(prev => ({ ...prev, [goalId]: bio })); 
+    try { 
+      localStorage.setItem(`profilebio:${goalId}`, JSON.stringify(bio)); 
+    } catch (error) {
+      console.warn('Failed to save bio:', error);
+    }
+  };
+  const saveLinks = (goalId: string, items: LinkItem[]) => { 
+    setLinksByGoal(prev => ({ ...prev, [goalId]: items })); 
+    try { 
+      localStorage.setItem(`profilelinks:${goalId}`, JSON.stringify(items)); 
+    } catch (error) {
+      console.warn('Failed to save links:', error);
+    }
+  };
+  const saveHighlights = (goalId: string, items: HighlightItem[]) => { 
+    setHighlightsByGoal(prev => ({ ...prev, [goalId]: items })); 
+    try { 
+      localStorage.setItem(`profilehi:${goalId}`, JSON.stringify(items)); 
+    } catch (error) {
+      console.warn('Failed to save highlights:', error);
+    }
+  };
 
   // Week 8: Scheduling helper (persist per-goal)
   type ScheduleTool = 'Meta Business Suite' | 'Later' | 'Planoly' | 'Buffer' | 'Manual';
@@ -1276,9 +1438,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk8:${activeGoal.id}`);
       if (raw) setWk8ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week8Plan }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 8 plan:', error);
+    }
   }, [activeGoal?.id]);
-  const saveWk8 = (goalId: string, plan: Week8Plan) => { setWk8ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk8:${goalId}`, JSON.stringify(plan)); } catch {} };
+  const saveWk8 = (goalId: string, plan: Week8Plan) => { 
+    setWk8ByGoal(prev => ({ ...prev, [goalId]: plan })); 
+    try { 
+      localStorage.setItem(`wk8:${goalId}`, JSON.stringify(plan)); 
+    } catch (error) {
+      console.warn('Failed to save week 8 plan:', error);
+    }
+  };
 
   // Week 9: Daily engagement habit (persist per-goal)
   type DayEngagement = { warmUp: boolean; giveLove: number; conversation: boolean };
@@ -1289,9 +1460,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk9:${activeGoal.id}`);
       if (raw) setWk9ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week9Plan }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 9 plan:', error);
+    }
   }, [activeGoal?.id]);
-  const saveWk9 = (goalId: string, plan: Week9Plan) => { setWk9ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk9:${goalId}`, JSON.stringify(plan)); } catch {} };
+  const saveWk9 = (goalId: string, plan: Week9Plan) => { 
+    setWk9ByGoal(prev => ({ ...prev, [goalId]: plan })); 
+    try { 
+      localStorage.setItem(`wk9:${goalId}`, JSON.stringify(plan)); 
+    } catch (error) {
+      console.warn('Failed to save week 9 plan:', error);
+    }
+  };
 
   // Week 10: Repurpose a past post (persist per-goal)
   type PastPost = { title: string; url: string; date: string; format: 'Photo' | 'Caption' | 'Promo' | 'Long Caption' | 'Testimonial' | 'Other' };
@@ -1303,9 +1483,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk10:${activeGoal.id}`);
       if (raw) setWk10ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week10Plan }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 10 plan:', error);
+    }
   }, [activeGoal?.id]);
-  const saveWk10 = (goalId: string, plan: Week10Plan) => { setWk10ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk10:${goalId}`, JSON.stringify(plan)); } catch {} };
+  const saveWk10 = (goalId: string, plan: Week10Plan) => { 
+    setWk10ByGoal(prev => ({ ...prev, [goalId]: plan })); 
+    try { 
+      localStorage.setItem(`wk10:${goalId}`, JSON.stringify(plan)); 
+    } catch (error) {
+      console.warn('Failed to save week 10 plan:', error);
+    }
+  };
 
   // Week 11: Engagement campaign (persist per-goal)
   type CampaignType = 'Story Poll/Quiz' | 'Giveaway' | 'Fun Feed Question' | 'Q&A';
@@ -1324,9 +1513,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk11:${activeGoal.id}`);
       if (raw) setWk11ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week11Plan }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 11 plan:', error);
+    }
   }, [activeGoal?.id]);
-  const saveWk11 = (goalId: string, plan: Week11Plan) => { setWk11ByGoal(prev => ({ ...prev, [goalId]: plan })); try { localStorage.setItem(`wk11:${goalId}`, JSON.stringify(plan)); } catch {} };
+  const saveWk11 = (goalId: string, plan: Week11Plan) => { 
+    setWk11ByGoal(prev => ({ ...prev, [goalId]: plan })); 
+    try { 
+      localStorage.setItem(`wk11:${goalId}`, JSON.stringify(plan)); 
+    } catch (error) {
+      console.warn('Failed to save week 11 plan:', error);
+    }
+  };
 
   // Week 12: Reflection + next 30‑day plan (persist per-goal)
   type Week12Reflection = {
@@ -1346,9 +1544,18 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk12:${activeGoal.id}`);
       if (raw) setWk12ByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Week12State }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 12 plan:', error);
+    }
   }, [activeGoal?.id]);
-  const saveWk12 = (goalId: string, s: Week12State) => { setWk12ByGoal(prev => ({ ...prev, [goalId]: s })); try { localStorage.setItem(`wk12:${goalId}`, JSON.stringify(s)); } catch {} };
+  const saveWk12 = (goalId: string, s: Week12State) => { 
+    setWk12ByGoal(prev => ({ ...prev, [goalId]: s })); 
+    try { 
+      localStorage.setItem(`wk12:${goalId}`, JSON.stringify(s)); 
+    } catch (error) {
+      console.warn('Failed to save week 12 plan:', error);
+    }
+  };
 
   // Week 12: Current metrics per platform (separate from saved baseline)
   const [wk12MetricsByGoal, setWk12MetricsByGoal] = useState<Record<string, Record<PlatformKey, BaselineMetrics>>>({});
@@ -1357,11 +1564,17 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     try {
       const raw = localStorage.getItem(`wk12metrics:${activeGoal.id}`);
       if (raw) setWk12MetricsByGoal(prev => ({ ...prev, [activeGoal.id]: JSON.parse(raw) as Record<PlatformKey, BaselineMetrics> }));
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load week 12 metrics:', error);
+    }
   }, [activeGoal?.id]);
   const saveWk12Metrics = (goalId: string, data: Record<PlatformKey, BaselineMetrics>) => {
     setWk12MetricsByGoal(prev => ({ ...prev, [goalId]: data }));
-    try { localStorage.setItem(`wk12metrics:${goalId}`, JSON.stringify(data)); } catch {}
+    try { 
+      localStorage.setItem(`wk12metrics:${goalId}`, JSON.stringify(data)); 
+    } catch (error) {
+      console.warn('Failed to save week 12 metrics:', error);
+    }
   };
 
   type Stage = 'early' | 'mid' | 'growth';
@@ -1479,8 +1692,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
   const [newPillarDraft, setNewPillarDraft] = useState<string>('');
   const savePillarsLocalAndRemote = useCallback(async (goalId: string, pillars: string[]) => {
     setContentPillarsByGoal(prev => ({ ...prev, [goalId]: pillars }));
-    try { localStorage.setItem(`pillars:${goalId}`, JSON.stringify(pillars)); } catch {}
-    try { await apiService.saveContentPillars(pillars); } catch {}
+    try { localStorage.setItem(`pillars:${goalId}`, JSON.stringify(pillars)); } catch { /* Ignore localStorage errors */ }
+    try { await apiService.saveContentPillars(pillars); } catch { /* Ignore API errors */ }
   }, []);
   useEffect(() => {
     if (!activeGoal) return;
@@ -1492,7 +1705,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
           setContentPillarsByGoal(prev => ({ ...prev, [activeGoal.id]: saved as string[] }));
         }
       }
-    } catch {}
+    } catch { /* Ignore localStorage errors */ }
   }, [activeGoal?.id]);
   // removed unused legacy function savePillarsLocal
 
@@ -1502,11 +1715,11 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
     (async () => {
       try {
         const cp = await apiService.getContentPillars();
-        if (cp && (cp as any).success && Array.isArray((cp as any).data)) {
-          const list = (cp as any).data as string[];
+        if (cp && cp.success && Array.isArray(cp.data)) {
+          const list = cp.data as string[];
           setContentPillarsByGoal(prev => ({ ...prev, [activeGoal.id]: list.slice(0, 4) }));
         }
-      } catch {}
+      } catch { /* Ignore API errors */ }
     })();
   }, [activeGoal?.id]);
 
@@ -1561,7 +1774,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
         title: marketingTask.title,
         description: marketingTask.description,
         responsible: 'Hillary',
-        deadline: (marketingTask as any).dueDate || null,
+        deadline: (marketingTask as MarketingTask).dueDate ? (marketingTask as MarketingTask).dueDate!.toISOString() : null,
         project: goal.title,
         timeSpent: '',
         notifications: false,
@@ -1592,7 +1805,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   // Helper: ensure a marketing project exists for the goal; return its id
   const getOrCreateProjectForGoal = useCallback((goal: MarketingGoal): string => {
-    let project = projects.find(p => p.name === goal.title);
+    const project = projects.find(p => p.name === goal.title);
     if (project) return project.id.toString();
     const newId = (Math.max(0, ...projects.map(p => parseInt(p.id) || 0)) + 1).toString();
     const newProject: Project = {
@@ -1804,7 +2017,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
   // Open interactive modal for a given task
   const openInteractiveTask = (goalId: string, moduleId: string, taskId: string, title: string, description: string) => {
-    try { console.log('[MarketingTrackPage] openInteractiveTask:', title); } catch {}
+    try { console.log('[MarketingTrackPage] openInteractiveTask:', title); } catch { /* Ignore console errors */ }
     setInteractiveMeta({ goalId, moduleId });
     setInteractiveTask({ id: taskId, title, description });
     setInteractiveOpen(true);
@@ -1845,9 +2058,6 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
 
     // Handle "Create Task" case
     if (lower.includes('create task')) {
-      const [newTaskTitle, setNewTaskTitle] = useState('');
-      const [newTaskDescription, setNewTaskDescription] = useState('');
-      const [newTaskEstimatedTime, setNewTaskEstimatedTime] = useState('');
 
       const handleCreateTask = () => {
         if (!newTaskTitle.trim() || !goalId || !moduleId) return;
@@ -2441,7 +2651,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   const projectId = getOrCreateProjectForGoal(activeGoal);
                                   const m = withFallback(activeGoal, module);
                                   createTasksFromMarketingModule(activeGoal, m, projectId);
-                                } catch {}
+                                } catch { /* Ignore task creation errors */ }
                               }}
                               style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
                             >
@@ -2613,19 +2823,19 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 return (
                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
                                     <label>Heading Font
-                                      <select value={tp.headingFont} onChange={e => saveTypography(activeGoal.id, { ...tp, headingFont: e.target.value })} style={{ ...inputBaseStyle, height: '3rem', fontSize: '1rem' } as any}>
-                                        {FONT_OPTIONS.map(f => <option key={f} value={f} style={{ fontFamily: f as any }}>{f}</option>)}
+                                      <select value={tp.headingFont} onChange={e => saveTypography(activeGoal.id, { ...tp, headingFont: e.target.value })} style={{ ...inputBaseStyle, height: '3rem', fontSize: '1rem' }}>
+                                        {FONT_OPTIONS.map(f => <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>)}
                                       </select>
                                       <div style={{ marginTop: 6, padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.2)', color: '#FFF1E7' }}>
-                                        <div style={{ fontFamily: tp.headingFont as any, fontSize: '1.25rem' }}>The quick brown fox jumps over the lazy dog</div>
+                                        <div style={{ fontFamily: tp.headingFont, fontSize: '1.25rem' }}>The quick brown fox jumps over the lazy dog</div>
                                       </div>
                                     </label>
                                     <label>Body Font
-                                      <select value={tp.bodyFont} onChange={e => saveTypography(activeGoal.id, { ...tp, bodyFont: e.target.value })} style={{ ...inputBaseStyle, height: '3rem', fontSize: '1rem' } as any}>
-                                        {FONT_OPTIONS.map(f => <option key={`b-${f}`} value={f} style={{ fontFamily: f as any }}>{f}</option>)}
+                                      <select value={tp.bodyFont} onChange={e => saveTypography(activeGoal.id, { ...tp, bodyFont: e.target.value })} style={{ ...inputBaseStyle, height: '3rem', fontSize: '1rem' }}>
+                                        {FONT_OPTIONS.map(f => <option key={`b-${f}`} value={f} style={{ fontFamily: f }}>{f}</option>)}
                                       </select>
                                       <div style={{ marginTop: 6, padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.2)', color: '#FFF1E7' }}>
-                                        <div style={{ fontFamily: tp.bodyFont as any }}>Readable preview text set in your body font.</div>
+                                        <div style={{ fontFamily: tp.bodyFont }}>Readable preview text set in your body font.</div>
                                       </div>
                                     </label>
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', alignItems: 'center' }}>
@@ -2741,7 +2951,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     {list.map((t, idx) => (
                                       <div key={idx} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '0.75rem' }}>
                                         <label>Name<input value={t.name} onChange={e => update(idx, { name: e.target.value })} style={inputBaseStyle} placeholder="e.g., Tip/FAQ Template" /></label>
-                                        <label>Type<select value={t.type} onChange={e => update(idx, { type: e.target.value as TemplateType })} style={inputBaseStyle as any}>
+                                        <label>Type<select value={t.type} onChange={e => update(idx, { type: e.target.value as TemplateType })} style={inputBaseStyle}>
                                           {(['Educate','Promote','Connect','Other'] as TemplateType[]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                         </select></label>
                                         <label>Canva URL<input value={t.canvaUrl} onChange={e => update(idx, { canvaUrl: e.target.value })} style={inputBaseStyle} placeholder="https://canva.com/… (optional)" /></label>
@@ -2866,7 +3076,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   </div>
                                   <div style={{ marginBottom: '0.75rem' }}>
                                     <label>Scheduler Tool
-                                      <select value={plan.tool} onChange={e => setTool(e.target.value as ScheduleTool)} style={inputBaseStyle as any}>
+                                      <select value={plan.tool} onChange={e => setTool(e.target.value as ScheduleTool)} style={inputBaseStyle}>
                                         {(['Meta Business Suite','Later','Planoly','Buffer','Manual'] as ScheduleTool[]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                       </select>
                                     </label>
@@ -2875,12 +3085,12 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     {posts.map((p, idx) => (
                                       <div key={p.day} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '0.75rem' }}>
                                         <div style={{ fontWeight: 700, color: '#FFF1E7', marginBottom: 6 }}>{p.day}</div>
-                                        <label>Type<select value={p.type} onChange={e => updatePost(idx, { type: e.target.value as any })} style={inputBaseStyle as any}>
+                                        <label>Type<select value={p.type} onChange={e => updatePost(idx, { type: e.target.value as 'Educate' | 'Promote' | 'Connect' })} style={inputBaseStyle}>
                                           <option value="Educate">Educate</option>
                                           <option value="Promote">Promote</option>
                                           <option value="Connect">Connect</option>
                                         </select></label>
-                                        <label>Pillar<select value={p.pillar} onChange={e => updatePost(idx, { pillar: e.target.value })} style={inputBaseStyle as any}>
+                                        <label>Pillar<select value={p.pillar} onChange={e => updatePost(idx, { pillar: e.target.value })} style={inputBaseStyle}>
                                           {(contentPillarsByGoal[activeGoal.id] || DEFAULT_PILLAR_OPTIONS)
                                             .filter(pl => (contentPillarsByGoal[activeGoal.id] || []).includes(pl))
                                             .map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -2956,7 +3166,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     <label>Title/description<input value={p.title} onChange={e => update({ title: e.target.value })} style={inputBaseStyle} /></label>
                                     <label>URL<input value={p.url} onChange={e => update({ url: e.target.value })} style={inputBaseStyle} placeholder="https://… (optional)" /></label>
                                     <label>Date<input value={p.date} onChange={e => update({ date: e.target.value })} style={inputBaseStyle} placeholder="YYYY-MM-DD" /></label>
-                                    <label>Original format<select value={p.format} onChange={e => update({ format: e.target.value as any })} style={inputBaseStyle as any}>
+                                    <label>Original format<select value={p.format} onChange={e => update({ format: e.target.value as PastPost['format'] })} style={inputBaseStyle}>
                                       {(['Photo','Caption','Promo','Long Caption','Testimonial','Other'] as PastPost['format'][]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                     </select></label>
                                   </div>
@@ -2972,7 +3182,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 const update = (upd: Partial<RemixPlan>) => saveWk10(activeGoal.id, { ...plan, remix: { ...r, ...upd } });
                                 return (
                                   <div>
-                                    <label>New version<select value={r.newFormat} onChange={e => update({ newFormat: e.target.value as any })} style={inputBaseStyle as any}>
+                                    <label>New version<select value={r.newFormat} onChange={e => update({ newFormat: e.target.value as RemixPlan['newFormat'] })} style={inputBaseStyle}>
                                       {(['Carousel','Reel/Video','BTS Video','Graphic Quote/Stat','Photo+Testimonial','Other'] as RemixPlan['newFormat'][]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                     </select></label>
                                     <label>Notes<textarea value={r.notes} onChange={e => update({ notes: e.target.value })} style={{ ...inputBaseStyle, minHeight: 80 }} placeholder="How will you refresh it?" /></label>
@@ -2994,7 +3204,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                   <div>
                                     <label>Campaign Type
-                                      <select value={plan.type} onChange={e => update({ type: e.target.value as CampaignType })} style={inputBaseStyle as any}>
+                                      <select value={plan.type} onChange={e => update({ type: e.target.value as CampaignType })} style={inputBaseStyle}>
                                         {(['Story Poll/Quiz','Giveaway','Fun Feed Question','Q&A'] as CampaignType[]).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                       </select>
                                     </label>
@@ -3027,10 +3237,10 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                   {/* Reflection */}
                                   <div>
                                     <h6 style={{ margin: 0, color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 1: Reflect</h6>
-                                    <label>What changed?<textarea value={s.reflection.changed} onChange={e => upd({ reflection: { changed: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
-                                    <label>What worked best?<textarea value={s.reflection.worked} onChange={e => upd({ reflection: { worked: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
-                                    <label>Keep doing / Stop doing<textarea value={s.reflection.keepStop} onChange={e => upd({ reflection: { keepStop: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
-                                    <label>Next social goal<textarea value={s.reflection.nextGoal} onChange={e => upd({ reflection: { nextGoal: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>What changed?<textarea value={s.reflection.changed} onChange={e => upd({ reflection: { ...s.reflection, changed: e.target.value } })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>What worked best?<textarea value={s.reflection.worked} onChange={e => upd({ reflection: { ...s.reflection, worked: e.target.value } })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>Keep doing / Stop doing<textarea value={s.reflection.keepStop} onChange={e => upd({ reflection: { ...s.reflection, keepStop: e.target.value } })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
+                                    <label>Next social goal<textarea value={s.reflection.nextGoal} onChange={e => upd({ reflection: { ...s.reflection, nextGoal: e.target.value } })} style={{ ...inputBaseStyle, minHeight: 70 }} /></label>
                                   </div>
                                   {/* Metrics + Plan */}
                                   <div>
@@ -3072,8 +3282,8 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                       </div>
                                     </div>
                                     <h6 style={{ marginTop: '1rem', color: '#FFF1E7', fontWeight: 700, marginBottom: '0.5rem' }}>Step 3: 30‑day plan</h6>
-                                    <label>Focus<input value={s.plan.focus} onChange={e => upd({ plan: { focus: e.target.value } as any })} style={inputBaseStyle} placeholder="Ex: 3x Stories/week; Tuesday Tips; run a giveaway" /></label>
-                                    <label>Notes<textarea value={s.plan.notes} onChange={e => upd({ plan: { notes: e.target.value } as any })} style={{ ...inputBaseStyle, minHeight: 80 }} /></label>
+                                    <label>Focus<input value={s.plan.focus} onChange={e => upd({ plan: { ...s.plan, focus: e.target.value } })} style={inputBaseStyle} placeholder="Ex: 3x Stories/week; Tuesday Tips; run a giveaway" /></label>
+                                    <label>Notes<textarea value={s.plan.notes} onChange={e => upd({ plan: { ...s.plan, notes: e.target.value } })} style={{ ...inputBaseStyle, minHeight: 80 }} /></label>
                                   </div>
                                 </div>
                               );
@@ -3116,7 +3326,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                       <td style={{ padding: '8px', color: '#FFF1E7' }}>{row.day}</td>
                                           <td style={{ padding: '8px', color: '#FFF1E7' }}>
                                             {module.weekNumber >= 4 ? (
-                                              <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as any }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
+                                              <select value={row.type} onChange={(e)=> setPlanner(pl => { const next=[...pl]; next[idx] = { ...next[idx], type: e.target.value as 'Connect' | 'Educate' | 'Promote' }; return next; })} style={{ background: 'rgba(255,255,255,0.06)', color: '#FFF1E7', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '6px 8px', width: '100%' }}>
                                                 <option value="Connect">Connect</option>
                                                 <option value="Educate">Educate</option>
                                                 <option value="Promote">Promote</option>
@@ -3473,7 +3683,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                                     setInteractiveMeta({ goalId: activeGoal.id, moduleId: module.id });
                                     setInteractiveTask({ id: '', title: 'Create Task', description: '' });
                                     setInteractiveOpen(true);
-                                  } catch {}
+                                  } catch { /* Ignore modal errors */ }
                                 }}
                                 style={{ padding: '0.25rem 0.75rem', background: '#EF8E81', color: '#FFF1E7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
                               >
@@ -3694,45 +3904,73 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
                     </p>
                     {/* Stage legend inline hint could be added here if needed */}
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log('Start Track button clicked for goal:', goal.title, 'shouldDisableTracks:', shouldDisableTracks);
-                      console.log('Button click event:', e);
-                      console.log('Goal details:', { id: goal.id, title: goal.title, isActive: goal.isActive });
-                      if (!shouldDisableTracks) {
-                        console.log('Calling startMarketingTrack...');
-                        startMarketingTrack(goal);
-                      } else {
-                        console.log('Track start disabled because shouldDisableTracks is true');
-                        console.log('Active goal causing disable:', activeGoal);
-                      }
-                    }}
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      background: shouldDisableTracks ? 'rgba(255, 255, 255, 0.1)' : '#EF8E81',
-                      color: '#FFF1E7',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: shouldDisableTracks ? 'not-allowed' : 'pointer',
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      transition: 'all 0.2s',
-                      opacity: shouldDisableTracks ? 0.5 : 1
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!shouldDisableTracks) {
-                        e.currentTarget.style.background = '#ffb09e';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!shouldDisableTracks) {
-                        e.currentTarget.style.background = '#EF8E81';
-                      }
-                    }}
-                  >
-                    {shouldDisableTracks ? '🔒 Locked' : 'Start Track'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('View Track button clicked for goal:', goal.title);
+                        navigateToTrack(goal);
+                      }}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        background: 'transparent',
+                        color: '#FFF1E7',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      View Track
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('Start Track button clicked for goal:', goal.title, 'shouldDisableTracks:', shouldDisableTracks);
+                        console.log('Button click event:', e);
+                        console.log('Goal details:', { id: goal.id, title: goal.title, isActive: goal.isActive });
+                        if (!shouldDisableTracks) {
+                          console.log('Calling startMarketingTrack...');
+                          startMarketingTrack(goal);
+                        } else {
+                          console.log('Track start disabled because shouldDisableTracks is true');
+                          console.log('Active goal causing disable:', activeGoal);
+                        }
+                      }}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        background: shouldDisableTracks ? 'rgba(255, 255, 255, 0.1)' : '#EF8E81',
+                        color: '#FFF1E7',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: shouldDisableTracks ? 'not-allowed' : 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        transition: 'all 0.2s',
+                        opacity: shouldDisableTracks ? 0.5 : 1
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!shouldDisableTracks) {
+                          e.currentTarget.style.background = '#ffb09e';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!shouldDisableTracks) {
+                          e.currentTarget.style.background = '#EF8E81';
+                        }
+                      }}
+                    >
+                      {shouldDisableTracks ? '🔒 Locked' : 'Start Track'}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -3900,7 +4138,7 @@ export default function MarketingTrackPage({ marketingGoals, onMarketingGoalsCha
               <button onClick={closeInteractiveTask} style={{ background: 'transparent', color: '#FFF1E7', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>×</button>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.25rem' }}>
-              {(() => { try { console.log('[MarketingTrackPage] render modal for:', interactiveTask?.title); } catch {} return renderInteractiveContentForTask(interactiveTask); })()}
+              {(() => { try { console.log('[MarketingTrackPage] render modal for:', interactiveTask?.title); } catch { /* Ignore console errors */ } return renderInteractiveContentForTask(interactiveTask); })()}
             </div>
           </div>
         </div>

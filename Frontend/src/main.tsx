@@ -4,6 +4,14 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './contexts/AuthContext'
 
+// Suppress React Router v7 deprecation warnings
+if (typeof window !== 'undefined') {
+  (window as any).__ROUTER_FUTURE_FLAGS__ = {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true
+  };
+}
+
 // Reduce noisy console logs in development unless explicitly enabled
 const debugLogs = (import.meta as { env?: { VITE_DEBUG_LOGS?: string; DEV?: boolean } }).env?.VITE_DEBUG_LOGS === '1' || (typeof localStorage !== 'undefined' && localStorage.getItem('debugLogs') === '1')
 if ((import.meta as { env?: { VITE_DEBUG_LOGS?: string; DEV?: boolean } }).env?.DEV && !debugLogs) {
