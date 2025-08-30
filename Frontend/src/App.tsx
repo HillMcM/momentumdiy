@@ -14,11 +14,12 @@ import SidebarToggleIcon from './assets/sidebar_toggle.svg';
 import { apiService } from './services/api';
 import AIMarketingAssistant from './AIMarketingAssistant';
 import FloatingAssistant from './FloatingAssistant';
-import ProtectedRoute from './ProtectedRoute';
+
 import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
 import { useAuth } from './contexts/useAuth';
 import { supabase } from './lib/supabase';
+import { mockTasks, mockMarketingGoals } from './mockData';
 
 // Comment out deactivated component imports to prevent build errors
 /*
@@ -45,7 +46,9 @@ function Header() {
         {user ? (
           <button className="upgrade-btn" onClick={() => signOut()}>Sign out</button>
         ) : (
-          <Link className="upgrade-btn" to="/auth">Sign in</Link>
+          <span className="upgrade-btn" style={{ background: '#10b981', color: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '14px' }}>
+            🚀 Development Mode
+          </span>
         )}
       </div>
     </header>
@@ -75,7 +78,13 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
     let mounted = true;
     (async () => {
       try {
-        if (!user) return;
+        if (!user) {
+          // In development mode without auth, use a default business name
+          if (mounted) {
+            setBusinessName('MomentumDIY Business');
+          }
+          return;
+        }
         const { data } = await supabase
           .from('profiles')
           .select('business_name, full_name, email')
@@ -316,83 +325,38 @@ function ProtectedApp() {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        console.log('Loading data from API...');
-        
-        // Test backend connectivity first
-        console.log('Testing backend connectivity...');
-        try {
-          // Use backend base URL from env-aware API module
-          const { BACKEND_BASE_URL } = await import('./services/api');
-          const healthResponse = await fetch(`${BACKEND_BASE_URL}/health`);
-          if (healthResponse.ok) {
-            console.log('✅ Backend is running and responding');
-          } else {
-            console.error('❌ Backend health check failed:', healthResponse.status);
-          }
-        } catch (healthError) {
-          console.error('❌ Backend connectivity test failed:', healthError);
-        }
-        
-        // Load tasks
-        console.log('Fetching tasks from API...');
-        const tasksResponse = await apiService.getTasks();
-        console.log('Tasks API response:', tasksResponse);
-        if (tasksResponse.success && tasksResponse.data) {
-          setTasks(dedupeTasks(tasksResponse.data));
-          console.log('✅ Loaded tasks:', tasksResponse.data.length);
-        } else {
-          console.error('❌ Failed to load tasks:', tasksResponse.error);
-        }
-        
-        // Load projects (only if projects feature is active)
-        // NOTE: Projects feature is currently deactivated
-        console.log('🚫 Skipping projects API call - feature deactivated');
+        console.log('🚀 Loading data in development mode...');
+
+        // Skip all backend connectivity tests and API calls in development
+        console.log('🔄 Using mock data for development - no backend required');
+
+        // Load mock tasks immediately
+        setTasks(mockTasks);
+        console.log('✅ Loaded mock tasks:', mockTasks.length);
+
+        // Load projects (empty in development)
         setProjects([]);
-        
-        // Load marketing goals directly from Supabase-backed API
-        console.log('Fetching marketing goals from API...');
-        const goalsResponse = await apiService.getMarketingGoals();
-        console.log('Marketing goals API response:', goalsResponse);
-        if (goalsResponse.success && goalsResponse.data) {
-          // Never downgrade currentWeek when hydrating from backend
-          setMarketingGoals(prev => {
-            if (!prev || prev.length === 0) return goalsResponse.data!;
-            return goalsResponse.data!.map(incoming => {
-              const existing = prev.find(g => g.id === incoming.id);
-              if (!existing) return incoming;
-              const safeCurrentWeek = Math.max(existing.currentWeek || 0, incoming.currentWeek || 0);
-              return { ...incoming, currentWeek: safeCurrentWeek };
-            });
-          });
-          console.log('✅ Loaded marketing goals:', goalsResponse.data.length);
-        } else {
-          console.error('❌ Failed to load marketing goals:', goalsResponse.error);
-        }
-        
-        // Load calendar events (only if calendar feature is active)
-        // NOTE: Calendar feature is currently deactivated
+
+        // Load mock marketing goals
+        setMarketingGoals(mockMarketingGoals);
+        console.log('✅ Loaded mock marketing goals:', mockMarketingGoals.length);
+
+        // Skip calendar events (deactivated)
         console.log('🚫 Skipping calendar API call - feature deactivated');
 
-        // Comment out asset loading since asset library is deactivated
-        /*
-        // Load assets
-        const assetsResponse = await apiService.getAssets();
-        console.log('Assets API response:', assetsResponse);
-        if (assetsResponse.success && assetsResponse.data) {
-          // setAssets(assetsResponse.data); // This line was commented out in the new_code, so it's commented out here.
-          console.log('Loaded assets:', assetsResponse.data.length);
-        } else {
-          console.log('No assets loaded or error occurred');
-        }
-        */
-        
+        console.log('🎉 All data loaded successfully from mock data!');
+
       } catch (error) {
-        console.error('❌ Error loading data:', error);
+        console.error('❌ Unexpected error loading data:', error);
+        // Set fallback data on error
+        setTasks(mockTasks);
+        setMarketingGoals(mockMarketingGoals);
+        setProjects([]);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     loadData();
   }, []);
 
@@ -795,13 +759,9 @@ function ProtectedApp() {
             } />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="marketing-track" element={
-              <MarketingTrackPage 
+              <MarketingTrackPage
                 marketingGoals={marketingGoals}
                 onMarketingGoalsChange={handleMarketingGoalsChange}
-                onTasksChange={handleTasksChange}
-                tasks={tasks}
-                projects={projects}
-                onProjectsChange={handleProjectsChange}
               />
             } />
             <Route path="marketing-track/local-foot-traffic" element={
@@ -858,10 +818,8 @@ function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/terms" element={<Placeholder title="Terms & Conditions" />} />
 
-        {/* Protected */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/app/*" element={<ProtectedApp />} />
-        </Route>
+        {/* App - Now public (no auth required) */}
+        <Route path="/app/*" element={<ProtectedApp />} />
       </Routes>
     </Router>
   );
