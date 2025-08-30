@@ -1,10 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { MarketingGoal, MarketingModule } from './types';
-
-interface MarketingTrackWidgetProps {
-  marketingGoals: MarketingGoal[];
-  onMarketingGoalsChange?: (goals: MarketingGoal[]) => void;
-}
+import { useNavigate } from 'react-router-dom';
+import { useMarketing } from './contexts/MarketingContext';
 
 interface MarketingTrackModalProps {
   isOpen: boolean;
@@ -206,7 +203,7 @@ function MarketingTrackModal({ isOpen, onClose, goal, module }: MarketingTrackMo
                     marginBottom: '0.5rem',
                     lineHeight: '1.5'
                   }}>
-                    {task.description}
+                    {task.shortDescription || task.description}
                   </div>
                   <div style={{ 
                     color: '#EF8E81', 
@@ -225,12 +222,10 @@ function MarketingTrackModal({ isOpen, onClose, goal, module }: MarketingTrackMo
   );
 }
 
-export default function MarketingTrackWidget({ marketingGoals }: MarketingTrackWidgetProps) {
+export default function MarketingTrackWidget() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const activeGoal = useMemo(() => {
-    return marketingGoals.find(goal => goal.isActive);
-  }, [marketingGoals]);
+  const navigate = useNavigate();
+  const { activeGoal, isLoading, error, refreshMarketingData } = useMarketing();
 
   const currentModule = useMemo(() => {
     if (!activeGoal) return null;
@@ -245,19 +240,7 @@ export default function MarketingTrackWidget({ marketingGoals }: MarketingTrackW
     }
   };
 
-  // Comment out unused function for now
-  /*
-  const handleGoalToggle = () => {
-    if (activeGoal) {
-      // Toggle the active goal
-      const updatedGoals = marketingGoals.map(goal => ({
-        ...goal,
-        isActive: !goal.isActive
-      }));
-      onMarketingGoalsChange(updatedGoals);
-    }
-  };
-  */
+
 
   if (!activeGoal || !currentModule) {
     return (
@@ -506,6 +489,80 @@ export default function MarketingTrackWidget({ marketingGoals }: MarketingTrackW
                 +{currentModule.tasks.length - 3} more tasks
               </div>
             )}
+          </div>
+
+          {/* Pro Tip Preview */}
+          {(() => {
+            const proTipMatch = currentModule.content.match(/<h[1-6]>(Pro Tip:.*?)<\/h[1-6]>(.*?)(?=<h[1-6]|$)/is);
+            if (!proTipMatch) return null;
+            
+            const proTipTitle = proTipMatch[1];
+            const proTipContent = proTipMatch[2].trim();
+            
+            return (
+              <div style={{ 
+                marginTop: '1.5rem',
+                padding: '1rem',
+                background: 'rgba(239, 142, 129, 0.08)',
+                borderRadius: '8px',
+                border: '1px solid rgba(239, 142, 129, 0.2)'
+              }}>
+                <h5 style={{ 
+                  margin: 0, 
+                  fontSize: '0.95rem', 
+                  color: '#EF8E81', 
+                  marginBottom: '0.5rem',
+                  fontWeight: 600
+                }}>
+                  💡 {proTipTitle}
+                </h5>
+                <p style={{ 
+                  margin: 0, 
+                  color: '#FFF1E7', 
+                  fontSize: '0.85rem',
+                  lineHeight: '1.4',
+                  opacity: 0.9
+                }}>
+                  {proTipContent.replace(/<[^>]*>/g, '').substring(0, 120)}
+                  {proTipContent.replace(/<[^>]*>/g, '').length > 120 ? '...' : ''}
+                </p>
+              </div>
+            );
+          })()}
+
+          {/* Navigation Button */}
+          <div style={{ 
+            marginTop: '1.5rem',
+            textAlign: 'center'
+          }}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/app/marketing-track');
+              }}
+              style={{
+                background: 'rgba(239, 142, 129, 0.1)',
+                border: '1px solid rgba(239, 142, 129, 0.3)',
+                color: '#EF8E81',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                width: '100%'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 142, 129, 0.2)';
+                e.currentTarget.style.borderColor = 'rgba(239, 142, 129, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 142, 129, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(239, 142, 129, 0.3)';
+              }}
+            >
+              View Full Marketing Track →
+            </button>
           </div>
         </div>
       </div>

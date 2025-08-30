@@ -25,7 +25,18 @@ const fromEnv = (() => {
 
 function isLocalHost(hostname: string | undefined): boolean {
   if (!hostname) return false;
-  return hostname === 'localhost' || hostname === '127.0.0.1';
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '10.0.0.53';
+}
+
+// Get the appropriate backend URL based on current hostname
+function getBackendUrl(): string {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === '10.0.0.53') {
+      return 'http://10.0.0.53:3002';
+    }
+  }
+  return 'http://localhost:3002';
 }
 
 const defaultProdBackend = 'https://momentumdiy-backend.onrender.com';
@@ -33,7 +44,7 @@ const defaultProdBackend = 'https://momentumdiy-backend.onrender.com';
 export const API_BASE_URL = fromEnv
   ? fromEnv.replace(/\/$/, '') + '/api'
   : ((typeof window !== 'undefined' && isLocalHost(window.location.hostname))
-      ? 'http://localhost:3001/api'
+      ? `${getBackendUrl()}/api`
       : `${defaultProdBackend}/api`);
 
 // The backend base without the /api suffix, for endpoints like /health

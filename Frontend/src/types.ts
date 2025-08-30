@@ -39,7 +39,8 @@ export interface MarketingModule {
 export interface MarketingTask {
   id: string;
   title: string;
-  description: string;
+  shortDescription?: string; // Brief preview for task cards
+  description: string; // Full detailed description for modal view
   estimatedTime: string;
   isCompleted: boolean;
   dueDate?: Date;

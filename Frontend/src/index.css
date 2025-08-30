@@ -85,6 +85,11 @@ h1, h2, h3, h4, h5, h6 {
   background: transparent !important;
 }
 
+/* Marketing Track Page transparency */
+.marketing-track-page {
+  background: transparent !important;
+}
+
 /* Global text alignment - ensure all text is left-aligned by default */
 * {
   text-align: left;

@@ -4,9 +4,10 @@ import TaskItem from './TaskItem';
 interface TaskListProps {
   tasks: MarketingTask[];
   onTaskToggle: (taskId: string, isCompleted: boolean) => void;
+  onTaskClick: (task: MarketingTask) => void;
 }
 
-export default function TaskList({ tasks, onTaskToggle }: TaskListProps) {
+export default function TaskList({ tasks, onTaskToggle, onTaskClick }: TaskListProps) {
   if (tasks.length === 0) {
     return (
       <p className="text-gray-400 text-center py-8">No tasks available for this week.</p>
@@ -20,6 +21,7 @@ export default function TaskList({ tasks, onTaskToggle }: TaskListProps) {
           key={task.id}
           task={task}
           onToggle={onTaskToggle}
+          onTaskClick={onTaskClick}
         />
       ))}
     </div>

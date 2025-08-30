@@ -40,7 +40,7 @@ export default function TrackHeader({ goal }: TrackHeaderProps) {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-gray-300">Overall Progress</span>
-          <span className="text-sm font-medium text-purple-300">{goal.progress}%</span>
+          <span className="text-sm font-medium text-[#EF8E81]">{goal.progress}%</span>
         </div>
         <ProgressBar progress={goal.progress} />
       </div>
