@@ -24,7 +24,7 @@ interface ChatResponse {
 // POST /api/ai/chat - Send a message to the AI assistant
 router.post('/chat', routeRateLimit(30), async (req, res) => {
   try {
-    const { message, conversationHistory = [], userBusinessType, userIndustry, userExperienceLevel, pagePath, businessMetrics }: ChatRequest = req.body;
+    const { message, conversationHistory = [], userBusinessType, userIndustry, userExperienceLevel, pagePath }: ChatRequest = req.body;
 
     if (!message || message.trim().length === 0) {
       return res.status(400).json({
@@ -59,7 +59,7 @@ router.post('/chat', routeRateLimit(30), async (req, res) => {
       userIndustry: userIndustry || 'General',
       userExperienceLevel: userExperienceLevel || 'Not specified',
       pagePath: pagePath || '/app',
-      businessMetrics
+
     };
 
     // Generate AI response

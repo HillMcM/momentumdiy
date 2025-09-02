@@ -15,7 +15,6 @@ export interface ConversationContext {
   userIndustry?: string;
   userExperienceLevel?: string;
   pagePath?: string;
-  businessMetrics?: any;
 }
 
 export interface ChatMessage {
@@ -264,9 +263,6 @@ ${this.getPersonalizedRecommendations(industry, experienceLevel, context.pagePat
 ## 📋 12-Week Marketing Track Content:
 ${this.getWeekContent(currentWeek)}
 
-## 📊 Real-Time Business Performance:
-${this.getBusinessMetricsContext(context.businessMetrics)}
-
 ## 🛠️ Tool-Specific Guidance:
 ${this.getToolGuidance()}
 
@@ -286,56 +282,7 @@ ${this.getMetricsGuidance()}
 ${this.getTemplatesScripts()}`;
   }
 
-  private static getBusinessMetricsContext(metrics?: any): string {
-    if (!metrics) {
-      return 'No business metrics data available yet. Help them understand the importance of tracking performance.';
-    }
 
-    let context = '';
-
-    // Google Business Profile
-    if (metrics.googleBusinessProfile) {
-      const gbp = metrics.googleBusinessProfile;
-      context += `
-**Google Business Profile:**
-- Profile Views: ${gbp.views}
-- Phone Calls: ${gbp.calls} (excellent engagement!)
-- Direction Requests: ${gbp.directionRequests}
-- Reviews: ${gbp.reviews}
-- Rating: ${gbp.rating} stars
-- Last Updated: ${new Date(gbp.lastUpdated).toLocaleDateString()}`;
-    }
-
-    // Social Media
-    if (metrics.socialMedia && metrics.socialMedia.length > 0) {
-      context += '\n\n**Social Media Performance:**';
-      metrics.socialMedia.forEach((platform: any) => {
-        context += `
-- ${platform.platform}: ${platform.followers} followers, ${platform.engagement}% engagement, ${platform.reach} reach`;
-      });
-    }
-
-    // Website
-    if (metrics.website) {
-      const web = metrics.website;
-      context += `\n\n**Website Analytics:**
-- Visitors: ${web.visitors}
-- Bounce Rate: ${web.bounceRate}%
-- Conversion Rate: ${web.conversionRate}%
-- Last Updated: ${new Date(web.lastUpdated).toLocaleDateString()}`;
-    }
-
-    // Local Competition
-    if (metrics.localCompetition) {
-      const comp = metrics.localCompetition;
-      context += `\n\n**Local Market Position:**
-- Competitors in area: ${comp.competitorCount}
-- Average competitor rating: ${comp.averageRating}
-- Your market position: ${comp.marketPosition}`;
-    }
-
-    return context || 'Business metrics are being tracked but no data available yet.';
-  }
 
   private static getWeekContent(week: number): string {
     const weekContent = {
