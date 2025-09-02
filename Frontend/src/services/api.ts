@@ -36,7 +36,8 @@ function getBackendUrl(): string {
       return 'http://10.0.0.53:3002';
     }
   }
-  return 'http://localhost:3002';
+  // Always use the network IP for local development
+  return 'http://10.0.0.53:3002';
 }
 
 const defaultProdBackend = 'https://momentumdiy-backend.onrender.com';
