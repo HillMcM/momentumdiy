@@ -1,10 +1,35 @@
-import type { MarketingGoal, MarketingModule, MarketingTask, ApiResponse, Task } from '../types';
-import { BACKEND_BASE_URL } from './api';
+const express = require('express');
+const cors = require('cors');
 
-// Mock data for the 12-week Increase Local Foot Traffic track
-function getMockActiveGoal(): MarketingGoal {
-  console.log('📋 Using mock data for Increase Local Foot Traffic');
-  return {
+const app = express();
+const PORT = 3003;
+
+// CORS configuration
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    try {
+      const url = new URL(origin);
+      const isLocalHost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+      const isLocalNetwork = url.hostname === '10.0.0.53';
+      const isHttp = url.protocol === 'http:' || url.protocol === 'https:';
+      if ((isLocalHost || isLocalNetwork) && isHttp) {
+        return callback(null, true);
+      }
+    } catch (e) {}
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
+
+app.use(express.json());
+
+// In-memory store for marketing goals
+let marketingGoals = [];
+
+// Seed data function for Increase Local Foot Traffic
+function seedMarketingData() {
+  const increaseLocalFootTraffic = {
     id: 'increase-local-foot-traffic',
     title: 'Increase Local Foot Traffic',
     description: 'Strategic marketing plan to boost local visibility and drive foot traffic to your business.',
@@ -14,16 +39,21 @@ function getMockActiveGoal(): MarketingGoal {
     startDate: new Date(),
     currentWeek: 1,
     progress: 75,
-    modules: getMockModulesForGoal('increase-local-foot-traffic')
+    modules: []
   };
-}
 
-function getMockModulesForGoal(goalId: string): MarketingModule[] {
-  if (goalId === 'increase-local-foot-traffic') {
-    return [
-      {
-        id: 'week-1',
-        weekNumber: 1,
+  // Create 12 weeks of modules with the actual content you created
+  for (let week = 1; week <= 12; week++) {
+    const isUnlocked = week <= increaseLocalFootTraffic.currentWeek;
+    const isCompleted = week < increaseLocalFootTraffic.currentWeek;
+    
+    let module;
+    
+    if (week === 1) {
+      // Week 1: Audit Visibility
+      module = {
+        id: `week-1`,
+        weekNumber: week,
         title: 'Week 1: Audit Visibility',
         description: 'Assess your current marketing presence and identify opportunities for improvement.',
         content: `<h2>Week 1: Audit Visibility</h2>
@@ -35,8 +65,8 @@ function getMockModulesForGoal(goalId: string): MarketingModule[] {
 
 <h4>Pro Tip:</h4>
 <p>Keep the vibe positive and fun. When promoting the offer, be excited! For example, "We're doing something special: this week all coffee comes with a free cookie! Hope you enjoy it!" Enthusiasm is contagious and makes customers feel like they're part of something exciting. Also, make sure your team (if you have one) is on the same page and equally informed about the offer details. Lastly, plan for a slight increase in traffic – have enough stock of the item on sale or ingredients for that free cookie, etc. Nothing's worse than drawing people in and then disappointing them by running out.</p>`,
-        isUnlocked: true,
-        isCompleted: false,
+        isUnlocked,
+        isCompleted,
         tasks: [
           {
             id: 'task-1-1',
@@ -89,10 +119,12 @@ function getMockModulesForGoal(goalId: string): MarketingModule[] {
             dueDate: new Date(Date.now() + 0 * 7 * 24 * 60 * 60 * 1000)
           }
         ]
-      },
-      {
-        id: 'week-2',
-        weekNumber: 2,
+      };
+    } else if (week === 2) {
+      // Week 2: Google Business Profile Optimization
+      module = {
+        id: `week-2`,
+        weekNumber: week,
         title: 'Week 2: Google Business Profile Optimization',
         description: 'Optimize your Google Business Profile to improve local search visibility and attract more customers.',
         content: `<h2>Week 2: Google Business Profile Optimization</h2>
@@ -101,8 +133,8 @@ function getMockModulesForGoal(goalId: string): MarketingModule[] {
 <p><strong>Why this matters:</strong> 92% of local searches happen on mobile devices, and 78% of these searches result in offline purchases. Optimizing for local search is essential for increasing foot traffic.</p>
 
 <p><strong>Pro Tip:</strong> Consistency across all platforms (Google My Business, Facebook, Yelp, etc.) is key for local SEO success.</p>`,
-        isUnlocked: false, // Locked since we're on week 1
-        isCompleted: false,
+        isUnlocked,
+        isCompleted,
         tasks: [
           {
             id: 'task-2-1',
@@ -132,10 +164,12 @@ function getMockModulesForGoal(goalId: string): MarketingModule[] {
             dueDate: new Date(Date.now() + 1 * 7 * 24 * 60 * 60 * 1000)
           }
         ]
-      },
-      {
-        id: 'week-3',
-        weekNumber: 3,
+      };
+    } else if (week === 3) {
+      // Week 3: Social Media Strategy
+      module = {
+        id: `week-3`,
+        weekNumber: week,
         title: 'Week 3: Social Media Strategy',
         description: 'Build a social media presence that drives local engagement and community connections.',
         content: `<h2>Week 3: Social Media Strategy</h2>
@@ -144,8 +178,8 @@ function getMockModulesForGoal(goalId: string): MarketingModule[] {
 <p><strong>Why this matters:</strong> Local businesses that actively engage on social media see 2x more foot traffic than those who don't. Social media helps you stay top-of-mind with local customers.</p>
 
 <p><strong>Pro Tip:</strong> Focus on quality engagement over quantity of posts. Meaningful interactions with your community build stronger customer relationships.</p>`,
-        isUnlocked: false, // Locked since we're on week 1
-        isCompleted: false,
+        isUnlocked,
+        isCompleted,
         tasks: [
           {
             id: 'task-3-1',
@@ -172,20 +206,18 @@ function getMockModulesForGoal(goalId: string): MarketingModule[] {
             description: 'Develop a plan for responding to comments and messages within 24 hours to maintain active community engagement.',
             estimatedTime: '25min',
             isCompleted: false,
-            dueDate: new Date(Date.now() + 2 * 7 * 60 * 60 * 1000)
+            dueDate: new Date(Date.now() + 2 * 7 * 24 * 60 * 60 * 1000)
           }
         ]
-      },
-      // Add more weeks 4-12 with similar structure
-      ...Array.from({ length: 9 }, (_, i) => {
-        const weekNum = i + 4;
-        return {
-          id: `week-${weekNum}`,
-          weekNumber: weekNum,
-          title: `Week ${weekNum} Strategy`,
-          description: `Advanced marketing tactics for week ${weekNum}`,
-          content: `
-<h2>Theme: Advanced Local Marketing</h2>
+      };
+    } else {
+      // Generic content for weeks 4-12 (to be developed)
+      module = {
+        id: `week-${week}`,
+        weekNumber: week,
+        title: `Week ${week}: Advanced Local Marketing`,
+        description: `Continue building on your foundation with advanced strategies to drive more local foot traffic.`,
+        content: `<h2>Week ${week}: Advanced Local Marketing</h2>
 <p>Continue building on your foundation with advanced strategies to drive more local foot traffic.</p>
 
 <p>This week focuses on:</p>
@@ -195,223 +227,120 @@ function getMockModulesForGoal(goalId: string): MarketingModule[] {
 <li>Customer retention strategies</li>
 <li>Performance measurement</li>
 </ul>
-          `,
-          isUnlocked: weekNum <= 3, // Only unlock first 3 weeks initially
-          isCompleted: false,
-          tasks: [
-            {
-              id: `task-${weekNum}-1`,
-              taskId: `week-${weekNum}`,
-              title: `Week ${weekNum} Primary Task`,
-              description: `Complete the main marketing activity for week ${weekNum}`,
-              estimatedTime: '45min',
-              isCompleted: false
-            },
-            {
-              id: `task-${weekNum}-2`,
-              taskId: `week-${weekNum}`,
-              title: `Week ${weekNum} Secondary Task`,
-              description: `Supporting activity to reinforce your marketing efforts`,
-              estimatedTime: '30min',
-              isCompleted: false
-            }
-          ]
-        };
-      })
-    ];
-  }
-  return [];
-}
 
-// Get active marketing goal
-export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
-  const url = `${BACKEND_BASE_URL}/api/marketing/goals/active`;
-  console.log('🔍 Fetching from:', url);
-  console.log('🔍 BACKEND_BASE_URL:', BACKEND_BASE_URL);
-  
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    console.log('📡 Response status:', response.status);
-    console.log('📡 Response ok:', response.ok);
-
-    if (!response.ok) {
-      console.warn('❌ Backend not available, using mock data');
-      return {
-        success: true,
-        data: getMockActiveGoal(),
-      };
-    }
-
-    const data = await response.json();
-    console.log('✅ Backend data received:', data);
-    
-    // Validate that we got the correct data
-    if (data.success && data.data && data.data.title === 'Increase Local Foot Traffic') {
-      console.log('✅ Correct marketing track data received from backend');
-      return data;
-    } else {
-      console.warn('⚠️ Backend returned unexpected data, using mock data');
-      return {
-        success: true,
-        data: getMockActiveGoal(),
-      };
-    }
-  } catch (error) {
-    console.error('❌ Error fetching from backend:', error);
-    console.warn('⚠️ Backend not available, using mock data');
-    return {
-      success: true,
-      data: getMockActiveGoal(),
-    };
-  }
-}
-
-// Get modules for a specific goal
-export async function getModulesForGoal(goalId: string): Promise<ApiResponse<MarketingModule[]>> {
-  try {
-          const response = await fetch(`${BACKEND_BASE_URL}/api/marketing/goals/${goalId}/modules`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      console.warn('Backend not available, using mock data');
-      return {
-        success: true,
-        data: getMockModulesForGoal(goalId),
-      };
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.warn('Backend not available, using mock data:', error);
-    return {
-      success: true,
-      data: getMockModulesForGoal(goalId),
-    };
-  }
-}
-
-// Toggle marketing task completion
-export async function toggleMarketingTask(taskId: string, isCompleted: boolean): Promise<ApiResponse<MarketingTask>> {
-  try {
-          const response = await fetch(`${BACKEND_BASE_URL}/api/marketing/tasks/${taskId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ isCompleted }),
-    });
-
-    if (!response.ok) {
-      console.warn('Backend not available, simulating task toggle');
-      return {
-        success: true,
-        data: {
-          id: taskId,
-          taskId: taskId.split('-').slice(0, 2).join('-'),
-          title: `Task ${taskId}`,
-          description: 'Task description',
-          estimatedTime: '30min',
-          isCompleted,
-        },
-      };
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.warn('Backend not available, simulating task toggle:', error);
-    return {
-      success: true,
-      data: {
-        id: taskId,
-        taskId: taskId.split('-').slice(0, 2).join('-'),
-        title: `Task ${taskId}`,
-        description: 'Task description',
-        estimatedTime: '30min',
+<p><em>Detailed content for this week will be developed as part of the complete 12-week program.</em></p>`,
+        isUnlocked,
         isCompleted,
-      },
-    };
-  }
-}
-
-// Update goal progress
-export async function updateGoalProgress(goalId: string, progress: number): Promise<ApiResponse<MarketingGoal>> {
-  try {
-          const response = await fetch(`${BACKEND_BASE_URL}/api/marketing/goals/${goalId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ progress }),
-    });
-
-    if (!response.ok) {
-      console.warn('Backend not available, simulating progress update');
-      const mockGoal = getMockActiveGoal();
-      return {
-        success: true,
-        data: { ...mockGoal, progress },
+        tasks: [
+          {
+            id: `task-${week}-1`,
+            taskId: `week-${week}`,
+            title: `Week ${week} Primary Task`,
+            description: `Complete the main marketing activity for week ${week} to continue building your local presence.`,
+            estimatedTime: '45min',
+            isCompleted: false,
+            dueDate: new Date(Date.now() + (week - 1) * 7 * 24 * 60 * 60 * 1000)
+          },
+          {
+            id: `task-${week}-2`,
+            taskId: `week-${week}`,
+            title: `Week ${week} Secondary Task`,
+            description: `Supporting activity to reinforce your marketing efforts and maintain momentum.`,
+            estimatedTime: '30min',
+            isCompleted: false,
+            dueDate: new Date(Date.now() + (week - 1) * 7 * 24 * 60 * 60 * 1000)
+          },
+          {
+            id: `task-${week}-3`,
+            taskId: `week-${week}`,
+            title: `Week ${week} Review & Plan`,
+            description: `Review your progress and plan for the following week to maintain consistent growth.`,
+            estimatedTime: '20min',
+            isCompleted: false,
+            dueDate: new Date(Date.now() + (week - 1) * 7 * 24 * 60 * 60 * 1000)
+          }
+        ]
       };
     }
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.warn('Backend not available, simulating progress update:', error);
-    const mockGoal = getMockActiveGoal();
-    return {
-      success: true,
-      data: { ...mockGoal, progress },
-    };
+    increaseLocalFootTraffic.modules.push(module);
   }
+
+  marketingGoals = [increaseLocalFootTraffic];
+  console.log('✅ Increase Local Foot Traffic marketing data seeded successfully');
+  console.log(`📊 Created ${marketingGoals.length} marketing goal(s)`);
+  console.log(`📋 Total modules: ${marketingGoals[0].modules.length}`);
+  console.log(`✅ Total tasks: ${marketingGoals[0].modules.reduce((sum, m) => sum + m.tasks.length, 0)}`);
 }
 
-// Convert marketing tasks to regular tasks for the task tracker
-export function convertMarketingTasksToTasks(marketingGoal: MarketingGoal): Task[] {
-  const tasks: Task[] = [];
+// Health check
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Increase Local Foot Traffic Seed Server is running',
+    timestamp: new Date().toISOString(),
+    environment: 'development'
+  });
+});
+
+// Marketing API endpoints
+app.get('/api/marketing/goals/active', (req, res) => {
+  const activeGoal = marketingGoals.find(goal => goal.isActive);
+  if (activeGoal) {
+    res.json({ success: true, data: activeGoal });
+  } else {
+    res.json({ success: true, data: null, message: 'No active marketing goal' });
+  }
+});
+
+app.get('/api/marketing/goals', (req, res) => {
+  res.json({ success: true, data: marketingGoals });
+});
+
+app.put('/api/marketing/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  const { isCompleted } = req.body;
   
-  marketingGoal.modules.forEach(module => {
-    module.tasks.forEach(marketingTask => {
-      // Convert marketing task status to task status
-      let status: 'todo' | 'in-progress' | 'completed' = 'todo';
-      if (marketingTask.isCompleted) {
-        status = 'completed';
-      } else if (module.weekNumber === marketingGoal.currentWeek) {
-        status = 'in-progress';
+  // Find the task in any module of any goal
+  let taskFound = false;
+  marketingGoals.forEach(goal => {
+    goal.modules.forEach(module => {
+      const task = module.tasks.find(t => t.id === id);
+      if (task) {
+        task.isCompleted = isCompleted;
+        taskFound = true;
       }
-      
-      const task: Task = {
-        id: marketingTask.id,
-        title: marketingTask.title,
-        description: marketingTask.description || '',
-        responsible: 'Marketing Team', // Default responsible person
-        deadline: marketingTask.dueDate ? new Date(marketingTask.dueDate).toISOString() : null,
-        project: marketingGoal.title,
-        timeSpent: '',
-        notifications: false,
-        status,
-        // Add marketing track metadata
-        marketingTrack: {
-          goalId: marketingGoal.id,
-          moduleId: module.id,
-          marketingTaskId: marketingTask.id
-        }
-      };
-      
-      tasks.push(task);
     });
   });
+
+  if (taskFound) {
+    res.json({ success: true, message: 'Task updated' });
+  } else {
+    res.status(404).json({ success: false, error: 'Task not found' });
+  }
+});
+
+app.put('/api/marketing/goals/:id', (req, res) => {
+  const { id } = req.params;
+  const { progress } = req.body;
   
-  return tasks;
-}
+  const goal = marketingGoals.find(g => g.id === id);
+  if (goal) {
+    goal.progress = progress;
+    res.json({ success: true, data: goal });
+  } else {
+    res.status(404).json({ success: false, error: 'Goal not found' });
+  }
+});
+
+// Seed data on startup
+seedMarketingData();
+
+// Start server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Increase Local Foot Traffic Seed Server running on port ${PORT}`);
+  console.log(`📊 Environment: development`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🌐 Network accessible: http://10.0.0.53:${PORT}/health`);
+  console.log(`📋 Marketing API: http://localhost:${PORT}/api/marketing/goals/active`);
+});

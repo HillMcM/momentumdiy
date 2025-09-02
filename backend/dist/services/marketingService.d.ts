@@ -7,6 +7,7 @@ export declare class MarketingService {
     static deleteMarketingGoal(id: string): Promise<ApiResponse<void>>;
     static seedSocialMediaModules(goalId: string): Promise<ApiResponse<void>>;
     static setActiveMarketingGoal(goalId: string): Promise<ApiResponse<void>>;
+    static updateMarketingGoalProgress(goalId: string, progress: number): Promise<ApiResponse<MarketingGoal>>;
     static getMarketingModules(goalId: string): Promise<ApiResponse<MarketingModule[]>>;
     static createMarketingModule(moduleData: Omit<MarketingModule, 'id' | 'tasks'> & {
         goalId: string;

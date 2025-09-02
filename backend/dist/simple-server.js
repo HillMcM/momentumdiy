@@ -44,7 +44,7 @@ dotenv.config();
 const app = (0, express_1.default)();
 const PORT = 3002;
 app.use((0, cors_1.default)({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001'],
     credentials: true
 }));
 app.use(express_1.default.json());

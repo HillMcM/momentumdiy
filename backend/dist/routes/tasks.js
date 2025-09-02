@@ -7,10 +7,15 @@ const rate_1 = require("../middleware/rate");
 const router = (0, express_1.Router)();
 router.get('/', async (req, res) => {
     try {
-        const { projectId, status } = req.query;
+        const { projectId, status, archived } = req.query;
         const result = await taskService_1.TaskService.getTasks(projectId, status);
         if (!result.success) {
             return res.status(400).json(result);
+        }
+        if (result.success && result.data) {
+            const showArchived = archived === 'true';
+            const filtered = showArchived ? result.data : result.data.filter((t) => !t.isArchived);
+            return res.json({ success: true, data: filtered });
         }
         return res.json(result);
     }

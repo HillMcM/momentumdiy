@@ -276,6 +276,34 @@ class MarketingService {
             };
         }
     }
+    static async updateMarketingGoalProgress(goalId, progress) {
+        try {
+            const { data, error } = await supabase_1.supabase
+                .from('marketing_goals')
+                .update({ progress: progress })
+                .eq('id', goalId)
+                .select()
+                .single();
+            if (error) {
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+            const goal = await this.mapDatabaseGoalToGoal(data);
+            return {
+                success: true,
+                data: goal,
+                message: 'Marketing goal progress updated successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred'
+            };
+        }
+    }
     static async getMarketingModules(goalId) {
         try {
             const { data, error } = await supabase_1.supabase
