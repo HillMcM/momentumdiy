@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import CheckoutForm from './components/CheckoutForm';
@@ -7,12 +8,32 @@ import { STRIPE_CONFIG } from './lib/stripe';
 // Initialize Stripe
 const stripePromise = loadStripe(STRIPE_CONFIG.publishableKey);
 
-interface CheckoutPageProps {
-  plan: 'premium' | 'enterprise';
-  interval: 'monthly' | 'yearly';
-}
+export default function CheckoutPage() {
+  const { plan, interval } = useParams<{ plan: string; interval: string }>();
 
-export default function CheckoutPage({ plan, interval }: CheckoutPageProps) {
+  // Validate plan and interval parameters
+  const validPlans = ['monthly', 'annual', 'spark', 'growth', 'lead'];
+  const validIntervals = ['monthly', 'yearly'];
+
+  if (!plan || !interval || !validPlans.includes(plan) || !validIntervals.includes(interval)) {
+    return (
+      <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
+        <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-red-500/30 p-8 max-w-md">
+          <div className="text-center">
+            <div className="text-red-400 text-xl mb-4">❌ Invalid Plan</div>
+            <div className="text-gray-400 mb-6">The selected plan or billing interval is not valid.</div>
+            <button
+              onClick={() => window.history.back()}
+              className="bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const [clientSecret, setClientSecret] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');

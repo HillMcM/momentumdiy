@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from './lib/supabase';
 
 interface SubscriptionDetails {
   subscription_status: string;
