@@ -19,10 +19,59 @@ import FloatingAssistant from './FloatingAssistant';
 import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
 import { useAuth } from './contexts/useAuth';
-import { MarketingProvider } from './contexts/MarketingContext';
+import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
 import { supabase } from './lib/supabase';
 import { mockTasks, mockMarketingGoals } from './mockData';
 import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketingService';
+
+// Component to handle task synchronization between marketing track and task tracker
+function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]) => void }) {
+  const { activeGoal } = useMarketing();
+  
+  // Sync marketing tasks to task tracker
+  useEffect(() => {
+    console.log('🔄 Marketing tasks sync effect triggered');
+    console.log('📊 Current tasks count:', tasks.length);
+    console.log('🎯 Active goal:', activeGoal);
+    
+    if (!activeGoal) {
+      console.log('❌ No active marketing goal to sync');
+      return;
+    }
+    
+    // Convert marketing tasks to regular tasks (only from unlocked modules)
+    const marketingTasks = convertMarketingTasksToTasks(activeGoal);
+    console.log('🔄 Converted marketing tasks from unlocked modules:', marketingTasks);
+    
+    // Get all marketing task IDs that should be in the task tracker
+    const marketingTaskIds = new Set(marketingTasks.map(t => t.id));
+    
+    // Remove tasks that are no longer from unlocked modules
+    const nonMarketingTasks = tasks.filter(task => !task.marketingTrack);
+    const validMarketingTasks = tasks.filter(task => 
+      task.marketingTrack && marketingTaskIds.has(task.id)
+    );
+    
+    // Add new marketing tasks that aren't already in the tracker
+    const existingTaskIds = new Set(tasks.map(t => t.id));
+    const newMarketingTasks = marketingTasks.filter(t => !existingTaskIds.has(t.id));
+    
+    // Combine all tasks: non-marketing + valid marketing + new marketing
+    const updatedTasks = [...nonMarketingTasks, ...validMarketingTasks, ...newMarketingTasks];
+    
+    const removedCount = tasks.length - (nonMarketingTasks.length + validMarketingTasks.length);
+    const addedCount = newMarketingTasks.length;
+    
+    if (removedCount > 0 || addedCount > 0) {
+      console.log(`✅ Task sync complete: ${removedCount} removed, ${addedCount} added`);
+      setTasks(updatedTasks);
+    } else {
+      console.log('ℹ️ No task changes needed');
+    }
+  }, [activeGoal, tasks, setTasks]);
+  
+  return null; // This component doesn't render anything
+}
 
 // Comment out deactivated component imports to prevent build errors
 /*
@@ -752,43 +801,7 @@ function ProtectedApp() {
     }
   }, [tasks]);
 
-  // Automatically sync marketing tasks with regular tasks when marketing goals change
-  useEffect(() => {
-    console.log('🔄 Marketing goals sync effect triggered');
-    console.log('📊 Current marketing goals:', marketingGoals);
-    console.log('📋 Current tasks:', tasks);
-    
-    if (!marketingGoals.length) {
-      console.log('❌ No marketing goals to sync');
-      return;
-    }
-    
-    // Get the active marketing goal
-    const activeGoal = marketingGoals.find(goal => goal.isActive);
-    console.log('🎯 Active goal found:', activeGoal);
-    
-    if (!activeGoal) {
-      console.log('❌ No active marketing goal found');
-      return;
-    }
-    
-    // Convert marketing tasks to regular tasks
-    const marketingTasks = convertMarketingTasksToTasks(activeGoal);
-    console.log('🔄 Converted marketing tasks:', marketingTasks);
-    
-    // Merge with existing tasks, avoiding duplicates
-    const existingTaskIds = new Set(tasks.map(t => t.id));
-    const newMarketingTasks = marketingTasks.filter(t => !existingTaskIds.has(t.id));
-    console.log('🆕 New marketing tasks to add:', newMarketingTasks);
-    
-    if (newMarketingTasks.length > 0) {
-      console.log(`✅ Syncing ${newMarketingTasks.length} marketing tasks to task tracker`);
-      const updatedTasks = [...tasks, ...newMarketingTasks];
-      setTasks(updatedTasks);
-    } else {
-      console.log('ℹ️ No new marketing tasks to sync');
-    }
-  }, [marketingGoals, tasks]);
+
 
   console.log('App component about to render JSX...');
 
@@ -826,6 +839,7 @@ function ProtectedApp() {
         )}
         <main className="main-content">
           <MarketingProvider onTaskStatusChange={handleMarketingTaskStatusChange}>
+            <TaskSync tasks={tasks} setTasks={setTasks} />
             <Routes>
             <Route index element={
               <Dashboard 
