@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { useMarketing } from './contexts/MarketingContext';
 import { toggleMarketingTask, updateGoalProgress } from './services/marketingService';
 import { calculateModuleProgress, computeNextUnlockLabel } from './utils/date';
-import { BACKEND_BASE_URL } from './services/api';
 import WeekAccordion from './components/marketingTrack/WeekAccordion';
 import TaskModal from './components/marketingTrack/TaskModal';
 import type { MarketingTask } from './types';
@@ -15,8 +14,6 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
   const { activeGoal, currentModule, setActiveGoal, setCurrentModule, isLoading, error, refreshMarketingData, onTaskStatusChange } = useMarketing();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
 
   // Handle task click to open modal
   const handleTaskClick = useCallback((task: MarketingTask) => {
@@ -88,53 +85,7 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
 
 
 
-  // Handle resetting the track back to week 1
-  const handleResetTrack = useCallback(async () => {
-    if (!activeGoal) return;
-    
-    try {
-      // Create an updated goal with only week 1 unlocked
-      const updatedGoal = {
-        ...activeGoal,
-        currentWeek: 1,
-        progress: 0,
-        modules: activeGoal.modules.map(module => ({
-          ...module,
-          isUnlocked: module.weekNumber === 1,
-          isCompleted: false
-        }))
-      };
-      
-      // Update the local state immediately for instant UI feedback
-      setActiveGoal(updatedGoal);
-      
-      // Try to update the backend (but don't wait for it to succeed)
-      try {
-        const response = await fetch(`${BACKEND_BASE_URL}/api/marketing/goals/${activeGoal.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ currentWeek: 1, progress: 0 })
-        });
-        
-        if (response.ok) {
-          console.log('✅ Backend reset successfully');
-        } else {
-          console.log('⚠️ Backend reset failed, but UI is updated locally');
-        }
-      } catch (backendErr) {
-        console.log('⚠️ Backend reset failed, but UI is updated locally:', backendErr);
-      }
-      
-      // Show reset message
-      setSuccessMessage('Track reset successfully! Back to week 1.');
-      setShowSuccessMessage(true);
-      setTimeout(() => setShowSuccessMessage(false), 5000);
-      
-      console.log('✅ Track reset finished - back to week 1 locally');
-    } catch (err) {
-      console.error('❌ Error resetting track:', err);
-    }
-  }, [activeGoal]);
+
 
   // Loading state
   if (isLoading) {
@@ -170,21 +121,7 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
           </div>
         </div>
 
-        {/* Success Message */}
-        {showSuccessMessage && (
-          <div className={`mb-6 rounded-lg p-4 ${
-            successMessage.includes('completed') 
-              ? 'bg-green-500/20 border border-green-500/30 text-green-300' 
-              : 'bg-blue-500/20 border border-blue-500/30 text-blue-300'
-          }`}>
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span className="font-medium">{successMessage}</span>
-            </div>
-          </div>
-        )}
+
 
         {/* Debug API Test Button */}
         <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
@@ -262,16 +199,7 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
                     This phase emphasizes practical, actionable steps you can implement right away to start seeing results.
                   </p>
                 </div>
-                <button
-                  onClick={handleResetTrack}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
-                  title="Reset track back to week 1"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Reset Track
-                </button>
+
               </div>
             </div>
           </div>
