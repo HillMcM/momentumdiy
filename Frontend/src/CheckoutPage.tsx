@@ -151,9 +151,9 @@ export default function CheckoutPage({ plan, interval }: CheckoutPageProps) {
                   <div className="text-2xl font-bold text-[#EF8E81]">
                     {plan === 'monthly' && '$14.99'}
                     {plan === 'annual' && '$143.88'}
-                    {plan === 'spark' && (interval === 'monthly' ? '$49.99' : '$549')}
-                    {plan === 'growth' && (interval === 'monthly' ? '$99.99' : '$1,099')}
-                    {plan === 'lead' && (interval === 'monthly' ? '$199.99' : '$2,199')}
+                    {plan === 'spark' && (interval === 'monthly' ? '$100' : '$1,100')}
+                    {plan === 'growth' && (interval === 'monthly' ? '$600' : '$6,600')}
+                    {plan === 'lead' && (interval === 'monthly' ? '$1,400' : '$15,400')}
                   </div>
                   <div className="text-sm text-gray-400">
                     {plan === 'monthly' ? 'per month' : plan === 'annual' ? 'per year' : `per ${interval}`}
