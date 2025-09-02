@@ -26,6 +26,7 @@ import { mockTasks, mockMarketingGoals } from './mockData';
 import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketingService';
 import CheckoutPage from './CheckoutPage';
 import SubscriptionPage from './SubscriptionPage';
+import PricingPage from './PricingPage';
 
 
 // Component to handle task synchronization between marketing track and task tracker
@@ -960,6 +961,9 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/terms" element={<Placeholder title="Terms & Conditions" />} />
+
+        {/* Pricing */}
+        <Route path="/pricing" element={<PricingPage />} />
 
         {/* Checkout */}
         <Route path="/checkout/:plan/:interval" element={<CheckoutPage />} />
