@@ -39,6 +39,16 @@ CREATE TABLE IF NOT EXISTS public.tasks (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create business metrics table for analytics
+CREATE TABLE IF NOT EXISTS public.business_metrics (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  metrics JSONB NOT NULL,
+  last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id)
+);
+
 -- Create timeline phases table
 CREATE TABLE IF NOT EXISTS public.timeline_phases (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -183,6 +193,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.timeline_phases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.business_metrics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marketing_goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marketing_modules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marketing_tasks ENABLE ROW LEVEL SECURITY;
@@ -196,6 +207,12 @@ ALTER TABLE public.share_links ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Business metrics policies
+CREATE POLICY "Users can view own business metrics" ON public.business_metrics FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update own business metrics" ON public.business_metrics FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own business metrics" ON public.business_metrics FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own business metrics" ON public.business_metrics FOR DELETE USING (auth.uid() = user_id);
 
 -- Projects policies (for now, allow all authenticated users to access all projects)
 CREATE POLICY "Authenticated users can access projects" ON public.projects FOR ALL USING (auth.role() = 'authenticated');

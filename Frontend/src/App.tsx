@@ -20,9 +20,11 @@ import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
 import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
+import { AnalyticsProvider } from './contexts/AnalyticsContext';
 import { supabase } from './lib/supabase';
 import { mockTasks, mockMarketingGoals } from './mockData';
 import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketingService';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
 
 // Component to handle task synchronization between marketing track and task tracker
 function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]) => void }) {
@@ -356,6 +358,9 @@ function Dashboard({
   return (
     <div>
       <MarketingTrackWidget />
+      <div className="mb-6">
+        <AnalyticsDashboard compact={true} />
+      </div>
       <TaskTrackerWidget 
         projects={projects}
         tasks={visibleTasks}
@@ -958,9 +963,11 @@ function App() {
 
         {/* App - Now public (no auth required) */}
         <Route path="/app/*" element={
-          <MarketingProvider>
-            <ProtectedApp />
-          </MarketingProvider>
+          <AnalyticsProvider>
+            <MarketingProvider>
+              <ProtectedApp />
+            </MarketingProvider>
+          </AnalyticsProvider>
         } />
       </Routes>
     </Router>
