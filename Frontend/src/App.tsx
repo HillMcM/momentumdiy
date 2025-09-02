@@ -33,6 +33,7 @@ function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]
     console.log('🔄 Marketing tasks sync effect triggered');
     console.log('📊 Current tasks count:', tasks.length);
     console.log('🎯 Active goal:', activeGoal);
+    console.log('🔍 Active goal modules unlock status:', activeGoal?.modules.map(m => `Week ${m.weekNumber}: unlocked=${m.isUnlocked}`));
     
     if (!activeGoal) {
       console.log('❌ No active marketing goal to sync');
@@ -68,7 +69,7 @@ function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]
     } else {
       console.log('ℹ️ No task changes needed');
     }
-  }, [activeGoal, tasks, setTasks]);
+  }, [activeGoal, tasks]);
   
   return null; // This component doesn't render anything
 }
