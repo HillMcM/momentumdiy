@@ -304,7 +304,7 @@ export default function SubscriptionPage() {
                   <div className="border border-[#2A243E]/60 rounded-lg p-6">
                     <h4 className="text-lg font-semibold text-white mb-2">Spark Membership</h4>
                     <div className="text-2xl font-bold text-[#EF8E81] mb-4">
-                      $49.99<span className="text-sm text-gray-400">/month</span>
+                      $100<span className="text-sm text-gray-400">/month</span>
                     </div>
                     <ul className="space-y-2 text-sm text-gray-400 mb-6">
                       <li>✅ Full MomentumDIY access</li>
@@ -326,7 +326,7 @@ export default function SubscriptionPage() {
                   <div className="border border-[#2A243E]/60 rounded-lg p-6">
                     <h4 className="text-lg font-semibold text-white mb-2">Growth Membership</h4>
                     <div className="text-2xl font-bold text-[#EF8E81] mb-4">
-                      $99.99<span className="text-sm text-gray-400">/month</span>
+                      $600<span className="text-sm text-gray-400">/month</span>
                     </div>
                     <ul className="space-y-2 text-sm text-gray-400 mb-6">
                       <li>✅ Full MomentumDIY access</li>
@@ -348,7 +348,7 @@ export default function SubscriptionPage() {
                   <div className="border border-[#2A243E]/60 rounded-lg p-6">
                     <h4 className="text-lg font-semibold text-white mb-2">Lead Membership</h4>
                     <div className="text-2xl font-bold text-[#EF8E81] mb-4">
-                      $199.99<span className="text-sm text-gray-400">/month</span>
+                      $1,400<span className="text-sm text-gray-400">/month</span>
                     </div>
                     <ul className="space-y-2 text-sm text-gray-400 mb-6">
                       <li>✅ Full MomentumDIY access</li>
