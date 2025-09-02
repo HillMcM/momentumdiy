@@ -382,7 +382,7 @@ export function convertMarketingTasksToTasks(marketingGoal: MarketingGoal): Task
   const tasks: Task[] = [];
   
   marketingGoal.modules.forEach(module => {
-    console.log(`🔍 Checking module: Week ${module.weekNumber} - ${module.title} - isUnlocked: ${module.isUnlocked}`);
+    console.log(`🔍 DEBUG: Checking module: Week ${module.weekNumber} - ${module.title} - isUnlocked: ${module.isUnlocked}`);
     
     // Only include tasks from unlocked modules
     if (!module.isUnlocked) {
