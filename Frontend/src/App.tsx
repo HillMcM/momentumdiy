@@ -96,13 +96,61 @@ function Header() {
         <span className="header-app-name">MomentumDIY</span>
       </div>
       <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-        <button className="upgrade-btn">
+        <button 
+          className="upgrade-btn"
+          style={{ 
+            background: '#EF8E81', 
+            color: '#FFF1E7', 
+            border: 'none', 
+            borderRadius: '999px', 
+            padding: '0.75rem 2rem', 
+            fontSize: '1.1rem', 
+            fontWeight: '700', 
+            boxShadow: '0 4px 16px 0 rgba(239, 142, 129, 0.25)', 
+            cursor: 'pointer', 
+            transition: 'background 0.2s, box-shadow 0.2s', 
+            outline: 'none' 
+          }}
+        >
           Upgrade
         </button>
         {user ? (
-          <button className="upgrade-btn" onClick={() => signOut()}>Sign out</button>
+          <button 
+            className="upgrade-btn" 
+            onClick={() => signOut()}
+            style={{ 
+              background: '#EF8E81', 
+              color: '#FFF1E7', 
+              border: 'none', 
+              borderRadius: '999px', 
+              padding: '0.75rem 2rem', 
+              fontSize: '1.1rem', 
+              fontWeight: '700', 
+              boxShadow: '0 4px 16px 0 rgba(239, 142, 129, 0.25)', 
+              cursor: 'pointer', 
+              transition: 'background 0.2s, box-shadow 0.2s', 
+              outline: 'none' 
+            }}
+          >
+            Sign out
+          </button>
         ) : (
-          <span className="upgrade-btn" style={{ background: '#10b981' }}>
+          <span 
+            className="upgrade-btn" 
+            style={{ 
+              background: '#10b981', 
+              color: '#FFF1E7', 
+              border: 'none', 
+              borderRadius: '999px', 
+              padding: '0.75rem 2rem', 
+              fontSize: '1.1rem', 
+              fontWeight: '700', 
+              boxShadow: '0 4px 16px 0 rgba(16, 185, 129, 0.25)', 
+              cursor: 'pointer', 
+              transition: 'background 0.2s, box-shadow 0.2s', 
+              outline: 'none' 
+            }}
+          >
             🚀 Development Mode
           </span>
         )}
