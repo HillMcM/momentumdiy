@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { supabase } from './lib/supabase';
 
 interface ChatMessage {
   id: string;
@@ -7,6 +8,53 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
 }
+
+// Function to collect user's business context for AI personalization
+const getUserBusinessContext = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return {};
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('business_name, business_category, location, marketing_channels, primary_marketing_goal, business_size')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile) return {};
+
+    // Map business data to AI context format
+    const businessContext = {
+      userBusinessType: profile.business_category || 'Not specified',
+      userIndustry: profile.business_category || 'General',
+      userExperienceLevel: mapBusinessSizeToExperience(profile.business_size),
+      userLocation: profile.location || 'Not specified',
+      userMarketingGoal: profile.primary_marketing_goal || 'General growth',
+      userMarketingChannels: profile.marketing_channels || []
+    };
+
+    return businessContext;
+  } catch (error) {
+    console.log('Could not load business context for AI:', error);
+    return {};
+  }
+};
+
+// Helper function to map business size to experience level
+const mapBusinessSizeToExperience = (businessSize?: string | null): string => {
+  if (!businessSize) return 'Not specified';
+
+  const size = businessSize.toLowerCase();
+  if (size.includes('1-5') || size.includes('solo') || size.includes('startup')) {
+    return 'Beginner';
+  } else if (size.includes('6-20') || size.includes('small')) {
+    return 'Intermediate';
+  } else if (size.includes('21+') || size.includes('medium') || size.includes('large')) {
+    return 'Advanced';
+  }
+
+  return 'Not specified';
+};
 
 export default function FloatingAssistant() {
   const location = useLocation();
@@ -53,6 +101,10 @@ export default function FloatingAssistant() {
 
     try {
       const conversationHistory = messages.slice(-5).map(m => ({ role: m.role, content: m.content }));
+
+      // Collect user business context for personalized AI responses
+      const businessContext = await getUserBusinessContext();
+
       const { API_BASE_URL } = await import('./services/api');
       const res = await fetch(`${API_BASE_URL}/ai/chat`, {
         method: 'POST',
@@ -60,7 +112,8 @@ export default function FloatingAssistant() {
         body: JSON.stringify({
           message: userMsg.content,
           conversationHistory,
-          pagePath: location.pathname
+          pagePath: location.pathname,
+          ...businessContext
         })
       });
       const data = await res.json();
