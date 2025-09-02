@@ -389,8 +389,7 @@ export function convertMarketingTasksToTasks(marketingGoal: MarketingGoal): Task
         marketingTrack: {
           goalId: marketingGoal.id,
           moduleId: module.id,
-          marketingTaskId: marketingTask.id,
-          weekNumber: module.weekNumber
+          marketingTaskId: marketingTask.id
         }
       };
       

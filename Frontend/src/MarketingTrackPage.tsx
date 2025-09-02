@@ -1,19 +1,18 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useMarketing } from './contexts/MarketingContext';
 import { toggleMarketingTask, updateGoalProgress } from './services/marketingService';
 import { calculateModuleProgress, computeNextUnlockLabel } from './utils/date';
 import { BACKEND_BASE_URL } from './services/api';
-import TrackHeader from './components/marketingTrack/TrackHeader';
 import WeekAccordion from './components/marketingTrack/WeekAccordion';
 import TaskModal from './components/marketingTrack/TaskModal';
-import type { MarketingGoal, MarketingModule, MarketingTask } from './types';
+import type { MarketingTask } from './types';
 
 interface MarketingTrackPageProps {
   // Props removed - using context instead
 }
 
 export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
-  const { activeGoal, currentModule, setActiveGoal, setCurrentModule, isLoading, error, setError, refreshMarketingData, onTaskStatusChange } = useMarketing();
+  const { activeGoal, currentModule, setActiveGoal, setCurrentModule, isLoading, error, refreshMarketingData, onTaskStatusChange } = useMarketing();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
