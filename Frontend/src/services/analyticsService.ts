@@ -226,7 +226,7 @@ export class AnalyticsService {
       ]
     };
 
-    const opportunities = industryInsights[userIndustry.toLowerCase().split(' ')[0]] ||
+    const opportunities = industryInsights[userIndustry.toLowerCase().split(' ')[0] as keyof typeof industryInsights] ||
                          industryInsights['service'];
 
     return {
