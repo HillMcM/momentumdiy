@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAnalytics } from '../contexts/AnalyticsContext';
 
 interface AnalyticsDashboardProps {

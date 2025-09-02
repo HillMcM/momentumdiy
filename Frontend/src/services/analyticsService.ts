@@ -204,16 +204,36 @@ export class AnalyticsService {
 
   // Get competitor analysis
   static async getCompetitorAnalysis(userLocation: string, userIndustry: string): Promise<any> {
-    // Mock competitor analysis
+    // Mock competitor analysis - customize based on location and industry
+    const baseCompetitors = userLocation.toLowerCase().includes('city') ? 8 : 4;
+    const competitorCount = baseCompetitors + Math.floor(Math.random() * 3);
+
+    const industryInsights = {
+      'restaurant': [
+        'Fresh menu photography could differentiate you',
+        'Online ordering integration is trending in your area',
+        'Customer loyalty programs are underutilized locally'
+      ],
+      'retail': [
+        'Visual merchandising is stronger than online competitors',
+        'Local pickup options could be a competitive advantage',
+        'Customer experience personalization is emerging'
+      ],
+      'service': [
+        'Online booking systems are becoming essential',
+        'Customer testimonials are more trusted than ads',
+        'Local SEO optimization shows quick ROI'
+      ]
+    };
+
+    const opportunities = industryInsights[userIndustry.toLowerCase().split(' ')[0]] ||
+                         industryInsights['service'];
+
     return {
-      competitorCount: Math.floor(Math.random() * 5) + 3,
+      competitorCount,
       averageRating: (Math.random() * 0.8 + 4.1).toFixed(1),
       marketPosition: Math.random() > 0.5 ? 'Leading' : 'Competitive',
-      opportunities: [
-        'Better online reviews could give you an edge',
-        'Social media presence is stronger than 60% of local competitors',
-        'Website could be more mobile-friendly'
-      ]
+      opportunities: opportunities.slice(0, 3)
     };
   }
 }
