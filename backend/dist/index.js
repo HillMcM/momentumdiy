@@ -55,6 +55,7 @@ const profile_1 = __importDefault(require("./routes/profile"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env['PORT'] || 3001;
+app.set('trust proxy', 1);
 if ((process.env['NODE_ENV'] || 'development') !== 'production') {
     app.use((req, res, next) => {
         const origin = req.headers.origin || '*';

@@ -41,22 +41,26 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
       setError(null);
       
       console.log('🔄 Refreshing marketing data...');
+      console.log('🔍 Using getActiveGoal function...');
       const response = await getActiveGoal();
       console.log('📡 Marketing data response:', response);
       
       if (response.success && response.data) {
         console.log('✅ Setting active goal:', response.data);
         console.log('🔓 Modules unlock status:', response.data.modules.map(m => `Week ${m.weekNumber}: unlocked=${m.isUnlocked}`));
+        console.log('📊 Total modules:', response.data.modules.length);
+        console.log('📋 Module titles:', response.data.modules.map(m => m.title));
         setActiveGoal(response.data);
         // Set current module based on active goal
         const current = response.data.modules.find(module => module.weekNumber === response.data?.currentWeek);
         setCurrentModule(current || null);
       } else {
+        console.error('❌ Failed to load marketing goal:', response);
         setError('Failed to load marketing goal');
       }
     } catch (err) {
+      console.error('❌ Marketing context error:', err);
       setError('Error loading marketing data');
-      console.error('Marketing context error:', err);
     } finally {
       setIsLoading(false);
     }

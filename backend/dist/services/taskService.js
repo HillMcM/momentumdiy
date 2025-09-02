@@ -207,6 +207,8 @@ class TaskService {
             task.projectId = dbTask.project_id;
         if (dbTask.marketing_track)
             task.marketingTrack = dbTask.marketing_track;
+        if (dbTask.is_archived !== undefined)
+            task.isArchived = dbTask.is_archived;
         return task;
     }
 }

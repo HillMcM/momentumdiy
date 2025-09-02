@@ -11,6 +11,7 @@
     "seed:track-content": "tsx src/scripts/seed-track-content.ts",
     "seed:marketing-track": "tsx src/scripts/seed-marketing-track.ts",
     "activate:first-five": "tsx src/scripts/activate-first-five.ts",
+    "test-supabase-connection": "tsx src/scripts/test-supabase-connection.ts",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix"
