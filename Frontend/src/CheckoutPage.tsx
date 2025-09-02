@@ -133,16 +133,30 @@ export default function CheckoutPage({ plan, interval }: CheckoutPageProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-semibold text-white capitalize">
-                    {plan} Plan
+                    {plan === 'monthly' && 'Monthly Access'}
+                    {plan === 'annual' && 'Annual Access'}
+                    {plan === 'spark' && 'Spark Membership'}
+                    {plan === 'growth' && 'Growth Membership'}
+                    {plan === 'lead' && 'Lead Membership'}
                   </h3>
-                  <p className="text-gray-400 capitalize">{interval}</p>
+                  <p className="text-gray-400">
+                    {plan === 'monthly' && 'Full MomentumDIY access'}
+                    {plan === 'annual' && 'Full MomentumDIY access (save 20%)'}
+                    {plan === 'spark' && 'MomentumDIY + 1hr marketing consultation'}
+                    {plan === 'growth' && 'MomentumDIY + 5hrs marketing consultation'}
+                    {plan === 'lead' && 'MomentumDIY + 10hrs marketing consultation'}
+                  </p>
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-[#EF8E81]">
-                    ${plan === 'premium' ? (interval === 'monthly' ? '29' : '299') : (interval === 'monthly' ? '99' : '999')}
+                    {plan === 'monthly' && '$14.99'}
+                    {plan === 'annual' && '$143.88'}
+                    {plan === 'spark' && (interval === 'monthly' ? '$49.99' : '$549')}
+                    {plan === 'growth' && (interval === 'monthly' ? '$99.99' : '$1,099')}
+                    {plan === 'lead' && (interval === 'monthly' ? '$199.99' : '$2,199')}
                   </div>
                   <div className="text-sm text-gray-400">
-                    per {interval === 'monthly' ? 'month' : 'year'}
+                    {plan === 'monthly' ? 'per month' : plan === 'annual' ? 'per year' : `per ${interval}`}
                   </div>
                 </div>
               </div>
