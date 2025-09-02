@@ -99,17 +99,17 @@ function Header() {
         <button 
           className="upgrade-btn"
           style={{ 
-            background: '#EF8E81', 
-            color: '#FFF1E7', 
-            border: 'none', 
-            borderRadius: '999px', 
-            padding: '0.75rem 2rem', 
-            fontSize: '1.1rem', 
-            fontWeight: '700', 
-            boxShadow: '0 4px 16px 0 rgba(239, 142, 129, 0.25)', 
-            cursor: 'pointer', 
-            transition: 'background 0.2s, box-shadow 0.2s', 
-            outline: 'none' 
+            background: '#EF8E81 !important', 
+            color: '#FFF1E7 !important', 
+            border: 'none !important', 
+            borderRadius: '999px !important', 
+            padding: '0.75rem 2rem !important', 
+            fontSize: '1.1rem !important', 
+            fontWeight: '700 !important', 
+            boxShadow: '0 4px 16px 0 rgba(239, 142, 129, 0.25) !important', 
+            cursor: 'pointer !important', 
+            transition: 'background 0.2s, box-shadow 0.2s !important', 
+            outline: 'none !important' 
           }}
         >
           Upgrade
@@ -119,17 +119,17 @@ function Header() {
             className="upgrade-btn" 
             onClick={() => signOut()}
             style={{ 
-              background: '#EF8E81', 
-              color: '#FFF1E7', 
-              border: 'none', 
-              borderRadius: '999px', 
-              padding: '0.75rem 2rem', 
-              fontSize: '1.1rem', 
-              fontWeight: '700', 
-              boxShadow: '0 4px 16px 0 rgba(239, 142, 129, 0.25)', 
-              cursor: 'pointer', 
-              transition: 'background 0.2s, box-shadow 0.2s', 
-              outline: 'none' 
+              background: '#EF8E81 !important', 
+              color: '#FFF1E7 !important', 
+              border: 'none !important', 
+              borderRadius: '999px !important', 
+              padding: '0.75rem 2rem !important', 
+              fontSize: '1.1rem !important', 
+              fontWeight: '700 !important', 
+              boxShadow: '0 4px 16px 0 rgba(239, 142, 129, 0.25) !important', 
+              cursor: 'pointer !important', 
+              transition: 'background 0.2s, box-shadow 0.2s !important', 
+              outline: 'none !important' 
             }}
           >
             Sign out
@@ -138,17 +138,17 @@ function Header() {
           <span 
             className="upgrade-btn" 
             style={{ 
-              background: '#10b981', 
-              color: '#FFF1E7', 
-              border: 'none', 
-              borderRadius: '999px', 
-              padding: '0.75rem 2rem', 
-              fontSize: '1.1rem', 
-              fontWeight: '700', 
-              boxShadow: '0 4px 16px 0 rgba(16, 185, 129, 0.25)', 
-              cursor: 'pointer', 
-              transition: 'background 0.2s, box-shadow 0.2s', 
-              outline: 'none' 
+              background: '#10b981 !important', 
+              color: '#FFF1E7 !important', 
+              border: 'none !important', 
+              borderRadius: '999px !important', 
+              padding: '0.75rem 2rem !important', 
+              fontSize: '1.1rem !important', 
+              fontWeight: '700 !important', 
+              boxShadow: '0 4px 16px 0 rgba(16, 185, 129, 0.25) !important', 
+              cursor: 'pointer !important', 
+              transition: 'background 0.2s, box-shadow 0.2s !important', 
+              outline: 'none !important' 
             }}
           >
             🚀 Development Mode
