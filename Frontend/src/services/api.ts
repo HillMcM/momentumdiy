@@ -28,16 +28,27 @@ function isLocalHost(hostname: string | undefined): boolean {
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '10.0.0.53';
 }
 
-// Get the appropriate backend URL based on current hostname
+// Get the appropriate backend URL based on environment
 function getBackendUrl(): string {
+  // Check if we're in production (Vercel)
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    if (hostname === '10.0.0.53') {
-      return 'http://10.0.0.53:3002';
+    
+    // Production domains
+    if (hostname === 'momentumdiy.vercel.app' || 
+        hostname === 'momentumdiy-git-main-hillmcm.vercel.app' ||
+        hostname.includes('vercel.app')) {
+      return 'https://momentumdiy-backend.onrender.com';
+    }
+    
+    // Local development
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '10.0.0.53') {
+      return 'http://10.0.0.53:3002'; // Local backend
     }
   }
-  // Always use the network IP for local development
-  return 'http://10.0.0.53:3002';
+  
+  // Default to production backend
+  return 'https://momentumdiy-backend.onrender.com';
 }
 
 const defaultProdBackend = 'https://momentumdiy-backend.onrender.com';
