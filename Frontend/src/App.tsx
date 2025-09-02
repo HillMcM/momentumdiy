@@ -24,6 +24,8 @@ import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
 import { supabase } from './lib/supabase';
 import { mockTasks, mockMarketingGoals } from './mockData';
 import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketingService';
+import CheckoutPage from './CheckoutPage';
+import SubscriptionPage from './SubscriptionPage';
 
 
 // Component to handle task synchronization between marketing track and task tracker
@@ -939,7 +941,7 @@ function ProtectedApp() {
               />
             } />
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
-            <Route path="manage-subscription" element={<Placeholder title="Manage Subscription" />} />
+            <Route path="manage-subscription" element={<SubscriptionPage />} />
             <Route path="feedback" element={<Placeholder title="Feedback" />} />
           </Routes>
           <FloatingAssistant />
@@ -958,6 +960,9 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/terms" element={<Placeholder title="Terms & Conditions" />} />
+
+        {/* Checkout */}
+        <Route path="/checkout/:plan/:interval" element={<CheckoutPage />} />
 
         {/* App - Now public (no auth required) */}
         <Route path="/app/*" element={
