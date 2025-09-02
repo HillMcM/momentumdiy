@@ -382,6 +382,14 @@ export function convertMarketingTasksToTasks(marketingGoal: MarketingGoal): Task
   const tasks: Task[] = [];
   
   marketingGoal.modules.forEach(module => {
+    // Only include tasks from unlocked modules
+    if (!module.isUnlocked) {
+      console.log(`🔒 Skipping tasks from locked module: Week ${module.weekNumber} - ${module.title}`);
+      return;
+    }
+    
+    console.log(`🔓 Including tasks from unlocked module: Week ${module.weekNumber} - ${module.title}`);
+    
     module.tasks.forEach(marketingTask => {
       // Convert marketing task status to task status
       let status: 'todo' | 'in-progress' | 'completed' = 'todo';
@@ -413,5 +421,6 @@ export function convertMarketingTasksToTasks(marketingGoal: MarketingGoal): Task
     });
   });
   
+  console.log(`📋 Converted ${tasks.length} tasks from unlocked modules only`);
   return tasks;
 }
