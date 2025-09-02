@@ -94,14 +94,14 @@ function Header() {
         <img src={OctopusLogo} alt="MomentumDIY Logo" className="header-logo" />
         <span className="header-app-name">MomentumDIY</span>
       </div>
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        <button className="upgrade-btn" style={{ background: '#EF8E81', color: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '14px', border: 'none', cursor: 'pointer', fontWeight: '500' }}>
+      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <button className="upgrade-btn">
           Upgrade
         </button>
         {user ? (
           <button className="upgrade-btn" onClick={() => signOut()}>Sign out</button>
         ) : (
-          <span className="upgrade-btn" style={{ background: '#10b981', color: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '14px' }}>
+          <span className="upgrade-btn" style={{ background: '#10b981' }}>
             🚀 Development Mode
           </span>
         )}
