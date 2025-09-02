@@ -254,47 +254,114 @@ export default function SubscriptionPage() {
               <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-[#2A243E]/60 p-8">
                 <h3 className="text-xl font-bold text-white mb-6">Available Plans</h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Premium Plan */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Monthly Plan */}
                   <div className="border border-[#2A243E]/60 rounded-lg p-6">
-                    <h4 className="text-lg font-semibold text-white mb-2">Premium Plan</h4>
+                    <h4 className="text-lg font-semibold text-white mb-2">Monthly Access</h4>
                     <div className="text-2xl font-bold text-[#EF8E81] mb-4">
-                      $29<span className="text-sm text-gray-400">/month</span>
+                      $14.99<span className="text-sm text-gray-400">/month</span>
                     </div>
                     <ul className="space-y-2 text-sm text-gray-400 mb-6">
+                      <li>✅ Full MomentumDIY access</li>
                       <li>✅ 12-week marketing curriculum</li>
                       <li>✅ AI marketing assistant</li>
                       <li>✅ Task tracking & management</li>
-                      <li>✅ Unlimited marketing tasks</li>
                     </ul>
-                    {subscription.subscription_plan !== 'premium' && (
+                    {subscription.subscription_plan !== 'monthly' && (
                       <button
-                        onClick={() => navigate('/checkout/premium/monthly')}
+                        onClick={() => navigate('/checkout/monthly/monthly')}
                         className="w-full bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-4 py-2 rounded-lg font-medium transition-colors"
                       >
-                        Upgrade to Premium
+                        Select Monthly
                       </button>
                     )}
                   </div>
 
-                  {/* Enterprise Plan */}
+                  {/* Annual Plan */}
                   <div className="border border-[#2A243E]/60 rounded-lg p-6">
-                    <h4 className="text-lg font-semibold text-white mb-2">Enterprise Plan</h4>
+                    <h4 className="text-lg font-semibold text-white mb-2">Annual Access</h4>
                     <div className="text-2xl font-bold text-[#EF8E81] mb-4">
-                      $99<span className="text-sm text-gray-400">/month</span>
+                      $143.88<span className="text-sm text-gray-400">/year</span>
                     </div>
+                    <div className="text-sm text-green-400 mb-4">Save 20% vs monthly</div>
                     <ul className="space-y-2 text-sm text-gray-400 mb-6">
-                      <li>✅ Everything in Premium</li>
-                      <li>✅ Advanced analytics</li>
+                      <li>✅ Everything in Monthly</li>
+                      <li>✅ Best value option</li>
                       <li>✅ Priority support</li>
-                      <li>✅ Custom integrations</li>
+                      <li>✅ Early access to features</li>
                     </ul>
-                    {subscription.subscription_plan !== 'enterprise' && (
+                    {subscription.subscription_plan !== 'annual' && (
                       <button
-                        onClick={() => navigate('/checkout/enterprise/monthly')}
+                        onClick={() => navigate('/checkout/annual/yearly')}
                         className="w-full bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-4 py-2 rounded-lg font-medium transition-colors"
                       >
-                        Upgrade to Enterprise
+                        Select Annual
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Spark Membership */}
+                  <div className="border border-[#2A243E]/60 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-white mb-2">Spark Membership</h4>
+                    <div className="text-2xl font-bold text-[#EF8E81] mb-4">
+                      $49.99<span className="text-sm text-gray-400">/month</span>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-400 mb-6">
+                      <li>✅ Full MomentumDIY access</li>
+                      <li>✅ 1 hour marketing consultation</li>
+                      <li>✅ Personalized strategy session</li>
+                      <li>✅ Direct access to me</li>
+                    </ul>
+                    {subscription.subscription_plan !== 'spark' && (
+                      <button
+                        onClick={() => navigate('/checkout/spark/monthly')}
+                        className="w-full bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                      >
+                        Select Spark
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Growth Membership */}
+                  <div className="border border-[#2A243E]/60 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-white mb-2">Growth Membership</h4>
+                    <div className="text-2xl font-bold text-[#EF8E81] mb-4">
+                      $99.99<span className="text-sm text-gray-400">/month</span>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-400 mb-6">
+                      <li>✅ Full MomentumDIY access</li>
+                      <li>✅ 5 hours marketing consultation</li>
+                      <li>✅ Strategy development</li>
+                      <li>✅ Implementation support</li>
+                    </ul>
+                    {subscription.subscription_plan !== 'growth' && (
+                      <button
+                        onClick={() => navigate('/checkout/growth/monthly')}
+                        className="w-full bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                      >
+                        Select Growth
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Lead Membership */}
+                  <div className="border border-[#2A243E]/60 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-white mb-2">Lead Membership</h4>
+                    <div className="text-2xl font-bold text-[#EF8E81] mb-4">
+                      $199.99<span className="text-sm text-gray-400">/month</span>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-400 mb-6">
+                      <li>✅ Full MomentumDIY access</li>
+                      <li>✅ 10 hours marketing consultation</li>
+                      <li>✅ Complete marketing strategy</li>
+                      <li>✅ Ongoing implementation support</li>
+                    </ul>
+                    {subscription.subscription_plan !== 'lead' && (
+                      <button
+                        onClick={() => navigate('/checkout/lead/monthly')}
+                        className="w-full bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                      >
+                        Select Lead
                       </button>
                     )}
                   </div>

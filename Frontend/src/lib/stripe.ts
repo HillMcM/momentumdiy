@@ -13,13 +13,23 @@ export const stripePromise = loadStripe(stripePublishableKey);
 export const STRIPE_CONFIG = {
   publishableKey: stripePublishableKey,
   prices: {
-    premium: {
-      monthly: import.meta.env.VITE_STRIPE_PRICE_PREMIUM_MONTHLY || 'price_premium_monthly',
-      yearly: import.meta.env.VITE_STRIPE_PRICE_PREMIUM_YEARLY || 'price_premium_yearly',
+    monthly: {
+      monthly: import.meta.env.VITE_STRIPE_PRICE_MONTHLY_MONTHLY || 'price_monthly_monthly',
     },
-    enterprise: {
-      monthly: import.meta.env.VITE_STRIPE_PRICE_ENTERPRISE_MONTHLY || 'price_enterprise_monthly',
-      yearly: import.meta.env.VITE_STRIPE_PRICE_ENTERPRISE_YEARLY || 'price_enterprise_yearly',
+    annual: {
+      yearly: import.meta.env.VITE_STRIPE_PRICE_ANNUAL_YEARLY || 'price_annual_yearly',
+    },
+    spark: {
+      monthly: import.meta.env.VITE_STRIPE_PRICE_SPARK_MONTHLY || 'price_spark_monthly',
+      yearly: import.meta.env.VITE_STRIPE_PRICE_SPARK_YEARLY || 'price_spark_yearly',
+    },
+    growth: {
+      monthly: import.meta.env.VITE_STRIPE_PRICE_GROWTH_MONTHLY || 'price_growth_monthly',
+      yearly: import.meta.env.VITE_STRIPE_PRICE_GROWTH_YEARLY || 'price_growth_yearly',
+    },
+    lead: {
+      monthly: import.meta.env.VITE_STRIPE_PRICE_LEAD_MONTHLY || 'price_lead_monthly',
+      yearly: import.meta.env.VITE_STRIPE_PRICE_LEAD_YEARLY || 'price_lead_yearly',
     }
   },
   trialDays: 30,

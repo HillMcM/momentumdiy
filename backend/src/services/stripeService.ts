@@ -5,7 +5,7 @@ export interface SubscriptionData {
   userId: string;
   email: string;
   name?: string;
-  plan: 'premium' | 'enterprise';
+  plan: 'monthly' | 'annual' | 'spark' | 'growth' | 'lead';
   interval: 'monthly' | 'yearly';
 }
 
