@@ -123,7 +123,7 @@ export default function TaskModal({ task, isOpen, onClose, onToggle }: TaskModal
               </div>
               <div>
                 <p className="text-sm text-gray-400">Week</p>
-                <p className="text-white font-medium">Week {task.moduleId}</p>
+                <p className="text-white font-medium">Week {task.taskId?.replace('week-', '') || 'Unknown'}</p>
               </div>
             </div>
           </div>

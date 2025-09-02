@@ -225,7 +225,7 @@ function MarketingTrackModal({ isOpen, onClose, goal, module }: MarketingTrackMo
 export default function MarketingTrackWidget() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  const { activeGoal, isLoading, error, refreshMarketingData } = useMarketing();
+  const { activeGoal } = useMarketing();
 
   const currentModule = useMemo(() => {
     if (!activeGoal) return null;

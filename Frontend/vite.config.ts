@@ -11,9 +11,7 @@ export default defineConfig({
     hmr: {
       port: 3001,
       host: 'localhost'
-    },
-    // This is the key fix for client-side routing
-    historyApiFallback: true
+    }
   },
   preview: {
     host: '0.0.0.0',

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { getActiveGoal } from '../services/marketingService';
 import type { MarketingGoal, MarketingModule } from '../types';
 
@@ -49,7 +49,7 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
         console.log('🔓 Modules unlock status:', response.data.modules.map(m => `Week ${m.weekNumber}: unlocked=${m.isUnlocked}`));
         setActiveGoal(response.data);
         // Set current module based on active goal
-        const current = response.data.modules.find(module => module.weekNumber === response.data.currentWeek);
+        const current = response.data.modules.find(module => module.weekNumber === response.data?.currentWeek);
         setCurrentModule(current || null);
       } else {
         setError('Failed to load marketing goal');

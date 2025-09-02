@@ -224,7 +224,6 @@ interface DashboardProps {
   marketingGoals: MarketingGoal[];
   onProjectsChange: (projects: Project[]) => void;
   onTasksChange: (tasks: Task[]) => void;
-  onMarketingGoalsChange: (goals: MarketingGoal[]) => void;
 }
 
 function Dashboard({ 
@@ -232,8 +231,7 @@ function Dashboard({
   tasks, 
   marketingGoals, 
   onProjectsChange, 
-  onTasksChange,
-  onMarketingGoalsChange
+  onTasksChange
 }: DashboardProps) {
   const activeGoal = marketingGoals.find(g => g.isActive);
     // Include tasks linked via marketingTrack OR via the active goal's projectId
@@ -836,16 +834,10 @@ function ProtectedApp() {
                 marketingGoals={marketingGoals}
                 onProjectsChange={handleProjectsChange}
                 onTasksChange={handleTasksChange}
-                onMarketingGoalsChange={handleMarketingGoalsChange}
               />
             } />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="marketing-track" element={
-              <MarketingTrackPage
-                marketingGoals={marketingGoals}
-                onMarketingGoalsChange={handleMarketingGoalsChange}
-              />
-            } />
+            <Route path="marketing-track" element={<MarketingTrackPage />} />
             <Route path="marketing-track/local-foot-traffic" element={
               <LocalFootTrafficTrack 
                 marketingGoals={marketingGoals}
