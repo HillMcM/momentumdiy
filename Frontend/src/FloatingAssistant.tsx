@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from './lib/supabase';
+import { useAnalytics } from './contexts/AnalyticsContext';
 
 interface ChatMessage {
   id: string;
@@ -58,6 +59,7 @@ const mapBusinessSizeToExperience = (businessSize?: string | null): string => {
 
 export default function FloatingAssistant() {
   const location = useLocation();
+  const { getMetricsForAI } = useAnalytics();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([{
     id: 'welcome',
@@ -104,6 +106,7 @@ export default function FloatingAssistant() {
 
       // Collect user business context for personalized AI responses
       const businessContext = await getUserBusinessContext();
+      const businessMetrics = getMetricsForAI();
 
       const { API_BASE_URL } = await import('./services/api');
       const res = await fetch(`${API_BASE_URL}/ai/chat`, {
@@ -113,6 +116,7 @@ export default function FloatingAssistant() {
           message: userMsg.content,
           conversationHistory,
           pagePath: location.pathname,
+          businessMetrics,
           ...businessContext
         })
       });
