@@ -123,27 +123,7 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
 
 
 
-        {/* Debug API Test Button */}
-        <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-          <h3 className="text-yellow-300 font-medium mb-2">Debug: Test API Connection</h3>
-          <button
-            onClick={async () => {
-              try {
-                console.log('🧪 Testing API connection...');
-                const response = await fetch('http://localhost:3003/api/marketing/goals/active');
-                const data = await response.json();
-                console.log('✅ API test successful:', data);
-                alert(`API Test: ${data.success ? 'SUCCESS' : 'FAILED'}\nTitle: ${data.data?.title || 'No data'}\nModules: ${data.data?.modules?.length || 0}`);
-              } catch (error) {
-                console.error('❌ API test failed:', error);
-                alert(`API Test FAILED: ${error}`);
-              }
-            }}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-          >
-            Test API Connection
-          </button>
-        </div>
+
 
         {/* Main Track Card */}
         <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-[#2A243E]/60 overflow-hidden">
