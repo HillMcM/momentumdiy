@@ -50,15 +50,15 @@ router.post('/chat', routeRateLimit(30), async (req, res) => {
     const tasks = tasksResponse.data || [];
     const activeTrack = marketingGoals.find(goal => goal.isActive);
 
-    // Create conversation context
+    // Create conversation context with business intelligence
     const context: ConversationContext = {
       marketingGoals,
       currentTasks: tasks.filter(task => task.status === 'todo'),
       activeTrack,
-      ...(userBusinessType && { userBusinessType }),
-      ...(userIndustry && { userIndustry }),
-      ...(userExperienceLevel && { userExperienceLevel }),
-      ...(pagePath && { pagePath })
+      userBusinessType: userBusinessType || 'Not specified',
+      userIndustry: userIndustry || 'General',
+      userExperienceLevel: userExperienceLevel || 'Not specified',
+      pagePath: pagePath || '/app'
     };
 
     // Generate AI response
