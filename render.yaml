@@ -5,7 +5,6 @@ services:
     plan: starter
     autoDeploy: true
     rootDir: backend
-    dockerfilePath: backend/Dockerfile
     # Force redeploy with Stripe routes
     envVars:
       - key: NODE_ENV
