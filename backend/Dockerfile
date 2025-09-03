@@ -23,4 +23,6 @@ COPY --from=base /app/dist ./dist
 EXPOSE 3001
 CMD ["node", "dist/index.js"]
 
+# Force rebuild with Stripe routes - $(date +%s)
+
 

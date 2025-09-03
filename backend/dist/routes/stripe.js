@@ -48,7 +48,7 @@ router.post('/create-subscription', (0, rate_1.routeRateLimit)(10), async (req, 
             });
         }
         const token = authHeader.substring(7);
-        const { data: { user }, error } = await supabase_1.supabase.auth.getUser(token);
+        const { data: { user }, error } = await supabase_1.supabasePublic.auth.getUser(token);
         if (error || !user) {
             return res.status(401).json({
                 success: false,
@@ -98,7 +98,7 @@ router.get('/subscription', (0, rate_1.routeRateLimit)(30), async (req, res) => 
             });
         }
         const token = authHeader.substring(7);
-        const { data: { user }, error } = await supabase_1.supabase.auth.getUser(token);
+        const { data: { user }, error } = await supabase_1.supabasePublic.auth.getUser(token);
         if (error || !user) {
             return res.status(401).json({
                 success: false,
@@ -129,7 +129,7 @@ router.post('/cancel-subscription', (0, rate_1.routeRateLimit)(10), async (req, 
             });
         }
         const token = authHeader.substring(7);
-        const { data: { user }, error } = await supabase_1.supabase.auth.getUser(token);
+        const { data: { user }, error } = await supabase_1.supabasePublic.auth.getUser(token);
         if (error || !user) {
             return res.status(401).json({
                 success: false,
@@ -160,7 +160,7 @@ router.get('/profile', (0, rate_1.routeRateLimit)(30), async (req, res) => {
             });
         }
         const token = authHeader.substring(7);
-        const { data: { user }, error } = await supabase_1.supabase.auth.getUser(token);
+        const { data: { user }, error } = await supabase_1.supabasePublic.auth.getUser(token);
         if (error || !user) {
             return res.status(401).json({
                 success: false,

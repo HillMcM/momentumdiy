@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { StripeService, SubscriptionData } from '../services/stripeService';
-import { supabase } from '../config/supabase';
+import { supabase, supabasePublic } from '../config/supabase';
 import { routeRateLimit } from '../middleware/rate';
 
 const router = express.Router();
@@ -20,7 +20,7 @@ router.post('/create-subscription', routeRateLimit(10), async (req, res) => {
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
     // Verify the token and get user
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabasePublic.auth.getUser(token);
 
     if (error || !user) {
       return res.status(401).json({
@@ -83,7 +83,7 @@ router.get('/subscription', routeRateLimit(30), async (req, res) => {
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
     // Verify the token and get user
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabasePublic.auth.getUser(token);
 
     if (error || !user) {
       return res.status(401).json({
@@ -122,7 +122,7 @@ router.post('/cancel-subscription', routeRateLimit(10), async (req, res) => {
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
     // Verify the token and get user
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabasePublic.auth.getUser(token);
 
     if (error || !user) {
       return res.status(401).json({
@@ -161,7 +161,7 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
     // Verify the token and get user
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabasePublic.auth.getUser(token);
 
     if (error || !user) {
       return res.status(401).json({
