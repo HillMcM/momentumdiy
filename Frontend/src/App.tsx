@@ -20,6 +20,7 @@ import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
 import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
+import { useSubscription } from './hooks/useSubscription';
 
 import { supabase } from './lib/supabase';
 import { mockTasks, mockMarketingGoals } from './mockData';
@@ -28,6 +29,7 @@ import CheckoutPage from './CheckoutPage';
 import CheckoutSuccessPage from './CheckoutSuccessPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
+import SubscriptionGuard from './components/SubscriptionGuard';
 
 
 // Component to handle task synchronization between marketing track and task tracker
@@ -95,6 +97,21 @@ import CreateEventModal from './CreateEventModal';
 
 function Header() {
   const { user, signOut } = useAuth();
+  const { subscription } = useSubscription();
+  
+  const getSubscriptionStatus = () => {
+    if (!subscription) return null;
+    
+    if (subscription.subscription_status === 'trial') {
+      return subscription.daysRemaining ? `${subscription.daysRemaining} days left` : 'Trial';
+    } else if (subscription.subscription_status === 'active') {
+      return 'Active';
+    } else if (subscription.subscription_status === 'expired') {
+      return 'Expired';
+    }
+    return null;
+  };
+
   return (
     <header className="main-header">
       <div className="header-left">
@@ -102,7 +119,20 @@ function Header() {
         <span className="header-app-name">MomentumDIY</span>
       </div>
       <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-        <button 
+        {subscription && (
+          <div style={{ 
+            background: subscription.hasAccess ? '#10b981' : '#ef4444', 
+            color: '#FFF1E7', 
+            padding: '0.5rem 1rem', 
+            borderRadius: '999px', 
+            fontSize: '0.9rem', 
+            fontWeight: '600' 
+          }}>
+            {getSubscriptionStatus()}
+          </div>
+        )}
+        <Link 
+          to="/pricing"
           className="upgrade-btn"
           style={{ 
             background: '#EF8E81 !important', 
@@ -115,24 +145,25 @@ function Header() {
             boxShadow: '0 4px 16px 0 rgba(239, 142, 129, 0.25) !important', 
             cursor: 'pointer !important', 
             transition: 'background 0.2s, box-shadow 0.2s !important', 
-            outline: 'none !important' 
+            outline: 'none !important',
+            textDecoration: 'none !important'
           }}
         >
-          Upgrade
-        </button>
+          {subscription?.hasAccess ? 'Manage' : 'Upgrade'}
+        </Link>
         {user ? (
           <button 
             className="upgrade-btn" 
             onClick={() => signOut()}
             style={{ 
-              background: '#EF8E81 !important', 
+              background: '#6b7280 !important', 
               color: '#FFF1E7 !important', 
               border: 'none !important', 
               borderRadius: '999px !important', 
               padding: '0.75rem 2rem !important', 
               fontSize: '1.1rem !important', 
               fontWeight: '700 !important', 
-              boxShadow: '0 4px 16px 0 rgba(239, 142, 129, 0.25) !important', 
+              boxShadow: '0 4px 16px 0 rgba(107, 114, 128, 0.25) !important', 
               cursor: 'pointer !important', 
               transition: 'background 0.2s, box-shadow 0.2s !important', 
               outline: 'none !important' 
@@ -970,10 +1001,12 @@ function App() {
         <Route path="/checkout/:plan/:interval" element={<CheckoutPage />} />
         <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
 
-        {/* App - Now public (no auth required) */}
+        {/* App - Protected with subscription guard */}
         <Route path="/app/*" element={
           <MarketingProvider>
-            <ProtectedApp />
+            <SubscriptionGuard>
+              <ProtectedApp />
+            </SubscriptionGuard>
           </MarketingProvider>
         } />
       </Routes>
