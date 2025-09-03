@@ -294,8 +294,6 @@ router.post('/create-checkout-session', routeRateLimit(10), async (req, res) => 
         plan,
         interval,
       },
-      // Allow customer to enter email for account creation
-      customer_creation: 'always',
       // Collect billing address
       billing_address_collection: 'required',
     });
