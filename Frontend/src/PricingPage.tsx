@@ -90,84 +90,84 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#0F0A1A] text-white">
       {/* Trial Banner */}
-      <div className="bg-[#EF8E81] text-center py-3">
-        <span className="text-[#191628] font-medium">30-Day Free Trial • No Credit Card</span>
+      <div className="bg-[#2A243E]/60 text-center py-2">
+        <span className="text-white text-sm font-medium">30-Day Free Trial • No Credit Card</span>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-16">
+      <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-white mb-6 text-center">Simple, Affordable Pricing — Forever.</h1>
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto text-center">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Simple, Affordable Pricing — Forever.</h1>
+          <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
             One clear plan to get your marketing moving. Add expert help only if you want it.
           </p>
           
           {/* Billing Toggle */}
-          <div className="flex justify-center items-center gap-4 mb-8">
-            <span className={`text-lg ${billingInterval === 'monthly' ? 'text-white' : 'text-gray-400'}`}>
+          <div className="flex justify-center items-center gap-3 mb-8">
+            <span className={`text-base ${billingInterval === 'monthly' ? 'text-white' : 'text-gray-400'}`}>
               Monthly
             </span>
             <button
               onClick={() => setBillingInterval(billingInterval === 'monthly' ? 'yearly' : 'monthly')}
-              className={`relative w-16 h-8 rounded-full transition-colors ${
+              className={`relative w-14 h-7 rounded-full transition-colors ${
                 billingInterval === 'yearly' ? 'bg-[#EF8E81]' : 'bg-gray-600'
               }`}
             >
-              <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                billingInterval === 'yearly' ? 'translate-x-9' : 'translate-x-1'
+              <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full transition-transform ${
+                billingInterval === 'yearly' ? 'translate-x-7' : 'translate-x-0.5'
               }`} />
             </button>
-            <span className={`text-lg ${billingInterval === 'yearly' ? 'text-white' : 'text-gray-400'}`}>
+            <span className={`text-base ${billingInterval === 'yearly' ? 'text-white' : 'text-gray-400'}`}>
               Save ~20% annually
             </span>
           </div>
         </div>
 
         {/* Pricing Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`relative bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border transition-all duration-300 ${
+              className={`relative bg-[#1B1628]/90 backdrop-blur-sm rounded-xl border transition-all duration-300 ${
                 plan.popular
                   ? 'border-[#EF8E81] shadow-lg shadow-[#EF8E81]/20'
-                  : 'border-[#2A243E]/60 hover:border-[#2A243E]/80'
+                  : 'border-[#2A243E]/40 hover:border-[#2A243E]/60'
               }`}
             >
               {/* Tag */}
-              <div className="absolute -top-3 left-4">
-                <div className={`${plan.popular ? 'bg-[#EF8E81]' : 'bg-[#2A243E]/60'} text-white px-3 py-1 rounded-full text-sm font-medium`}>
+              <div className="absolute -top-2 left-4">
+                <div className={`${plan.popular ? 'bg-[#EF8E81]' : 'bg-[#2A243E]/60'} text-white px-3 py-1 rounded-full text-xs font-medium`}>
                   {plan.tag}
                 </div>
               </div>
 
-              <div className="p-8 pt-12">
+              <div className="p-6 pt-10">
                 {/* Plan Header */}
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-white mb-3 text-center">{plan.name}</h3>
-                  <p className="text-gray-300 text-sm mb-6 leading-relaxed text-center">{plan.description}</p>
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                  <p className="text-gray-300 text-sm mb-4 leading-relaxed">{plan.description}</p>
 
-                  <div className="mb-4 text-center">
-                    <span className="text-4xl font-bold text-white">
+                  <div className="mb-3">
+                    <span className="text-3xl font-bold text-white">
                       ${billingInterval === 'monthly' ? plan.price.monthly : plan.price.yearly}
                     </span>
-                    <span className="text-gray-400 text-lg">
+                    <span className="text-gray-400 text-base">
                       /{billingInterval === 'monthly' ? 'month' : 'year'}
                     </span>
                   </div>
 
                   {plan.id === 'momentumdiy' && billingInterval === 'yearly' && (
-                    <div className="text-gray-300 text-sm text-center">
+                    <div className="text-gray-300 text-sm">
                       ≈ $11.99/mo • Save 20%
                     </div>
                   )}
                 </div>
 
                 {/* Features */}
-                <ul className="space-y-4 mb-8">
+                <ul className="space-y-3 mb-6">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start text-sm text-gray-300">
-                      <span className="text-[#EF8E81] mr-3 mt-1 text-lg">✓</span>
+                      <span className="text-[#EF8E81] mr-2 mt-0.5 text-sm">✓</span>
                       <span className="leading-relaxed">{feature}</span>
                     </li>
                   ))}
@@ -176,7 +176,7 @@ export default function PricingPage() {
                 {/* CTA Button */}
                 <button
                   onClick={() => handleSelectPlan(plan.id)}
-                  className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
+                  className={`w-full py-3 px-4 rounded-lg font-semibold text-base transition-all duration-200 ${
                     plan.popular
                       ? 'bg-[#EF8E81] hover:bg-[#E67A6E] text-[#191628] shadow-lg'
                       : 'bg-[#2A243E]/60 hover:bg-[#2A243E]/80 text-white border border-[#2A243E]/60'
@@ -186,8 +186,8 @@ export default function PricingPage() {
                 </button>
 
                 {/* Billing Info */}
-                <div className="text-center mt-4">
-                  <p className="text-gray-400 text-sm text-center">
+                <div className="text-center mt-3">
+                  <p className="text-gray-400 text-xs">
                     {plan.id === 'momentumdiy' && billingInterval === 'yearly' 
                       ? 'Billed $143.88 yearly (≈ $11.99/mo). Save 20% vs monthly.'
                       : 'Billed monthly. Upgrade/downgrade anytime.'
