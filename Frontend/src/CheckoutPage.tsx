@@ -49,6 +49,9 @@ export default function CheckoutPage() {
     setError('');
 
     try {
+      console.log('Creating checkout session with:', { plan, interval });
+      console.log('API_BASE_URL:', import.meta.env.VITE_API_BASE_URL || 'https://momentumdiy-backend.onrender.com/api');
+      
       const response = await apiService.createCheckoutSession({
         plan,
         interval,
@@ -56,15 +59,19 @@ export default function CheckoutPage() {
         cancelUrl: `${window.location.origin}/pricing`
       });
 
+      console.log('Checkout session response:', response);
+
       if (response.success && response.data?.sessionUrl) {
+        console.log('Redirecting to Stripe checkout:', response.data.sessionUrl);
         // Redirect to Stripe Checkout
         window.location.href = response.data.sessionUrl;
       } else {
-        setError('Failed to create checkout session. Please try again.');
+        console.error('Invalid response format:', response);
+        setError(`Failed to create checkout session. Response: ${JSON.stringify(response)}`);
       }
     } catch (error) {
       console.error('Checkout creation failed:', error);
-      setError('Failed to create checkout session. Please try again.');
+      setError(`Failed to create checkout session: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
