@@ -4,6 +4,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import CheckoutForm from './components/CheckoutForm';
 import { STRIPE_CONFIG } from './lib/stripe';
+import { apiService } from './services/api';
 
 // Initialize Stripe
 const stripePromise = loadStripe(STRIPE_CONFIG.publishableKey);
@@ -46,25 +47,13 @@ export default function CheckoutPage() {
   const createSubscription = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/stripe/create-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(window as any).supabase?.auth?.session?.access_token}`,
-        },
-        body: JSON.stringify({
-          plan,
-          interval,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create subscription');
+      const response = await apiService.createSubscription(plan, interval);
+      
+      if (response.success && response.data) {
+        setClientSecret(response.data.clientSecret);
+      } else {
+        throw new Error(response.error || 'Failed to create subscription');
       }
-
-      setClientSecret(data.data.clientSecret);
     } catch (err) {
       console.error('Error creating subscription:', err);
       setError(err instanceof Error ? err.message : 'Failed to create subscription');
