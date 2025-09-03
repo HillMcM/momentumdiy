@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 
-// MomentumDIY Pricing Page Mockup
+// MomentumDIY Pricing Page Mockup - v1.0.3
 // - Single-file React component using Tailwind CSS
 // - Includes: hero, billing toggle, plan cards, trust band, testimonials, FAQ, final CTA
 // - Notes:
