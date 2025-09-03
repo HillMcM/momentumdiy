@@ -45,7 +45,7 @@ export default function PricingPage() {
       annualMonthlyEq: DIY_ANNUAL_EQ,
       monthlyOnly: false,
       cta: annual ? "Start 30‑Day Free Trial" : "Start 30‑Day Free Trial",
-      href: "#signup",
+      href: annual ? "/checkout/diy/annual" : "/checkout/diy/monthly",
       highlight: true,
       bullets: [
         "Access to all current & future core features",
@@ -67,7 +67,7 @@ export default function PricingPage() {
       monthlyPrice: 100,
       monthlyOnly: true,
       cta: "Choose Spark",
-      href: "#spark",
+      href: "/checkout/spark/monthly",
       highlight: false,
       bullets: [
         "1 hr/month strategy or execution support",
@@ -85,7 +85,7 @@ export default function PricingPage() {
       monthlyPrice: 600,
       monthlyOnly: true,
       cta: "Choose Growth",
-      href: "#growth",
+      href: "/checkout/growth/monthly",
       highlight: false,
       bullets: [
         "5 hrs/month hands‑on strategy & execution",
@@ -103,7 +103,7 @@ export default function PricingPage() {
       monthlyPrice: 1400,
       monthlyOnly: true,
       cta: "Choose Lead",
-      href: "#lead",
+      href: "/checkout/lead/monthly",
       highlight: false,
       bullets: [
         "10 hrs/month strategy, content & campaigns",
@@ -342,10 +342,10 @@ className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur 
             <h3 className="text-2xl font-semibold text-center">Ready to gain momentum?</h3>
             <p className="mt-2" style={{ color: '#FFF1E7' }}>Start your 30‑day free trial. No credit card required.</p>
             <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a href="#signup" className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#EF8E81]" style={{ backgroundColor: '#EF8E81', color: '#191628' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffb09e'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#EF8E81'; }}>
+              <a href="/checkout/diy/monthly" className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#EF8E81]" style={{ backgroundColor: '#EF8E81', color: '#191628' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffb09e'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#EF8E81'; }}>
                 Start Free Trial
               </a>
-              <a href="#contact" className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-white transition focus:outline-none focus:ring-2 focus:ring-white/40" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; }}>
+              <a href="/contact" className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-white transition focus:outline-none focus:ring-2 focus:ring-white/40" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; }}>
                 Questions? Contact us
               </a>
             </div>
