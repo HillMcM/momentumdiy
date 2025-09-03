@@ -23,8 +23,10 @@ export const STRIPE_CONFIG = {
   prices: {
     monthly: {
       monthly: process.env['STRIPE_PRICE_MONTHLY_MONTHLY'] || 'price_monthly_monthly',
+      yearly: process.env['STRIPE_PRICE_MONTHLY_YEARLY'] || 'price_monthly_yearly',
     },
     annual: {
+      monthly: process.env['STRIPE_PRICE_ANNUAL_MONTHLY'] || 'price_annual_monthly',
       yearly: process.env['STRIPE_PRICE_ANNUAL_YEARLY'] || 'price_annual_yearly',
     },
     spark: {

@@ -42,7 +42,14 @@ class StripeService {
         try {
             const { userId, email, name, plan, interval } = subscriptionData;
             const customerId = await this.createOrRetrieveCustomer(userId, email, name);
-            const priceId = stripe_1.STRIPE_CONFIG.prices[plan][interval];
+            const planPrices = stripe_1.STRIPE_CONFIG.prices[plan];
+            if (!planPrices) {
+                throw new Error(`Invalid plan: ${plan}`);
+            }
+            const priceId = planPrices[interval];
+            if (!priceId) {
+                throw new Error(`Invalid interval ${interval} for plan ${plan}`);
+            }
             const subscription = await stripe_1.stripe.subscriptions.create({
                 customer: customerId,
                 items: [{
