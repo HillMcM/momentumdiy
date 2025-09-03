@@ -27,6 +27,7 @@ import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketin
 import CheckoutPage from './CheckoutPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
+import ProtectedRoute from './ProtectedRoute';
 
 
 // Component to handle task synchronization between marketing track and task tracker
@@ -965,8 +966,12 @@ function App() {
         {/* Pricing */}
         <Route path="/pricing" element={<PricingPage />} />
 
-        {/* Checkout */}
-        <Route path="/checkout/:plan/:interval" element={<CheckoutPage />} />
+        {/* Checkout - Protected */}
+        <Route path="/checkout/:plan/:interval" element={
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        } />
 
         {/* App - Now public (no auth required) */}
         <Route path="/app/*" element={
