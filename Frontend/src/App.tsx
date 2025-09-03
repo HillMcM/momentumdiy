@@ -28,7 +28,6 @@ import CheckoutPage from './CheckoutPage';
 import CheckoutSuccessPage from './CheckoutSuccessPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
-import ProtectedRoute from './ProtectedRoute';
 
 
 // Component to handle task synchronization between marketing track and task tracker
