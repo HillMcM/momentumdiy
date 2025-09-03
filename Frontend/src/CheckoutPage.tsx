@@ -61,10 +61,23 @@ export default function CheckoutPage() {
 
       console.log('Checkout session response:', response);
 
+      // Handle both old and new response formats temporarily
+      let sessionUrl = null;
+      
       if (response.success && response.data?.sessionUrl) {
-        console.log('Redirecting to Stripe checkout:', response.data.sessionUrl);
+        // New format: {success: true, data: {sessionUrl: "..."}}
+        sessionUrl = response.data.sessionUrl;
+      } else if (response.success && (response as any).sessionId) {
+        // Old format: {success: true, sessionId: "..."} - convert to session URL
+        const sessionId = (response as any).sessionId;
+        sessionUrl = `https://checkout.stripe.com/pay/${sessionId}`;
+        console.log('Converting sessionId to sessionUrl:', sessionUrl);
+      }
+      
+      if (sessionUrl) {
+        console.log('Redirecting to Stripe checkout:', sessionUrl);
         // Redirect to Stripe Checkout
-        window.location.href = response.data.sessionUrl;
+        window.location.href = sessionUrl;
       } else {
         console.error('Invalid response format:', response);
         setError(`Failed to create checkout session. Response: ${JSON.stringify(response)}`);
