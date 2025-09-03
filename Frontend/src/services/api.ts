@@ -333,6 +333,28 @@ class ApiService {
       body: JSON.stringify({ pillars }),
     });
   }
+
+  // Stripe API methods
+  async createSubscription(plan: string, interval: string): Promise<ApiResponse<{ clientSecret: string; subscriptionId: string }>> {
+    return this.request<{ clientSecret: string; subscriptionId: string }>('/stripe/create-subscription', {
+      method: 'POST',
+      body: JSON.stringify({ plan, interval }),
+    });
+  }
+
+  async getSubscription(): Promise<ApiResponse<unknown>> {
+    return this.request<unknown>('/stripe/subscription');
+  }
+
+  async cancelSubscription(): Promise<ApiResponse<unknown>> {
+    return this.request<unknown>('/stripe/cancel-subscription', {
+      method: 'POST',
+    });
+  }
+
+  async getProfile(): Promise<ApiResponse<unknown>> {
+    return this.request<unknown>('/stripe/profile');
+  }
 }
 
 export const apiService = new ApiService();
