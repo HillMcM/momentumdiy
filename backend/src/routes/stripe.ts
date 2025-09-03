@@ -8,12 +8,24 @@ const router = express.Router();
 // Create subscription
 router.post('/create-subscription', routeRateLimit(10), async (req, res) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
+    // Get the authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        error: 'Unauthorized'
+        error: 'Unauthorized - No valid token provided'
+      });
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    // Verify the token and get user
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - Invalid token'
       });
     }
 
@@ -57,14 +69,26 @@ router.post('/create-subscription', routeRateLimit(10), async (req, res) => {
 });
 
 // Get subscription details
-router.get('/subscription', routeRateLimit(30), async (_req, res) => {
+router.get('/subscription', routeRateLimit(30), async (req, res) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
+    // Get the authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        error: 'Unauthorized'
+        error: 'Unauthorized - No valid token provided'
+      });
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    // Verify the token and get user
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - Invalid token'
       });
     }
 
@@ -84,14 +108,26 @@ router.get('/subscription', routeRateLimit(30), async (_req, res) => {
 });
 
 // Cancel subscription
-router.post('/cancel-subscription', routeRateLimit(10), async (_req, res) => {
+router.post('/cancel-subscription', routeRateLimit(10), async (req, res) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
+    // Get the authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        error: 'Unauthorized'
+        error: 'Unauthorized - No valid token provided'
+      });
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    // Verify the token and get user
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - Invalid token'
       });
     }
 
@@ -111,14 +147,26 @@ router.post('/cancel-subscription', routeRateLimit(10), async (_req, res) => {
 });
 
 // Get user profile with subscription info
-router.get('/profile', routeRateLimit(30), async (_req, res) => {
+router.get('/profile', routeRateLimit(30), async (req, res) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
+    // Get the authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        error: 'Unauthorized'
+        error: 'Unauthorized - No valid token provided'
+      });
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    // Verify the token and get user
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - Invalid token'
       });
     }
 
