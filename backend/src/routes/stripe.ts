@@ -253,63 +253,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
 // Public checkout endpoints (no authentication required)
 
-// Create Stripe Checkout Session
-router.post('/create-checkout-session', routeRateLimit(10), async (req, res) => {
-  try {
-    const { plan, interval, successUrl, cancelUrl } = req.body;
 
-    if (!plan || !interval || !successUrl || !cancelUrl) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required parameters: plan, interval, successUrl, cancelUrl'
-      });
-    }
-
-    // Get the price ID based on plan and interval
-    const priceId = getPriceId(plan, interval);
-    if (!priceId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid plan or interval combination'
-      });
-    }
-
-    const stripe = new Stripe(process.env['STRIPE_SECRET_KEY']!, {
-      apiVersion: '2025-08-27.basil',
-    });
-
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      metadata: {
-        plan,
-        interval,
-      },
-      // Collect billing address
-      billing_address_collection: 'required',
-    });
-
-    return res.json({
-      success: true,
-      sessionId: session.id,
-    });
-  } catch (error) {
-    console.error('Error creating checkout session:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to create checkout session'
-    });
-  }
-});
 
 // Verify payment and get customer details
 router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
