@@ -10,12 +10,17 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string>('');
   const [termsAccepted, setTermsAccepted] = useState(false);
 
+  // Debug logging
+  console.log('CheckoutPage rendered with:', { plan, interval });
+  console.log('STRIPE_CONFIG.products:', STRIPE_CONFIG.products);
+
   // Validate plan and interval parameters
   const validPlans = ['monthly', 'annual', 'spark', 'growth', 'lead'];
   const validIntervals = ['monthly', 'yearly'];
 
   // Get product information
   const product = plan && STRIPE_CONFIG.products[plan as keyof typeof STRIPE_CONFIG.products];
+  console.log('Product found:', product);
 
   if (!plan || !interval || !validPlans.includes(plan) || !validIntervals.includes(interval)) {
     return (
@@ -66,11 +71,13 @@ export default function CheckoutPage() {
   };
 
   if (!product) {
+    console.log('No product found for plan:', plan);
     return (
       <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
         <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-red-500/30 p-8 max-w-md">
           <h2 className="text-xl font-bold text-white mb-4">Product Not Found</h2>
-          <p className="text-gray-300 mb-4">Unable to load product information.</p>
+          <p className="text-gray-300 mb-4">Unable to load product information for plan: {plan}</p>
+          <p className="text-gray-400 text-sm mb-4">Available plans: {Object.keys(STRIPE_CONFIG.products).join(', ')}</p>
           <button
             onClick={() => navigate('/pricing')}
             className="w-full bg-[#EF8E81] text-white py-2 px-4 rounded-lg font-medium hover:bg-[#E67A6E] transition-colors"
