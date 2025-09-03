@@ -46,7 +46,7 @@ export default function PricingPage() {
       annualMonthlyEq: DIY_ANNUAL_EQ,
       monthlyOnly: false,
       cta: annual ? "Start 30‑Day Free Trial" : "Start 30‑Day Free Trial",
-      href: annual ? "/checkout/momentumdiy/yearly" : "/checkout/momentumdiy/monthly",
+      href: annual ? "/checkout/annual/yearly" : "/checkout/monthly/monthly",
       highlight: true,
       bullets: [
         "Access to all current & future core features",
