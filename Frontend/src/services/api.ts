@@ -90,9 +90,16 @@ class ApiService {
 
     const attempt = async (triesLeft: number): Promise<ApiResponse<T>> => {
       try {
+        console.log('API Request - Making request to:', url);
+        console.log('API Request - Request config:', config);
+        
         const response = await fetch(url, config);
+        console.log('API Request - Response status:', response.status);
+        console.log('API Request - Response headers:', Object.fromEntries(response.headers.entries()));
+        
         const contentType = response.headers.get('content-type') || '';
         const data = contentType.includes('application/json') ? await response.json() : await response.text();
+        console.log('API Request - Response data:', data);
 
         if (!response.ok) {
           // Backoff and retry on 429 Too Many Requests
@@ -104,9 +111,11 @@ class ApiService {
             return attempt(triesLeft - 1);
           }
           const message = (data as { error?: string })?.error || `HTTP error! status: ${response.status}`;
+          console.error('API Request - HTTP error:', message);
           throw new Error(message);
         }
 
+        console.log('API Request - Success, returning data:', data);
         return data as ApiResponse<T>;
       } catch (error) {
         if (retryOn429 && triesLeft > 0 && (error as { message?: string })?.message?.includes('Too many requests')) {
@@ -346,10 +355,16 @@ class ApiService {
 
   // Stripe API methods
   async createCheckoutSession(data: { plan: string; interval: string; successUrl: string; cancelUrl: string }): Promise<ApiResponse<{ sessionUrl: string }>> {
-    return this.request<{ sessionUrl: string }>('/stripe/create-checkout-session', {
+    console.log('API Service - Creating checkout session with data:', data);
+    console.log('API Service - Using API_BASE_URL:', API_BASE_URL);
+    
+    const result = await this.request<{ sessionUrl: string }>('/stripe/create-checkout-session', {
       method: 'POST',
       body: JSON.stringify(data),
     });
+    
+    console.log('API Service - Checkout session result:', result);
+    return result;
   }
 
   // REMOVED: Old createSubscription method - replaced with createCheckoutSession
