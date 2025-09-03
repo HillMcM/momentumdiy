@@ -337,7 +337,7 @@ export default function PricingPage() {
             <h3 className="text-2xl font-semibold text-[#FFF1E7]">Ready to gain momentum?</h3>
             <p className="mt-2 text-gray-300">Start your 30‑day free trial. No credit card required.</p>
             <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <button onClick={() => navigate('/checkout/momentumdiy/yearly')} className="inline-flex items-center justify-center rounded-xl bg-[#EF8E81] px-5 py-3 font-semibold text-[#191628] transition hover:bg-[#E67A6E] focus:outline-none focus:ring-2 focus:ring-[#EF8E81]">
+              <button onClick={() => navigate('/checkout/annual/yearly')} className="inline-flex items-center justify-center rounded-xl bg-[#EF8E81] px-5 py-3 font-semibold text-[#191628] transition hover:bg-[#E67A6E] focus:outline-none focus:ring-2 focus:ring-[#EF8E81]">
                 Start Free Trial
               </button>
               <button onClick={() => navigate('/')} className="inline-flex items-center justify-center rounded-xl bg-[#2A243E]/60 px-5 py-3 font-semibold text-[#FFF1E7] transition hover:bg-[#2A243E]/80 focus:outline-none focus:ring-2 focus:ring-[#EF8E81]">
