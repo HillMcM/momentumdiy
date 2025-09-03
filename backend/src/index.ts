@@ -64,10 +64,13 @@ const corsOptions: cors.CorsOptions = {
 
     // In development, allow localhost/127.0.0.1 on any port
     const devOk = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+    
+    // Allow Vercel feature branch URLs
+    const vercelFeatureOk = /^https:\/\/momentumdiy-git-feature-.*-hillarys-projects-.*\.vercel\.app$/.test(origin);
 
-    // If configured, allow explicit origins OR dev localhost
+    // If configured, allow explicit origins OR dev localhost OR Vercel feature branches
     if (configuredOrigins.length > 0) {
-      const allowed = configuredOrigins.includes(origin) || devOk;
+      const allowed = configuredOrigins.includes(origin) || devOk || vercelFeatureOk;
       return callback(allowed ? null : new Error('Not allowed by CORS'), allowed);
     }
 
