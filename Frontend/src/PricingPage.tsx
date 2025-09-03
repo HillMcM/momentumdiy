@@ -25,7 +25,6 @@ export default function PricingPage() {
       popular: true,
       cta: 'Start 30-Day Free Trial',
       tag: 'Most Popular',
-      tagColor: 'bg-green-500',
     },
     {
       id: 'spark',
@@ -44,7 +43,6 @@ export default function PricingPage() {
       popular: false,
       cta: 'Choose Spark',
       tag: 'Great for getting unstuck',
-      tagColor: 'bg-gray-600',
     },
     {
       id: 'growth',
@@ -63,7 +61,6 @@ export default function PricingPage() {
       popular: false,
       cta: 'Choose Growth',
       tag: 'Best for momentum',
-      tagColor: 'bg-gray-600',
     },
     {
       id: 'lead',
@@ -82,7 +79,6 @@ export default function PricingPage() {
       popular: false,
       cta: 'Choose Lead',
       tag: 'Done-with-you powerhouse',
-      tagColor: 'bg-gray-600',
     },
   ];
 
@@ -94,15 +90,15 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#0F0A1A] text-white">
       {/* Trial Banner */}
-      <div className="bg-green-500 text-center py-3">
-        <span className="text-white font-medium">30-Day Free Trial • No Credit Card</span>
+      <div className="bg-[#EF8E81] text-center py-3">
+        <span className="text-[#191628] font-medium">30-Day Free Trial • No Credit Card</span>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-16">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-white mb-6">Simple, Affordable Pricing — Forever.</h1>
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+          <h1 className="text-5xl font-bold text-white mb-6 text-center">Simple, Affordable Pricing — Forever.</h1>
+          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto text-center">
             One clear plan to get your marketing moving. Add expert help only if you want it.
           </p>
           
@@ -114,7 +110,7 @@ export default function PricingPage() {
             <button
               onClick={() => setBillingInterval(billingInterval === 'monthly' ? 'yearly' : 'monthly')}
               className={`relative w-16 h-8 rounded-full transition-colors ${
-                billingInterval === 'yearly' ? 'bg-green-500' : 'bg-gray-600'
+                billingInterval === 'yearly' ? 'bg-[#EF8E81]' : 'bg-gray-600'
               }`}
             >
               <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
@@ -132,15 +128,15 @@ export default function PricingPage() {
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`relative bg-[#242836] rounded-2xl border transition-all duration-300 ${
+              className={`relative bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border transition-all duration-300 ${
                 plan.popular
-                  ? 'border-green-500 shadow-lg shadow-green-500/20'
-                  : 'border-gray-600 hover:border-gray-500'
+                  ? 'border-[#EF8E81] shadow-lg shadow-[#EF8E81]/20'
+                  : 'border-[#2A243E]/60 hover:border-[#2A243E]/80'
               }`}
             >
               {/* Tag */}
               <div className="absolute -top-3 left-4">
-                <div className={`${plan.tagColor} text-white px-3 py-1 rounded-full text-sm font-medium`}>
+                <div className={`${plan.popular ? 'bg-[#EF8E81]' : 'bg-[#2A243E]/60'} text-white px-3 py-1 rounded-full text-sm font-medium`}>
                   {plan.tag}
                 </div>
               </div>
@@ -148,10 +144,10 @@ export default function PricingPage() {
               <div className="p-8 pt-12">
                 {/* Plan Header */}
                 <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-white mb-3">{plan.name}</h3>
-                  <p className="text-gray-300 text-sm mb-6 leading-relaxed">{plan.description}</p>
+                  <h3 className="text-2xl font-bold text-white mb-3 text-center">{plan.name}</h3>
+                  <p className="text-gray-300 text-sm mb-6 leading-relaxed text-center">{plan.description}</p>
 
-                  <div className="mb-4">
+                  <div className="mb-4 text-center">
                     <span className="text-4xl font-bold text-white">
                       ${billingInterval === 'monthly' ? plan.price.monthly : plan.price.yearly}
                     </span>
@@ -161,7 +157,7 @@ export default function PricingPage() {
                   </div>
 
                   {plan.id === 'momentumdiy' && billingInterval === 'yearly' && (
-                    <div className="text-gray-300 text-sm">
+                    <div className="text-gray-300 text-sm text-center">
                       ≈ $11.99/mo • Save 20%
                     </div>
                   )}
@@ -171,7 +167,7 @@ export default function PricingPage() {
                 <ul className="space-y-4 mb-8">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start text-sm text-gray-300">
-                      <span className="text-green-500 mr-3 mt-1 text-lg">✓</span>
+                      <span className="text-[#EF8E81] mr-3 mt-1 text-lg">✓</span>
                       <span className="leading-relaxed">{feature}</span>
                     </li>
                   ))}
@@ -182,8 +178,8 @@ export default function PricingPage() {
                   onClick={() => handleSelectPlan(plan.id)}
                   className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
                     plan.popular
-                      ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg'
-                      : 'bg-gray-600 hover:bg-gray-500 text-white'
+                      ? 'bg-[#EF8E81] hover:bg-[#E67A6E] text-[#191628] shadow-lg'
+                      : 'bg-[#2A243E]/60 hover:bg-[#2A243E]/80 text-white border border-[#2A243E]/60'
                   }`}
                 >
                   {plan.cta}
@@ -191,7 +187,7 @@ export default function PricingPage() {
 
                 {/* Billing Info */}
                 <div className="text-center mt-4">
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-400 text-sm text-center">
                     {plan.id === 'momentumdiy' && billingInterval === 'yearly' 
                       ? 'Billed $143.88 yearly (≈ $11.99/mo). Save 20% vs monthly.'
                       : 'Billed monthly. Upgrade/downgrade anytime.'
@@ -205,26 +201,26 @@ export default function PricingPage() {
 
         {/* Testimonials */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          <div className="bg-[#242836] rounded-2xl p-8">
-            <p className="text-gray-300 text-lg mb-4 leading-relaxed">
+          <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl p-8 border border-[#2A243E]/60">
+            <p className="text-gray-300 text-lg mb-4 leading-relaxed text-center">
               "MomentumDIY helped us finally stick to a plan. We ran our first real campaign and saw a clear uptick in foot traffic."
             </p>
-            <p className="text-gray-400 text-sm">— Jamie, Café Owner</p>
+            <p className="text-gray-400 text-sm text-center">— Jamie, Café Owner</p>
           </div>
-          <div className="bg-[#242836] rounded-2xl p-8">
-            <p className="text-gray-300 text-lg mb-4 leading-relaxed">
+          <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl p-8 border border-[#2A243E]/60">
+            <p className="text-gray-300 text-lg mb-4 leading-relaxed text-center">
               "The weekly tasks made marketing doable. Adding a monthly hour of coaching gave us the nudge we needed."
             </p>
-            <p className="text-gray-400 text-sm">— Marco, Home Services</p>
+            <p className="text-gray-400 text-sm text-center">— Marco, Home Services</p>
           </div>
         </div>
 
         {/* FAQ Section */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-white">Pricing & Plan FAQs</h2>
+          <h2 className="text-3xl font-bold text-white text-center">Pricing & Plan FAQs</h2>
         </div>
 
-        <div className="bg-[#242836] rounded-2xl p-8 mb-16">
+        <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl p-8 mb-16 border border-[#2A243E]/60">
           <div className="space-y-6">
             <div className="border-b border-gray-600 pb-6">
               <h3 className="text-lg font-semibold text-white mb-3">Is MomentumDIY right for my business?</h3>
@@ -272,20 +268,20 @@ export default function PricingPage() {
 
         {/* Trust Section */}
         <div className="text-center mb-16">
-          <p className="text-gray-300 text-lg mb-8">
+          <p className="text-gray-300 text-lg mb-8 text-center">
             Trusted by local businesses who want clear, doable marketing — not jargon.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <button className="bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+            <button className="bg-[#2A243E]/60 hover:bg-[#2A243E]/80 text-white px-6 py-3 rounded-lg font-medium transition-colors border border-[#2A243E]/60">
               Coffee Shops
             </button>
-            <button className="bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+            <button className="bg-[#2A243E]/60 hover:bg-[#2A243E]/80 text-white px-6 py-3 rounded-lg font-medium transition-colors border border-[#2A243E]/60">
               Trades & Services
             </button>
-            <button className="bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+            <button className="bg-[#2A243E]/60 hover:bg-[#2A243E]/80 text-white px-6 py-3 rounded-lg font-medium transition-colors border border-[#2A243E]/60">
               Retail
             </button>
-            <button className="bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+            <button className="bg-[#2A243E]/60 hover:bg-[#2A243E]/80 text-white px-6 py-3 rounded-lg font-medium transition-colors border border-[#2A243E]/60">
               Wellness
             </button>
           </div>
@@ -293,26 +289,26 @@ export default function PricingPage() {
 
         {/* Final CTA */}
         <div className="text-center">
-          <div className="bg-gradient-to-r from-[#1A1D29] to-[#242836] rounded-2xl p-12">
-            <h2 className="text-3xl font-bold text-white mb-4">Ready to gain momentum?</h2>
-            <p className="text-gray-300 text-lg mb-8">
+          <div className="bg-gradient-to-r from-[#1B1628]/80 to-[#2A243E]/60 rounded-2xl p-12 border border-[#2A243E]/60">
+            <h2 className="text-3xl font-bold text-white mb-4 text-center">Ready to gain momentum?</h2>
+            <p className="text-gray-300 text-lg mb-8 text-center">
               Start your 30-day free trial. No credit card required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => navigate('/checkout/momentumdiy/yearly')}
-                className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors"
+                className="bg-[#EF8E81] hover:bg-[#E67A6E] text-[#191628] px-8 py-4 rounded-lg font-semibold text-lg transition-colors"
               >
                 Start Free Trial
               </button>
               <button
                 onClick={() => navigate('/')}
-                className="bg-gray-600 hover:bg-gray-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors"
+                className="bg-[#2A243E]/60 hover:bg-[#2A243E]/80 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors border border-[#2A243E]/60"
               >
                 Questions? Contact us
               </button>
             </div>
-            <p className="text-gray-400 text-sm mt-6">
+            <p className="text-gray-400 text-sm mt-6 text-center">
               Cancel anytime • Your data stays yours • Forever price guarantee
             </p>
           </div>
@@ -320,8 +316,8 @@ export default function PricingPage() {
       </div>
 
       {/* Footer */}
-      <div className="text-center py-8 border-t border-gray-700">
-        <p className="text-gray-400">© 2025 MomentumDIY. All rights reserved.</p>
+      <div className="text-center py-8 border-t border-[#2A243E]/60">
+        <p className="text-gray-400 text-center">© 2025 MomentumDIY. All rights reserved.</p>
       </div>
     </div>
   );
