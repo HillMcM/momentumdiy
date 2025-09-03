@@ -358,7 +358,6 @@ className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur 
       <footer className="mx-auto max-w-7xl px-6 py-10 text-center text-sm lg:px-8" style={{ color: '#FFF1E7', opacity: 0.5 }}>
         © {new Date().getFullYear()} MomentumDIY. All rights reserved.
       </footer>
-      </div>
     </div>
   )
 }
