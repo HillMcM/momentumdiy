@@ -40,7 +40,7 @@ export default function CheckoutSuccessPage() {
       const { customer, subscription } = await response.json();
       
       // Create Supabase account with customer email
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { error: authError } = await supabase.auth.signUp({
         email: customer.email,
         password: generateTemporaryPassword(),
         options: {
