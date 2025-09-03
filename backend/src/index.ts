@@ -18,6 +18,7 @@ import calendarRoutes from './routes/calendar';
 import assetRoutes from './routes/assets';
 import aiRoutes from './routes/ai';
 import profileRoutes from './routes/profile';
+import stripeRoutes from './routes/stripe';
 
 
 // Load environment variables
@@ -154,6 +155,7 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 
 // Sentry verification route: intentionally throws to test error capture
