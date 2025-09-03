@@ -42,7 +42,7 @@ export class StripeService {
       // Create new Stripe customer
       const customer = await stripe.customers.create({
         email,
-        name,
+        name: name || undefined,
         metadata: {
           supabase_user_id: userId,
         },
@@ -75,7 +75,7 @@ export class StripeService {
       const customerId = await this.createOrRetrieveCustomer(userId, email, name);
 
       // Get price ID
-      const priceId = STRIPE_CONFIG.prices[plan][interval];
+      const priceId = STRIPE_CONFIG.prices[plan][interval as keyof typeof STRIPE_CONFIG.prices[typeof plan]];
 
       // Create subscription with trial
       const subscription = await stripe.subscriptions.create({
@@ -111,7 +111,9 @@ export class StripeService {
 
       return {
         subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        clientSecret: typeof subscription.latest_invoice === 'string' 
+          ? undefined 
+          : subscription.latest_invoice?.payment_intent?.client_secret,
         trialEnd: trialEnd.toISOString(),
       };
     } catch (error) {
@@ -151,14 +153,17 @@ export class StripeService {
       });
 
       // Update profile
-      await supabase
-        .from('profiles')
-        .update({
-          subscription_status: 'canceled',
-          subscription_end_date: new Date(subscriptions.data[0].current_period_end * 1000).toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId);
+      const subscription = subscriptions.data[0];
+      if (subscription) {
+        await supabase
+          .from('profiles')
+          .update({
+            subscription_status: 'canceled',
+            subscription_end_date: new Date(subscription.current_period_end * 1000).toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId);
+      }
 
       return { success: true };
     } catch (error) {
@@ -197,13 +202,21 @@ export class StripeService {
       }
 
       const subscription = subscriptions.data[0];
+      if (subscription) {
+        return {
+          status: subscription.status,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          plan: profile.subscription_plan,
+          trialEnd: profile.trial_end_date,
+        };
+      }
+      
       return {
-        status: subscription.status,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
-        plan: profile.subscription_plan,
+        status: profile.subscription_status || 'trial',
         trialEnd: profile.trial_end_date,
+        plan: profile.subscription_plan,
       };
     } catch (error) {
       console.error('Error getting subscription details:', error);
