@@ -3,222 +3,176 @@ import { useNavigate } from 'react-router-dom';
 
 export default function PricingPage() {
   const navigate = useNavigate();
-  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('yearly');
 
   const plans = [
     {
-      id: 'monthly',
-      name: 'Monthly Access',
-      description: 'Perfect for trying MomentumDIY',
+      id: 'momentumdiy',
+      name: 'MomentumDIY',
+      description: 'Self-guided 12-week marketing track with weekly lessons & tasks.',
       price: {
         monthly: 14.99,
         yearly: 143.88,
       },
       features: [
-        'Full MomentumDIY platform access',
-        '12-week marketing curriculum',
-        'AI marketing assistant',
-        'Task tracking & management',
-        'Calendar integration',
-        'Basic asset library',
-      ],
-      popular: false,
-      cta: 'Start Monthly',
-    },
-    {
-      id: 'annual',
-      name: 'Annual Access',
-      description: 'Best value - save 20%',
-      price: {
-        monthly: 11.99, // $143.88 / 12
-        yearly: 143.88,
-      },
-      features: [
-        'Everything in Monthly',
-        'Priority support',
-        'Early access to new features',
-        'Advanced analytics',
-        'Export capabilities',
-        'Team collaboration tools',
+        'Access to all current & future core features',
+        'Weekly dripped lessons & step-by-step tasks',
+        'On-page AI assistant guidance',
+        'Task tracker, templates & checklists',
+        'Cancel anytime — your data stays yours',
+        '30-day free trial, no credit card required',
       ],
       popular: true,
-      cta: 'Start Annual',
-      savings: 'Save $17.88 vs monthly',
+      cta: 'Start 30-Day Free Trial',
+      tag: 'Most Popular',
+      tagColor: 'bg-green-500',
     },
     {
       id: 'spark',
-      name: 'Spark Membership',
-      description: 'MomentumDIY + 1hr personal consultation',
+      name: 'Spark',
+      description: 'Everything in MomentumDIY + 1 hour of 1:1 consulting each month.',
       price: {
         monthly: 100,
         yearly: 1100,
       },
       features: [
-        'Everything in Annual',
-        '1 hour personal marketing consultation',
-        'Strategy session with me',
-        'Direct access via email',
-        'Custom recommendations',
-        'Implementation guidance',
+        '1 hr/month strategy or execution support',
+        'Prioritized Q&A via email',
+        'Flexible scheduling to fit your month',
+        'Includes full MomentumDIY access',
       ],
       popular: false,
       cta: 'Choose Spark',
+      tag: 'Great for getting unstuck',
+      tagColor: 'bg-gray-600',
     },
     {
       id: 'growth',
-      name: 'Growth Membership',
-      description: 'MomentumDIY + 5hrs personal consultation',
+      name: 'Growth',
+      description: 'Everything in MomentumDIY + 5 hours of 1:1 support each month.',
       price: {
         monthly: 600,
         yearly: 6600,
       },
       features: [
-        'Everything in Spark',
-        '5 hours personal marketing consultation',
-        'Complete strategy development',
-        'Monthly check-in calls',
-        'Implementation support',
-        'Custom marketing plan',
+        '5 hrs/month hands-on strategy & execution',
+        'Roadmap planning & accountability',
+        'Priority turnaround on deliverables',
+        'Includes full MomentumDIY access',
       ],
       popular: false,
       cta: 'Choose Growth',
+      tag: 'Best for momentum',
+      tagColor: 'bg-gray-600',
     },
     {
       id: 'lead',
-      name: 'Lead Membership',
-      description: 'MomentumDIY + 10hrs personal consultation',
+      name: 'Lead',
+      description: 'Everything in MomentumDIY + 10 hours of 1:1 support each month.',
       price: {
         monthly: 1400,
         yearly: 15400,
       },
       features: [
-        'Everything in Growth',
-        '10 hours personal marketing consultation',
-        'Ongoing strategy refinement',
-        'Weekly strategy sessions',
-        'Complete marketing execution',
-        'VIP priority support',
+        '10 hrs/month strategy, content & campaigns',
+        'Deeper collaboration & sprint reviews',
+        'Priority access & scheduling',
+        'Includes full MomentumDIY access',
       ],
       popular: false,
       cta: 'Choose Lead',
+      tag: 'Done-with-you powerhouse',
+      tagColor: 'bg-gray-600',
     },
   ];
 
   const handleSelectPlan = (planId: string) => {
-    const interval = planId === 'annual' ? 'yearly' : 'monthly';
+    const interval = planId === 'momentumdiy' && billingInterval === 'yearly' ? 'yearly' : 'monthly';
     navigate(`/checkout/${planId}/${interval}`);
   };
 
   return (
-    <div className="min-h-screen bg-[#0F0A1A]">
-      {/* Header */}
-      <div className="bg-[#1B1628]/80 backdrop-blur-sm border-b border-[#2A243E]/60">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white">Choose Your Plan</h1>
-              <p className="text-gray-400 mt-2">Start your marketing momentum today</p>
-            </div>
-            <button
-              onClick={() => navigate('/')}
-              className="text-[#EF8E81] hover:text-[#E67A6E] font-medium"
-            >
-              ← Back to Home
-            </button>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#0F0A1A] text-white">
+      {/* Trial Banner */}
+      <div className="bg-green-500 text-center py-3">
+        <span className="text-white font-medium">30-Day Free Trial • No Credit Card</span>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* Billing Toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-lg p-1 border border-[#2A243E]/60">
-            <div className="flex">
-              <button
-                onClick={() => setBillingInterval('monthly')}
-                className={`px-6 py-3 rounded-md font-medium transition-colors ${
-                  billingInterval === 'monthly'
-                    ? 'bg-[#EF8E81] text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingInterval('yearly')}
-                className={`px-6 py-3 rounded-md font-medium transition-colors relative ${
-                  billingInterval === 'yearly'
-                    ? 'bg-[#EF8E81] text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Yearly
-                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                  Save 20%
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Trial Banner */}
-        <div className="text-center mb-12">
-          <div className="bg-gradient-to-r from-[#EF8E81]/20 to-[#E67A6E]/20 border border-[#EF8E81]/30 rounded-2xl p-8 max-w-2xl mx-auto">
-            <div className="text-2xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-white mb-4">Start Your 30-Day Free Trial</h2>
-            <p className="text-gray-300 mb-4">
-              Try MomentumDIY completely free for 30 days. No credit card required.
-              Cancel anytime during your trial.
-            </p>
-            <div className="text-[#EF8E81] font-semibold">No setup fees • No commitments</div>
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-bold text-white mb-6">Simple, Affordable Pricing — Forever.</h1>
+          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+            One clear plan to get your marketing moving. Add expert help only if you want it.
+          </p>
+          
+          {/* Billing Toggle */}
+          <div className="flex justify-center items-center gap-4 mb-8">
+            <span className={`text-lg ${billingInterval === 'monthly' ? 'text-white' : 'text-gray-400'}`}>
+              Monthly
+            </span>
+            <button
+              onClick={() => setBillingInterval(billingInterval === 'monthly' ? 'yearly' : 'monthly')}
+              className={`relative w-16 h-8 rounded-full transition-colors ${
+                billingInterval === 'yearly' ? 'bg-green-500' : 'bg-gray-600'
+              }`}
+            >
+              <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
+                billingInterval === 'yearly' ? 'translate-x-9' : 'translate-x-1'
+              }`} />
+            </button>
+            <span className={`text-lg ${billingInterval === 'yearly' ? 'text-white' : 'text-gray-400'}`}>
+              Save ~20% annually
+            </span>
           </div>
         </div>
 
         {/* Pricing Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`relative bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border transition-all duration-300 ${
+              className={`relative bg-[#242836] rounded-2xl border transition-all duration-300 ${
                 plan.popular
-                  ? 'border-[#EF8E81] shadow-lg shadow-[#EF8E81]/20'
-                  : 'border-[#2A243E]/60 hover:border-[#2A243E]/80'
+                  ? 'border-green-500 shadow-lg shadow-green-500/20'
+                  : 'border-gray-600 hover:border-gray-500'
               }`}
             >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-[#EF8E81] text-white px-4 py-1 rounded-full text-sm font-medium">
-                    Most Popular
-                  </div>
+              {/* Tag */}
+              <div className="absolute -top-3 left-4">
+                <div className={`${plan.tagColor} text-white px-3 py-1 rounded-full text-sm font-medium`}>
+                  {plan.tag}
                 </div>
-              )}
+              </div>
 
-              <div className="p-8">
+              <div className="p-8 pt-12">
                 {/* Plan Header */}
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                  <p className="text-gray-400 text-sm mb-4">{plan.description}</p>
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-white mb-3">{plan.name}</h3>
+                  <p className="text-gray-300 text-sm mb-6 leading-relaxed">{plan.description}</p>
 
-                  <div className="mb-2">
-                    <span className="text-3xl font-bold text-[#EF8E81]">
+                  <div className="mb-4">
+                    <span className="text-4xl font-bold text-white">
                       ${billingInterval === 'monthly' ? plan.price.monthly : plan.price.yearly}
                     </span>
-                    <span className="text-gray-400">
+                    <span className="text-gray-400 text-lg">
                       /{billingInterval === 'monthly' ? 'month' : 'year'}
                     </span>
                   </div>
 
-                  {plan.savings && billingInterval === 'yearly' && (
-                    <div className="text-green-400 text-sm font-medium">{plan.savings}</div>
+                  {plan.id === 'momentumdiy' && billingInterval === 'yearly' && (
+                    <div className="text-gray-300 text-sm">
+                      ≈ $11.99/mo • Save 20%
+                    </div>
                   )}
                 </div>
 
                 {/* Features */}
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-4 mb-8">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start text-sm text-gray-300">
-                      <span className="text-green-400 mr-3 mt-1">✓</span>
-                      <span>{feature}</span>
+                      <span className="text-green-500 mr-3 mt-1 text-lg">✓</span>
+                      <span className="leading-relaxed">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -226,82 +180,148 @@ export default function PricingPage() {
                 {/* CTA Button */}
                 <button
                   onClick={() => handleSelectPlan(plan.id)}
-                  className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
+                  className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
                     plan.popular
-                      ? 'bg-[#EF8E81] hover:bg-[#E67A6E] text-white shadow-lg'
-                      : 'bg-[#2A243E]/60 hover:bg-[#2A243E]/80 text-white border border-[#2A243E]/60'
+                      ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg'
+                      : 'bg-gray-600 hover:bg-gray-500 text-white'
                   }`}
                 >
                   {plan.cta}
                 </button>
+
+                {/* Billing Info */}
+                <div className="text-center mt-4">
+                  <p className="text-gray-400 text-sm">
+                    {plan.id === 'momentumdiy' && billingInterval === 'yearly' 
+                      ? 'Billed $143.88 yearly (≈ $11.99/mo). Save 20% vs monthly.'
+                      : 'Billed monthly. Upgrade/downgrade anytime.'
+                    }
+                  </p>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
+        {/* Testimonials */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          <div className="bg-[#242836] rounded-2xl p-8">
+            <p className="text-gray-300 text-lg mb-4 leading-relaxed">
+              "MomentumDIY helped us finally stick to a plan. We ran our first real campaign and saw a clear uptick in foot traffic."
+            </p>
+            <p className="text-gray-400 text-sm">— Jamie, Café Owner</p>
+          </div>
+          <div className="bg-[#242836] rounded-2xl p-8">
+            <p className="text-gray-300 text-lg mb-4 leading-relaxed">
+              "The weekly tasks made marketing doable. Adding a monthly hour of coaching gave us the nudge we needed."
+            </p>
+            <p className="text-gray-400 text-sm">— Marco, Home Services</p>
+          </div>
+        </div>
+
         {/* FAQ Section */}
-        <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-[#2A243E]/60 p-8">
-          <h3 className="text-2xl font-bold text-white text-center mb-8">Frequently Asked Questions</h3>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-white">Pricing & Plan FAQs</h2>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-3">What's included in the free trial?</h4>
-              <p className="text-gray-400">
-                Everything! You get full access to all features, the 12-week marketing curriculum,
-                AI assistant, and task management for 30 days completely free.
+        <div className="bg-[#242836] rounded-2xl p-8 mb-16">
+          <div className="space-y-6">
+            <div className="border-b border-gray-600 pb-6">
+              <h3 className="text-lg font-semibold text-white mb-3">Is MomentumDIY right for my business?</h3>
+              <p className="text-gray-300">
+                Yes—MomentumDIY was built for local businesses under ~$1M in annual revenue who want a clear, doable marketing plan with weekly steps.
+              </p>
+            </div>
+
+            <div className="border-b border-gray-600 pb-6">
+              <h3 className="text-lg font-semibold text-white mb-3">Will my price ever go up?</h3>
+              <p className="text-gray-300">
+                Your core subscription price is locked in for life. If our public price changes later, yours won't.
+              </p>
+            </div>
+
+            <div className="border-b border-gray-600 pb-6">
+              <h3 className="text-lg font-semibold text-white mb-3">Can I upgrade to a consulting package later?</h3>
+              <p className="text-gray-300">
+                Absolutely. Start with the DIY plan and add Spark, Growth, or Lead anytime. You can change or cancel monthly.
+              </p>
+            </div>
+
+            <div className="border-b border-gray-600 pb-6">
+              <h3 className="text-lg font-semibold text-white mb-3">What do consulting hours include?</h3>
+              <p className="text-gray-300">
+                Strategy sessions, content/creative feedback, campaign setup support, and light execution—focused on the tasks you're tackling that month.
+              </p>
+            </div>
+
+            <div className="border-b border-gray-600 pb-6">
+              <h3 className="text-lg font-semibold text-white mb-3">I'm not tech-savvy—will I be able to use this?</h3>
+              <p className="text-gray-300">
+                Yes. Lessons are in plain English with step-by-step tasks. The on-page assistant guides you and explains terms along the way.
               </p>
             </div>
 
             <div>
-              <h4 className="text-lg font-semibold text-white mb-3">Can I cancel anytime?</h4>
-              <p className="text-gray-400">
-                Absolutely! Cancel anytime during your trial or after. If you cancel during the trial,
-                you'll never be charged. After the trial, you can cancel at any time.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-3">What are the consultation hours for?</h4>
-              <p className="text-gray-400">
-                The consultation hours are for personalized marketing strategy sessions with me.
-                We'll work together to create and implement a marketing plan tailored to your business.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-3">Do you offer refunds?</h4>
-              <p className="text-gray-400">
-                Yes! If you're not satisfied within the first 30 days after your trial ends,
-                we'll provide a full refund. Customer satisfaction is our top priority.
+              <h3 className="text-lg font-semibold text-white mb-3">Is this a course or an agency?</h3>
+              <p className="text-gray-300">
+                It's an action system with weekly implementation, not a passive course. Add consulting if you want hands-on help without agency retainers.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Footer CTA */}
-        <div className="text-center mt-16">
-          <div className="bg-gradient-to-r from-[#EF8E81]/10 to-[#E67A6E]/10 border border-[#EF8E81]/20 rounded-2xl p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">Ready to Start Your Marketing Journey?</h3>
-            <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
-              Join hundreds of small business owners who have transformed their marketing with MomentumDIY.
-              Start your free trial today and see the difference in just 30 days.
+        {/* Trust Section */}
+        <div className="text-center mb-16">
+          <p className="text-gray-300 text-lg mb-8">
+            Trusted by local businesses who want clear, doable marketing — not jargon.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <button className="bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              Coffee Shops
+            </button>
+            <button className="bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              Trades & Services
+            </button>
+            <button className="bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              Retail
+            </button>
+            <button className="bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              Wellness
+            </button>
+          </div>
+        </div>
+
+        {/* Final CTA */}
+        <div className="text-center">
+          <div className="bg-gradient-to-r from-[#1A1D29] to-[#242836] rounded-2xl p-12">
+            <h2 className="text-3xl font-bold text-white mb-4">Ready to gain momentum?</h2>
+            <p className="text-gray-300 text-lg mb-8">
+              Start your 30-day free trial. No credit card required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
-                onClick={() => navigate('/checkout/annual/yearly')}
-                className="bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-8 py-4 rounded-lg font-semibold transition-colors"
+                onClick={() => navigate('/checkout/momentumdiy/yearly')}
+                className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors"
               >
-                Start Free Trial - Annual Plan
+                Start Free Trial
               </button>
               <button
-                onClick={() => navigate('/checkout/monthly/monthly')}
-                className="bg-[#2A243E]/60 hover:bg-[#2A243E]/80 text-white px-8 py-4 rounded-lg font-semibold transition-colors border border-[#2A243E]/60"
+                onClick={() => navigate('/')}
+                className="bg-gray-600 hover:bg-gray-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors"
               >
-                Try Monthly Plan
+                Questions? Contact us
               </button>
             </div>
+            <p className="text-gray-400 text-sm mt-6">
+              Cancel anytime • Your data stays yours • Forever price guarantee
+            </p>
           </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="text-center py-8 border-t border-gray-700">
+        <p className="text-gray-400">© 2025 MomentumDIY. All rights reserved.</p>
       </div>
     </div>
   );
