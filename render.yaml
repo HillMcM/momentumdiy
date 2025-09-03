@@ -5,6 +5,7 @@ services:
     plan: starter
     autoDeploy: true
     rootDir: backend
+    # Force redeploy with Stripe routes
     envVars:
       - key: NODE_ENV
         value: production
@@ -19,4 +20,8 @@ services:
       - key: CORS_ORIGIN
         sync: false
       - key: NOTION_API_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
         sync: false
