@@ -55,12 +55,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, subscription_status')
         .eq('id', signedInUser.id)
         .maybeSingle();
       if (error && error.code !== 'PGRST116') return; // ignore not found error code differences
       if (!data) {
-        await supabase.from('profiles').insert({ id: signedInUser.id, email: signedInUser.email });
+        // Create new profile with 30-day trial
+        const trialStart = new Date();
+        const trialEnd = new Date(trialStart);
+        trialEnd.setDate(trialEnd.getDate() + 30);
+        
+        await supabase.from('profiles').insert({ 
+          id: signedInUser.id, 
+          email: signedInUser.email,
+          subscription_status: 'trial',
+          trial_start_date: trialStart.toISOString(),
+          trial_end_date: trialEnd.toISOString(),
+          subscription_plan: 'monthly'
+        });
       }
     } catch {
       // no-op: not critical for UX
