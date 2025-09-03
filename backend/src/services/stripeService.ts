@@ -40,13 +40,18 @@ export class StripeService {
       }
 
       // Create new Stripe customer
-      const customer = await stripe.customers.create({
+      const customerData: any = {
         email,
-        name: name || undefined,
         metadata: {
           supabase_user_id: userId,
         },
-      });
+      };
+      
+      if (name) {
+        customerData.name = name;
+      }
+      
+      const customer = await stripe.customers.create(customerData);
 
       // Save customer ID to profile
       await supabase
@@ -109,11 +114,15 @@ export class StripeService {
         })
         .eq('id', userId);
 
+      let clientSecret: string | undefined;
+      if (subscription.latest_invoice && typeof subscription.latest_invoice === 'object') {
+        const invoice = subscription.latest_invoice as any;
+        clientSecret = invoice.payment_intent?.client_secret;
+      }
+
       return {
         subscriptionId: subscription.id,
-        clientSecret: typeof subscription.latest_invoice === 'string' 
-          ? undefined 
-          : subscription.latest_invoice?.payment_intent?.client_secret,
+        clientSecret,
         trialEnd: trialEnd.toISOString(),
       };
     } catch (error) {
@@ -148,18 +157,19 @@ export class StripeService {
       }
 
       // Cancel the subscription (effective at period end)
-      await stripe.subscriptions.update(subscriptions.data[0].id, {
-        cancel_at_period_end: true,
-      });
-
-      // Update profile
       const subscription = subscriptions.data[0];
       if (subscription) {
+        await stripe.subscriptions.update(subscription.id, {
+          cancel_at_period_end: true,
+        });
+
+        // Update profile
+        const subscriptionData = subscription as any;
         await supabase
           .from('profiles')
           .update({
             subscription_status: 'canceled',
-            subscription_end_date: new Date(subscription.current_period_end * 1000).toISOString(),
+            subscription_end_date: new Date(subscriptionData.current_period_end * 1000).toISOString(),
             updated_at: new Date().toISOString(),
           })
           .eq('id', userId);
@@ -203,10 +213,11 @@ export class StripeService {
 
       const subscription = subscriptions.data[0];
       if (subscription) {
+        const subscriptionData = subscription as any;
         return {
           status: subscription.status,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          currentPeriodStart: new Date(subscriptionData.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscriptionData.current_period_end * 1000),
           cancelAtPeriodEnd: subscription.cancel_at_period_end,
           plan: profile.subscription_plan,
           trialEnd: profile.trial_end_date,

@@ -57,7 +57,7 @@ router.post('/create-subscription', routeRateLimit(10), async (req, res) => {
 });
 
 // Get subscription details
-router.get('/subscription', routeRateLimit(30), async (req, res) => {
+router.get('/subscription', routeRateLimit(30), async (_req, res) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -84,7 +84,7 @@ router.get('/subscription', routeRateLimit(30), async (req, res) => {
 });
 
 // Cancel subscription
-router.post('/cancel-subscription', routeRateLimit(10), async (req, res) => {
+router.post('/cancel-subscription', routeRateLimit(10), async (_req, res) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -111,7 +111,7 @@ router.post('/cancel-subscription', routeRateLimit(10), async (req, res) => {
 });
 
 // Get user profile with subscription info
-router.get('/profile', routeRateLimit(30), async (req, res) => {
+router.get('/profile', routeRateLimit(30), async (_req, res) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
