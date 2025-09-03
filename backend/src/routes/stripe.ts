@@ -274,8 +274,8 @@ router.post('/create-checkout-session', routeRateLimit(10), async (req, res) => 
       });
     }
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2024-06-20',
+    const stripe = new Stripe(process.env['STRIPE_SECRET_KEY']!, {
+      apiVersion: '2025-08-27.basil',
     });
 
     // Create checkout session
@@ -300,13 +300,13 @@ router.post('/create-checkout-session', routeRateLimit(10), async (req, res) => 
       billing_address_collection: 'required',
     });
 
-    res.json({
+    return res.json({
       success: true,
       sessionId: session.id,
     });
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to create checkout session'
     });
@@ -325,8 +325,8 @@ router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
       });
     }
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2024-06-20',
+    const stripe = new Stripe(process.env['STRIPE_SECRET_KEY']!, {
+      apiVersion: '2025-08-27.basil',
     });
 
     // Retrieve the checkout session
@@ -344,7 +344,7 @@ router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
     const customer = session.customer as Stripe.Customer;
     const subscription = session.subscription as Stripe.Subscription;
 
-    res.json({
+    return res.json({
       success: true,
       customer: {
         id: customer.id,
@@ -354,13 +354,13 @@ router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
       subscription: {
         id: subscription.id,
         status: subscription.status,
-        current_period_start: subscription.current_period_start,
-        current_period_end: subscription.current_period_end,
+        current_period_start: (subscription as any).current_period_start,
+        current_period_end: (subscription as any).current_period_end,
       },
     });
   } catch (error) {
     console.error('Error verifying payment:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to verify payment'
     });
@@ -371,19 +371,19 @@ router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
 function getPriceId(plan: string, interval: string): string | null {
   const priceMap: Record<string, Record<string, string>> = {
     monthly: {
-      monthly: process.env.STRIPE_PRICE_MONTHLY!,
+      monthly: process.env['STRIPE_PRICE_MONTHLY']!,
     },
     annual: {
-      yearly: process.env.STRIPE_PRICE_ANNUAL!,
+      yearly: process.env['STRIPE_PRICE_ANNUAL']!,
     },
     spark: {
-      monthly: process.env.STRIPE_PRICE_SPARK_MONTHLY!,
+      monthly: process.env['STRIPE_PRICE_SPARK_MONTHLY']!,
     },
     growth: {
-      monthly: process.env.STRIPE_PRICE_GROWTH_MONTHLY!,
+      monthly: process.env['STRIPE_PRICE_GROWTH_MONTHLY']!,
     },
     lead: {
-      monthly: process.env.STRIPE_PRICE_LEAD_MONTHLY!,
+      monthly: process.env['STRIPE_PRICE_LEAD_MONTHLY']!,
     },
   };
 
