@@ -20,3 +20,7 @@ services:
         sync: false
       - key: NOTION_API_KEY
         sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
