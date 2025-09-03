@@ -165,8 +165,7 @@ export default function PricingPage() {
 className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur transition hover:-translate-y-0.5 hover:shadow-2xl"
                 style={{
                   backgroundColor: 'rgba(27, 22, 40, 0.8)',
-                  borderColor: p.highlight ? 'rgba(239, 142, 129, 0.4)' : 'rgba(42, 36, 62, 0.6)',
-                  ringColor: p.highlight ? 'rgba(239, 142, 129, 0.1)' : 'rgba(255,255,255,0.05)'
+                  borderColor: p.highlight ? 'rgba(239, 142, 129, 0.4)' : 'rgba(42, 36, 62, 0.6)'
                 }}
               >
                 {p.badge && (
@@ -247,7 +246,7 @@ className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur 
           </div>
 
           {/* Trust band */}
-          <div className="mx-auto mt-14 max-w-5xl rounded-2xl border p-6 text-center ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)', ringColor: 'rgba(255,255,255,0.05)' }}>
+          <div className="mx-auto mt-14 max-w-5xl rounded-2xl border p-6 text-center ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)' }}>
             <p className="text-sm" style={{ color: '#FFF1E7' }}>
               Trusted by local businesses who want clear, doable marketing — not jargon.
             </p>
@@ -262,13 +261,13 @@ className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur 
           {/* Testimonials */}
           <section className="mx-auto mt-12 max-w-5xl">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <figure className="rounded-2xl border p-6 ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)', ringColor: 'rgba(255,255,255,0.05)' }}>
+              <figure className="rounded-2xl border p-6 ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)' }}>
                 <blockquote className="text-white">
                   "MomentumDIY helped us finally stick to a plan. We ran our first real campaign and saw a clear uptick in foot traffic."
                 </blockquote>
                 <figcaption className="mt-4 text-sm" style={{ color: '#FFF1E7', opacity: 0.7 }}>— Jamie, Café Owner</figcaption>
               </figure>
-              <figure className="rounded-2xl border p-6 ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)', ringColor: 'rgba(255,255,255,0.05)' }}>
+              <figure className="rounded-2xl border p-6 ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)' }}>
                 <blockquote className="text-white">
                   "The weekly tasks made marketing doable. Adding a monthly hour of coaching gave us the nudge we needed."
                 </blockquote>
@@ -280,8 +279,8 @@ className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur 
           {/* FAQ */}
           <section className="mx-auto mt-16 max-w-4xl">
             <h2 className="text-center text-2xl font-semibold">Pricing & Plan FAQs</h2>
-            <div className="mt-6 divide-y rounded-2xl border ring-1" style={{ divideColor: 'rgba(42, 36, 62, 0.6)', borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)', ringColor: 'rgba(255,255,255,0.05)' }}>
-              <details className="group p-6" style={{ '&[open]': { backgroundColor: '#1B1628/60' } }}>
+            <div className="mt-6 divide-y rounded-2xl border ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)' }}>
+              <details className="group p-6">
                 <summary className="flex cursor-pointer list-none items-center justify-between text-left text-base font-medium text-white">
                   Is MomentumDIY right for my business?
                   <span className="ml-4 transition group-open:rotate-180" style={{ color: '#FFF1E7', opacity: 0.7 }}>▾</span>
@@ -339,7 +338,7 @@ className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur 
           </section>
 
           {/* Final CTA */}
-          <section className="mx-auto mt-16 max-w-5xl overflow-hidden rounded-2xl border p-8 text-center ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', background: 'linear-gradient(to right, rgba(239, 142, 129, 0.1), rgba(239, 142, 129, 0.05), transparent)', ringColor: 'rgba(239, 142, 129, 0.1)' }}>
+          <section className="mx-auto mt-16 max-w-5xl overflow-hidden rounded-2xl border p-8 text-center ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', background: 'linear-gradient(to right, rgba(239, 142, 129, 0.1), rgba(239, 142, 129, 0.05), transparent)' }}>
             <h3 className="text-2xl font-semibold text-center">Ready to gain momentum?</h3>
             <p className="mt-2" style={{ color: '#FFF1E7' }}>Start your 30‑day free trial. No credit card required.</p>
             <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
