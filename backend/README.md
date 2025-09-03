@@ -297,4 +297,4 @@ npm run lint:fix
 
 ## License
 
-MIT 
+MIT # Force deployment Wed Sep  3 12:05:00 EDT 2025 - Stripe routes required

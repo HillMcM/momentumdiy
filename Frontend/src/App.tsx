@@ -24,6 +24,8 @@ import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
 import { supabase } from './lib/supabase';
 import { mockTasks, mockMarketingGoals } from './mockData';
 import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketingService';
+import CheckoutPage from './CheckoutPage';
+import CheckoutSuccessPage from './CheckoutSuccessPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
 
@@ -964,7 +966,9 @@ function App() {
         {/* Pricing */}
         <Route path="/pricing" element={<PricingPage />} />
 
-
+        {/* Checkout - Public */}
+        <Route path="/checkout/:plan/:interval" element={<CheckoutPage />} />
+        <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
 
         {/* App - Now public (no auth required) */}
         <Route path="/app/*" element={
