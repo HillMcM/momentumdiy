@@ -25,6 +25,7 @@ import { supabase } from './lib/supabase';
 import { mockTasks, mockMarketingGoals } from './mockData';
 import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketingService';
 import CheckoutPage from './CheckoutPage';
+import CheckoutSuccessPage from './CheckoutSuccessPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
 import ProtectedRoute from './ProtectedRoute';
@@ -966,12 +967,9 @@ function App() {
         {/* Pricing */}
         <Route path="/pricing" element={<PricingPage />} />
 
-        {/* Checkout - Protected */}
-        <Route path="/checkout/:plan/:interval" element={
-          <ProtectedRoute>
-            <CheckoutPage />
-          </ProtectedRoute>
-        } />
+        {/* Checkout - Public */}
+        <Route path="/checkout/:plan/:interval" element={<CheckoutPage />} />
+        <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
 
         {/* App - Now public (no auth required) */}
         <Route path="/app/*" element={

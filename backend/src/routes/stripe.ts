@@ -2,6 +2,7 @@ import * as express from 'express';
 import { StripeService, SubscriptionData } from '../services/stripeService';
 import { supabase, supabasePublic } from '../config/supabase';
 import { routeRateLimit } from '../middleware/rate';
+import Stripe from 'stripe';
 
 const router = express.Router();
 
@@ -249,5 +250,144 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     return res.status(500).json({ error: 'Webhook handler failed' });
   }
 });
+
+// Public checkout endpoints (no authentication required)
+
+// Create Stripe Checkout Session
+router.post('/create-checkout-session', routeRateLimit(10), async (req, res) => {
+  try {
+    const { plan, interval, successUrl, cancelUrl } = req.body;
+
+    if (!plan || !interval || !successUrl || !cancelUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameters: plan, interval, successUrl, cancelUrl'
+      });
+    }
+
+    // Get the price ID based on plan and interval
+    const priceId = getPriceId(plan, interval);
+    if (!priceId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid plan or interval combination'
+      });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2024-06-20',
+    });
+
+    // Create checkout session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: {
+        plan,
+        interval,
+      },
+      // Allow customer to enter email for account creation
+      customer_creation: 'always',
+      // Collect billing address
+      billing_address_collection: 'required',
+    });
+
+    res.json({
+      success: true,
+      sessionId: session.id,
+    });
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create checkout session'
+    });
+  }
+});
+
+// Verify payment and get customer details
+router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Session ID is required'
+      });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2024-06-20',
+    });
+
+    // Retrieve the checkout session
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['customer', 'subscription'],
+    });
+
+    if (!session.customer || !session.subscription) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid session or payment not completed'
+      });
+    }
+
+    const customer = session.customer as Stripe.Customer;
+    const subscription = session.subscription as Stripe.Subscription;
+
+    res.json({
+      success: true,
+      customer: {
+        id: customer.id,
+        email: customer.email,
+        name: customer.name,
+      },
+      subscription: {
+        id: subscription.id,
+        status: subscription.status,
+        current_period_start: subscription.current_period_start,
+        current_period_end: subscription.current_period_end,
+      },
+    });
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to verify payment'
+    });
+  }
+});
+
+// Helper function to get price ID
+function getPriceId(plan: string, interval: string): string | null {
+  const priceMap: Record<string, Record<string, string>> = {
+    monthly: {
+      monthly: process.env.STRIPE_PRICE_MONTHLY!,
+    },
+    annual: {
+      yearly: process.env.STRIPE_PRICE_ANNUAL!,
+    },
+    spark: {
+      monthly: process.env.STRIPE_PRICE_SPARK_MONTHLY!,
+    },
+    growth: {
+      monthly: process.env.STRIPE_PRICE_GROWTH_MONTHLY!,
+    },
+    lead: {
+      monthly: process.env.STRIPE_PRICE_LEAD_MONTHLY!,
+    },
+  };
+
+  return priceMap[plan]?.[interval] || null;
+}
 
 export default router;
