@@ -52,6 +52,7 @@ const calendar_1 = __importDefault(require("./routes/calendar"));
 const assets_1 = __importDefault(require("./routes/assets"));
 const ai_1 = __importDefault(require("./routes/ai"));
 const profile_1 = __importDefault(require("./routes/profile"));
+const stripe_1 = __importDefault(require("./routes/stripe"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env['PORT'] || 3001;
@@ -150,6 +151,7 @@ app.use('/api/calendar', calendar_1.default);
 app.use('/api/assets', assets_1.default);
 app.use('/api/ai', ai_1.default);
 app.use('/api/profile', profile_1.default);
+app.use('/api/stripe', stripe_1.default);
 app.get('/debug/sentry-test', () => {
     throw new Error('Sentry test error');
 });

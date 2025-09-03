@@ -65,10 +65,10 @@ router.post('/chat', (0, rate_1.routeRateLimit)(30), async (req, res) => {
             marketingGoals,
             currentTasks: tasks.filter(task => task.status === 'todo'),
             activeTrack,
-            ...(userBusinessType && { userBusinessType }),
-            ...(userIndustry && { userIndustry }),
-            ...(userExperienceLevel && { userExperienceLevel }),
-            ...(pagePath && { pagePath })
+            userBusinessType: userBusinessType || 'Not specified',
+            userIndustry: userIndustry || 'General',
+            userExperienceLevel: userExperienceLevel || 'Not specified',
+            pagePath: pagePath || '/app',
         };
         const aiResponse = await aiService_1.AIService.generateResponse(message, context, conversationHistory);
         const response = {
