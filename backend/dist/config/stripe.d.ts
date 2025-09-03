@@ -7,8 +7,10 @@ export declare const STRIPE_CONFIG: {
     readonly prices: {
         readonly monthly: {
             readonly monthly: string;
+            readonly yearly: string;
         };
         readonly annual: {
+            readonly monthly: string;
             readonly yearly: string;
         };
         readonly spark: {

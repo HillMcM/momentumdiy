@@ -80,7 +80,15 @@ export class StripeService {
       const customerId = await this.createOrRetrieveCustomer(userId, email, name);
 
       // Get price ID
-      const priceId = STRIPE_CONFIG.prices[plan][interval as keyof typeof STRIPE_CONFIG.prices[typeof plan]];
+      const planPrices = STRIPE_CONFIG.prices[plan as keyof typeof STRIPE_CONFIG.prices];
+      if (!planPrices) {
+        throw new Error(`Invalid plan: ${plan}`);
+      }
+
+      const priceId = planPrices[interval as keyof typeof planPrices];
+      if (!priceId) {
+        throw new Error(`Invalid interval ${interval} for plan ${plan}`);
+      }
 
       // Create subscription with trial
       const subscription = await stripe.subscriptions.create({
