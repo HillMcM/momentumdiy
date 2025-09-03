@@ -352,12 +352,7 @@ class ApiService {
     });
   }
 
-  async createSubscription(plan: string, interval: string): Promise<ApiResponse<{ clientSecret: string; subscriptionId: string }>> {
-    return this.request<{ clientSecret: string; subscriptionId: string }>('/stripe/create-subscription', {
-      method: 'POST',
-      body: JSON.stringify({ plan, interval }),
-    });
-  }
+  // REMOVED: Old createSubscription method - replaced with createCheckoutSession
 
   async getSubscription(): Promise<ApiResponse<unknown>> {
     return this.request<unknown>('/stripe/subscription');
