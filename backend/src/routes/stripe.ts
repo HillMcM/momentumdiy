@@ -437,7 +437,9 @@ router.post('/create-checkout-session', routeRateLimit(10), async (req, res) => 
 
     return res.json({
       success: true,
-      sessionUrl: session.url,
+      data: {
+        sessionUrl: session.url,
+      },
     });
   } catch (error) {
     console.error('Error creating checkout session:', error);
