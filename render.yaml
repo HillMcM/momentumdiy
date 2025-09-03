@@ -5,6 +5,7 @@ services:
     plan: starter
     autoDeploy: true
     rootDir: backend
+    dockerfilePath: backend/Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
