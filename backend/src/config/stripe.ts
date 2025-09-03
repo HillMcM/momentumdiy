@@ -12,7 +12,7 @@ if (!stripePublishableKey) {
 }
 
 export const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-08-27.basil',
   typescript: true,
 });
 

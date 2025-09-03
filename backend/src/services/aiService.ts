@@ -130,16 +130,16 @@ Be the marketing consultant they wish they had - patient, knowledgeable, and gen
 
     return `
 **Business Profile:**
-- Business Type: ${businessType}
-- Industry: ${industry}
-- Marketing Experience: ${experienceLevel}
-- Location Context: ${this.getLocationInsights(context.pagePath)}
+- Business Type: ${businessType || 'Not specified'}
+- Industry: ${industry || 'Not specified'}
+- Marketing Experience: ${experienceLevel || 'Not specified'}
+- Location Context: ${this.getLocationInsights(context.pagePath || '/app')}
 
 **Tailored Approach:**
-${this.getIndustrySpecificGuidance(industry, businessType, experienceLevel)}
+${this.getIndustrySpecificGuidance(industry || 'Not specified', businessType || 'Not specified', experienceLevel || 'Not specified')}
 
 **Personalized Recommendations:**
-${this.getPersonalizedRecommendations(industry, experienceLevel, context.pagePath)}`;
+${this.getPersonalizedRecommendations(industry || 'Not specified', experienceLevel || 'Not specified', context.pagePath || '/app')}`;
   }
 
   private static getLocationInsights(pagePath: string): string {
@@ -220,12 +220,12 @@ ${this.getPersonalizedRecommendations(industry, experienceLevel, context.pagePat
     };
 
     return `
-- Industry Focus: ${guidance[industry] || guidance['Not specified']}
-- Business Type: ${businessGuidance[businessType] || businessGuidance['Not specified']}
-- Experience Level: ${experienceGuidance[experienceLevel] || experienceGuidance['Not specified']}`;
+- Industry Focus: ${guidance[industry as keyof typeof guidance] || guidance['Not specified']}
+- Business Type: ${businessGuidance[businessType as keyof typeof businessGuidance] || businessGuidance['Not specified']}
+- Experience Level: ${experienceGuidance[experienceLevel as keyof typeof experienceGuidance] || experienceGuidance['Not specified']}`;
   }
 
-  private static getWeekSpecificGuidance(week: number, activeGoal: any): string {
+  private static getWeekSpecificGuidance(week: number, _activeGoal: any): string {
     const weekGuidance = {
       1: 'Week 1 is about getting started with a simple offer and basic signage. Focus on making it easy for them to take the first step without overthinking it.',
       2: 'Week 2 focuses on Google optimization and local online presence. Help them understand this is about being found when people search locally.',
@@ -241,7 +241,7 @@ ${this.getPersonalizedRecommendations(industry, experienceLevel, context.pagePat
       12: 'Week 12 is about celebrating success and planning ahead. Help them reflect on what worked and what to focus on next.'
     };
 
-    return weekGuidance[week] || 'Help them understand the current week\'s focus and how it builds on previous weeks.';
+    return weekGuidance[week as keyof typeof weekGuidance] || 'Help them understand the current week\'s focus and how it builds on previous weeks.';
   }
 
   private static getPageSpecificGuidance(pagePath: string): string {
@@ -252,7 +252,7 @@ ${this.getPersonalizedRecommendations(industry, experienceLevel, context.pagePat
       '/app/profile': 'They\'re managing their profile. Help them understand how to set up their business information or update their preferences.'
     };
 
-    return pageGuidance[pagePath] || 'Help them with whatever they\'re trying to accomplish on this page.';
+    return pageGuidance[pagePath as keyof typeof pageGuidance] || 'Help them with whatever they\'re trying to accomplish on this page.';
   }
 
   private static getMarketingKnowledgeBase(context: ConversationContext): string {
@@ -408,7 +408,7 @@ ${this.getTemplatesScripts()}`;
 - **Why It Works**: Celebrating success builds momentum for future growth`
     };
 
-    return weekContent[week] || 'Focus on the fundamentals: consistent presence, customer relationships, and measuring what matters to your business.';
+    return weekContent[week as keyof typeof weekContent] || 'Focus on the fundamentals: consistent presence, customer relationships, and measuring what matters to your business.';
   }
 
   private static getToolGuidance(): string {
@@ -481,7 +481,7 @@ ${this.getTemplatesScripts()}`;
 - **Budget Tip**: Invest in content creation and local networking`
     };
 
-    return strategies[industry] || `
+    return strategies[industry as keyof typeof strategies] || `
 **General Local Business Strategy**:
 - **Focus**: Customer experience, local community engagement
 - **Content**: Your story, customer success stories, local events

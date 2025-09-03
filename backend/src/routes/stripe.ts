@@ -2,7 +2,6 @@ import * as express from 'express';
 import { StripeService, SubscriptionData } from '../services/stripeService';
 import { supabase } from '../config/supabase';
 import { routeRateLimit } from '../middleware/rate';
-import { ApiResponse } from '../types';
 
 const router = express.Router();
 
@@ -18,7 +17,7 @@ router.post('/create-subscription', routeRateLimit(10), async (req, res) => {
       });
     }
 
-    const { plan, interval }: { plan: 'premium' | 'enterprise'; interval: 'monthly' | 'yearly' } = req.body;
+    const { plan, interval }: { plan: 'monthly' | 'annual' | 'spark' | 'growth' | 'lead'; interval: 'monthly' | 'yearly' } = req.body;
 
     if (!plan || !interval) {
       return res.status(400).json({
@@ -37,20 +36,20 @@ router.post('/create-subscription', routeRateLimit(10), async (req, res) => {
     const subscriptionData: SubscriptionData = {
       userId: user.id,
       email: user.email || profile?.contact_email || '',
-      name: profile?.business_name || user.user_metadata?.full_name,
+      name: profile?.business_name || user.user_metadata?.['full_name'],
       plan,
       interval,
     };
 
     const result = await StripeService.createSubscription(subscriptionData);
 
-    res.json({
+    return res.json({
       success: true,
       data: result
     });
   } catch (error) {
     console.error('Error creating subscription:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create subscription'
     });
@@ -71,13 +70,13 @@ router.get('/subscription', routeRateLimit(30), async (req, res) => {
 
     const subscriptionDetails = await StripeService.getSubscriptionDetails(user.id);
 
-    res.json({
+    return res.json({
       success: true,
       data: subscriptionDetails
     });
   } catch (error) {
     console.error('Error getting subscription:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get subscription'
     });
@@ -98,13 +97,13 @@ router.post('/cancel-subscription', routeRateLimit(10), async (req, res) => {
 
     await StripeService.cancelSubscription(user.id);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Subscription canceled successfully'
     });
   } catch (error) {
     console.error('Error canceling subscription:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to cancel subscription'
     });
@@ -166,13 +165,13 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
       }
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: profile
     });
   } catch (error) {
     console.error('Error getting profile:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get profile'
     });
@@ -196,10 +195,10 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
   try {
     await StripeService.handleWebhook(event);
-    res.json({ received: true });
+    return res.json({ received: true });
   } catch (error) {
     console.error('Error handling webhook:', error);
-    res.status(500).json({ error: 'Webhook handler failed' });
+    return res.status(500).json({ error: 'Webhook handler failed' });
   }
 });
 
