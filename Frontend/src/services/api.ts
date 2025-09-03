@@ -14,6 +14,7 @@ import type {
   UpdateCalendarEventRequest,
   ApiResponse
 } from '../types';
+import { supabase } from '../lib/supabase';
 
 // Prefer explicit env at build time; fall back to heuristics
 const fromEnv = (() => {
@@ -70,9 +71,18 @@ class ApiService {
   ): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}${endpoint}`;
 
+    // Get the current session for authentication
+    const { data: { session } } = await supabase.auth.getSession();
+    const authHeaders: Record<string, string> = {};
+    
+    if (session?.access_token) {
+      authHeaders['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
         ...options.headers,
       },
       ...options,
