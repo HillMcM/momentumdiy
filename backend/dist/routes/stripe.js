@@ -275,7 +275,6 @@ router.post('/create-checkout-session', (0, rate_1.routeRateLimit)(10), async (r
                 plan,
                 interval,
             },
-            customer_creation: 'always',
             billing_address_collection: 'required',
         });
         return res.json({
