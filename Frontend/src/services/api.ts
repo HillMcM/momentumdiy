@@ -345,6 +345,13 @@ class ApiService {
   }
 
   // Stripe API methods
+  async createCheckoutSession(data: { plan: string; interval: string; successUrl: string; cancelUrl: string }): Promise<ApiResponse<{ sessionUrl: string }>> {
+    return this.request<{ sessionUrl: string }>('/stripe/create-checkout-session', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async createSubscription(plan: string, interval: string): Promise<ApiResponse<{ clientSecret: string; subscriptionId: string }>> {
     return this.request<{ clientSecret: string; subscriptionId: string }>('/stripe/create-subscription', {
       method: 'POST',

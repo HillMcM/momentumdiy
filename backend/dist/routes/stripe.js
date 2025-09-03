@@ -356,5 +356,98 @@ function getPriceId(plan, interval) {
     };
     return priceMap[plan]?.[interval] || null;
 }
+router.post('/create-checkout-session', (0, rate_1.routeRateLimit)(10), async (req, res) => {
+    try {
+        const { plan, interval, successUrl, cancelUrl } = req.body;
+        if (!plan || !interval || !successUrl || !cancelUrl) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required parameters: plan, interval, successUrl, cancelUrl'
+            });
+        }
+        const priceId = getPriceId(plan, interval);
+        if (!priceId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid plan or interval combination'
+            });
+        }
+        const stripe = new stripe_1.default(process.env['STRIPE_SECRET_KEY'], {
+            apiVersion: '2025-08-27.basil',
+        });
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price: priceId,
+                    quantity: 1,
+                },
+            ],
+            mode: 'subscription',
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            metadata: {
+                plan,
+                interval,
+            },
+            billing_address_collection: 'required',
+        });
+        return res.json({
+            success: true,
+            sessionUrl: session.url,
+        });
+    }
+    catch (error) {
+        console.error('Error creating checkout session:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to create checkout session'
+        });
+    }
+});
+router.post('/verify-payment', (0, rate_1.routeRateLimit)(10), async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        if (!sessionId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Session ID is required'
+            });
+        }
+        const stripe = new stripe_1.default(process.env['STRIPE_SECRET_KEY'], {
+            apiVersion: '2025-08-27.basil',
+        });
+        const session = await stripe.checkout.sessions.retrieve(sessionId, {
+            expand: ['customer', 'subscription']
+        });
+        if (session.payment_status !== 'paid') {
+            return res.status(400).json({
+                success: false,
+                error: 'Payment not completed'
+            });
+        }
+        return res.json({
+            success: true,
+            customer: {
+                id: session.customer,
+                email: session.customer_details?.email,
+                name: session.customer_details?.name,
+            },
+            subscription: {
+                id: session.subscription,
+                status: session.subscription?.status || 'active',
+                current_period_start: session.subscription?.current_period_start,
+                current_period_end: session.subscription?.current_period_end,
+            },
+        });
+    }
+    catch (error) {
+        console.error('Error verifying payment:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to verify payment'
+        });
+    }
+});
 exports.default = router;
 //# sourceMappingURL=stripe.js.map

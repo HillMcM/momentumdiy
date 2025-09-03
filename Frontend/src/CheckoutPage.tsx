@@ -1,151 +1,208 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
 import { STRIPE_CONFIG } from './lib/stripe';
-
-// Initialize Stripe
-const stripePromise = loadStripe(STRIPE_CONFIG.publishableKey);
+import { apiService } from './services/api';
 
 export default function CheckoutPage() {
   const { plan, interval } = useParams<{ plan: string; interval: string }>();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Validate plan and interval parameters
   const validPlans = ['monthly', 'annual', 'spark', 'growth', 'lead'];
   const validIntervals = ['monthly', 'yearly'];
 
+  // Get product information
+  const product = plan && STRIPE_CONFIG.products[plan as keyof typeof STRIPE_CONFIG.products];
+
   if (!plan || !interval || !validPlans.includes(plan) || !validIntervals.includes(interval)) {
     return (
       <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
         <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-red-500/30 p-8 max-w-md">
-          <div className="text-center">
-            <div className="text-red-400 text-xl mb-4">❌ Invalid Plan</div>
-            <div className="text-gray-400 mb-6">The selected plan or billing interval is not valid.</div>
-            <button
-              onClick={() => window.history.back()}
-              className="bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              Go Back
-            </button>
-          </div>
+          <h2 className="text-xl font-bold text-white mb-4">Invalid Plan</h2>
+          <p className="text-gray-300 mb-4">The subscription plan you selected is not available.</p>
+          <button
+            onClick={() => navigate('/pricing')}
+            className="w-full bg-[#EF8E81] text-white py-2 px-4 rounded-lg font-medium hover:bg-[#E67A6E] transition-colors"
+          >
+            Return to Pricing
+          </button>
         </div>
       </div>
     );
   }
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>('');
+  const handleCreateCheckout = async () => {
+    if (!termsAccepted) {
+      setError('Please accept the terms and conditions to continue.');
+      return;
+    }
 
-  // Plan details mapping
-  const planDetails = {
-    monthly: { name: 'MomentumDIY Monthly', price: '$29', description: 'Perfect for getting started' },
-    annual: { name: 'MomentumDIY Annual', price: '$290', description: 'Save $58 with annual billing' },
-    spark: { name: 'Spark Membership', price: '$49', description: 'Essential tools for growth' },
-    growth: { name: 'Growth Membership', price: '$99', description: 'Advanced features for scaling' },
-    lead: { name: 'Lead Membership', price: '$199', description: 'Complete marketing solution' }
-  };
+    setLoading(true);
+    setError('');
 
-  const currentPlan = planDetails[plan as keyof typeof planDetails];
-
-  const handleCheckout = async () => {
     try {
-      setLoading(true);
-      setError('');
-
-      // Create Stripe Checkout Session
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://momentumdiy-backend.onrender.com/api'}/stripe/create-checkout-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          plan,
-          interval,
-          successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}/pricing`,
-        }),
+      const response = await apiService.createCheckoutSession({
+        plan,
+        interval,
+        successUrl: `${window.location.origin}/checkout/success`,
+        cancelUrl: `${window.location.origin}/pricing`
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create checkout session');
+      if (response.success && response.data?.sessionUrl) {
+        // Redirect to Stripe Checkout
+        window.location.href = response.data.sessionUrl;
+      } else {
+        setError('Failed to create checkout session. Please try again.');
       }
-
-      const { sessionId } = await response.json();
-
-      // Redirect to Stripe Checkout
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Stripe failed to load');
-      }
-
-      const { error } = await stripe.redirectToCheckout({
-        sessionId,
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-    } catch (err) {
-      console.error('Checkout error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred during checkout');
+    } catch (error) {
+      console.error('Checkout creation failed:', error);
+      setError('Failed to create checkout session. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center p-4">
-      <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-[#EF8E81]/30 p-8 max-w-md w-full">
-        <div className="text-center">
-          {/* Plan Details */}
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-[#FFF1E7] mb-2">
-              {currentPlan.name}
-            </h1>
-            <div className="text-4xl font-bold text-[#EF8E81] mb-2">
-              {currentPlan.price}
-              <span className="text-lg text-gray-400">/{interval === 'yearly' ? 'year' : 'month'}</span>
-            </div>
-            <p className="text-gray-400 text-sm">
-              {currentPlan.description}
-            </p>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg">
-              <p className="text-red-400 text-sm">{error}</p>
-            </div>
-          )}
-
-          {/* Checkout Button */}
-          <button
-            onClick={handleCheckout}
-            disabled={loading}
-            className="w-full bg-[#EF8E81] hover:bg-[#E67A6E] disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-4 rounded-lg font-medium transition-colors mb-4"
-          >
-            {loading ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Processing...
-              </div>
-            ) : (
-              `Pay ${currentPlan.price} - Continue to Checkout`
-            )}
-          </button>
-
-          {/* Security Notice */}
-          <div className="text-xs text-gray-500 mb-4">
-            🔒 Secure payment powered by Stripe
-          </div>
-
-          {/* Back Button */}
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
+        <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-red-500/30 p-8 max-w-md">
+          <h2 className="text-xl font-bold text-white mb-4">Product Not Found</h2>
+          <p className="text-gray-300 mb-4">Unable to load product information.</p>
           <button
             onClick={() => navigate('/pricing')}
-            className="text-gray-400 hover:text-gray-300 text-sm underline"
+            className="w-full bg-[#EF8E81] text-white py-2 px-4 rounded-lg font-medium hover:bg-[#E67A6E] transition-colors"
           >
-            ← Back to Pricing
+            Return to Pricing
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0F0A1A] py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-4">Complete Your Purchase</h1>
+          <p className="text-gray-300 text-lg">You're just one step away from accessing MomentumDIY</p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Product Summary */}
+          <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Order Summary</h2>
+
+            {/* Product Details */}
+            <div className="bg-[#2A2438] rounded-xl p-6 mb-6">
+              <h3 className="text-xl font-semibold text-white mb-2">{product.name}</h3>
+              <p className="text-gray-300 mb-4">{product.description}</p>
+
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-gray-300">
+                  ${product.price}/{product.interval}
+                </span>
+              </div>
+
+              {/* Features */}
+              <div className="space-y-2">
+                <h4 className="text-white font-medium mb-3">What's Included:</h4>
+                {product.features.map((feature, index) => (
+                  <div key={index} className="flex items-center text-gray-300">
+                    <svg className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Total */}
+            <div className="border-t border-gray-600 pt-6">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-semibold text-white">Total</span>
+                <span className="text-2xl font-bold text-[#EF8E81]">
+                  ${product.price}/{product.interval}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Checkout Form */}
+          <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Secure Checkout</h2>
+
+            {/* Terms and Conditions */}
+            <div className="mb-6">
+              <div className="flex items-start">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="mt-1 h-4 w-4 text-[#EF8E81] bg-gray-800 border-gray-600 rounded focus:ring-[#EF8E81]"
+                />
+                <label htmlFor="terms" className="ml-3 text-sm text-gray-300">
+                  I agree to the{' '}
+                  <a href="/terms" className="text-[#EF8E81] hover:text-[#E67A6E] underline" target="_blank" rel="noopener noreferrer">
+                    Terms of Service
+                  </a>
+                  {' '}and{' '}
+                  <a href="/privacy" className="text-[#EF8E81] hover:text-[#E67A6E] underline" target="_blank" rel="noopener noreferrer">
+                    Privacy Policy
+                  </a>
+                  . I understand that this subscription will automatically renew and I can cancel at any time.
+                </label>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Continue to Checkout Button */}
+            <button
+              onClick={handleCreateCheckout}
+              disabled={loading || !termsAccepted}
+              className="w-full bg-[#EF8E81] text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-[#E67A6E] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Processing...
+                </div>
+              ) : (
+                `Continue to Secure Checkout - $${product.price}/${product.interval}`
+              )}
+            </button>
+
+            {/* Security Note */}
+            <div className="mt-6 text-center">
+              <div className="flex items-center justify-center text-gray-400 text-sm">
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                Secured by Stripe
+              </div>
+            </div>
+
+            {/* Cancel Link */}
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => navigate('/pricing')}
+                className="text-gray-400 hover:text-white text-sm underline"
+              >
+                Return to Pricing
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
