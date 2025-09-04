@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { apiService } from '../services/api';
 
 export interface AuthContextValue {
   user: User | null;
@@ -53,29 +54,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const ensureProfileExists = async (signedInUser: User) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, subscription_status')
-        .eq('id', signedInUser.id)
-        .maybeSingle();
-      if (error && error.code !== 'PGRST116') return; // ignore not found error code differences
-      if (!data) {
-        // Create new profile with 30-day trial
-        const trialStart = new Date();
-        const trialEnd = new Date(trialStart);
-        trialEnd.setDate(trialEnd.getDate() + 30);
-        
-        await supabase.from('profiles').insert({ 
-          id: signedInUser.id, 
-          email: signedInUser.email,
-          subscription_status: 'trial',
-          trial_start_date: trialStart.toISOString(),
-          trial_end_date: trialEnd.toISOString(),
-          subscription_plan: 'monthly'
-        });
+      // Use the API service to check/create profile instead of direct Supabase query
+      // This avoids RLS issues and ensures consistent profile creation
+      const response = await apiService.getProfile();
+      
+      // If profile doesn't exist, the backend will create it automatically
+      // No need to handle creation here as the backend handles it
+      if (!response.success && response.error === 'Profile not found') {
+        // Backend will create the profile automatically on the next request
+        console.log('Profile will be created automatically by backend');
       }
     } catch {
-      // no-op: not critical for UX
+      // no-op: not critical for UX, backend will handle profile creation
     }
   };
 
