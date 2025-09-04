@@ -53,20 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const ensureProfileExists = async (signedInUser: User) => {
-    try {
-      // Use the API service to check/create profile instead of direct Supabase query
-      // This avoids RLS issues and ensures consistent profile creation
-      const response = await apiService.getProfile();
-      
-      // If profile doesn't exist, the backend will create it automatically
-      // No need to handle creation here as the backend handles it
-      if (!response.success && response.error === 'Profile not found') {
-        // Backend will create the profile automatically on the next request
-        console.log('Profile will be created automatically by backend');
-      }
-    } catch {
-      // no-op: not critical for UX, backend will handle profile creation
-    }
+    // Temporarily disabled to prevent errors while deployment completes
+    // Profile creation is handled by the backend automatically
+    console.log('Profile creation handled by backend automatically');
   };
 
   const signInWithEmail = async (email: string) => {
