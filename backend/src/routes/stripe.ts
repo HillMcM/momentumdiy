@@ -208,7 +208,7 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
         .from('profiles')
         .insert({
           id: user.id,
-          email: user.email,
+          email: user.email || 'unknown@example.com', // Handle null email
           subscription_status: 'trial',
           trial_start_date: trialStart.toISOString(),
           trial_end_date: trialEnd.toISOString(),
@@ -219,9 +219,10 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
 
       if (createError) {
         console.error('Error creating profile:', createError);
+        console.error('User data:', { id: user.id, email: user.email });
         return res.status(500).json({
           success: false,
-          error: 'Failed to create profile'
+          error: `Failed to create profile: ${createError.message}`
         });
       }
 
