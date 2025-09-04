@@ -32,20 +32,17 @@ export default function AuthPage() {
           if (error) {
             setStatus(`Sign-in failed: ${error.message}`);
           } else {
-            // Clean the URL and redirect to app or checkout
+            // Clean the URL and redirect to app - trial is automatic
             window.history.replaceState(null, '', '/auth');
-            const urlParams = new URLSearchParams(window.location.search);
-            const redirectTo = urlParams.get('redirect') || '/app';
-            navigate(redirectTo, { replace: true });
+            navigate('/app', { replace: true });
           }
         });
       return; // wait for setSession
     }
 
     if (user) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const redirectTo = urlParams.get('redirect') || (location.state as { from?: string })?.from || '/app';
-      navigate(redirectTo, { replace: true });
+      // Always redirect to app - trial is automatic, no need to go to checkout
+      navigate('/app', { replace: true });
     }
   }, [user, navigate, location.state]);
 
@@ -58,10 +55,8 @@ export default function AuthPage() {
       res = await signInWithPassword(email, password);
       setStatus(res.ok ? null : (res.error || 'Sign in failed'));
       if (res.ok) {
-        // Redirect to checkout or app after successful sign in
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectTo = urlParams.get('redirect') || '/app';
-        navigate(redirectTo, { replace: true });
+        // Always redirect to app after successful sign in - trial is automatic
+        navigate('/app', { replace: true });
       }
     } else {
       res = await signUpWithPassword(email, password, fullName || undefined);
