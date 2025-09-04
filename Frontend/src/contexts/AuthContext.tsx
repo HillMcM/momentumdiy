@@ -1,7 +1,6 @@
 import React, { createContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { apiService } from '../services/api';
 
 export interface AuthContextValue {
   user: User | null;
@@ -52,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const ensureProfileExists = async (signedInUser: User) => {
+  const ensureProfileExists = async (_signedInUser: User) => {
     // Temporarily disabled to prevent errors while deployment completes
     // Profile creation is handled by the backend automatically
     console.log('Profile creation handled by backend automatically');
