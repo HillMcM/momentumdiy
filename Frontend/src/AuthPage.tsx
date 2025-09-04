@@ -32,16 +32,19 @@ export default function AuthPage() {
           if (error) {
             setStatus(`Sign-in failed: ${error.message}`);
           } else {
-            // Clean the URL and redirect to app
+            // Clean the URL and redirect to app or checkout
             window.history.replaceState(null, '', '/auth');
-            navigate('/app', { replace: true });
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectTo = urlParams.get('redirect') || '/app';
+            navigate(redirectTo, { replace: true });
           }
         });
       return; // wait for setSession
     }
 
     if (user) {
-      const redirectTo = (location.state as { from?: string })?.from || '/app';
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get('redirect') || (location.state as { from?: string })?.from || '/app';
       navigate(redirectTo, { replace: true });
     }
   }, [user, navigate, location.state]);
@@ -54,6 +57,12 @@ export default function AuthPage() {
     if (mode === 'signin') {
       res = await signInWithPassword(email, password);
       setStatus(res.ok ? null : (res.error || 'Sign in failed'));
+      if (res.ok) {
+        // Redirect to checkout or app after successful sign in
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get('redirect') || '/app';
+        navigate(redirectTo, { replace: true });
+      }
     } else {
       res = await signUpWithPassword(email, password, fullName || undefined);
       setStatus(res.ok ? 'Account created. You can now sign in.' : (res.error || 'Sign up failed'));
