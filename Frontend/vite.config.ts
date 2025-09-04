@@ -23,12 +23,15 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      input: {
+        app: './app.html'
+      },
       output: {
         manualChunks: undefined,
         // Force cache busting
-                    entryFileNames: `assets/[name]-[hash]-v5.js`,
-            chunkFileNames: `assets/[name]-[hash]-v5.js`,
-            assetFileNames: `assets/[name]-[hash]-v5.[ext]`
+        entryFileNames: `assets/[name]-[hash]-v5.js`,
+        chunkFileNames: `assets/[name]-[hash]-v5.js`,
+        assetFileNames: `assets/[name]-[hash]-v5.[ext]`
       }
     }
   },
