@@ -171,7 +171,7 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
       });
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select(`
         *,
@@ -186,18 +186,52 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
         next_payment_date
       `)
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (!profile) {
-      return res.status(404).json({
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      return res.status(500).json({
         success: false,
-        error: 'Profile not found'
+        error: 'Failed to fetch profile'
       });
     }
 
+    let finalProfile = profile;
+    
+    if (!finalProfile) {
+      // Create profile with 30-day trial if it doesn't exist
+      const trialStart = new Date();
+      const trialEnd = new Date(trialStart);
+      trialEnd.setDate(trialEnd.getDate() + 30);
+      
+      const { data: newProfile, error: createError } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email,
+          subscription_status: 'trial',
+          trial_start_date: trialStart.toISOString(),
+          trial_end_date: trialEnd.toISOString(),
+          subscription_plan: 'monthly'
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating profile:', createError);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create profile'
+        });
+      }
+
+      // Use the newly created profile
+      finalProfile = newProfile;
+    }
+
     // Check if trial has expired
-    if (profile.subscription_status === 'trial' && profile.trial_end_date) {
-      const trialEnd = new Date(profile.trial_end_date);
+    if (finalProfile.subscription_status === 'trial' && finalProfile.trial_end_date) {
+      const trialEnd = new Date(finalProfile.trial_end_date);
       const now = new Date();
 
       if (now > trialEnd) {
@@ -210,13 +244,13 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
           })
           .eq('id', user.id);
 
-        profile.subscription_status = 'expired';
+        finalProfile.subscription_status = 'expired';
       }
     }
 
     return res.json({
       success: true,
-      data: profile
+      data: finalProfile
     });
   } catch (error) {
     console.error('Error getting profile:', error);
