@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 
 export default function LandingPage() {
-  const waitlistUrl = (import.meta as { env?: { VITE_WAITLIST_URL?: string } }).env?.VITE_WAITLIST_URL || '/auth';
   return (
     <div className="landing-root">
       <header className="landing-header">
@@ -16,7 +15,7 @@ export default function LandingPage() {
         <h1>Marketing Clarity & Momentum</h1>
         <p>Finally, marketing feels doable again. Step‑by‑step weekly plans, an AI sidekick, and an asset library — built for busy small‑business owners.</p>
         <div className="landing-cta">
-          <Link to="/pricing" className="cta-btn">Start Free Trial</Link>
+          <Link to="/auth" className="cta-btn">Start Free Trial</Link>
           <div className="landing-subtext">30 days free • No credit card required</div>
         </div>
       </section>
@@ -46,7 +45,7 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="landing-cta" style={{marginTop: '1rem'}}>
-          <Link to="/pricing" className="cta-btn">Start Free Trial</Link>
+          <Link to="/auth" className="cta-btn">Start Free Trial</Link>
         </div>
       </section>
 
@@ -76,7 +75,7 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="landing-cta" style={{marginTop: '1rem'}}>
-          <a href={waitlistUrl} className="cta-btn">Join Waitlist</a>
+          <Link to="/auth" className="cta-btn">Start Free Trial</Link>
         </div>
       </section>
 
@@ -94,7 +93,7 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="landing-cta" style={{marginTop: '1rem'}}>
-          <a href={waitlistUrl} className="cta-btn">Join Waitlist</a>
+          <Link to="/auth" className="cta-btn">Start Free Trial</Link>
         </div>
       </section>
 
