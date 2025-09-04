@@ -714,6 +714,9 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
             <Dialog.Title style={{ margin: 0, marginBottom: '1.5rem' }}>
               {editingTask?.id === tasks.find(t => t.id === editingTask?.id)?.id ? 'Edit Task' : 'Create Task'}
             </Dialog.Title>
+            <Dialog.Description style={{ margin: 0, marginBottom: '1rem', color: 'rgba(255, 255, 255, 0.7)' }}>
+              {editingTask?.id === tasks.find(t => t.id === editingTask?.id)?.id ? 'Update the task details below.' : 'Fill in the details to create a new task.'}
+            </Dialog.Description>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', width: '100%', boxSizing: 'border-box', flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
               <div>
