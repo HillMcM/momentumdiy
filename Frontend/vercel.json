@@ -1,8 +1,6 @@
 {
-  "redirects": [
-    { "source": "/", "destination": "/momentum-landing.html", "permanent": false }
-  ],
   "rewrites": [
+    { "source": "/", "destination": "/momentum-landing.html" },
     { "source": "/app", "destination": "/index.html" },
     { "source": "/app/(.*)", "destination": "/index.html" },
     { "source": "/auth", "destination": "/index.html" },
