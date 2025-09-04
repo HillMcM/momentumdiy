@@ -30,6 +30,7 @@ import CheckoutSuccessPage from './CheckoutSuccessPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
 import SubscriptionGuard from './components/SubscriptionGuard';
+import OnboardingWizard from './components/OnboardingWizard';
 
 
 // Component to handle task synchronization between marketing track and task tracker
@@ -428,15 +429,16 @@ function ProtectedApp() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
   const [sidebarHidden, setSidebarHidden] = useState<boolean>(false);
-  
+
   // Comment out non-core state for now
   // const [assets, setAssets] = useState<Asset[]>([]);
   // const [brandingKits, setBrandingKits] = useState<BrandingKit[]>([]);
   // const [shareLinks, setShareLinks] = useState<ShareLink[]>([]);
   // const [customEvents, setCustomEvents] = useState<CalendarEvent[]>([]);
   // const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
-  
+
   const [isLoading, setIsLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
 
   const dedupeTasks = (list: Task[]): Task[] => {
     const map = new Map<string, Task>();
@@ -504,6 +506,13 @@ function ProtectedApp() {
         console.log('🚫 Skipping calendar API call - feature deactivated');
 
         console.log('🎉 All data loaded successfully from mock data!');
+
+        // Check if user needs onboarding
+        const hasActiveGoal = marketingGoals.some(g => g.isActive);
+        if (!hasActiveGoal) {
+          console.log('🎯 No active marketing goal found, showing onboarding');
+          setShowOnboarding(true);
+        }
 
       } catch (error) {
         console.error('❌ Unexpected error loading data:', error);
@@ -793,6 +802,53 @@ function ProtectedApp() {
     }
   }, [marketingGoals, setMarketingGoals]);
 
+  const handleOnboardingComplete = useCallback(async (onboardingData: any) => {
+    console.log('🎉 Onboarding completed:', onboardingData);
+
+    try {
+      // Create the marketing goal based on selected track
+      const trackTitle = onboardingData.selectedTrack === 'local-foot-traffic'
+        ? 'Increase Local Foot Traffic'
+        : 'Improve Social Media Strategy & Engagement';
+
+      const newGoal: MarketingGoal = {
+        id: `goal-${Date.now()}`,
+        title: trackTitle,
+        description: `12-week ${trackTitle} program`,
+        industry: onboardingData.industry || 'General',
+        duration: 12,
+        modules: [], // Will be populated by the track component
+        isActive: true,
+        startDate: new Date(onboardingData.startDate),
+        currentWeek: 1,
+        progress: 0
+      };
+
+      // Add the new goal to the list
+      const updatedGoals = [...marketingGoals, newGoal];
+      await handleMarketingGoalsChange(updatedGoals);
+
+      // Create a project for the marketing track
+      const newProject: Project = {
+        id: `project-${Date.now()}`,
+        name: trackTitle,
+        description: `Marketing track project for ${onboardingData.businessName}`,
+        deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days from now
+        tasks: [],
+        progress: 0,
+        status: 'active',
+        timeline: []
+      };
+
+      await handleProjectsChange([...projects, newProject]);
+
+      console.log('✅ Onboarding setup complete - marketing goal and project created');
+
+    } catch (error) {
+      console.error('❌ Error setting up onboarding:', error);
+    }
+  }, [marketingGoals, projects, handleMarketingGoalsChange, handleProjectsChange]);
+
   // Comment out unused handlers for now
   /*
   const handleAssetsChange = async (updatedAssets: Asset[]) => {
@@ -927,6 +983,11 @@ function ProtectedApp() {
         <main className="main-content">
           <MarketingProvider onTaskStatusChange={handleMarketingTaskStatusChange}>
             <TaskSync tasks={tasks} setTasks={setTasks} />
+            <OnboardingWizard
+              isOpen={showOnboarding}
+              onClose={() => setShowOnboarding(false)}
+              onComplete={handleOnboardingComplete}
+            />
             <Routes>
             <Route index element={
               <Dashboard 
