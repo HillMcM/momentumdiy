@@ -51,14 +51,42 @@ router.post('/content-pillars', (req, res) => {
     contentPillars = pillars.map(p => String(p)).slice(0, 8);
     return res.json({ success: true, data: contentPillars, message: 'Content pillars saved' });
 });
-exports.default = router;
-router.post('/email/test', async (req, res) => {
-    const { to } = (req.body || {});
-    if (!to)
-        return res.status(400).json({ success: false, error: 'to is required' });
-    const result = await emailService_1.EmailService.sendWelcomeEmail({ name: 'User', email: to });
-    return res.status(result.success ? 200 : 500).json(result);
+router.post('/email/test', async (_req, res) => {
+    try {
+        const result = await emailService_1.EmailService.sendTestEmail();
+        return res.status(result.success ? 200 : 500).json(result);
+    }
+    catch (error) {
+        console.error('Email test error:', error);
+        return res.status(500).json({ success: false, error: 'Email test failed' });
+    }
 });
+router.post('/notifications/send', async (req, res) => {
+    try {
+        const { name, email, type, data } = req.body;
+        if (!name || !email || !type) {
+            return res.status(400).json({
+                success: false,
+                error: 'name, email, and type are required'
+            });
+        }
+        const result = await emailService_1.EmailService.sendNotificationEmail({
+            name,
+            email,
+            type,
+            data
+        });
+        return res.status(result.success ? 200 : 500).json(result);
+    }
+    catch (error) {
+        console.error('Notification error:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to send notification'
+        });
+    }
+});
+exports.default = router;
 router.post('/billing/checkout', async (req, res) => {
     try {
         const { priceId, successUrl, cancelUrl, email } = (req.body || {});
