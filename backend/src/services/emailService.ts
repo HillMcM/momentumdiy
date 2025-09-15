@@ -64,7 +64,7 @@ export class EmailService {
       `;
 
       const result = await resend.emails.send({
-        from: 'MomentumDIY <noreply@momentumdiy.com>',
+        from: 'MomentumDIY <onboarding@resend.dev>',
         to: 'info@hillaryedenmcmullen.com',
         subject: `[MomentumDIY Feedback] ${subject}`,
         html: emailContent,
@@ -129,7 +129,7 @@ export class EmailService {
       `;
 
       const result = await resend.emails.send({
-        from: 'MomentumDIY <noreply@momentumdiy.com>',
+        from: 'MomentumDIY <onboarding@resend.dev>',
         to: email,
         subject: 'Welcome to MomentumDIY - Let\'s Grow Your Business!',
         html: emailContent,
@@ -153,7 +153,7 @@ export class EmailService {
   static async sendTestEmail(): Promise<{ success: boolean; error?: string }> {
     try {
       const result = await resend.emails.send({
-        from: 'MomentumDIY <noreply@momentumdiy.com>',
+        from: 'MomentumDIY <onboarding@resend.dev>',
         to: 'info@hillaryedenmcmullen.com',
         subject: 'MomentumDIY Email Test',
         html: `
@@ -237,7 +237,7 @@ export class EmailService {
       }
 
       const result = await resend.emails.send({
-        from: 'MomentumDIY <noreply@momentumdiy.com>',
+        from: 'MomentumDIY <onboarding@resend.dev>',
         to: email,
         subject: subject,
         html: emailContent,

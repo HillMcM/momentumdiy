@@ -61,15 +61,47 @@ router.post('/content-pillars', (req: Request, res: Response) => {
   return res.json({ success: true, data: contentPillars, message: 'Content pillars saved' });
 });
 
-export default router;
-
-// Dev-only: email test endpoint (requires POSTMARK_* envs)
-router.post('/email/test', async (req: Request, res: Response) => {
-  const { to } = (req.body || {}) as { to?: string };
-  if (!to) return res.status(400).json({ success: false, error: 'to is required' });
-  const result = await EmailService.sendWelcomeEmail({ name: 'User', email: to });
-  return res.status(result.success ? 200 : 500).json(result);
+// Dev-only: email test endpoint
+router.post('/email/test', async (_req: Request, res: Response) => {
+  try {
+    const result = await EmailService.sendTestEmail();
+    return res.status(result.success ? 200 : 500).json(result);
+  } catch (error) {
+    console.error('Email test error:', error);
+    return res.status(500).json({ success: false, error: 'Email test failed' });
+  }
 });
+
+// Notification endpoint
+router.post('/notifications/send', async (req: Request, res: Response) => {
+  try {
+    const { name, email, type, data } = req.body;
+    
+    if (!name || !email || !type) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'name, email, and type are required' 
+      });
+    }
+
+    const result = await EmailService.sendNotificationEmail({
+      name,
+      email,
+      type,
+      data
+    });
+
+    return res.status(result.success ? 200 : 500).json(result);
+  } catch (error) {
+    console.error('Notification error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to send notification' 
+    });
+  }
+});
+
+export default router;
 
 // Stripe checkout session (scaffold). Requires STRIPE_SECRET_KEY & a Price ID.
 router.post('/billing/checkout', async (req: Request, res: Response) => {

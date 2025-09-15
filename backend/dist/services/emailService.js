@@ -39,7 +39,7 @@ class EmailService {
         </div>
       `;
             const result = await resend.emails.send({
-                from: 'MomentumDIY <noreply@momentumdiy.com>',
+                from: 'MomentumDIY <onboarding@resend.dev>',
                 to: 'info@hillaryedenmcmullen.com',
                 subject: `[MomentumDIY Feedback] ${subject}`,
                 html: emailContent,
@@ -97,7 +97,7 @@ class EmailService {
         </div>
       `;
             const result = await resend.emails.send({
-                from: 'MomentumDIY <noreply@momentumdiy.com>',
+                from: 'MomentumDIY <onboarding@resend.dev>',
                 to: email,
                 subject: 'Welcome to MomentumDIY - Let\'s Grow Your Business!',
                 html: emailContent,
@@ -116,7 +116,7 @@ class EmailService {
     static async sendTestEmail() {
         try {
             const result = await resend.emails.send({
-                from: 'MomentumDIY <noreply@momentumdiy.com>',
+                from: 'MomentumDIY <onboarding@resend.dev>',
                 to: 'info@hillaryedenmcmullen.com',
                 subject: 'MomentumDIY Email Test',
                 html: `
@@ -185,7 +185,7 @@ class EmailService {
                     throw new Error(`Unknown notification type: ${type}`);
             }
             const result = await resend.emails.send({
-                from: 'MomentumDIY <noreply@momentumdiy.com>',
+                from: 'MomentumDIY <onboarding@resend.dev>',
                 to: email,
                 subject: subject,
                 html: emailContent,
