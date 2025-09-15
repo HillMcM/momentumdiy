@@ -56,7 +56,7 @@ router.post('/email/test', async (req, res) => {
     const { to } = (req.body || {});
     if (!to)
         return res.status(400).json({ success: false, error: 'to is required' });
-    const result = await (0, emailService_1.sendWelcomeEmail)(to);
+    const result = await emailService_1.EmailService.sendWelcomeEmail({ name: 'User', email: to });
     return res.status(result.success ? 200 : 500).json(result);
 });
 router.post('/billing/checkout', async (req, res) => {

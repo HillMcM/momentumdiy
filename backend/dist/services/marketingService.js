@@ -64,6 +64,15 @@ class MarketingService {
     }
     static async createMarketingGoal(goalData) {
         try {
+            if (goalData.isActive) {
+                const { error: deactivateError } = await supabase_1.supabase
+                    .from('marketing_goals')
+                    .update({ is_active: false })
+                    .eq('is_active', true);
+                if (deactivateError) {
+                    console.error('Error deactivating existing goals:', deactivateError);
+                }
+            }
             const { data, error } = await supabase_1.supabase
                 .from('marketing_goals')
                 .insert([{
