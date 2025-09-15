@@ -303,23 +303,20 @@ const BusinessSetupStep: React.FC<{
                 className="w-full px-4 py-3 bg-[#2A2438] border border-[#EF8E81]/30 rounded-lg text-[#FFF1E7] focus:border-[#EF8E81] focus:outline-none"
               >
                 <option value="">Select your business type</option>
-                <option value="retail-store">Retail Store</option>
-                <option value="restaurant">Restaurant/Food Service</option>
-                <option value="professional-services">Professional Services</option>
-                <option value="healthcare">Healthcare/Medical</option>
-                <option value="beauty-wellness">Beauty & Wellness</option>
-                <option value="fitness">Fitness & Recreation</option>
-                <option value="education">Education & Training</option>
-                <option value="real-estate">Real Estate</option>
-                <option value="automotive">Automotive</option>
-                <option value="home-services">Home Services</option>
+                <option value="retail-business">Retail Business</option>
                 <option value="e-commerce">E-commerce/Online Store</option>
-                <option value="consultant">Consultant/Freelancer</option>
-                <option value="agency">Marketing Agency</option>
-                <option value="nonprofit">Nonprofit Organization</option>
+                <option value="service-business">Service Business</option>
+                <option value="professional-services">Professional Services</option>
+                <option value="consultant-freelancer">Consultant/Freelancer</option>
+                <option value="personal-services">Personal Services</option>
+                <option value="trade-craft">Trade/Craft Business</option>
                 <option value="manufacturing">Manufacturing</option>
-                <option value="construction">Construction</option>
-                <option value="technology">Technology/Software</option>
+                <option value="nonprofit">Nonprofit Organization</option>
+                <option value="agency">Marketing/Agency</option>
+                <option value="franchise">Franchise</option>
+                <option value="cooperative">Cooperative</option>
+                <option value="partnership">Partnership</option>
+                <option value="corporation">Corporation</option>
                 <option value="other">Other</option>
               </select>
             </div>
@@ -334,23 +331,15 @@ const BusinessSetupStep: React.FC<{
                 className="w-full px-4 py-3 bg-[#2A2438] border border-[#EF8E81]/30 rounded-lg text-[#FFF1E7] focus:border-[#EF8E81] focus:outline-none"
               >
                 <option value="">Select your industry</option>
-                <option value="retail">Retail & Shopping</option>
-                <option value="restaurant">Restaurant & Food Service</option>
+                <option value="technology">Technology & Software</option>
                 <option value="healthcare">Healthcare & Medical</option>
-                <option value="professional-services">Professional Services</option>
+                <option value="construction">Construction & Contracting</option>
+                <option value="automotive">Automotive</option>
+                <option value="real-estate">Real Estate</option>
                 <option value="beauty-wellness">Beauty & Wellness</option>
+                <option value="restaurant">Restaurant & Food Service</option>
                 <option value="fitness">Fitness & Recreation</option>
                 <option value="education">Education & Training</option>
-                <option value="real-estate">Real Estate</option>
-                <option value="automotive">Automotive</option>
-                <option value="home-services">Home Services</option>
-                <option value="e-commerce">E-commerce & Online Retail</option>
-                <option value="consulting">Consulting & Advisory</option>
-                <option value="marketing">Marketing & Advertising</option>
-                <option value="nonprofit">Nonprofit & Charity</option>
-                <option value="manufacturing">Manufacturing</option>
-                <option value="construction">Construction & Contracting</option>
-                <option value="technology">Technology & Software</option>
                 <option value="finance">Finance & Insurance</option>
                 <option value="legal">Legal Services</option>
                 <option value="hospitality">Hospitality & Tourism</option>
@@ -358,6 +347,11 @@ const BusinessSetupStep: React.FC<{
                 <option value="agriculture">Agriculture & Farming</option>
                 <option value="transportation">Transportation & Logistics</option>
                 <option value="energy">Energy & Utilities</option>
+                <option value="retail">Retail & Shopping</option>
+                <option value="marketing">Marketing & Advertising</option>
+                <option value="consulting">Consulting & Advisory</option>
+                <option value="nonprofit">Nonprofit & Charity</option>
+                <option value="manufacturing">Manufacturing</option>
                 <option value="other">Other</option>
               </select>
             </div>
