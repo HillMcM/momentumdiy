@@ -382,6 +382,14 @@ class ApiService {
   async getProfile(): Promise<ApiResponse<unknown>> {
     return this.request<unknown>('/stripe/profile');
   }
+
+  async updateProfile(data: any): Promise<ApiResponse<any>> {
+    return this.request<any>('/stripe/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
+
 }
 
 export const apiService = new ApiService();
