@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #0F0A1A, #1B1628);
+            color: white;
+        }
+        .container {
+            background: rgba(27, 22, 40, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #EF8E81;
+        }
+        button {
+            background: linear-gradient(135deg, #EF8E81, #E67A6E);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 142, 129, 0.3);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .success { border-left: 4px solid #10b981; }
+        .error { border-left: 4px solid #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 MomentumDIY Email Testing</h1>
+        <p>Test the email system to see how emails look and verify they're working.</p>
+        
+        <h2>Test Options:</h2>
+        
+        <button onclick="testEmail()">Send Test Email</button>
+        <button onclick="testFeedbackEmail()">Send Sample Feedback Email</button>
+        <button onclick="testWelcomeEmail()">Send Sample Welcome Email</button>
+        
+        <div id="result"></div>
+        
+        <h2>What to Check:</h2>
+        <ul>
+            <li>Check your inbox at <strong>info@hillaryedenmcmullen.com</strong></li>
+            <li>Look for emails from <strong>MomentumDIY &lt;noreply@momentumdiy.com&gt;</strong></li>
+            <li>Verify the HTML formatting looks good</li>
+            <li>Check that all information is included correctly</li>
+        </ul>
+    </div>
+
+    <script>
+        const API_BASE = 'https://momentumdiy-backend.onrender.com/api';
+        
+        async function testEmail() {
+            showResult('Sending test email...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/feedback/test`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult('✅ Test email sent successfully! Check your inbox.', 'success');
+                } else {
+                    showResult(`❌ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testFeedbackEmail() {
+            showResult('Sending sample feedback email...', 'info');
+            
+            const sampleFeedback = {
+                name: 'Test User',
+                email: 'test@example.com',
+                subject: 'Sample Feedback',
+                message: 'This is a test feedback message to see how the email formatting looks. It includes multiple lines and should be properly formatted in the email.',
+                rating: 5,
+                category: 'general'
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/feedback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sampleFeedback)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult('✅ Sample feedback email sent! Check your inbox.', 'success');
+                } else {
+                    showResult(`❌ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testWelcomeEmail() {
+            showResult('Sending sample welcome email...', 'info');
+            
+            const sampleWelcome = {
+                name: 'Test User',
+                email: 'info@hillaryedenmcmullen.com'
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/email/test`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sampleWelcome)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult('✅ Sample welcome email sent! Check your inbox.', 'success');
+                } else {
+                    showResult(`❌ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

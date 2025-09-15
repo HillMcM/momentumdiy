@@ -404,6 +404,16 @@ class ApiService {
     });
   }
 
+  async sendNotification(data: {
+    type: string;
+    data?: any;
+  }): Promise<ApiResponse<any>> {
+    return this.request<any>('/notifications/send', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
 }
 
 export const apiService = new ApiService();
