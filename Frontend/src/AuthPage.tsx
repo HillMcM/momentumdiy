@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from './contexts/useAuth';
 import { supabase } from './lib/supabase';
+import { apiService } from './services/api';
 import OnboardingWizard, { type OnboardingData } from './components/OnboardingWizard';
 
 export default function AuthPage() {
@@ -51,24 +52,14 @@ export default function AuthPage() {
 
   const checkOnboardingStatus = async () => {
     try {
-      // Check if user has completed onboarding
-      const response = await fetch('/api/profile', {
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
-      });
+      // Check if user has completed onboarding using apiService
+      const response = await apiService.getProfile();
       
-      if (response.ok) {
-        const profile = await response.json();
-        if (profile.data?.onboarding_completed) {
-          // User has completed onboarding, go to app
-          navigate('/app', { replace: true });
-        } else {
-          // User needs onboarding
-          setShowOnboarding(true);
-        }
+      if (response.success && (response.data as any)?.onboarding_completed) {
+        // User has completed onboarding, go to app
+        navigate('/app', { replace: true });
       } else {
-        // Profile doesn't exist or error, show onboarding for new users
+        // User needs onboarding
         setShowOnboarding(true);
       }
     } catch (error) {
@@ -122,8 +113,8 @@ export default function AuthPage() {
           </div>
           <div className="auth-section">
           <form className="auth-form" onSubmit={handleSubmit}>
-            <input type="email" placeholder="you@example.com" value={email} onChange={(e)=>setEmail(e.target.value)} required />
-            <input type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} required />
+          <input type="email" placeholder="you@example.com" value={email} onChange={(e)=>setEmail(e.target.value)} autoComplete="email" required />
+          <input type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete="current-password" required />
             {mode === 'signup' && (
               <input type="text" placeholder="Full name (optional)" value={fullName} onChange={(e)=>setFullName(e.target.value)} />
             )}
