@@ -20,6 +20,7 @@ import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
 import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
+import { OnboardingProvider } from './contexts/OnboardingContext';
 import { useSubscription } from './hooks/useSubscription';
 
 import { supabase } from './lib/supabase';
@@ -30,6 +31,7 @@ import CheckoutSuccessPage from './CheckoutSuccessPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
 import SubscriptionGuard from './components/SubscriptionGuard';
+import PersonalizedDashboard from './components/PersonalizedDashboard';
 import OnboardingWizard from './components/OnboardingWizard';
 
 
@@ -509,9 +511,22 @@ function ProtectedApp() {
 
         // Check if user needs onboarding
         const hasActiveGoal = marketingGoals.some(g => g.isActive);
+        
         if (!hasActiveGoal) {
-          console.log('🎯 No active marketing goal found, showing onboarding');
-          setShowOnboarding(true);
+          // Check if user has completed onboarding by fetching profile
+          try {
+            const profileResponse = await apiService.getProfile();
+            const hasCompletedOnboarding = profileResponse.success && 
+              (profileResponse.data as any)?.onboarding_completed === true;
+            
+            if (!hasCompletedOnboarding) {
+              console.log('🎯 No active marketing goal and onboarding not completed, showing onboarding');
+              setShowOnboarding(true);
+            }
+          } catch (error) {
+            console.log('🎯 Error checking onboarding status, showing onboarding as fallback');
+            setShowOnboarding(true);
+          }
         }
 
       } catch (error) {
@@ -991,7 +1006,8 @@ function ProtectedApp() {
               onSkip={() => setShowOnboarding(false)}
               onComplete={handleOnboardingComplete}
             />
-            <Routes>
+            <PersonalizedDashboard>
+              <Routes>
             <Route index element={
               <Dashboard 
                 projects={projects}
@@ -1040,8 +1056,9 @@ function ProtectedApp() {
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
             <Route path="manage-subscription" element={<SubscriptionPage />} />
             <Route path="feedback" element={<Placeholder title="Feedback" />} />
-          </Routes>
-          <FloatingAssistant />
+              </Routes>
+              <FloatingAssistant />
+            </PersonalizedDashboard>
           </MarketingProvider>
         </main>
       </div>
@@ -1052,7 +1069,8 @@ function ProtectedApp() {
 function App() {
   return (
     <Router>
-      <Routes>
+      <OnboardingProvider>
+        <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
@@ -1073,7 +1091,8 @@ function App() {
             </SubscriptionGuard>
           </MarketingProvider>
         } />
-      </Routes>
+        </Routes>
+      </OnboardingProvider>
     </Router>
   );
 }
