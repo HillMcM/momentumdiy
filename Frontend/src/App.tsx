@@ -844,6 +844,9 @@ function ProtectedApp() {
 
       console.log('✅ Onboarding setup complete - marketing goal and project created');
 
+      // Close the onboarding modal
+      setShowOnboarding(false);
+
     } catch (error) {
       console.error('❌ Error setting up onboarding:', error);
     }
