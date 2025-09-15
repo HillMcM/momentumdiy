@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSubscription } from '../hooks/useSubscription';
+import { useAuth } from '../contexts/useAuth';
 import PaywallModal from './PaywallModal';
 
 interface SubscriptionGuardProps {
@@ -8,6 +9,7 @@ interface SubscriptionGuardProps {
 }
 
 export default function SubscriptionGuard({ children, fallback }: SubscriptionGuardProps) {
+  const { user } = useAuth();
   const { subscription, loading } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
 
@@ -19,6 +21,11 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
       }
     }
   }, [subscription, loading]);
+
+  // If user is not authenticated, show children (let auth flow handle it)
+  if (!user) {
+    return <>{children}</>;
+  }
 
   // Show loading state
   if (loading) {
