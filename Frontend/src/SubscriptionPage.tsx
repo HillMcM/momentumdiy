@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiService } from './services/api';
 
 interface SubscriptionDetails {
   subscription_status: string;
@@ -26,14 +27,13 @@ export default function SubscriptionPage() {
   const loadSubscriptionDetails = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/stripe/profile');
-      const data = await response.json();
+      const response = await apiService.getProfile();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to load subscription details');
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to load subscription details');
       }
 
-      setSubscription(data.data);
+      setSubscription(response.data as SubscriptionDetails);
     } catch (err) {
       console.error('Error loading subscription:', err);
       setError(err instanceof Error ? err.message : 'Failed to load subscription');
