@@ -108,19 +108,13 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
         onboarding_data: onboardingData
       });
       
-      // Create the recommended marketing goal
-      if (onboardingData.selectedTrack) {
-        await apiService.createMarketingGoal({
-          title: onboardingData.selectedTrack === 'local-foot-traffic' 
-            ? 'Increase Local Foot Traffic' 
-            : 'Improve Social Media Strategy & Engagement',
-          description: `Personalized ${onboardingData.selectedTrack.replace('-', ' ')} track based on your onboarding quiz`,
-          industry: onboardingData.industry,
-          duration: 12
-        });
-      }
+      console.log('✅ Onboarding data saved to profile');
       
+      // Call the completion handler and close the wizard
+      console.log('🔧 Calling onComplete callback...');
       onComplete(onboardingData);
+      console.log('✅ onComplete callback called');
+      
     } catch (error) {
       console.error('Error completing onboarding:', error);
       // Still complete onboarding even if API calls fail
