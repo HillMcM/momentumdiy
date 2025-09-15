@@ -16,7 +16,8 @@ class EmailService {
           <title>New Feedback from MomentumDIY</title>
         </head>
         <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-          <div style="background: #EF8E81; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
+          <div style="background: linear-gradient(135deg, #EF8E81, #686DCA); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+            <img src="https://momentumdiy.com/assets/octopus_icon.png" alt="MomentumDIY" style="width: 50px; height: 50px; margin-bottom: 10px;">
             <h1 style="color: white; margin: 0; font-size: 24px;">New Feedback from MomentumDIY</h1>
           </div>
           
@@ -75,7 +76,8 @@ class EmailService {
           <title>Welcome to MomentumDIY</title>
         </head>
         <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-          <div style="background: #EF8E81; padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+          <div style="background: linear-gradient(135deg, #EF8E81, #686DCA); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+            <img src="https://momentumdiy.com/assets/octopus_icon.png" alt="MomentumDIY" style="width: 60px; height: 60px; margin-bottom: 15px;">
             <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to MomentumDIY!</h1>
             <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your marketing success journey starts now</p>
           </div>
@@ -99,7 +101,7 @@ class EmailService {
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="https://momentumdiy.com/app" 
-                 style="background: #EF8E81; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                 style="background: linear-gradient(135deg, #EF8E81, #686DCA); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
                 Get Started Now
               </a>
             </div>
@@ -227,7 +229,8 @@ class EmailService {
         <title>Welcome to MomentumDIY</title>
       </head>
       <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-        <div style="background: #EF8E81; padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+        <div style="background: linear-gradient(135deg, #EF8E81, #686DCA); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+          <img src="https://momentumdiy.com/assets/octopus_icon.png" alt="MomentumDIY" style="width: 60px; height: 60px; margin-bottom: 15px;">
           <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to MomentumDIY!</h1>
           <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your marketing success journey starts now</p>
         </div>
@@ -251,7 +254,7 @@ class EmailService {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://momentumdiy.com/app" 
-               style="background: #EF8E81; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+               style="background: linear-gradient(135deg, #EF8E81, #686DCA); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Get Started Now
             </a>
           </div>
@@ -278,7 +281,8 @@ class EmailService {
         <title>Onboarding Complete - MomentumDIY</title>
       </head>
       <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-        <div style="background: #EF8E81; padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+        <div style="background: linear-gradient(135deg, #EF8E81, #686DCA); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+          <img src="https://momentumdiy.com/assets/octopus_icon.png" alt="MomentumDIY" style="width: 60px; height: 60px; margin-bottom: 15px;">
           <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Onboarding Complete!</h1>
           <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your personalized marketing plan is ready</p>
         </div>
@@ -303,7 +307,7 @@ class EmailService {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://momentumdiy.com/app/marketing-track" 
-               style="background: #EF8E81; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+               style="background: linear-gradient(135deg, #EF8E81, #686DCA); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Start Your Marketing Track
             </a>
           </div>
