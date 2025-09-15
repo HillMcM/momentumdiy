@@ -21,6 +21,7 @@ import profileRoutes from './routes/profile';
 import stripeRoutes from './routes/stripe';
 import feedbackRoutes from './routes/feedback';
 import notificationRoutes from './routes/notifications';
+import mainRoutes from './routes/index';
 
 
 // Load environment variables
@@ -163,6 +164,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api', mainRoutes);
 
 
 // Sentry verification route: intentionally throws to test error capture

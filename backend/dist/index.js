@@ -55,6 +55,7 @@ const profile_1 = __importDefault(require("./routes/profile"));
 const stripe_1 = __importDefault(require("./routes/stripe"));
 const feedback_1 = __importDefault(require("./routes/feedback"));
 const notifications_1 = __importDefault(require("./routes/notifications"));
+const index_1 = __importDefault(require("./routes/index"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env['PORT'] || 3001;
@@ -157,6 +158,7 @@ app.use('/api/profile', profile_1.default);
 app.use('/api/stripe', stripe_1.default);
 app.use('/api/feedback', feedback_1.default);
 app.use('/api/notifications', notifications_1.default);
+app.use('/api', index_1.default);
 app.get('/debug/sentry-test', () => {
     throw new Error('Sentry test error');
 });
