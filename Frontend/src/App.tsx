@@ -985,7 +985,7 @@ function ProtectedApp() {
             <TaskSync tasks={tasks} setTasks={setTasks} />
             <OnboardingWizard
               isOpen={showOnboarding}
-              onClose={() => setShowOnboarding(false)}
+              onSkip={() => setShowOnboarding(false)}
               onComplete={handleOnboardingComplete}
             />
             <Routes>

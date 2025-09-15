@@ -480,4 +480,62 @@ router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
   }
 });
 
+// Update user profile (including onboarding data)
+router.put('/profile', routeRateLimit(10), async (req, res) => {
+  try {
+    // Get the authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - No valid token provided'
+      });
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    // Verify the token and get user
+    const { data: { user }, error } = await supabasePublic.auth.getUser(token);
+
+    if (error || !user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - Invalid token'
+      });
+    }
+
+    const updateData = req.body;
+
+    // Update the profile
+    const { data: updatedProfile, error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Error updating profile:', updateError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to update profile'
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: updatedProfile
+    });
+  } catch (error) {
+    console.error('Error in profile update:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 export default router;
