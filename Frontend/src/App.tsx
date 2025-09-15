@@ -134,28 +134,26 @@ function Header() {
             {getSubscriptionStatus()}
           </div>
         )}
-        {!subscription?.hasAccess && (
-          <Link 
-            to="/pricing"
-            className="upgrade-btn"
-            style={{ 
-              background: '#EF8E81 !important', 
-              color: '#FFF1E7 !important', 
-              border: 'none !important', 
-              borderRadius: '999px !important', 
-              padding: '0.75rem 2rem !important', 
-              fontSize: '1.1rem !important', 
-              fontWeight: '700 !important', 
-              boxShadow: '0 4px 16px 0 rgba(239, 142, 129, 0.25) !important', 
-              cursor: 'pointer !important', 
-              transition: 'background 0.2s, box-shadow 0.2s !important', 
-              outline: 'none !important',
-              textDecoration: 'none !important'
-            }}
-          >
-            Upgrade
-          </Link>
-        )}
+        <Link 
+          to="/pricing"
+          className="upgrade-btn"
+          style={{ 
+            background: '#EF8E81 !important', 
+            color: '#FFF1E7 !important', 
+            border: 'none !important', 
+            borderRadius: '999px !important', 
+            padding: '0.75rem 2rem !important', 
+            fontSize: '1.1rem !important', 
+            fontWeight: '700 !important', 
+            boxShadow: '0 4px 16px 0 rgba(239, 142, 129, 0.25) !important', 
+            cursor: 'pointer !important', 
+            transition: 'background 0.2s, box-shadow 0.2s !important', 
+            outline: 'none !important',
+            textDecoration: 'none !important'
+          }}
+        >
+          Upgrade
+        </Link>
         {user ? (
           <button 
             className="upgrade-btn" 
