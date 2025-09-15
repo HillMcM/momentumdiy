@@ -82,8 +82,9 @@ const corsOptions = {
         if (!origin)
             return callback(null, true);
         const devOk = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+        const vercelFeatureOk = /^https:\/\/momentumdiy-git-feature-.*-hillarys-projects-.*\.vercel\.app$/.test(origin);
         if (configuredOrigins.length > 0) {
-            const allowed = configuredOrigins.includes(origin) || devOk;
+            const allowed = configuredOrigins.includes(origin) || devOk || vercelFeatureOk;
             return callback(allowed ? null : new Error('Not allowed by CORS'), allowed);
         }
         return callback(devOk ? null : new Error('Not allowed by CORS'), devOk);

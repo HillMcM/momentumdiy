@@ -171,6 +171,15 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
       });
     }
 
+    // Greenlist check for owner/admin accounts
+    const greenlistedEmails = [
+      'info@hillaryedenmcmullen.com',
+      'hillary@momentumdiy.com',
+      'admin@momentumdiy.com'
+    ];
+    
+    const isGreenlisted = greenlistedEmails.includes(user.email?.toLowerCase() || '');
+
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select(`
@@ -199,7 +208,7 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
     let finalProfile = profile;
     
     if (!finalProfile) {
-      // Create profile with 30-day trial if it doesn't exist
+      // Create profile - greenlisted users get unlimited access, others get 30-day trial
       const trialStart = new Date();
       const trialEnd = new Date(trialStart);
       trialEnd.setDate(trialEnd.getDate() + 30);
@@ -209,9 +218,9 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
         .insert({
           id: user.id,
           email: user.email || 'unknown@example.com', // Handle null email
-          subscription_status: 'trial',
-          trial_start_date: trialStart.toISOString(),
-          trial_end_date: trialEnd.toISOString(),
+          subscription_status: isGreenlisted ? 'active' : 'trial',
+          trial_start_date: isGreenlisted ? null : trialStart.toISOString(),
+          trial_end_date: isGreenlisted ? null : trialEnd.toISOString(),
           subscription_plan: 'monthly'
         })
         .select()
@@ -230,8 +239,8 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
       finalProfile = newProfile;
     }
 
-    // Check if trial has expired
-    if (finalProfile.subscription_status === 'trial' && finalProfile.trial_end_date) {
+    // Check if trial has expired (skip for greenlisted users)
+    if (!isGreenlisted && finalProfile.subscription_status === 'trial' && finalProfile.trial_end_date) {
       const trialEnd = new Date(finalProfile.trial_end_date);
       const now = new Date();
 
@@ -247,6 +256,11 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
 
         finalProfile.subscription_status = 'expired';
       }
+    }
+
+    // Override subscription status for greenlisted users
+    if (isGreenlisted) {
+      finalProfile.subscription_status = 'active';
     }
 
     return res.json({
