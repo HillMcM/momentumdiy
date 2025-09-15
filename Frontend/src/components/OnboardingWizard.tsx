@@ -171,7 +171,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
             <div className="flex items-center space-x-2">
               <div className="w-48 bg-[#2A2438] rounded-full h-2">
                 <div 
-                  className="bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] h-2 rounded-full transition-all duration-300"
+                  className="bg-[#EF8E81] h-2 rounded-full transition-all duration-300"
                   style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
                 />
               </div>
@@ -225,13 +225,13 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
             Back
           </button>
           
-          <button
-            onClick={handleNext}
-            disabled={!canProceed()}
-            className="px-8 py-3 rounded-lg bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold hover:from-[#E67E6B] hover:to-[#C19B2A] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {currentStep === totalSteps - 1 ? 'Complete Setup' : 'Next'}
-          </button>
+            <button
+              onClick={handleNext}
+              disabled={!canProceed()}
+              className="px-8 py-3 rounded-lg bg-[#EF8E81] text-white font-semibold hover:bg-[#E67E6B] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {currentStep === totalSteps - 1 ? 'Complete Setup' : 'Next'}
+            </button>
         </div>
       </div>
     </div>
@@ -248,7 +248,7 @@ const BusinessSetupStep: React.FC<{
     case 0: // Welcome
       return (
         <div className="text-center">
-          <div className="w-24 h-24 bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-24 h-24 bg-[#EF8E81] rounded-full flex items-center justify-center mx-auto mb-6">
             <span className="text-4xl">🎉</span>
           </div>
           <h2 className="text-3xl font-bold text-[#FFF1E7] mb-4">
@@ -303,11 +303,23 @@ const BusinessSetupStep: React.FC<{
                 className="w-full px-4 py-3 bg-[#2A2438] border border-[#EF8E81]/30 rounded-lg text-[#FFF1E7] focus:border-[#EF8E81] focus:outline-none"
               >
                 <option value="">Select your business type</option>
-                <option value="local-business">Local Business</option>
-                <option value="e-commerce">E-commerce</option>
-                <option value="service-based">Service-Based</option>
+                <option value="retail-store">Retail Store</option>
+                <option value="restaurant">Restaurant/Food Service</option>
+                <option value="professional-services">Professional Services</option>
+                <option value="healthcare">Healthcare/Medical</option>
+                <option value="beauty-wellness">Beauty & Wellness</option>
+                <option value="fitness">Fitness & Recreation</option>
+                <option value="education">Education & Training</option>
+                <option value="real-estate">Real Estate</option>
+                <option value="automotive">Automotive</option>
+                <option value="home-services">Home Services</option>
+                <option value="e-commerce">E-commerce/Online Store</option>
                 <option value="consultant">Consultant/Freelancer</option>
-                <option value="nonprofit">Nonprofit</option>
+                <option value="agency">Marketing Agency</option>
+                <option value="nonprofit">Nonprofit Organization</option>
+                <option value="manufacturing">Manufacturing</option>
+                <option value="construction">Construction</option>
+                <option value="technology">Technology/Software</option>
                 <option value="other">Other</option>
               </select>
             </div>
@@ -322,14 +334,30 @@ const BusinessSetupStep: React.FC<{
                 className="w-full px-4 py-3 bg-[#2A2438] border border-[#EF8E81]/30 rounded-lg text-[#FFF1E7] focus:border-[#EF8E81] focus:outline-none"
               >
                 <option value="">Select your industry</option>
-                <option value="retail">Retail</option>
-                <option value="restaurant">Restaurant/Food Service</option>
-                <option value="healthcare">Healthcare</option>
+                <option value="retail">Retail & Shopping</option>
+                <option value="restaurant">Restaurant & Food Service</option>
+                <option value="healthcare">Healthcare & Medical</option>
                 <option value="professional-services">Professional Services</option>
                 <option value="beauty-wellness">Beauty & Wellness</option>
                 <option value="fitness">Fitness & Recreation</option>
-                <option value="education">Education</option>
-                <option value="technology">Technology</option>
+                <option value="education">Education & Training</option>
+                <option value="real-estate">Real Estate</option>
+                <option value="automotive">Automotive</option>
+                <option value="home-services">Home Services</option>
+                <option value="e-commerce">E-commerce & Online Retail</option>
+                <option value="consulting">Consulting & Advisory</option>
+                <option value="marketing">Marketing & Advertising</option>
+                <option value="nonprofit">Nonprofit & Charity</option>
+                <option value="manufacturing">Manufacturing</option>
+                <option value="construction">Construction & Contracting</option>
+                <option value="technology">Technology & Software</option>
+                <option value="finance">Finance & Insurance</option>
+                <option value="legal">Legal Services</option>
+                <option value="hospitality">Hospitality & Tourism</option>
+                <option value="entertainment">Entertainment & Events</option>
+                <option value="agriculture">Agriculture & Farming</option>
+                <option value="transportation">Transportation & Logistics</option>
+                <option value="energy">Energy & Utilities</option>
                 <option value="other">Other</option>
               </select>
             </div>
@@ -344,10 +372,14 @@ const BusinessSetupStep: React.FC<{
                 className="w-full px-4 py-3 bg-[#2A2438] border border-[#EF8E81]/30 rounded-lg text-[#FFF1E7] focus:border-[#EF8E81] focus:outline-none"
               >
                 <option value="">Select your business stage</option>
-                <option value="just-starting">Just Starting (0-6 months)</option>
-                <option value="growing">Growing (6 months - 2 years)</option>
-                <option value="established">Established (2+ years)</option>
-                <option value="scaling">Scaling (ready to expand)</option>
+                <option value="idea-stage">Idea Stage - Planning to launch</option>
+                <option value="startup">Startup - Recently launched</option>
+                <option value="early-stage">Early Stage - Building customer base</option>
+                <option value="growth-stage">Growth Stage - Expanding operations</option>
+                <option value="established">Established - Stable and profitable</option>
+                <option value="mature">Mature - Well-established business</option>
+                <option value="scaling">Scaling - Ready for major expansion</option>
+                <option value="pivot">Pivoting - Changing direction</option>
               </select>
             </div>
           </div>
@@ -620,9 +652,9 @@ const TrackSetupStep: React.FC<{
             Your recommended track
           </h2>
           
-          <div className="bg-gradient-to-r from-[#EF8E81]/10 to-[#D4AF37]/10 border border-[#EF8E81]/30 rounded-xl p-6 mb-6">
+          <div className="bg-[#EF8E81]/10 border border-[#EF8E81]/30 rounded-xl p-6 mb-6">
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-[#EF8E81] rounded-lg flex items-center justify-center">
                 <span className="text-2xl">🎯</span>
               </div>
               <div className="flex-1">
