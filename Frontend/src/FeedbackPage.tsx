@@ -23,6 +23,7 @@ export default function FeedbackPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isTestingEmail, setIsTestingEmail] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -65,6 +66,31 @@ export default function FeedbackPage() {
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleTestEmail = async () => {
+    setIsTestingEmail(true);
+    try {
+      const response = await fetch('/api/feedback/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Test email sent successfully! Check your inbox.');
+      } else {
+        alert('Failed to send test email: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      alert('Error sending test email');
+    } finally {
+      setIsTestingEmail(false);
     }
   };
 
@@ -236,13 +262,22 @@ export default function FeedbackPage() {
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-center">
+              <div className="flex justify-center gap-4">
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="bg-gradient-to-r from-[#EF8E81] to-[#E67A6E] hover:from-[#E67A6E] hover:to-[#D46A5A] disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-12 py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:transform-none"
                 >
                   {isSubmitting ? 'Sending Feedback...' : 'Send Feedback'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={handleTestEmail}
+                  disabled={isTestingEmail}
+                  className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:transform-none"
+                >
+                  {isTestingEmail ? 'Sending Test...' : 'Test Email'}
                 </button>
               </div>
 

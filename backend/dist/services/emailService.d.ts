@@ -1,16 +1,27 @@
-export interface SendEmailParams {
-    to: string;
+export interface FeedbackEmailData {
+    name: string;
+    email: string;
     subject: string;
-    htmlBody?: string;
-    textBody?: string;
-    messageStream?: string;
+    message: string;
+    rating: number;
+    category: string;
 }
-export declare function sendEmail(params: SendEmailParams): Promise<{
-    success: boolean;
-    error?: string;
-}>;
-export declare function sendWelcomeEmail(to: string): Promise<{
-    success: boolean;
-    error?: string;
-}>;
+export interface WelcomeEmailData {
+    name: string;
+    email: string;
+}
+export declare class EmailService {
+    static sendFeedbackEmail(data: FeedbackEmailData): Promise<{
+        success: boolean;
+        error?: string;
+    }>;
+    static sendWelcomeEmail(data: WelcomeEmailData): Promise<{
+        success: boolean;
+        error?: string;
+    }>;
+    static sendTestEmail(): Promise<{
+        success: boolean;
+        error?: string;
+    }>;
+}
 //# sourceMappingURL=emailService.d.ts.map
