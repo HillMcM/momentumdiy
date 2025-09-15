@@ -819,6 +819,7 @@ function ProtectedApp() {
 
   const handleOnboardingComplete = useCallback(async (onboardingData: any) => {
     console.log('🎉 Onboarding completed:', onboardingData);
+    console.log('🔧 About to close onboarding wizard...');
 
     try {
       // Create the marketing goal based on selected track
@@ -860,7 +861,9 @@ function ProtectedApp() {
       console.log('✅ Onboarding setup complete - marketing goal and project created');
 
       // Close the onboarding modal
+      console.log('🔧 Setting showOnboarding to false...');
       setShowOnboarding(false);
+      console.log('✅ Onboarding wizard should now be closed');
 
     } catch (error) {
       console.error('❌ Error setting up onboarding:', error);
