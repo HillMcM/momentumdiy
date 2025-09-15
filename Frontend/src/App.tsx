@@ -323,11 +323,17 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
         - Marketing Calendar
         - Project Management  
         - Asset Library
-        - Manage Subscription
         - Test Pages
         */}
       </ul>
       <div className="sidebar-footer">
+        <Link 
+          to="/app/manage-subscription" 
+          className={isActive('/app/manage-subscription') ? 'active' : ''}
+          onClick={() => handleLinkClick('/app/manage-subscription')}
+        >
+          Subscription Management
+        </Link>
         <Link 
           to="/feedback" 
           className={isActive('/feedback') ? 'active' : ''}
@@ -827,22 +833,22 @@ function ProtectedApp() {
         ? 'Increase Local Foot Traffic'
         : 'Improve Social Media Strategy & Engagement';
 
-      const newGoal: MarketingGoal = {
-        id: `goal-${Date.now()}`,
+      // Create the goal in the backend first
+      const goalResponse = await apiService.createMarketingGoal({
         title: trackTitle,
         description: `12-week ${trackTitle} program`,
         industry: onboardingData.industry || 'General',
         duration: 12,
-        modules: [], // Will be populated by the track component
-        isActive: true,
-        startDate: new Date(onboardingData.startDate),
-        currentWeek: 1,
-        progress: 0
-      };
+        isActive: true
+      });
 
-      // Add the new goal to the list
-      const updatedGoals = [...marketingGoals, newGoal];
-      await handleMarketingGoalsChange(updatedGoals);
+      if (goalResponse.success && goalResponse.data) {
+        // Add the new goal to the list
+        const updatedGoals = [...marketingGoals, goalResponse.data];
+        await handleMarketingGoalsChange(updatedGoals);
+      } else {
+        console.error('Failed to create marketing goal:', goalResponse.error);
+      }
 
       // Create a project for the marketing track
       const newProject: Project = {

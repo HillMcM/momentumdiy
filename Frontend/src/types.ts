@@ -205,6 +205,7 @@ export interface CreateMarketingGoalRequest {
   description: string;
   industry: string;
   duration: number;
+  isActive?: boolean;
   modules?: MarketingModule[];
 }
 
