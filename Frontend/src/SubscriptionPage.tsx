@@ -105,7 +105,7 @@ export default function SubscriptionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-[#2A243E]/60 p-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-600 rounded w-48 mb-4"></div>
@@ -122,7 +122,7 @@ export default function SubscriptionPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-red-500/30 p-8 max-w-md">
           <div className="text-center">
             <div className="text-red-400 text-xl mb-4">❌ Error Loading Subscription</div>
@@ -140,7 +140,7 @@ export default function SubscriptionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0F0A1A] via-[#1B1628] to-[#0F0A1A] py-12">
+    <div className="min-h-screen py-12">
       <div className="max-w-6xl mx-auto px-4">
         <div className="space-y-8">
           {/* Header */}
