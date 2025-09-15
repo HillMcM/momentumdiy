@@ -8,8 +8,15 @@ class EmailService {
         try {
             const { name, email, subject, message, rating, category } = data;
             const emailContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-          <div style="background: linear-gradient(135deg, #EF8E81, #D4AF37); padding: 30px; border-radius: 10px; margin-bottom: 20px;">
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>New Feedback from MomentumDIY</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+          <div style="background: #EF8E81; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
             <h1 style="color: white; margin: 0; font-size: 24px;">New Feedback from MomentumDIY</h1>
           </div>
           
@@ -36,7 +43,8 @@ class EmailService {
               <p>This feedback was sent from the MomentumDIY app feedback form.</p>
             </div>
           </div>
-        </div>
+        </body>
+        </html>
       `;
             const result = await resend.emails.send({
                 from: 'MomentumDIY <onboarding@resend.dev>',
@@ -59,8 +67,15 @@ class EmailService {
         try {
             const { name, email } = data;
             const emailContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-          <div style="background: linear-gradient(135deg, #EF8E81, #D4AF37); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Welcome to MomentumDIY</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+          <div style="background: #EF8E81; padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
             <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to MomentumDIY!</h1>
             <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your marketing success journey starts now</p>
           </div>
@@ -84,7 +99,7 @@ class EmailService {
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="https://momentumdiy.com/app" 
-                 style="background: linear-gradient(135deg, #EF8E81, #E67A6E); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                 style="background: #EF8E81; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
                 Get Started Now
               </a>
             </div>
@@ -94,7 +109,8 @@ class EmailService {
               <p>© 2024 MomentumDIY. All rights reserved.</p>
             </div>
           </div>
-        </div>
+        </body>
+        </html>
       `;
             const result = await resend.emails.send({
                 from: 'MomentumDIY <onboarding@resend.dev>',
@@ -203,8 +219,15 @@ class EmailService {
     }
     static getWelcomeEmailTemplate(name) {
         return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-        <div style="background: linear-gradient(135deg, #EF8E81, #D4AF37); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome to MomentumDIY</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+        <div style="background: #EF8E81; padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to MomentumDIY!</h1>
           <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your marketing success journey starts now</p>
         </div>
@@ -228,7 +251,7 @@ class EmailService {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://momentumdiy.com/app" 
-               style="background: linear-gradient(135deg, #EF8E81, #E67A6E); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+               style="background: #EF8E81; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Get Started Now
             </a>
           </div>
@@ -238,7 +261,8 @@ class EmailService {
             <p>© 2024 MomentumDIY. All rights reserved.</p>
           </div>
         </div>
-      </div>
+      </body>
+      </html>
     `;
     }
     static getOnboardingCompleteTemplate(name, data) {
@@ -246,8 +270,15 @@ class EmailService {
             ? 'Increase Local Foot Traffic'
             : 'Improve Social Media Strategy & Engagement';
         return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-        <div style="background: linear-gradient(135deg, #EF8E81, #D4AF37); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Onboarding Complete - MomentumDIY</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+        <div style="background: #EF8E81; padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Onboarding Complete!</h1>
           <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your personalized marketing plan is ready</p>
         </div>
@@ -272,12 +303,13 @@ class EmailService {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://momentumdiy.com/app/marketing-track" 
-               style="background: linear-gradient(135deg, #EF8E81, #E67A6E); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+               style="background: #EF8E81; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Start Your Marketing Track
             </a>
           </div>
         </div>
-      </div>
+      </body>
+      </html>
     `;
     }
     static getTrialEndingTemplate(name, data) {
