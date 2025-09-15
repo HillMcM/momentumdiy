@@ -188,6 +188,7 @@
             }
 
             const resultId = type + '-result';
+            console.log('Looking for element with ID:', resultId);
             showResult(resultId, `Sending ${type} email...`, 'info');
             
             try {
@@ -264,7 +265,19 @@
         
         function showResult(elementId, message, type) {
             const resultDiv = document.getElementById(elementId);
-            resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
+            if (resultDiv) {
+                resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
+            } else {
+                console.error(`Element with ID '${elementId}' not found`);
+                // Fallback: try to find the element or create it
+                const parent = document.querySelector('.email-type');
+                if (parent) {
+                    const fallbackDiv = document.createElement('div');
+                    fallbackDiv.id = elementId;
+                    fallbackDiv.innerHTML = `<div class="${type}">${message}</div>`;
+                    parent.appendChild(fallbackDiv);
+                }
+            }
         }
         
         // Auto-save email preferences
