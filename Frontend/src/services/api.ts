@@ -390,6 +390,20 @@ class ApiService {
     });
   }
 
+  async submitFeedback(data: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+    rating: number;
+    category: string;
+  }): Promise<ApiResponse<any>> {
+    return this.request<any>('/feedback', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
 }
 
 export const apiService = new ApiService();

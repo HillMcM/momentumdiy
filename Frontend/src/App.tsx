@@ -30,6 +30,7 @@ import CheckoutPage from './CheckoutPage';
 import CheckoutSuccessPage from './CheckoutSuccessPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
+import FeedbackPage from './FeedbackPage';
 import SubscriptionGuard from './components/SubscriptionGuard';
 import PersonalizedDashboard from './components/PersonalizedDashboard';
 import OnboardingWizard from './components/OnboardingWizard';
@@ -1091,6 +1092,7 @@ function App() {
         {/* Checkout - Public */}
         <Route path="/checkout/:plan/:interval" element={<CheckoutPage />} />
         <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+        <Route path="/feedback" element={<FeedbackPage />} />
 
         {/* App - Protected with subscription guard */}
         <Route path="/app/*" element={
