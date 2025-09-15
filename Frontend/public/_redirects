@@ -1,6 +1,6 @@
 # Handle client-side routing
-/app/*    /index.html   200
-/auth     /index.html   200
-/pricing  /index.html   200
-/checkout/* /index.html 200
+/app/*    /app.html   200
+/auth     /app.html   200
+/pricing  /app.html   200
+/checkout/* /app.html 200
 /*        /momentum-landing.html   200
