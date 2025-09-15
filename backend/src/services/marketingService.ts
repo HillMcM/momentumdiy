@@ -89,6 +89,19 @@ export class MarketingService {
    */
   static async createMarketingGoal(goalData: CreateMarketingGoalRequest): Promise<ApiResponse<MarketingGoal>> {
     try {
+      // If this goal should be active, deactivate all other goals first
+      if (goalData.isActive) {
+        const { error: deactivateError } = await supabase
+          .from('marketing_goals')
+          .update({ is_active: false })
+          .eq('is_active', true);
+
+        if (deactivateError) {
+          console.error('Error deactivating existing goals:', deactivateError);
+          // Continue anyway, as this is not critical
+        }
+      }
+
       const { data, error } = await supabase
         .from('marketing_goals')
         .insert([{
