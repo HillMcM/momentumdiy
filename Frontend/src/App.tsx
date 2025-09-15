@@ -867,6 +867,19 @@ function ProtectedApp() {
 
       console.log('✅ Onboarding setup complete - marketing goal and project created');
 
+      // Send onboarding complete notification
+      try {
+        const notificationResponse = await apiService.sendNotification({
+          type: 'onboarding_complete',
+          data: onboardingData
+        });
+        if (notificationResponse.success) {
+          console.log('📧 Onboarding complete notification sent');
+        }
+      } catch (error) {
+        console.error('❌ Error sending onboarding notification:', error);
+      }
+
       // Close the onboarding modal
       console.log('🔧 Setting showOnboarding to false...');
       setShowOnboarding(false);
