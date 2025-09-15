@@ -148,6 +148,7 @@ app.get('/health', (_req, res) => {
         environment: process.env['NODE_ENV'] || 'development'
     });
 });
+app.use('/api', index_1.default);
 app.use('/api/tasks', tasks_1.default);
 app.use('/api/projects', projects_1.default);
 app.use('/api/marketing', marketing_1.default);
@@ -158,7 +159,6 @@ app.use('/api/profile', profile_1.default);
 app.use('/api/stripe', stripe_1.default);
 app.use('/api/feedback', feedback_1.default);
 app.use('/api/notifications', notifications_1.default);
-app.use('/api', index_1.default);
 app.get('/debug/sentry-test', () => {
     throw new Error('Sentry test error');
 });

@@ -153,7 +153,8 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// API routes
+// API routes - main routes first to avoid conflicts
+app.use('/api', mainRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/marketing', marketingRoutes);
@@ -164,7 +165,6 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api', mainRoutes);
 
 
 // Sentry verification route: intentionally throws to test error capture
