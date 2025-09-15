@@ -61,11 +61,10 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
 
   const getStepTitle = () => {
     const phase = getCurrentPhase();
-    const stepInPhase = currentStep % 4;
     
     switch (phase) {
       case 'business-setup':
-        switch (stepInPhase) {
+        switch (currentStep) {
           case 0: return 'Welcome to MomentumDIY!';
           case 1: return 'Tell us about your business';
           case 2: return 'What are your goals?';
@@ -73,9 +72,11 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
           default: return 'Business Setup';
         }
       case 'quiz':
-        return `Marketing Quiz - Question ${stepInPhase + 1} of 3`;
+        const quizStep = currentStep - 4;
+        return `Marketing Quiz - Question ${quizStep + 1} of 3`;
       case 'track-setup':
-        switch (stepInPhase) {
+        const trackStep = currentStep - 7;
+        switch (trackStep) {
           case 0: return 'Your recommended track';
           case 1: return 'Almost ready!';
           default: return 'Track Setup';
@@ -133,11 +134,10 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
 
   const canProceed = () => {
     const phase = getCurrentPhase();
-    const stepInPhase = currentStep % 4;
     
     switch (phase) {
       case 'business-setup':
-        switch (stepInPhase) {
+        switch (currentStep) {
           case 0: return true; // Welcome step
           case 1: return onboardingData.businessName && onboardingData.businessType && onboardingData.industry && onboardingData.businessStage;
           case 2: return onboardingData.primaryGoal && onboardingData.biggestChallenge.length > 0;
@@ -145,9 +145,11 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
           default: return false;
         }
       case 'quiz':
-        return Object.keys(onboardingData.quizAnswers).length > stepInPhase;
+        const quizStep = currentStep - 4;
+        return Object.keys(onboardingData.quizAnswers).length > quizStep;
       case 'track-setup':
-        switch (stepInPhase) {
+        const trackStep = currentStep - 7;
+        switch (trackStep) {
           case 0: return onboardingData.selectedTrack;
           case 1: return onboardingData.notificationPreferences.length > 0;
           default: return false;
@@ -192,7 +194,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
         <div className="min-h-[400px]">
           {getCurrentPhase() === 'business-setup' && (
             <BusinessSetupStep 
-              step={currentStep % 4}
+              step={currentStep}
               data={onboardingData}
               onUpdate={updateData}
             />
@@ -200,7 +202,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
           
           {getCurrentPhase() === 'quiz' && (
             <QuizStep 
-              step={currentStep % 4}
+              step={currentStep - 4}
               data={onboardingData}
               onUpdate={updateData}
             />
@@ -208,7 +210,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
           
           {getCurrentPhase() === 'track-setup' && (
             <TrackSetupStep 
-              step={currentStep % 4}
+              step={currentStep - 7}
               data={onboardingData}
               onUpdate={updateData}
             />
