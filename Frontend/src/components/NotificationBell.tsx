@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNotifications } from '../contexts/NotificationContext';
 
 const NotificationBell: React.FC = () => {
-  console.log('NotificationBell component rendered');
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
