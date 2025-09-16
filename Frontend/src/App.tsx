@@ -1111,8 +1111,7 @@ function App() {
   return (
     <Router>
       <OnboardingProvider>
-        <NotificationProvider>
-          <Routes>
+        <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
@@ -1128,14 +1127,15 @@ function App() {
 
         {/* App - Protected with subscription guard */}
         <Route path="/app/*" element={
-          <MarketingProvider>
-            <SubscriptionGuard>
-              <ProtectedApp />
-            </SubscriptionGuard>
-          </MarketingProvider>
+          <NotificationProvider>
+            <MarketingProvider>
+              <SubscriptionGuard>
+                <ProtectedApp />
+              </SubscriptionGuard>
+            </MarketingProvider>
+          </NotificationProvider>
         } />
           </Routes>
-        </NotificationProvider>
       </OnboardingProvider>
     </Router>
   );
