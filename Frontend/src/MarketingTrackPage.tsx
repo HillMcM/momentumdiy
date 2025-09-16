@@ -4,6 +4,7 @@ import { toggleMarketingTask, updateGoalProgress } from './services/marketingSer
 import { calculateModuleProgress, computeNextUnlockLabel } from './utils/date';
 import WeekAccordion from './components/marketingTrack/WeekAccordion';
 import TaskModal from './components/marketingTrack/TaskModal';
+import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 import type { MarketingTask } from './types';
 
 interface MarketingTrackPageProps {
@@ -12,6 +13,7 @@ interface MarketingTrackPageProps {
 
 export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
   const { activeGoal, currentModule, setActiveGoal, setCurrentModule, isLoading, error, refreshMarketingData, onTaskStatusChange } = useMarketing();
+  const { showTaskCompleted, showModuleCompleted, showMarketingTrackProgress } = useNotificationHelpers();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
@@ -75,13 +77,31 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
         onTaskStatusChange(taskId, isCompleted);
       }
 
+      // Show encouraging notifications
+      if (isCompleted) {
+        const completedTask = updatedModule.tasks.find(t => t.id === taskId);
+        if (completedTask) {
+          showTaskCompleted(completedTask.title);
+        }
+
+        // Check if module is now complete
+        const allTasksCompleted = updatedModule.tasks.every(task => task.isCompleted);
+        if (allTasksCompleted) {
+          showModuleCompleted(updatedModule.title, updatedModule.weekNumber);
+        }
+
+        // Show track progress
+        const trackProgress = Math.round(newProgress);
+        showMarketingTrackProgress(activeGoal.title, trackProgress);
+      }
+
     } catch (err) {
       console.error('Error toggling task:', err);
       // Revert on error
       setActiveGoal(activeGoal);
       setCurrentModule(currentModule);
     }
-  }, [activeGoal, currentModule]);
+  }, [activeGoal, currentModule, showTaskCompleted, showModuleCompleted, showMarketingTrackProgress]);
 
 
 

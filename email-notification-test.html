@@ -194,13 +194,16 @@
                 const response = await fetch(`${API_BASE}/notifications/test`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type, email })
+                    body: JSON.stringify({ 
+                        type: type,
+                        email: email
+                    })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    showResult(resultId, `✅ ${data.message}`, 'success');
+                    showResult(resultId, `✅ Email sent successfully! Check your inbox.`, 'success');
                 } else {
                     showResult(resultId, `❌ Error: ${data.error}`, 'error');
                 }
@@ -229,14 +232,17 @@
                     const response = await fetch(`${API_BASE}/notifications/test`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ type, email })
+                        body: JSON.stringify({ 
+                            type: type,
+                            email: email
+                        })
                     });
                     
                     const data = await response.json();
                     
                     if (data.success) {
                         successCount++;
-                        console.log(`✅ ${type}: ${data.message}`);
+                        console.log(`✅ ${type}: Email sent successfully`);
                     } else {
                         errorCount++;
                         console.error(`❌ ${type}: ${data.error}`);
