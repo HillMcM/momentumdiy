@@ -37,7 +37,6 @@ import PersonalizedDashboard from './components/PersonalizedDashboard';
 import OnboardingWizard from './components/OnboardingWizard';
 import NotificationContainer from './components/NotificationContainer';
 import NotificationBell from './components/NotificationBell';
-import NotificationDemo from './components/NotificationDemo';
 
 
 // Component to handle task synchronization between marketing track and task tracker
@@ -1095,7 +1094,6 @@ function ProtectedApp() {
             } />
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
             <Route path="manage-subscription" element={<SubscriptionPage />} />
-            <Route path="notification-demo" element={<NotificationDemo />} />
             <Route path="feedback" element={<Placeholder title="Feedback" />} />
               </Routes>
               <FloatingAssistant />
