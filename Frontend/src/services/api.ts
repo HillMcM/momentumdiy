@@ -79,14 +79,42 @@ class ApiService {
       authHeaders['Authorization'] = `Bearer ${session.access_token}`;
     }
 
-    // For development, if backend is not available, return a mock success response
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    // For development, return appropriate mock responses
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
       console.log('Development mode: Mocking API response for', endpoint);
-      return {
-        success: true,
-        data: {} as T,
-        message: 'Mock response for development'
-      };
+      
+      // Return appropriate mock data based on the endpoint
+      if (endpoint.includes('/tasks/') && endpoint.includes('/status')) {
+        // Mock task status update
+        return {
+          success: true,
+          data: { id: endpoint.split('/')[2], status: 'completed' } as T,
+          message: 'Task status updated successfully'
+        };
+      } else if (endpoint.includes('/tasks/') && options.method === 'PUT') {
+        // Mock task update - return the task data that was sent
+        const taskId = endpoint.split('/')[2];
+        const body = options.body ? JSON.parse(options.body as string) : {};
+        return {
+          success: true,
+          data: { id: taskId, ...body } as T,
+          message: 'Task updated successfully'
+        };
+      } else if (endpoint.includes('/marketing-tasks/') && endpoint.includes('/completion')) {
+        // Mock marketing task completion
+        return {
+          success: true,
+          data: { id: endpoint.split('/')[2], isCompleted: true } as T,
+          message: 'Marketing task completion updated'
+        };
+      } else {
+        // Generic mock response
+        return {
+          success: true,
+          data: {} as T,
+          message: 'Mock response for development'
+        };
+      }
     }
 
     const config: RequestInit = {

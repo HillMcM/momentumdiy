@@ -104,7 +104,6 @@ export const useNotificationHelpers = () => {
   };
 
   const showTaskCompleted = (taskName: string, onClick?: () => void) => {
-    console.log('showTaskCompleted called:', { taskName });
     addNotification({
       type: 'success',
       title: '🎉 Task Completed!',
