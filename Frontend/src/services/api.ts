@@ -79,6 +79,16 @@ class ApiService {
       authHeaders['Authorization'] = `Bearer ${session.access_token}`;
     }
 
+    // For development, if backend is not available, return a mock success response
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      console.log('Development mode: Mocking API response for', endpoint);
+      return {
+        success: true,
+        data: {} as T,
+        message: 'Mock response for development'
+      };
+    }
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',

@@ -506,6 +506,8 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
   const handleCheck = (task: Task) => {
     const newStatus = task.status === 'completed' ? 'todo' : 'completed';
     
+    console.log('TaskTrackerWidget handleCheck called:', { taskTitle: task.title, newStatus });
+    
     // Update task status
     onTasksChange(tasks.map(t => {
       if (t.id === task.id) {
@@ -523,11 +525,13 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
 
     // Show encouraging notification when task is completed
     if (newStatus === 'completed') {
+      console.log('Task completed, showing notifications:', { taskTitle: task.title });
       showTaskCompleted(task.title);
       
       // Show progress update
       const completedTasks = tasks.filter(t => t.status === 'completed').length + 1; // +1 for the task we just completed
       const totalTasks = tasks.length;
+      console.log('Progress update:', { completedTasks, totalTasks });
       showProgressUpdate(completedTasks, totalTasks);
     }
 
