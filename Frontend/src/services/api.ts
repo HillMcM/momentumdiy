@@ -79,10 +79,10 @@ class ApiService {
       authHeaders['Authorization'] = `Bearer ${session.access_token}`;
     }
 
-    // For development and production, return appropriate mock responses
+    // Only use mock responses when backend is not accessible
     // This prevents backend errors when the backend is not available
-    if (typeof window !== 'undefined') {
-      console.log('Mocking API response for', endpoint);
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      console.log('Using mock API response for localhost development');
       
       // Return appropriate mock data based on the endpoint
       if (endpoint.includes('/tasks/') && endpoint.includes('/status')) {
@@ -107,32 +107,6 @@ class ApiService {
           success: true,
           data: { id: endpoint.split('/')[2], isCompleted: true } as T,
           message: 'Marketing task completion updated'
-        };
-      } else if (endpoint === '/profile') {
-        // Mock profile response with completed onboarding
-        return {
-          success: true,
-          data: {
-            id: '197f259d-c793-4cfd-a614-1efd63870cc0',
-            email: 'info@hillaryedenmcmullen.com',
-            business_name: 'Hillary Eden McMullen',
-            subscription_status: 'active',
-            onboarding_completed: true,
-            onboarding_data: {
-              businessName: 'Hillary Eden McMullen',
-              businessType: 'agency',
-              industry: 'marketing',
-              businessStage: 'early-stage',
-              primaryGoal: 'generate-leads',
-              selectedTrack: 'social-media-strategy',
-              timeAvailable: '3-5-hours',
-              biggestChallenge: ['brand-awareness'],
-              currentActivities: ['social-media'],
-              notificationPreferences: ['email'],
-              checkInDay: 'monday'
-            }
-          } as T,
-          message: 'Profile retrieved successfully'
         };
       } else {
         // Generic mock response
