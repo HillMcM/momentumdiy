@@ -53,9 +53,9 @@ const NotificationBell: React.FC = () => {
   // Add a test notification on mount
   useEffect(() => {
     addNotification({
-      type: 'info',
-      title: 'Welcome!',
-      message: 'This is a test notification to verify the system is working.',
+      type: 'success',
+      title: '🎉 Welcome to MomentumDIY!',
+      message: 'You\'re all set to start your marketing journey! Let\'s make amazing things happen together!',
     });
   }, [addNotification]);
 

@@ -10,6 +10,7 @@ import {
   DragOverlay,
   defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
+import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 import {
   arrayMove,
   SortableContext,
@@ -283,6 +284,7 @@ interface TaskTrackerWidgetProps {
 }
 
 export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onProjectsChange }: TaskTrackerWidgetProps) {
+  const { showTaskCompleted, showProgressUpdate } = useNotificationHelpers();
   const DEBUG = (import.meta as { env?: { DEV?: boolean } }).env?.DEV && (typeof localStorage !== 'undefined' && localStorage.getItem('debugLogs') === '1');
   if (DEBUG) {
     console.log('TaskTrackerWidget render - tasks count:', tasks.length);
@@ -518,6 +520,16 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
       [task.status]: order[task.status].filter(id => id !== task.id),
       [newStatus]: [...order[newStatus], task.id]
     });
+
+    // Show encouraging notification when task is completed
+    if (newStatus === 'completed') {
+      showTaskCompleted(task.title);
+      
+      // Show progress update
+      const completedTasks = tasks.filter(t => t.status === 'completed').length + 1; // +1 for the task we just completed
+      const totalTasks = tasks.length;
+      showProgressUpdate(completedTasks, totalTasks);
+    }
 
     // Persist changes asynchronously
     (async () => {
