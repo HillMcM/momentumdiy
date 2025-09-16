@@ -42,6 +42,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+    console.log('Adding notification:', notification);
     const newNotification: Notification = {
       ...notification,
       id: Math.random().toString(36).substr(2, 9),
@@ -49,7 +50,12 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       read: false,
     };
 
-    setNotifications(prev => [newNotification, ...prev]);
+    setNotifications(prev => {
+      console.log('Previous notifications:', prev.length);
+      const updated = [newNotification, ...prev];
+      console.log('Updated notifications:', updated.length);
+      return updated;
+    });
 
     // Auto-dismiss non-persistent notifications after 5 seconds
     if (!notification.persistent) {
