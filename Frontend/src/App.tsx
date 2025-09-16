@@ -523,23 +523,22 @@ function ProtectedApp() {
         console.log('🎉 All data loaded successfully from mock data!');
 
         // Check if user needs onboarding
-        const hasActiveGoal = marketingGoals.some(g => g.isActive);
-        
-        if (!hasActiveGoal) {
-          // Check if user has completed onboarding by fetching profile
-          try {
-            const profileResponse = await apiService.getProfile();
-            const hasCompletedOnboarding = profileResponse.success && 
-              (profileResponse.data as any)?.onboarding_completed === true;
-            
-            if (!hasCompletedOnboarding) {
-              console.log('🎯 No active marketing goal and onboarding not completed, showing onboarding');
-              setShowOnboarding(true);
-            }
-          } catch (error) {
-            console.log('🎯 Error checking onboarding status, showing onboarding as fallback');
+        // Always check onboarding status, regardless of active goals
+        try {
+          const profileResponse = await apiService.getProfile();
+          const hasCompletedOnboarding = profileResponse.success && 
+            (profileResponse.data as any)?.onboarding_completed === true;
+          
+          if (!hasCompletedOnboarding) {
+            console.log('🎯 Onboarding not completed, showing onboarding wizard');
             setShowOnboarding(true);
+          } else {
+            console.log('✅ Onboarding already completed, skipping wizard');
+            setShowOnboarding(false);
           }
+        } catch (error) {
+          console.log('🎯 Error checking onboarding status, showing onboarding as fallback');
+          setShowOnboarding(true);
         }
 
       } catch (error) {

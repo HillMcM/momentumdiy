@@ -108,6 +108,32 @@ class ApiService {
           data: { id: endpoint.split('/')[2], isCompleted: true } as T,
           message: 'Marketing task completion updated'
         };
+      } else if (endpoint === '/profile') {
+        // Mock profile response with completed onboarding
+        return {
+          success: true,
+          data: {
+            id: '197f259d-c793-4cfd-a614-1efd63870cc0',
+            email: 'info@hillaryedenmcmullen.com',
+            business_name: 'Hillary Eden McMullen',
+            subscription_status: 'active',
+            onboarding_completed: true,
+            onboarding_data: {
+              businessName: 'Hillary Eden McMullen',
+              businessType: 'agency',
+              industry: 'marketing',
+              businessStage: 'early-stage',
+              primaryGoal: 'generate-leads',
+              selectedTrack: 'social-media-strategy',
+              timeAvailable: '3-5-hours',
+              biggestChallenge: ['brand-awareness'],
+              currentActivities: ['social-media'],
+              notificationPreferences: ['email'],
+              checkInDay: 'monday'
+            }
+          } as T,
+          message: 'Profile retrieved successfully'
+        };
       } else {
         // Generic mock response
         return {
