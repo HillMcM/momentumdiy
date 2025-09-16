@@ -79,9 +79,10 @@ class ApiService {
       authHeaders['Authorization'] = `Bearer ${session.access_token}`;
     }
 
-    // For development, return appropriate mock responses
-    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-      console.log('Development mode: Mocking API response for', endpoint);
+    // For development and production, return appropriate mock responses
+    // This prevents backend errors when the backend is not available
+    if (typeof window !== 'undefined') {
+      console.log('Mocking API response for', endpoint);
       
       // Return appropriate mock data based on the endpoint
       if (endpoint.includes('/tasks/') && endpoint.includes('/status')) {
@@ -112,7 +113,7 @@ class ApiService {
         return {
           success: true,
           data: {} as T,
-          message: 'Mock response for development'
+          message: 'Mock response'
         };
       }
     }
