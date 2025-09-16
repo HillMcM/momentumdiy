@@ -1,14 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNotifications } from '../contexts/NotificationContext';
 
 const NotificationBell: React.FC = () => {
+  console.log('NotificationBell component rendering');
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll, addNotification } = useNotifications();
+  console.log('NotificationBell - notifications:', notifications.length, 'unread:', unreadCount);
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [panelStyle, setPanelStyle] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 320 });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedAnchor = anchorRef.current?.contains(target);
+      const clickedPanel = panelRef.current?.contains(target);
+      if (!clickedAnchor && !clickedPanel) {
         setIsOpen(false);
       }
     };
@@ -18,6 +26,29 @@ const NotificationBell: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Position the panel under the bell
+  useEffect(() => {
+    const updatePosition = () => {
+      if (!anchorRef.current) return;
+      const rect = anchorRef.current.getBoundingClientRect();
+      const maxWidth = Math.min(320, window.innerWidth - 16);
+      let left = rect.right - maxWidth;
+      left = Math.max(8, Math.min(left, window.innerWidth - maxWidth - 8));
+      const top = Math.min(window.innerHeight - 8, rect.bottom + 8);
+      setPanelStyle({ top, left, width: maxWidth });
+    };
+
+    if (isOpen) {
+      updatePosition();
+      window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition, true);
+      return () => {
+        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('scroll', updatePosition, true);
+      };
+    }
+  }, [isOpen]);
 
   // Add a test notification on mount
   useEffect(() => {
@@ -56,13 +87,17 @@ const NotificationBell: React.FC = () => {
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={anchorRef}>
       <button
         onClick={() => {
           console.log('Notification bell clicked, current state:', isOpen);
+          console.log('Notifications count:', notifications.length);
+          console.log('Unread count:', unreadCount);
           setIsOpen(!isOpen);
+          console.log('Setting isOpen to:', !isOpen);
         }}
-        className="relative p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-full"
+        className={"relative p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-full"}
+        aria-expanded={isOpen}
       >
         <span className="sr-only">View notifications</span>
         <svg
@@ -86,19 +121,15 @@ const NotificationBell: React.FC = () => {
         )}
       </button>
 
-      {isOpen && (() => {
-        console.log('Rendering notification dropdown');
-        return (
+      {isOpen && createPortal(
         <div 
-          className="absolute mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50" 
-          style={{ 
-            right: '0',
-            top: '100%',
-            transform: 'translateX(-100%)',
-            position: 'absolute',
-            minWidth: '320px',
-            backgroundColor: '#ffffff',
-            border: '2px solid #ef4444'
+          ref={panelRef}
+          className="fixed mt-2 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-[9999]"
+          style={{
+            top: panelStyle.top,
+            left: panelStyle.left,
+            width: panelStyle.width,
+            backgroundColor: '#ffffff'
           }}
         >
           <div className="py-1">
@@ -121,7 +152,6 @@ const NotificationBell: React.FC = () => {
                 </button>
               </div>
             </div>
-            
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="px-4 py-8 text-center text-gray-500">
@@ -180,9 +210,9 @@ const NotificationBell: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
-        );
-      })()}
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
