@@ -386,8 +386,16 @@ export class EmailService {
     const daysLeft = data?.daysLeft || 3;
     
     return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-        <div style="background: linear-gradient(135deg, #EF8E81, #D4AF37); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Trial Ending - MomentumDIY</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+        <div style="background: linear-gradient(135deg, #EF8E81, #686DCA); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+          <img src="https://momentumdiy.com/assets/octopus_icon.png" alt="MomentumDIY" style="width: 60px; height: 60px; margin-bottom: 15px;">
           <h1 style="color: white; margin: 0; font-size: 28px;">⏰ Your Trial Ends in ${daysLeft} Days</h1>
           <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Don't lose access to your marketing tools!</p>
         </div>
@@ -411,12 +419,13 @@ export class EmailService {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://momentumdiy.com/pricing" 
-               style="background: linear-gradient(135deg, #EF8E81, #E67A6E); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+               style="background: linear-gradient(135deg, #EF8E81, #686DCA); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Continue Your Journey - $14.99/month
             </a>
           </div>
         </div>
-      </div>
+      </body>
+      </html>
     `;
   }
 
@@ -425,8 +434,16 @@ export class EmailService {
    */
   private static getSubscriptionActiveTemplate(name: string, _data: any): string {
     return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-        <div style="background: linear-gradient(135deg, #EF8E81, #D4AF37); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Subscription Activated - MomentumDIY</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+        <div style="background: linear-gradient(135deg, #EF8E81, #686DCA); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+          <img src="https://momentumdiy.com/assets/octopus_icon.png" alt="MomentumDIY" style="width: 60px; height: 60px; margin-bottom: 15px;">
           <h1 style="color: white; margin: 0; font-size: 28px;">✅ Subscription Activated!</h1>
           <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Welcome to MomentumDIY Premium</p>
         </div>
@@ -451,12 +468,13 @@ export class EmailService {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://momentumdiy.com/app" 
-               style="background: linear-gradient(135deg, #EF8E81, #E67A6E); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+               style="background: linear-gradient(135deg, #EF8E81, #686DCA); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Access Your Dashboard
             </a>
           </div>
         </div>
-      </div>
+      </body>
+      </html>
     `;
   }
 
@@ -465,8 +483,16 @@ export class EmailService {
    */
   private static getSubscriptionCancelledTemplate(name: string, _data: any): string {
     return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-        <div style="background: linear-gradient(135deg, #EF8E81, #D4AF37); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Subscription Cancelled - MomentumDIY</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+        <div style="background: linear-gradient(135deg, #EF8E81, #686DCA); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+          <img src="https://momentumdiy.com/assets/octopus_icon.png" alt="MomentumDIY" style="width: 60px; height: 60px; margin-bottom: 15px;">
           <h1 style="color: white; margin: 0; font-size: 28px;">We're Sorry to See You Go</h1>
           <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">But we hope you'll come back soon!</p>
         </div>
@@ -490,12 +516,13 @@ export class EmailService {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://momentumdiy.com/pricing" 
-               style="background: linear-gradient(135deg, #EF8E81, #E67A6E); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+               style="background: linear-gradient(135deg, #EF8E81, #686DCA); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Reactivate Your Subscription
             </a>
           </div>
         </div>
-      </div>
+      </body>
+      </html>
     `;
   }
 
@@ -508,8 +535,16 @@ export class EmailService {
     const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
     
     return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-        <div style="background: linear-gradient(135deg, #EF8E81, #D4AF37); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Weekly Progress Report - MomentumDIY</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+        <div style="background: linear-gradient(135deg, #EF8E81, #686DCA); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+          <img src="https://momentumdiy.com/assets/octopus_icon.png" alt="MomentumDIY" style="width: 60px; height: 60px; margin-bottom: 15px;">
           <h1 style="color: white; margin: 0; font-size: 28px;">📊 Weekly Progress Report</h1>
           <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Keep up the great work!</p>
         </div>
@@ -529,7 +564,7 @@ export class EmailService {
                 <span style="color: #EF8E81; font-weight: bold;">${completedTasks} / ${totalTasks}</span>
               </div>
               <div style="background: #e0e0e0; border-radius: 10px; height: 20px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #EF8E81, #E67A6E); height: 100%; width: ${progress}%; transition: width 0.3s ease;"></div>
+                <div style="background: linear-gradient(135deg, #EF8E81, #686DCA); height: 100%; width: ${progress}%; transition: width 0.3s ease;"></div>
               </div>
               <div style="text-align: center; margin-top: 10px; color: #666; font-size: 14px;">${progress}% Complete</div>
             </div>
@@ -537,12 +572,13 @@ export class EmailService {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://momentumdiy.com/app" 
-               style="background: linear-gradient(135deg, #EF8E81, #E67A6E); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+               style="background: linear-gradient(135deg, #EF8E81, #686DCA); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               View Full Progress
             </a>
           </div>
         </div>
-      </div>
+      </body>
+      </html>
     `;
   }
 
@@ -553,8 +589,16 @@ export class EmailService {
     const taskName = data?.taskName || 'your marketing task';
     
     return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-        <div style="background: linear-gradient(135deg, #EF8E81, #D4AF37); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Task Reminder - MomentumDIY</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+        <div style="background: linear-gradient(135deg, #EF8E81, #686DCA); padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+          <img src="https://momentumdiy.com/assets/octopus_icon.png" alt="MomentumDIY" style="width: 60px; height: 60px; margin-bottom: 15px;">
           <h1 style="color: white; margin: 0; font-size: 28px;">⏰ Task Reminder</h1>
           <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Don't forget to complete your marketing task!</p>
         </div>
@@ -575,12 +619,13 @@ export class EmailService {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://momentumdiy.com/app/task-tracker" 
-               style="background: linear-gradient(135deg, #EF8E81, #E67A6E); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+               style="background: linear-gradient(135deg, #EF8E81, #686DCA); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Complete Task Now
             </a>
           </div>
         </div>
-      </div>
+      </body>
+      </html>
     `;
   }
 }
