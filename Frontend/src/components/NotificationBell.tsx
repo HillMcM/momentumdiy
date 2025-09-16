@@ -49,7 +49,10 @@ const NotificationBell: React.FC = () => {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          console.log('Notification bell clicked, current state:', isOpen);
+          setIsOpen(!isOpen);
+        }}
         className="relative p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-full"
       >
         <span className="sr-only">View notifications</span>
@@ -74,7 +77,9 @@ const NotificationBell: React.FC = () => {
         )}
       </button>
 
-      {isOpen && (
+      {isOpen && (() => {
+        console.log('Rendering notification dropdown');
+        return (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50" style={{ transform: 'translateX(calc(-100% + 2rem))' }}>
           <div className="py-1">
             <div className="px-4 py-2 border-b border-gray-200 flex justify-between items-center">
@@ -156,7 +161,8 @@ const NotificationBell: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
