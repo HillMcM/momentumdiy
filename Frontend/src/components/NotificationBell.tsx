@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNotifications } from '../contexts/NotificationContext';
 
 const NotificationBell: React.FC = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll, addNotification } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -18,6 +18,15 @@ const NotificationBell: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Add a test notification on mount
+  useEffect(() => {
+    addNotification({
+      type: 'info',
+      title: 'Welcome!',
+      message: 'This is a test notification to verify the system is working.',
+    });
+  }, [addNotification]);
 
   const formatTime = (timestamp: Date) => {
     const now = new Date();
@@ -80,7 +89,12 @@ const NotificationBell: React.FC = () => {
       {isOpen && (() => {
         console.log('Rendering notification dropdown');
         return (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50" style={{ transform: 'translateX(calc(-100% + 2rem))' }}>
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50" style={{ 
+          transform: 'translateX(-100%)',
+          right: '0',
+          top: '100%',
+          position: 'absolute'
+        }}>
           <div className="py-1">
             <div className="px-4 py-2 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-sm font-medium text-gray-900">Notifications</h3>
