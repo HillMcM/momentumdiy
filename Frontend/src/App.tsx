@@ -326,15 +326,6 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
             AI Marketing Assistant
           </Link>
         </li>
-        <li>
-          <Link 
-            to="/app/notification-demo" 
-            className={isActive('/app/notification-demo') ? 'active' : ''}
-            onClick={() => handleLinkClick('/app/notification-demo')}
-          >
-            Notification Demo
-          </Link>
-        </li>
         {/* Non-core features are temporarily hidden
         - Marketing Calendar
         - Project Management  
