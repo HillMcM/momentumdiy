@@ -127,7 +127,6 @@ function Header() {
         <span className="header-app-name">MomentumDIY</span>
       </div>
       <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-        <NotificationBell />
         {subscription && (
           <div style={{ 
             background: subscription.hasAccess ? '#10b981' : '#ef4444', 
@@ -265,9 +264,12 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
           <SidebarToggle onClick={onToggle} />
         </div>
       )}
-      <Link to="/app/profile" className="sidebar-header" style={{ display: 'block', textDecoration: 'none' }}>
-        {businessName}
-      </Link>
+      <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem' }}>
+        <Link to="/app/profile" style={{ textDecoration: 'none', color: 'inherit', flex: 1 }}>
+          {businessName}
+        </Link>
+        <NotificationBell />
+      </div>
       <ul>
         <li>
           <Link 
