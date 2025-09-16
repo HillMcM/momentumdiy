@@ -25,6 +25,18 @@ export interface NotificationEmailData {
 
 export class EmailService {
   /**
+   * Get the standard email footnote for all templates
+   */
+  private static getEmailFootnote(): string {
+    return `
+          <div style="font-size: 12px; color: #666; border-top: 1px solid #eee; padding-top: 15px; text-align: center; margin-top: 20px;">
+            <p><strong>Please do not reply to this email address, it is not attached to an inbox.</strong></p>
+            <p>For questions please email <a href="mailto:info@hillaryedenmcmullen.com" style="color: #EF8E81;">info@hillaryedenmcmullen.com</a></p>
+            <p>© 2024 MomentumDIY. All rights reserved.</p>
+          </div>`;
+  }
+
+  /**
    * Send feedback email to admin
    */
   static async sendFeedbackEmail(data: FeedbackEmailData): Promise<{ success: boolean; error?: string }> {
@@ -67,6 +79,8 @@ export class EmailService {
               <p>Submitted at: ${new Date().toLocaleString()}</p>
               <p>This feedback was sent from the MomentumDIY app feedback form.</p>
             </div>
+            
+            ${this.getEmailFootnote()}
           </div>
         </body>
         </html>
@@ -316,10 +330,7 @@ export class EmailService {
             </a>
           </div>
           
-          <div style="font-size: 12px; color: #666; border-top: 1px solid #eee; padding-top: 15px; text-align: center;">
-            <p>Questions? Just reply to this email and we'll help you out!</p>
-            <p>© 2024 MomentumDIY. All rights reserved.</p>
-          </div>
+          ${this.getEmailFootnote()}
         </div>
       </body>
       </html>
@@ -373,6 +384,8 @@ export class EmailService {
               Start Your Marketing Track
             </a>
           </div>
+          
+          ${this.getEmailFootnote()}
         </div>
       </body>
       </html>
@@ -423,6 +436,8 @@ export class EmailService {
               Continue Your Journey - $14.99/month
             </a>
           </div>
+          
+          ${this.getEmailFootnote()}
         </div>
       </body>
       </html>
@@ -472,6 +487,8 @@ export class EmailService {
               Access Your Dashboard
             </a>
           </div>
+          
+          ${this.getEmailFootnote()}
         </div>
       </body>
       </html>
@@ -520,6 +537,8 @@ export class EmailService {
               Reactivate Your Subscription
             </a>
           </div>
+          
+          ${this.getEmailFootnote()}
         </div>
       </body>
       </html>
@@ -576,6 +595,8 @@ export class EmailService {
               View Full Progress
             </a>
           </div>
+          
+          ${this.getEmailFootnote()}
         </div>
       </body>
       </html>
@@ -623,6 +644,8 @@ export class EmailService {
               Complete Task Now
             </a>
           </div>
+          
+          ${this.getEmailFootnote()}
         </div>
       </body>
       </html>

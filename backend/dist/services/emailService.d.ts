@@ -17,6 +17,7 @@ export interface NotificationEmailData {
     data?: any;
 }
 export declare class EmailService {
+    private static getEmailFootnote;
     static sendFeedbackEmail(data: FeedbackEmailData): Promise<{
         success: boolean;
         error?: string;
