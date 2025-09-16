@@ -21,6 +21,7 @@ import AuthPage from './AuthPage';
 import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { useSubscription } from './hooks/useSubscription';
 
 import { supabase } from './lib/supabase';
@@ -34,6 +35,9 @@ import FeedbackPage from './FeedbackPage';
 import SubscriptionGuard from './components/SubscriptionGuard';
 import PersonalizedDashboard from './components/PersonalizedDashboard';
 import OnboardingWizard from './components/OnboardingWizard';
+import NotificationContainer from './components/NotificationContainer';
+import NotificationBell from './components/NotificationBell';
+import NotificationDemo from './components/NotificationDemo';
 
 
 // Component to handle task synchronization between marketing track and task tracker
@@ -123,6 +127,7 @@ function Header() {
         <span className="header-app-name">MomentumDIY</span>
       </div>
       <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <NotificationBell />
         {subscription && (
           <div style={{ 
             background: subscription.hasAccess ? '#10b981' : '#ef4444', 
@@ -318,6 +323,15 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
             onClick={() => handleLinkClick('/app/ai-marketing-assistant')}
           >
             AI Marketing Assistant
+          </Link>
+        </li>
+        <li>
+          <Link 
+            to="/app/notification-demo" 
+            className={isActive('/app/notification-demo') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/notification-demo')}
+          >
+            Notification Demo
           </Link>
         </li>
         {/* Non-core features are temporarily hidden
@@ -1011,6 +1025,7 @@ function ProtectedApp() {
   return (
     <>
       <Header />
+      <NotificationContainer />
       <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
         <Sidebar
           hidden={sidebarHidden}
@@ -1078,6 +1093,7 @@ function ProtectedApp() {
             } />
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
             <Route path="manage-subscription" element={<SubscriptionPage />} />
+            <Route path="notification-demo" element={<NotificationDemo />} />
             <Route path="feedback" element={<Placeholder title="Feedback" />} />
               </Routes>
               <FloatingAssistant />
@@ -1093,7 +1109,8 @@ function App() {
   return (
     <Router>
       <OnboardingProvider>
-        <Routes>
+        <NotificationProvider>
+          <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
@@ -1115,7 +1132,8 @@ function App() {
             </SubscriptionGuard>
           </MarketingProvider>
         } />
-        </Routes>
+          </Routes>
+        </NotificationProvider>
       </OnboardingProvider>
     </Router>
   );
