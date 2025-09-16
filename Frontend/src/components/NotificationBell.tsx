@@ -50,22 +50,13 @@ const NotificationBell: React.FC = () => {
     }
   }, [isOpen]);
 
-  // Add a test notification on mount
+  // Add a welcome notification on mount
   useEffect(() => {
     addNotification({
       type: 'success',
       title: '🎉 Welcome to MomentumDIY!',
       message: 'You\'re all set to start your marketing journey! Let\'s make amazing things happen together!',
     });
-    
-    // Add a second test notification to verify the system is working
-    setTimeout(() => {
-      addNotification({
-        type: 'success',
-        title: '🚀 Test Notification',
-        message: 'This is a test to verify the updated notification system is working!',
-      });
-    }, 2000);
   }, [addNotification]);
 
   const formatTime = (timestamp: Date) => {
