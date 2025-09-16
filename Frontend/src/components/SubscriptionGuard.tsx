@@ -16,11 +16,12 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
   useEffect(() => {
     if (!loading && subscription) {
       // Show paywall if user doesn't have access
-      if (!subscription.hasAccess) {
+      // Temporary bypass for admin email
+      if (!subscription.hasAccess && user?.email !== 'info@hillaryedenmcmullen.com') {
         setShowPaywall(true);
       }
     }
-  }, [subscription, loading]);
+  }, [subscription, loading, user]);
 
   // If user is not authenticated, show children (let auth flow handle it)
   if (!user) {
@@ -39,8 +40,8 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
     );
   }
 
-  // Show paywall if no access
-  if (subscription && !subscription.hasAccess) {
+  // Show paywall if no access (except for admin email)
+  if (subscription && !subscription.hasAccess && user?.email !== 'info@hillaryedenmcmullen.com') {
     return (
       <>
         {fallback || (
