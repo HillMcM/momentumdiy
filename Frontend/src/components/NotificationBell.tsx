@@ -89,12 +89,18 @@ const NotificationBell: React.FC = () => {
       {isOpen && (() => {
         console.log('Rendering notification dropdown');
         return (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50" style={{ 
-          transform: 'translateX(-100%)',
-          right: '0',
-          top: '100%',
-          position: 'absolute'
-        }}>
+        <div 
+          className="absolute mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50" 
+          style={{ 
+            right: '0',
+            top: '100%',
+            transform: 'translateX(-100%)',
+            position: 'absolute',
+            minWidth: '320px',
+            backgroundColor: '#ffffff',
+            border: '2px solid #ef4444'
+          }}
+        >
           <div className="py-1">
             <div className="px-4 py-2 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-sm font-medium text-gray-900">Notifications</h3>
