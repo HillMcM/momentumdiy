@@ -75,7 +75,7 @@ const NotificationBell: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 transform -translate-x-full">
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50" style={{ transform: 'translateX(calc(-100% + 2rem))' }}>
           <div className="py-1">
             <div className="px-4 py-2 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-sm font-medium text-gray-900">Notifications</h3>
