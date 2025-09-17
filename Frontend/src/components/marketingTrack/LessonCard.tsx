@@ -15,10 +15,10 @@ export default function LessonCard({ module }: LessonCardProps) {
   const renderer = activeGoal ? getContentRendererByTitle(activeGoal.title) : null;
   
   if (!renderer) {
-    // Fallback to original rendering if no renderer found
+    // Default to basic markdown rendering if no renderer found
     return (
       <div className="prose prose-invert max-w-none text-gray-300">
-        <p>Content renderer not found for this track type.</p>
+        <div dangerouslySetInnerHTML={{ __html: module.content || '' }} />
       </div>
     );
   }
