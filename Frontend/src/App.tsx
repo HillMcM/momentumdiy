@@ -1063,6 +1063,7 @@ function ProtectedApp() {
                 onMarketingGoalsChange={handleMarketingGoalsChange}
                 onProjectsChange={handleProjectsChange}
                 projects={projects}
+                tasks={tasks}
               />
             } />
             <Route
