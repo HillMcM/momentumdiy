@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import type { MarketingModule, MarketingTask } from '../../types';
 import LessonCard from './LessonCard';
 import TaskList from './TaskList';
 import { countTasks } from '../../utils/date';
+import { MarketingTrackContext } from '../../contexts/MarketingTrackContext';
+import { getContentRendererByTitle } from '../content-renderers';
 
 interface WeekAccordionProps {
   module: MarketingModule;
@@ -26,24 +28,12 @@ export default function WeekAccordion({
   // Debug logging
   console.log(`🔓 Week ${module.weekNumber}: isUnlocked=${module.isUnlocked}, isLocked=${isLocked}, currentWeek=${currentWeek}`);
 
-  // Extract Pro Tip content from module.content
-  const extractProTip = (content: string) => {
-    const proTipMatch = content.match(/<h[1-6]>(Pro Tip:.*?)<\/h[1-6]>(.*?)(?=<h[1-6]|$)/is);
-    
-    if (proTipMatch) {
-      const proTipTitle = proTipMatch[1];
-      const proTipContent = proTipMatch[2];
-      
-      return {
-        title: proTipTitle,
-        content: proTipContent.trim()
-      };
-    }
-    
-    return null;
-  };
-
-  const proTip = extractProTip(module.content);
+  const context = useContext(MarketingTrackContext);
+  const activeGoal = context?.activeGoal;
+  
+  // Get the appropriate content renderer for Pro Tips
+  const renderer = activeGoal ? getContentRendererByTitle(activeGoal.title) : null;
+  const proTip = renderer ? renderer.extractProTip(module.content) : null;
 
   const handleToggle = () => {
     if (isLocked) return;
@@ -127,20 +117,9 @@ export default function WeekAccordion({
             </div>
             
             {/* Pro Tip Callout - Full Width */}
-            {proTip && (
-              <div className="mt-6 p-6 bg-[#EF8E81]/10 border border-[#EF8E81]/20 rounded-2xl">
-                <h4 className="text-lg font-semibold text-[#EF8E81] mb-3">{proTip.title}</h4>
-                <div 
-                  className="prose prose-invert max-w-none text-gray-300"
-                  dangerouslySetInnerHTML={{ 
-                    __html: proTip.content
-                      .replace(/<p>/gi, '<p class="text-gray-300 mb-4 leading-relaxed">')
-                      .replace(/<ul>/gi, '<ul class="text-gray-300 mb-4 space-y-2 ml-6">')
-                      .replace(/<li>/gi, '<li class="list-disc">')
-                      .replace(/<strong>/gi, '<strong class="text-white font-semibold">')
-                      .replace(/<em>/gi, '<em class="text-[#EF8E81]">')
-                  }} 
-                />
+            {renderer && proTip && (
+              <div className="mt-6">
+                {renderer.renderProTip(module.content)}
               </div>
             )}
           </div>

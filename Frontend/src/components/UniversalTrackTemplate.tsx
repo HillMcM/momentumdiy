@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { MarketingGoal, Project, Task } from '../types';
+import { getContentRenderer } from './content-renderers';
 
 interface UniversalTrackTemplateProps {
   marketingGoals: MarketingGoal[];
