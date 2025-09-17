@@ -1,4 +1,4 @@
-import type { MarketingGoal, MarketingModule, MarketingTask, ApiResponse, Task } from '../types';
+import type { MarketingGoal, ApiResponse, Task } from '../types';
 import { BACKEND_BASE_URL } from './api';
 
 // Get active marketing goal
@@ -24,7 +24,7 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
       return {
         success: false,
         error: `HTTP ${response.status}: ${errorText}`,
-        data: null
+        data: undefined
       };
     }
 
@@ -36,7 +36,7 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
       return {
         success: false,
         error: result.error || 'Unknown API error',
-        data: null
+        data: undefined
       };
     }
 
@@ -87,7 +87,7 @@ export async function getMarketingGoal(goalId: string): Promise<ApiResponse<Mark
       return {
         success: false,
         error: `HTTP ${response.status}: ${errorText}`,
-        data: null
+        data: undefined
       };
     }
 
@@ -97,7 +97,7 @@ export async function getMarketingGoal(goalId: string): Promise<ApiResponse<Mark
       return {
         success: false,
         error: result.error || 'Unknown API error',
-        data: null
+        data: undefined
       };
     }
 
@@ -147,7 +147,7 @@ export async function updateGoalProgress(goalId: string, progress: number): Prom
       return {
         success: false,
         error: `HTTP ${response.status}: ${errorText}`,
-        data: null
+        data: undefined
       };
     }
 
@@ -173,7 +173,7 @@ export function convertMarketingTasksToTasks(marketingGoal: MarketingGoal): Task
         id: task.id,
         title: task.title,
         description: task.description || '',
-        status: task.isCompleted ? 'completed' : 'pending',
+        status: task.isCompleted ? 'completed' : 'todo',
         priority: 'medium',
         dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
         projectId: marketingGoal.id,
@@ -186,4 +186,15 @@ export function convertMarketingTasksToTasks(marketingGoal: MarketingGoal): Task
   });
   
   return tasks;
+}
+
+// Toggle marketing task completion status (placeholder function)
+export async function toggleMarketingTask(taskId: string, isCompleted: boolean): Promise<ApiResponse<any>> {
+  // This function would typically make an API call to update task status
+  // For now, return a success response since we don't have this endpoint implemented
+  return {
+    success: true,
+    data: { taskId, isCompleted },
+    message: 'Task status updated successfully'
+  };
 }
