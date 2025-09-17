@@ -228,9 +228,21 @@ export function getTrackConfig(slug: string): TrackConfig | undefined {
 
 // Helper function to get track config by goal title
 export function getTrackConfigByTitle(title: string): TrackConfig | undefined {
+  const lowerTitle = title.toLowerCase();
+  
+  // Check for specific track patterns
+  if (lowerTitle.includes('foot traffic') || lowerTitle.includes('local foot traffic')) {
+    return trackConfigs['local-foot-traffic'];
+  }
+  
+  if (lowerTitle.includes('social media') || lowerTitle.includes('improve social media')) {
+    return trackConfigs['social-media-strategy'];
+  }
+  
+  // Fallback to original logic
   const slug = Object.keys(trackConfigs).find(key => {
     const config = trackConfigs[key];
-    return title.toLowerCase().includes(key.replace('-', ' ')) || 
+    return lowerTitle.includes(key.replace('-', ' ')) || 
            title === config.title;
   });
   return slug ? trackConfigs[slug] : undefined;
