@@ -36,22 +36,7 @@ function MarketingTrackModal({ isOpen, onClose, goal, module }: MarketingTrackMo
     return out;
   };
 
-      // REMOVED: withFallback call that generated fake data
-    // If you see this error, marketing data is incomplete
-    const filledModule = module;
-    
-    // Validate that the module has real data
-    if (!filledModule.title || !filledModule.description || !filledModule.content) {
-      console.error('❌ MISSING MARKETING DATA:', {
-        goalTitle: goal.title,
-        weekNumber: filledModule.weekNumber,
-        moduleId: filledModule.id,
-        hasTitle: !!filledModule.title,
-        hasDescription: !!filledModule.description,
-        hasContent: !!filledModule.content
-      });
-      throw new Error(`Marketing module ${filledModule.weekNumber} for "${goal.title}" is missing required data. Check database seeding.`);
-    }
+      const filledModule = module;
 
   return (
     <div style={{
