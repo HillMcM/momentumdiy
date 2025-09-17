@@ -120,98 +120,46 @@ const socialMediaConfig: TrackConfig = {
   buttonText: 'Start Social Media Strategy Track',
   journeyName: 'Social Media Strategy',
   generateTasks: (module: any, goal: any) => {
-    const weekNumber = module.weekNumber;
-    const moduleId = module.id;
+    // Extract tasks from the markdown content in "What to do this week:" section
+    const tasks: any[] = [];
+    const content = module.content || '';
     
-    switch (weekNumber) {
-      case 1: // Social Audit & Baseline Tracking - 3 tasks
-        return [
-          {
-            id: `${moduleId}-w1-audit`,
-            title: 'Run a profile audit',
-            description: 'Check your bio, links, and visuals for clarity',
-            responsible: 'Hillary',
-            deadline: null,
-            project: goal.title,
-            timeSpent: '',
-            notifications: false,
-            status: 'todo' as const,
-            projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w1-audit` }
-          },
-          {
-            id: `${moduleId}-w1-baseline`,
-            title: 'Record baseline metrics',
-            description: 'Write down current followers, likes, and story views',
-            responsible: 'Hillary',
-            deadline: null,
-            project: goal.title,
-            timeSpent: '',
-            notifications: false,
-            status: 'todo' as const,
-            projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w1-baseline` }
-          },
-          {
-            id: `${moduleId}-w1-posts`,
-            title: 'Publish 3 quick-win posts',
-            description: 'Share your story, a tip, and a behind-the-scenes look',
-            responsible: 'Hillary',
-            deadline: null,
-            project: goal.title,
-            timeSpent: '',
-            notifications: false,
-            status: 'todo' as const,
-            projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w1-posts` }
+    // Look for the "What to do this week:" section and extract tasks
+    const whatToDoMatch = content.match(/### What to do this week:([\s\S]*?)(?=##|$)/);
+    if (whatToDoMatch) {
+      const whatToDoContent = whatToDoMatch[1];
+      
+      // Match each task line: - **Task name:** Description...
+      const taskMatches = whatToDoContent.match(/- \*\*([^:*]+):\*\* ([^\n]+)/g);
+      
+      if (taskMatches) {
+        taskMatches.forEach((taskMatch: string, index: number) => {
+          const match = taskMatch.match(/- \*\*([^:*]+):\*\* ([^\n]+)/);
+          if (match) {
+            const [, title, description] = match;
+            tasks.push({
+              id: `${module.id}-task-${index + 1}`,
+              title: title.trim(),
+              description: description.trim(),
+              responsible: 'Hillary',
+              deadline: null,
+              project: goal.title,
+              timeSpent: '',
+              notifications: false,
+              status: 'todo' as const,
+              projectId: undefined,
+              marketingTrack: { 
+                goalId: goal.id, 
+                moduleId: module.id, 
+                marketingTaskId: `${module.id}-task-${index + 1}` 
+              }
+            });
           }
-        ];
-      case 2: // Define Your Content Pillars - 3 tasks
-        return [
-          {
-            id: `${moduleId}-w2-pillars`,
-            title: 'Select 3–4 content pillars',
-            description: 'Choose themes that represent your business',
-            responsible: 'Hillary',
-            deadline: null,
-            project: goal.title,
-            timeSpent: '',
-            notifications: false,
-            status: 'todo' as const,
-            projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w2-pillars` }
-          },
-          {
-            id: `${moduleId}-w2-ideas`,
-            title: 'Brainstorm 15 content ideas',
-            description: 'Write at least 5 ideas per pillar',
-            responsible: 'Hillary',
-            deadline: null,
-            project: goal.title,
-            timeSpent: '',
-            notifications: false,
-            status: 'todo' as const,
-            projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w2-ideas` }
-          },
-          {
-            id: `${moduleId}-w2-captions`,
-            title: 'Draft 2 sample captions',
-            description: 'Put your pillars into practice immediately',
-            responsible: 'Hillary',
-            deadline: null,
-            project: goal.title,
-            timeSpent: '',
-            notifications: false,
-            status: 'todo' as const,
-            projectId: undefined,
-            marketingTrack: { goalId: goal.id, moduleId: module.id, marketingTaskId: `${moduleId}-w2-captions` }
-          }
-        ];
-      // Add remaining weeks as needed...
-      default:
-        return [];
+        });
+      }
     }
+    
+    return tasks;
   }
 };
 
