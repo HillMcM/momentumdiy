@@ -1,6 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { MarketingGoal, Project, Task } from '../types';
+import type { MarketingGoal, Project, Task, MarketingTask } from '../types';
+import WeekAccordion from './marketingTrack/WeekAccordion';
+import TaskModal from './marketingTrack/TaskModal';
+import { toggleMarketingTask, updateGoalProgress } from '../services/marketingService';
+import { calculateModuleProgress, computeNextUnlockLabel } from '../utils/date';
+import { useNotificationHelpers } from '../hooks/useNotificationHelpers';
+import { MarketingTrackProvider } from '../contexts/MarketingTrackContext';
 
 interface UniversalTrackTemplateProps {
   marketingGoals: MarketingGoal[];
@@ -30,12 +36,86 @@ export default function UniversalTrackTemplate({
   trackConfig
 }: UniversalTrackTemplateProps) {
   const navigate = useNavigate();
+  const { showTaskCompleted, showModuleCompleted } = useNotificationHelpers();
+  const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   
   // Find the active goal for this track
   const activeGoal = marketingGoals.find(g => 
     g.title.toLowerCase().includes(trackSlug.replace('-', ' ')) ||
     g.title === trackConfig.title
   );
+
+  // Handle task click to open modal
+  const handleTaskClick = useCallback((task: MarketingTask) => {
+    setSelectedTask(task);
+    setIsTaskModalOpen(true);
+  }, []);
+
+  // Handle task toggle
+  const handleTaskToggle = useCallback(async (taskId: string, isCompleted: boolean) => {
+    if (!activeGoal) return;
+
+    try {
+      // Find the module containing this task
+      const moduleWithTask = activeGoal.modules.find(module => 
+        module.tasks?.some(task => task.id === taskId)
+      );
+      
+      if (!moduleWithTask) return;
+
+      // Update the task in the module
+      const updatedModule = {
+        ...moduleWithTask,
+        tasks: moduleWithTask.tasks?.map(task =>
+          task.id === taskId ? { ...task, isCompleted } : task
+        ) || []
+      };
+
+      // Update the goal with the new module
+      const updatedGoal = {
+        ...activeGoal,
+        modules: activeGoal.modules.map(mod =>
+          mod.id === moduleWithTask.id ? updatedModule : mod
+        )
+      };
+
+      // Calculate new progress
+      const newProgress = calculateModuleProgress(updatedModule);
+      const optimisticGoal = { ...updatedGoal, progress: newProgress };
+
+      // Update the goals array
+      const updatedGoals = marketingGoals.map(g => 
+        g.id === activeGoal.id ? optimisticGoal : g
+      );
+      onMarketingGoalsChange(updatedGoals);
+
+      // Persist to backend
+      const taskResponse = await toggleMarketingTask(taskId, isCompleted);
+      if (!taskResponse.success) {
+        console.error('Failed to toggle task:', taskResponse.error);
+        return;
+      }
+
+      // Update goal progress
+      const progressResponse = await updateGoalProgress(activeGoal.id, newProgress);
+      if (!progressResponse.success) {
+        console.error('Failed to update progress:', progressResponse.error);
+      }
+
+      // Show notification
+      showTaskCompleted(isCompleted);
+
+      // Check if module is completed
+      const allTasksCompleted = updatedModule.tasks?.every(task => task.isCompleted) || false;
+      if (allTasksCompleted && !updatedModule.isCompleted) {
+        showModuleCompleted();
+      }
+
+    } catch (error) {
+      console.error('Error toggling task:', error);
+    }
+  }, [activeGoal, marketingGoals, onMarketingGoalsChange, showTaskCompleted, showModuleCompleted]);
 
   const startTrack = () => {
     if (!activeGoal) return;
@@ -425,36 +505,145 @@ export default function UniversalTrackTemplate({
         </div>
       </div>
 
-      {/* Active Track Status */}
+      {/* Progress Bar */}
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <span style={{ color: '#FFF1E7', opacity: 0.7, fontSize: '0.9rem' }}>Overall Progress</span>
+          <span style={{ color: '#FFF1E7', fontWeight: 600 }}>{Math.round(activeGoal.progress)}%</span>
+        </div>
+        <div style={{ 
+          width: '100%', 
+          height: '8px', 
+          background: 'rgba(42, 36, 62, 0.6)', 
+          borderRadius: '4px', 
+          overflow: 'hidden' 
+        }}>
+          <div 
+            style={{ 
+              width: `${Math.round(activeGoal.progress)}%`, 
+              height: '100%', 
+              background: 'linear-gradient(90deg, #EF8E81, #D4AF37)', 
+              transition: 'width 0.5s ease' 
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Phase Section */}
       <div style={{ 
         marginBottom: '2rem', 
         padding: '1.5rem', 
-        background: 'rgba(239, 142, 129, 0.1)', 
+        background: 'rgba(42, 36, 62, 0.3)', 
         borderRadius: '12px', 
-        border: '1px solid rgba(239, 142, 129, 0.2)' 
+        border: '1px solid rgba(42, 36, 62, 0.6)' 
       }}>
-        <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#FFF1E7' }}>
-          🎯 Track Active - Week {activeGoal.currentWeek} of {activeGoal.duration}
-        </h2>
-        <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.8 }}>
-          Your {trackConfig.journeyName} track is now active! You can view your progress and manage tasks from the main Marketing Track page.
+        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', color: '#FFF1E7', fontWeight: 600 }}>
+          Phase 1: Foundations & Quick Wins
+        </h3>
+        <p style={{ margin: '0 0 0.5rem 0', color: '#EF8E81', fontWeight: 600 }}>
+          Goal: Set up your social media presence for success with clear baselines, themes, and recognizable style.
         </p>
-        <button 
-          onClick={() => navigate('/app/marketing-track')}
-          style={{ 
-            marginTop: '1rem',
-            padding: '0.75rem 1.5rem', 
-            borderRadius: 8, 
-            border: 'none', 
-            background: '#EF8E81', 
-            color: '#22202F', 
-            cursor: 'pointer',
-            fontWeight: 600
-          }}
-        >
-          Go to Marketing Track Dashboard
-        </button>
+        <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.8, lineHeight: '1.6' }}>
+          Each phase starts with a quick win to give you an immediate confidence boost, then builds systems and habits that stack over time.
+        </p>
+      </div>
+
+  // Wrap everything in MarketingTrackProvider
+  const content = (
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'transparent', 
+      color: '#FFF1E7', 
+      padding: '2rem',
+      fontFamily: 'system-ui, sans-serif'
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        
+        {/* Header */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{ 
+            margin: '0 0 0.5rem 0', 
+            fontSize: '2.5rem', 
+            fontWeight: 700, 
+            color: '#FFF1E7' 
+          }}>
+            {activeGoal.title}
+          </h1>
+          <p style={{ margin: '0.5rem 0 0 0', color: '#FFF1E7', opacity: 0.7, fontSize: '1.1rem' }}>
+            {activeGoal.description}
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        <div style={{ marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <span style={{ color: '#FFF1E7', opacity: 0.7, fontSize: '0.9rem' }}>Overall Progress</span>
+            <span style={{ color: '#FFF1E7', fontWeight: 600 }}>{Math.round(activeGoal.progress)}%</span>
+          </div>
+          <div style={{ 
+            width: '100%', 
+            height: '8px', 
+            background: 'rgba(42, 36, 62, 0.6)', 
+            borderRadius: '4px', 
+            overflow: 'hidden' 
+          }}>
+            <div 
+              style={{ 
+                width: `${Math.round(activeGoal.progress)}%`, 
+                height: '100%', 
+                background: 'linear-gradient(90deg, #EF8E81, #D4AF37)', 
+                transition: 'width 0.5s ease' 
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Phase Section */}
+        <div style={{ 
+          marginBottom: '2rem', 
+          padding: '1.5rem', 
+          background: 'rgba(42, 36, 62, 0.3)', 
+          borderRadius: '12px', 
+          border: '1px solid rgba(42, 36, 62, 0.6)' 
+        }}>
+          <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', color: '#FFF1E7', fontWeight: 600 }}>
+            Phase 1: Foundations & Quick Wins
+          </h3>
+          <p style={{ margin: '0 0 0.5rem 0', color: '#EF8E81', fontWeight: 600 }}>
+            Goal: Set up your social media presence for success with clear baselines, themes, and recognizable style.
+          </p>
+          <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.8, lineHeight: '1.6' }}>
+            Each phase starts with a quick win to give you an immediate confidence boost, then builds systems and habits that stack over time.
+          </p>
+        </div>
+
+        {/* Weekly Modules */}
+        <div style={{ display: 'grid', gap: '1.5rem' }}>
+          {activeGoal.modules.map((module) => (
+            <WeekAccordion
+              key={module.id}
+              module={module}
+              currentWeek={activeGoal.currentWeek}
+              onTaskToggle={handleTaskToggle}
+              onTaskClick={handleTaskClick}
+            />
+          ))}
+        </div>
+        
+        {/* Task Modal */}
+        <TaskModal
+          isOpen={isTaskModalOpen}
+          onClose={() => setIsTaskModalOpen(false)}
+          task={selectedTask}
+          onTaskToggle={handleTaskToggle}
+        />
       </div>
     </div>
+  );
+
+  return (
+    <MarketingTrackProvider activeGoal={activeGoal}>
+      {content}
+    </MarketingTrackProvider>
   );
 }
