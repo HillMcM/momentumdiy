@@ -65,7 +65,7 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',
-      data: null
+      data: undefined
     };
   }
 }
@@ -124,7 +124,7 @@ export async function getMarketingGoal(goalId: string): Promise<ApiResponse<Mark
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',
-      data: null
+      data: undefined
     };
   }
 }
@@ -158,7 +158,7 @@ export async function updateGoalProgress(goalId: string, progress: number): Prom
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',
-      data: null
+      data: undefined
     };
   }
 }
@@ -173,14 +173,19 @@ export function convertMarketingTasksToTasks(marketingGoal: MarketingGoal): Task
         id: task.id,
         title: task.title,
         description: task.description || '',
+        responsible: 'User', // Default responsible person
+        deadline: task.dueDate ? task.dueDate.toISOString() : null,
+        project: marketingGoal.title,
+        timeSpent: '0h',
+        notifications: false,
         status: task.isCompleted ? 'completed' : 'todo',
-        priority: 'medium',
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+        isArchived: false,
         projectId: marketingGoal.id,
-        tags: [`Week ${module.weekNumber}`, marketingGoal.title],
-        estimatedHours: task.estimatedTime ? parseFloat(task.estimatedTime.replace(/[^\d.]/g, '')) || 1 : 1,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        marketingTrack: {
+          goalId: marketingGoal.id,
+          moduleId: module.id,
+          marketingTaskId: task.id
+        }
       });
     });
   });
