@@ -2,6 +2,40 @@ import { BaseContentRenderer } from './BaseContentRenderer';
 import type { MarketingModule } from '../../types';
 
 export class SocialMediaRenderer extends BaseContentRenderer {
+  
+  // Extract tasks from Social Media markdown content
+  extractTasks(content: string): any[] {
+    const tasks: any[] = [];
+    
+    // Look for the "What to do this week:" section and extract tasks
+    const whatToDoMatch = content.match(/### What to do this week:([\s\S]*?)(?=##|$)/);
+    if (whatToDoMatch) {
+      const whatToDoContent = whatToDoMatch[1];
+      
+      // Match each task line: - **Task name:** Description...
+      const taskMatches = whatToDoContent.match(/- \*\*([^:*]+):\*\* ([^\n]+)/g);
+      
+      if (taskMatches) {
+        taskMatches.forEach((taskMatch, index) => {
+          const match = taskMatch.match(/- \*\*([^:*]+):\*\* ([^\n]+)/);
+          if (match) {
+            const [, title, description] = match;
+            tasks.push({
+              id: `social-task-${index + 1}`,
+              title: title.trim(),
+              description: description.trim(),
+              estimatedTime: '20 min', // Default time
+              isCompleted: false,
+              shortDescription: description.trim()
+            });
+          }
+        });
+      }
+    }
+    
+    return tasks;
+  }
+
   renderWeeklyLesson(module: MarketingModule): React.ReactNode {
     const sanitized = this.sanitizeHtml(module.content);
     
