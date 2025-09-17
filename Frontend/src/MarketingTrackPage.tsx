@@ -6,6 +6,7 @@ import WeekAccordion from './components/marketingTrack/WeekAccordion';
 import TaskModal from './components/marketingTrack/TaskModal';
 import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 import type { MarketingTask } from './types';
+import { MarketingTrackProvider } from './contexts/MarketingTrackContext';
 
 interface MarketingTrackPageProps {
   // Props removed - using context instead
@@ -131,8 +132,9 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white p-6 marketing-track-page" style={{ background: 'transparent !important' }}>
-      <div className="max-w-6xl mx-auto">
+    <MarketingTrackProvider activeGoal={activeGoal}>
+      <div className="min-h-screen bg-transparent text-white p-6 marketing-track-page" style={{ background: 'transparent !important' }}>
+        <div className="max-w-6xl mx-auto">
         {/* Page Header - Transparent Background */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -229,6 +231,7 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
         }}
         onToggle={handleTaskToggle}
       />
-    </div>
+      </div>
+    </MarketingTrackProvider>
   );
 }
