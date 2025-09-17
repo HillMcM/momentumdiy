@@ -25,7 +25,7 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import { useSubscription } from './hooks/useSubscription';
 
 import { supabase } from './lib/supabase';
-import { mockTasks, mockMarketingGoals } from './mockData';
+// Removed mock data imports - using real database data only
 import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketingService';
 import CheckoutPage from './CheckoutPage';
 import CheckoutSuccessPage from './CheckoutSuccessPage';
@@ -487,9 +487,9 @@ function ProtectedApp() {
         // Skip all backend connectivity tests and API calls in development
         console.log('🔄 Using mock data for development - no backend required');
 
-        // Load mock tasks immediately
-        setTasks(mockTasks);
-        console.log('✅ Loaded mock tasks:', mockTasks.length);
+        // Load tasks from marketing goals (empty initially)
+        setTasks([]);
+        console.log('✅ Initialized empty tasks array');
 
         // Load projects (empty in development)
         setProjects([]);
@@ -507,14 +507,13 @@ function ProtectedApp() {
             console.log('✅ Loaded marketing goals from service:', marketingGoalsArray.length);
             console.log('🎯 Active goal details:', activeGoalResponse.data);
           } else {
-            // Fallback to mock data if service fails
-            console.log('⚠️ Service failed, using mock marketing goals');
-            setMarketingGoals(mockMarketingGoals);
-            console.log('📊 Mock goals loaded:', mockMarketingGoals.length);
+            // No active goal - user needs to select a track
+            console.log('ℹ️ No active marketing goal - user should select a track');
+            setMarketingGoals([]);
           }
         } catch (error) {
-          console.warn('⚠️ Marketing service error, using mock data:', error);
-          setMarketingGoals(mockMarketingGoals);
+          console.warn('⚠️ Marketing service error:', error);
+          setMarketingGoals([]);
         }
 
         // Skip calendar events (deactivated)
@@ -544,8 +543,8 @@ function ProtectedApp() {
       } catch (error) {
         console.error('❌ Unexpected error loading data:', error);
         // Set fallback data on error
-        setTasks(mockTasks);
-        setMarketingGoals(mockMarketingGoals);
+        setTasks([]);
+        setMarketingGoals([]);
         setProjects([]);
       } finally {
         setIsLoading(false);
