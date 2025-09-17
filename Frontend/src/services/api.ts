@@ -71,12 +71,18 @@ class ApiService {
   ): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}${endpoint}`;
 
-    // Get the current session for authentication
-    const { data: { session } } = await supabase.auth.getSession();
+    // Check if we're in preview mode (skip auth)
+    const isPreviewBranch = window.location.hostname !== 'app.momentumdiy.com' && 
+                            window.location.hostname !== 'momentumdiy.com';
+
+    // Get the current session for authentication (skip in preview mode)
     const authHeaders: Record<string, string> = {};
     
-    if (session?.access_token) {
-      authHeaders['Authorization'] = `Bearer ${session.access_token}`;
+    if (!isPreviewBranch) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        authHeaders['Authorization'] = `Bearer ${session.access_token}`;
+      }
     }
 
     // Only use mock responses when backend is not accessible
@@ -419,6 +425,28 @@ class ApiService {
   }
 
   async getProfile(): Promise<ApiResponse<unknown>> {
+    // Check if we're in preview mode
+    const isPreviewBranch = window.location.hostname !== 'app.momentumdiy.com' && 
+                            window.location.hostname !== 'momentumdiy.com';
+    
+    if (isPreviewBranch) {
+      // Return mock profile data for preview mode
+      return {
+        success: true,
+        data: {
+          onboarding_completed: true,
+          onboarding_data: {
+            businessName: 'Preview Business',
+            industry: 'marketing',
+            goals: ['social_media']
+          },
+          subscription_status: 'active',
+          has_access: true
+        },
+        message: 'Mock profile data for preview mode'
+      };
+    }
+    
     return this.request<unknown>('/stripe/profile');
   }
 
