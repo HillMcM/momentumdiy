@@ -1,8 +1,8 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useMarketing } from './contexts/MarketingContext';
 import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 import { MarketingTrackProvider } from './contexts/MarketingTrackContext';
-import type { MarketingGoal, MarketingModule, MarketingTask } from './types';
+import type { MarketingGoal, MarketingTask } from './types';
 import TaskModal from './components/marketingTrack/TaskModal';
 import { getPublishedTracks, activateTrack } from './services/marketingService';
 
@@ -15,49 +15,20 @@ interface MarketingTrackPageProps {
  * using the universal track template that matches the production UI.
  */
 export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
-  const { activeGoal, isLoading, updateGoalProgress, updateMarketingGoals, refreshMarketingData } = useMarketing();
-  const { showTaskCompleted, showModuleCompleted } = useNotificationHelpers();
+  const { activeGoal, isLoading, refreshMarketingData } = useMarketing();
+  const { showTaskCompleted } = useNotificationHelpers();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [publishedTracks, setPublishedTracks] = useState<MarketingGoal[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [activatingTrack, setActivatingTrack] = useState<string | null>(null);
+  const [showTrackSelection, setShowTrackSelection] = useState(true); // Always show selection first
 
   // Handle task completion
   const handleTaskToggle = async (taskToUpdate: MarketingTask) => {
     if (!activeGoal) return;
 
-    const isCompleted = !taskToUpdate.isCompleted;
-    
-    // Update the task in the active goal
-    const updatedGoal = {
-      ...activeGoal,
-      modules: activeGoal.modules.map(module => ({
-        ...module,
-        tasks: module.tasks.map(task => 
-          task.id === taskToUpdate.id 
-            ? { ...task, isCompleted }
-            : task
-        )
-      }))
-    };
-
-    // Calculate new progress
-    const totalTasks = updatedGoal.modules.reduce((sum, module) => sum + module.tasks.length, 0);
-    const completedTasks = updatedGoal.modules.reduce((sum, module) => 
-      sum + module.tasks.filter(task => task.isCompleted).length, 0
-    );
-    const newProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-    updatedGoal.progress = newProgress;
-
-    // Update context
-    updateMarketingGoals([updatedGoal]);
-    
-    // Update database
-    await updateGoalProgress(updatedGoal.id, newProgress);
-    
-    // Show notification
+    // For now, just show notification - full integration will come later
     showTaskCompleted(taskToUpdate.title);
     
     // Close modal
@@ -76,7 +47,7 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
     try {
       const response = await getPublishedTracks();
       if (response.success) {
-        setPublishedTracks(response.data);
+        setPublishedTracks(response.data || []);
       } else {
         console.error('Failed to load published tracks:', response.error);
       }
@@ -95,7 +66,9 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
       if (response.success) {
         // Refresh marketing data to load the newly activated track
         await refreshMarketingData();
-      } else {
+        // Hide track selection after successful activation
+        setShowTrackSelection(false);
+    } else {
         console.error('Failed to activate track:', response.error);
         // You might want to show a user-friendly error message here
       }
@@ -106,12 +79,12 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
     }
   };
 
-  // Load published tracks when there's no active goal
+  // Always load published tracks for selection
   useEffect(() => {
-    if (!activeGoal && !isLoading) {
+    if (!isLoading) {
       loadPublishedTracks();
     }
-  }, [activeGoal, isLoading]);
+  }, [isLoading]);
 
   if (isLoading) {
     return (
@@ -126,11 +99,11 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
     );
   }
 
-  if (!activeGoal) {
-    return (
-      <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
+  if (!activeGoal || showTrackSelection) {
+  return (
+    <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center py-12">
             <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8">
               <h2 className="text-2xl font-bold text-white mb-4">Choose Your Marketing Track</h2>
               <p className="text-gray-400 mb-8">
@@ -139,7 +112,7 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
 
               {loadingTracks ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81] mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81] mb-4"></div>
                   <p className="text-gray-400 ml-4">Loading available tracks...</p>
                 </div>
               ) : publishedTracks.length === 0 ? (
@@ -150,41 +123,64 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
                 </div>
               ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {publishedTracks.map((track) => (
-                    <div 
-                      key={track.id}
-                      className="bg-[#141127] border border-[#2A243E] rounded-xl p-6 text-left hover:border-[#EF8E81]/30 transition-colors"
-                    >
-                      <h3 className="text-xl font-semibold text-white mb-3">{track.title}</h3>
-                      <p className="text-gray-400 text-sm mb-4 leading-relaxed">
-                        {track.description}
-                      </p>
-                      
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm text-gray-500">
-                          {track.duration || 12} weeks
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {track.modules?.length || 0} modules
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={() => handleActivateTrack(track.id)}
-                        disabled={activatingTrack === track.id}
-                        className="w-full bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold py-2 px-4 rounded-lg hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  {publishedTracks.map((track) => {
+                    const isCurrentlyActive = activeGoal && activeGoal.id === track.id;
+                    return (
+                      <div 
+                        key={track.id}
+                        className={`bg-[#141127] border rounded-xl p-6 text-left transition-colors ${
+                          isCurrentlyActive 
+                            ? 'border-[#EF8E81] shadow-lg shadow-[#EF8E81]/10' 
+                            : 'border-[#2A243E] hover:border-[#EF8E81]/30'
+                        }`}
                       >
-                        {activatingTrack === track.id ? (
-                          <div className="flex items-center justify-center">
-                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Activating...
-                          </div>
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-xl font-semibold text-white">{track.title}</h3>
+                          {isCurrentlyActive && (
+                            <div className="bg-green-500/20 text-green-300 border border-green-500/30 rounded-full px-2 py-1 text-xs font-medium">
+                              Active
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                          {track.description}
+                        </p>
+                        
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-sm text-gray-500">
+                            {track.duration || 12} weeks
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {track.modules?.length || 0} modules
+                          </span>
+                        </div>
+
+                        {isCurrentlyActive ? (
+                          <button
+                            onClick={() => setShowTrackSelection(false)}
+                            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                          >
+                            Continue Track
+                          </button>
                         ) : (
-                          'Start This Track'
+                          <button
+                            onClick={() => handleActivateTrack(track.id)}
+                            disabled={activatingTrack === track.id}
+                            className="w-full bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold py-2 px-4 rounded-lg hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {activatingTrack === track.id ? (
+                              <div className="flex items-center justify-center">
+                                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Activating...
+                              </div>
+                            ) : (
+                              'Start This Track'
+                            )}
+                          </button>
                         )}
-                      </button>
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -209,6 +205,12 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
               </div>
 
               <div className="flex gap-3">
+                <button
+                  onClick={() => setShowTrackSelection(true)}
+                  className="bg-[#2A243E] hover:bg-[#3A3350] text-gray-300 hover:text-white border border-[#2A243E] rounded-full px-3 py-1 text-sm font-medium transition-colors"
+                >
+                  Change Track
+                </button>
                 {activeGoal.isActive && (
                   <div className="bg-green-500/20 text-green-300 border border-green-500/30 rounded-full px-3 py-1 text-sm font-medium">
                     Active • Week {activeGoal.currentWeek} of {activeGoal.duration}
@@ -252,7 +254,7 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
 
           {/* Weekly Modules */}
           <div className="space-y-6">
-            {activeGoal.modules.map((module, index) => {
+            {activeGoal.modules.map((module) => {
               const completedTasks = module.tasks.filter(task => task.isCompleted).length;
               const totalTasks = module.tasks.length;
               const moduleProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -327,25 +329,33 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
                           {module.tasks.map((task) => (
                             <div 
                               key={task.id}
-                              onClick={() => handleTaskClick(task)}
-                              className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                              className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
                                 task.isCompleted 
                                   ? 'bg-green-500/10 border border-green-500/20' 
                                   : 'bg-[#141127] border border-[#2A243E] hover:border-[#EF8E81]/30'
                               }`}
                             >
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                task.isCompleted 
-                                  ? 'bg-green-500 border-green-500' 
-                                  : 'border-[#2A243E] hover:border-[#EF8E81]'
-                              }`}>
+                              <div 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleTaskToggle(task);
+                                }}
+                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${
+                                  task.isCompleted 
+                                    ? 'bg-green-500 border-green-500' 
+                                    : 'border-[#2A243E] hover:border-[#EF8E81]'
+                                }`}
+                              >
                                 {task.isCompleted && (
                                   <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                   </svg>
                                 )}
                               </div>
-                              <div className="flex-1">
+                              <div 
+                                className="flex-1 cursor-pointer"
+                                onClick={() => handleTaskClick(task)}
+                              >
                                 <span className={`text-sm font-medium ${
                                   task.isCompleted ? 'text-green-300 line-through' : 'text-white'
                                 }`}>
@@ -378,9 +388,9 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
                 </div>
               );
             })}
-          </div>
         </div>
       </div>
+    </div>
 
       {/* Task Modal */}
       {selectedTask && (
@@ -391,7 +401,7 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
             setSelectedTask(null);
           }}
           task={selectedTask}
-          onToggle={handleTaskToggle}
+          onToggle={(task) => handleTaskToggle(task)}
         />
       )}
     </MarketingTrackProvider>

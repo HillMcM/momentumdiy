@@ -217,12 +217,13 @@ function SortableTaskCard({ task, onEdit, onCheck }: { task: Task; onEdit: (task
         </div>
         {task.marketingTrack && (
           <div style={{
-            fontSize: '0.75rem',
+            fontSize: '0.85rem',
             color: '#EF8E81',
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
-            gap: '0.25rem'
+            gap: '0.35rem',
+            marginTop: '0.25rem'
           }}>
             <span>🎯</span>
             <span>Marketing Track</span>
