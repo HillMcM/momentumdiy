@@ -94,6 +94,18 @@ export default function VisualTracksAdminPage() {
     if (selectedTrack) {
       loadModules(selectedTrack.id);
       setEditingTrack(selectedTrack);
+      
+      // Load phases from track definition
+      try {
+        const trackPhases = (selectedTrack as any).phases;
+        if (trackPhases) {
+          const parsedPhases = JSON.parse(trackPhases);
+          setEditingPhases(parsedPhases);
+        }
+      } catch (error) {
+        console.error('Error parsing phases:', error);
+        // Keep default phases if parsing fails
+      }
     }
   }, [selectedTrack]);
 
@@ -292,10 +304,16 @@ export default function VisualTracksAdminPage() {
       
       if (editMode === 'create') {
         // Create new track
-        trackResponse = await adminApi.createTrackDefinition(editingTrack);
+        trackResponse = await adminApi.createTrackDefinition({
+          ...editingTrack,
+          phases: JSON.stringify(editingPhases) // Save phases as JSON
+        });
       } else {
         // Update existing track
-        trackResponse = await adminApi.updateTrackDefinition(selectedTrack!.id, editingTrack);
+        trackResponse = await adminApi.updateTrackDefinition(selectedTrack!.id, {
+          ...editingTrack,
+          phases: JSON.stringify(editingPhases) // Save phases as JSON
+        });
       }
 
       if (!trackResponse.success) {
@@ -329,7 +347,8 @@ export default function VisualTracksAdminPage() {
             await adminApi.updateTrackModule(generatedModule.id, {
               title: moduleData.title || `Week ${weekNumber}`,
               description: moduleData.description || '',
-              content: moduleData.content || ''
+              content: moduleData.content || '',
+              pro_tip: (moduleData as any)?.pro_tip || ''
             });
             
             // Save tasks for this module
@@ -356,7 +375,10 @@ export default function VisualTracksAdminPage() {
         } else {
           // For existing tracks, update existing modules
           if (moduleData && moduleData.id) {
-            await adminApi.updateTrackModule(moduleData.id, moduleData);
+            await adminApi.updateTrackModule(moduleData.id, {
+              ...moduleData,
+              pro_tip: (moduleData as any)?.pro_tip || ''
+            });
             
             // Save tasks for this module
             const moduleTasks = editingTasks[moduleData.id] || [];
@@ -426,19 +448,6 @@ export default function VisualTracksAdminPage() {
     }
   };
 
-  const handleActivateGoal = async (goalId: string) => {
-    try {
-      const response = await adminApi.activateGoal(goalId);
-      if (response.success) {
-        showMessage('Goal activated successfully!');
-        await loadPublishedGoals();
-      } else {
-        showMessage(response.error || 'Failed to activate goal', true);
-      }
-    } catch (error) {
-      showMessage('Failed to activate goal', true);
-    }
-  };
 
   if (loading) {
     return (
@@ -788,13 +797,31 @@ export default function VisualTracksAdminPage() {
                           placeholder="# Week content in markdown format..."
                         />
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Pro Tip:</label>
+                        <textarea
+                          value={(module as any)?.pro_tip || ''}
+                          onChange={(e) => setEditingModules({
+                            ...editingModules,
+                            [weekNumber]: { ...module, pro_tip: e.target.value }
+                          })}
+                          className="w-full h-20 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white"
+                          placeholder="Add a helpful pro tip for this week..."
+                        />
+                      </div>
                     </div>
                   ) : (
                     <div className="text-gray-300">
                       <p className="mb-4">{module?.description}</p>
-                      <div className="bg-[#141127] rounded-lg p-4 font-mono text-sm">
+                      <div className="bg-[#141127] rounded-lg p-4 font-mono text-sm mb-4">
                         {module?.content || 'No content added yet'}
                       </div>
+                      {(module as any)?.pro_tip && (
+                        <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-lg p-4">
+                          <h5 className="text-[#D4AF37] text-sm font-semibold mb-2">💡 Pro Tip</h5>
+                          <p className="text-gray-300 text-sm">{(module as any).pro_tip}</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -890,6 +917,9 @@ export default function VisualTracksAdminPage() {
         {publishedGoals.length > 0 && (
           <div className="mt-12 bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8">
             <h2 className="text-2xl font-bold text-white mb-6">Published Goals</h2>
+            <p className="text-gray-400 text-sm mb-6">
+              These tracks have been published and are available to users. Users can select their preferred track from the marketing page or through the onboarding wizard.
+            </p>
             <div className="space-y-4">
               {publishedGoals.map((goal) => (
                 <div key={goal.id} className="flex items-center justify-between p-4 bg-[#141127] rounded-lg border border-[#2A243E]">
@@ -898,18 +928,9 @@ export default function VisualTracksAdminPage() {
                     <p className="text-gray-400 text-sm">{goal.description}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    {goal.is_active ? (
-                      <div className="bg-green-500/20 text-green-300 border border-green-500/30 rounded-full px-3 py-1 text-sm font-medium">
-                        Active
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleActivateGoal(goal.id)}
-                        className="bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full px-3 py-1 text-sm font-medium hover:bg-blue-500/30"
-                      >
-                        Activate
-                      </button>
-                    )}
+                    <div className="bg-green-500/20 text-green-300 border border-green-500/30 rounded-full px-3 py-1 text-sm font-medium">
+                      Published
+                    </div>
                   </div>
                 </div>
               ))}
