@@ -37,16 +37,20 @@ export class SocialMediaRenderer extends BaseContentRenderer {
   }
 
   renderWeeklyLesson(module: MarketingModule): React.ReactNode {
-    const sanitized = this.sanitizeHtml(module.content);
-    
-    // Remove Pro Tip section from the content (it's rendered separately)
-    let contentWithoutProTip = sanitized.replace(/##\s*Pro Tip\s*\n(.*?)(?=\n##|$)/is, '');
+    let content = module.content || '';
     
     // Remove "What to do this week:" section since tasks are now displayed separately
-    contentWithoutProTip = contentWithoutProTip.replace(/### What to do this week:([\s\S]*?)(?=##|$)/i, '');
+    // This removes everything from "### What to do this week:" until the next "##" section or end
+    content = content.replace(/### What to do this week:[\s\S]*?(?=##|$)/i, '');
+    
+    // Remove Pro Tip section from the content (it's rendered separately)
+    content = content.replace(/##\s*Pro Tip[\s\S]*?$/i, '');
+    
+    // Clean up extra whitespace and newlines
+    content = content.replace(/\n{3,}/g, '\n\n').trim();
     
     // Parse markdown-style content for Social Media tracks
-    const lines = contentWithoutProTip.split('\n');
+    const lines = content.split('\n');
     const elements: React.ReactNode[] = [];
     let currentList: string[] = [];
 
@@ -98,6 +102,10 @@ export class SocialMediaRenderer extends BaseContentRenderer {
       // Paragraphs
       else {
         flushList();
+        
+        // Skip empty lines
+        if (!trimmed) return;
+        
         elements.push(
           <p key={`p-${index}`} className="text-gray-300 mb-4 leading-relaxed">
             <span dangerouslySetInnerHTML={{
