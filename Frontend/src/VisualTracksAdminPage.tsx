@@ -73,9 +73,10 @@ export default function VisualTracksAdminPage() {
   const [editingModules, setEditingModules] = useState<{ [weekNumber: number]: Partial<TrackModule> }>({});
   const [editingTasks, setEditingTasks] = useState<{ [moduleId: string]: Partial<TrackTask>[] }>({});
   const [editingPhases, setEditingPhases] = useState<TrackPhase[]>([
-    { id: '1', title: 'Foundation Phase', description: 'Building your strategy foundation', startWeek: 1, endWeek: 4, color: '#EF8E81' },
-    { id: '2', title: 'Growth Phase', description: 'Implementing and scaling strategies', startWeek: 5, endWeek: 8, color: '#D4AF37' },
-    { id: '3', title: 'Optimization Phase', description: 'Refining and optimizing performance', startWeek: 9, endWeek: 12, color: '#8B5CF6' }
+    { id: '1', title: 'Foundation Phase', description: 'Building your strategy foundation', startWeek: 1, endWeek: 3, color: '#EF8E81' },
+    { id: '2', title: 'Implementation Phase', description: 'Putting strategies into action', startWeek: 4, endWeek: 6, color: '#D4AF37' },
+    { id: '3', title: 'Growth Phase', description: 'Scaling and expanding your reach', startWeek: 7, endWeek: 9, color: '#8B5CF6' },
+    { id: '4', title: 'Optimization Phase', description: 'Refining and optimizing performance', startWeek: 10, endWeek: 12, color: '#10B981' }
   ]);
 
   // Computed
@@ -222,6 +223,32 @@ export default function VisualTracksAdminPage() {
       ...editingTasks,
       [moduleId]: moduleTasks
     });
+  };
+
+  // Phase management functions
+  const addPhase = () => {
+    const lastPhase = editingPhases[editingPhases.length - 1];
+    const newPhaseId = (editingPhases.length + 1).toString();
+    const startWeek = lastPhase ? lastPhase.endWeek + 1 : 1;
+    const endWeek = Math.min(startWeek + 2, 12);
+    
+    const newPhase: TrackPhase = {
+      id: newPhaseId,
+      title: `Phase ${newPhaseId}`,
+      description: 'New phase description',
+      startWeek,
+      endWeek,
+      color: '#6B7280'
+    };
+    
+    setEditingPhases([...editingPhases, newPhase]);
+  };
+
+  const removePhase = (phaseIndex: number) => {
+    if (editingPhases.length <= 1) return; // Keep at least one phase
+    const updatedPhases = [...editingPhases];
+    updatedPhases.splice(phaseIndex, 1);
+    setEditingPhases(updatedPhases);
   };
 
   // Track operations
@@ -503,11 +530,33 @@ export default function VisualTracksAdminPage() {
 
               {/* Phase Section */}
               <div className="pt-6 border-t border-[#2A243E] mb-8">
-                <h3 className="text-lg font-semibold text-white mb-4">Track Phases</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white">Track Phases</h3>
+                  {(editMode === 'edit' || editMode === 'create') && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={addPhase}
+                        className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                      >
+                        + Add Phase
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
                 {editMode === 'edit' || editMode === 'create' ? (
                   <div className="space-y-4">
                     {editingPhases.map((phase, index) => (
-                      <div key={phase.id} className="bg-[#141127] rounded-lg p-4 border border-[#2A243E]">
+                      <div key={phase.id} className="bg-[#141127] rounded-lg p-4 border border-[#2A243E] relative">
+                        {editingPhases.length > 1 && (
+                          <button
+                            onClick={() => removePhase(index)}
+                            className="absolute top-2 right-2 text-red-400 hover:text-red-300 text-sm"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        
                         <div className="grid grid-cols-2 gap-4 mb-3">
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">Phase Title:</label>
@@ -585,18 +634,19 @@ export default function VisualTracksAdminPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {editingPhases.map((phase, index) => (
-                      <div key={phase.id} className="flex items-center gap-3">
+                      <div key={phase.id} className="flex items-center gap-3 bg-[#141127] rounded-lg p-3 border border-[#2A243E]">
                         <div 
-                          className="w-8 h-8 rounded-full flex items-center justify-center"
+                          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: phase.color }}
                         >
                           <span className="text-white text-sm font-bold">{index + 1}</span>
                         </div>
                         <div>
-                          <h4 className="text-lg font-semibold text-white">{phase.title}</h4>
-                          <p className="text-gray-400 text-sm">Weeks {phase.startWeek}-{phase.endWeek}: {phase.description}</p>
+                          <h4 className="text-base font-semibold text-white">{phase.title}</h4>
+                          <p className="text-gray-400 text-xs">Weeks {phase.startWeek}-{phase.endWeek}</p>
+                          <p className="text-gray-500 text-xs">{phase.description}</p>
                         </div>
                       </div>
                     ))}
