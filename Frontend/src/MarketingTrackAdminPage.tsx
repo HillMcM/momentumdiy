@@ -17,8 +17,9 @@ export default function MarketingTrackAdminPage() {
 
   // Forms
   const [trackForm, setTrackForm] = useState({ slug: '', title: '', description: '', phases: '' });
-  const [moduleForm, setModuleForm] = useState({ weekNumber: '', title: '', subtitle: '', content: '', proTip: '' });
+  const [moduleForm, setModuleForm] = useState({ weekNumber: '', title: '', introduction: '', content: '', proTip: '' });
   const [taskForm, setTaskForm] = useState({ title: '', description: '', estimatedTime: '', orderIndex: '' });
+  const [bulkTasksText, setBulkTasksText] = useState('');
 
   const orderedModules = useMemo(() => {
     return [...modules].sort((a, b) => (a.week_number ?? a.weekNumber) - (b.week_number ?? b.weekNumber));
@@ -53,7 +54,7 @@ export default function MarketingTrackAdminPage() {
     setModuleForm({
       weekNumber: String(mod.week_number ?? mod.weekNumber ?? ''),
       title: mod.title || '',
-      subtitle: mod.subtitle || '',
+      introduction: mod.subtitle || mod.description || '',
       content: mod.content || '',
       proTip: mod.pro_tip || mod.proTip || ''
     });
@@ -132,7 +133,7 @@ export default function MarketingTrackAdminPage() {
     const res = await api.adminCreateModule(selectedTrack.id, {
       weekNumber,
       title: moduleForm.title.trim(),
-      subtitle: moduleForm.subtitle,
+      subtitle: moduleForm.introduction, // store introduction in subtitle/description column
       content: moduleForm.content,
       proTip: moduleForm.proTip,
     });
@@ -145,7 +146,7 @@ export default function MarketingTrackAdminPage() {
     const payload: any = {
       weekNumber: Number(moduleForm.weekNumber),
       title: moduleForm.title.trim(),
-      subtitle: moduleForm.subtitle,
+      subtitle: moduleForm.introduction,
       content: moduleForm.content,
       proTip: moduleForm.proTip,
     };
@@ -165,7 +166,7 @@ export default function MarketingTrackAdminPage() {
       setModules(modules.filter(m => m.id !== selectedModule.id));
       setSelectedModule(null);
       setTasks([]);
-      setModuleForm({ weekNumber: '', title: '', subtitle: '', content: '', proTip: '' });
+      setModuleForm({ weekNumber: '', title: '', introduction: '', content: '', proTip: '' });
     } else alert(res.error || 'Failed to delete module');
   };
 
@@ -209,6 +210,56 @@ export default function MarketingTrackAdminPage() {
       setSelectedTask(null);
       setTaskForm({ title: '', description: '', estimatedTime: '', orderIndex: '' });
     } else alert(res.error || 'Failed to delete task');
+  };
+
+  // Helpers: replace tasks from bulk list (one per line; format: Title: Description | 30min)
+  const replaceTasksFromList = async () => {
+    if (!selectedModule) return;
+    const lines = bulkTasksText.split('\n').map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) return alert('Provide at least one line');
+    // delete existing tasks
+    for (const t of tasks) {
+      await api.adminDeleteTask(t.id);
+    }
+    const created: Task[] = [];
+    let idx = 0;
+    for (const line of lines) {
+      const [left, rest] = line.split('|');
+      const [title, desc] = (left || '').split(':');
+      const estimatedTime = (rest || '').trim();
+      const payload = {
+        title: (title || line).trim(),
+        description: (desc || '').trim(),
+        estimatedTime,
+        orderIndex: idx,
+      };
+      const res = await api.adminCreateTask(selectedModule.id, payload);
+      if (res.success && res.data) {
+        created.push(res.data);
+        idx += 1;
+      }
+    }
+    setTasks(created);
+    alert('Replaced tasks from list');
+  };
+
+  // Helpers: scaffold 12 weeks if missing
+  const generateTwelveWeeks = async () => {
+    if (!selectedTrack) return;
+    const existingWeeks = new Set((modules || []).map((m: any) => Number(m.week_number ?? m.weekNumber)));
+    const toCreate: number[] = [];
+    for (let w = 1; w <= 12; w++) if (!existingWeeks.has(w)) toCreate.push(w);
+    for (const w of toCreate) {
+      const res = await api.adminCreateModule(selectedTrack.id, {
+        weekNumber: w,
+        title: `Week ${w} Title`,
+        subtitle: 'Introduction',
+        content: '',
+        proTip: ''
+      });
+      if (res.success && res.data) setModules(m => [...m, res.data]);
+    }
+    if (toCreate.length === 0) alert('All 12 weeks already exist');
   };
 
   return (
@@ -258,7 +309,7 @@ export default function MarketingTrackAdminPage() {
                 <input value={trackForm.title} onChange={e => setTrackForm({ ...trackForm, title: e.target.value })} className="w-full px-3 py-2 rounded bg-[#141127] border border-[#2A243E]" placeholder="Improve Social Media Strategy & Engagement" />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Description</label>
+                <label className="block text-sm text-gray-400 mb-1">Track Introduction</label>
                 <textarea value={trackForm.description} onChange={e => setTrackForm({ ...trackForm, description: e.target.value })} className="w-full h-24 px-3 py-2 rounded bg-[#141127] border border-[#2A243E]" />
               </div>
               <div>
@@ -272,6 +323,7 @@ export default function MarketingTrackAdminPage() {
                   <>
                     <button className="flex-1 px-3 py-2 rounded bg-[#686DCA] hover:bg-[#5a5fb8]" onClick={updateTrack}>Save</button>
                     <button className="px-3 py-2 rounded bg-red-600 hover:bg-red-700" onClick={deleteTrack}>Delete</button>
+                    <button className="px-3 py-2 rounded bg-[#2A243E] hover:bg-[#3a3456]" onClick={generateTwelveWeeks}>Generate 12 Weeks</button>
                   </>
                 )}
               </div>
@@ -283,7 +335,7 @@ export default function MarketingTrackAdminPage() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold">Modules</h2>
               {selectedTrack && (
-                <button className="px-2 py-1 rounded bg-[#686DCA] hover:bg-[#5a5fb8] text-sm" onClick={() => { setSelectedModule(null); setModuleForm({ weekNumber: '', title: '', subtitle: '', content: '', proTip: '' }); }}>New</button>
+                <button className="px-2 py-1 rounded bg-[#686DCA] hover:bg-[#5a5fb8] text-sm" onClick={() => { setSelectedModule(null); setModuleForm({ weekNumber: '', title: '', introduction: '', content: '', proTip: '' }); }}>New</button>
               )}
             </div>
             <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-1 mb-4">
@@ -314,8 +366,8 @@ export default function MarketingTrackAdminPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Subtitle</label>
-                <input value={moduleForm.subtitle} onChange={e => setModuleForm({ ...moduleForm, subtitle: e.target.value })} className="w-full px-3 py-2 rounded bg-[#141127] border border-[#2A243E]" />
+                <label className="block text-sm text-gray-400 mb-1">Week Introduction</label>
+                <input value={moduleForm.introduction} onChange={e => setModuleForm({ ...moduleForm, introduction: e.target.value })} className="w-full px-3 py-2 rounded bg-[#141127] border border-[#2A243E]" />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Content (markdown)</label>
@@ -324,6 +376,13 @@ export default function MarketingTrackAdminPage() {
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Pro Tip</label>
                 <textarea value={moduleForm.proTip} onChange={e => setModuleForm({ ...moduleForm, proTip: e.target.value })} className="w-full h-20 px-3 py-2 rounded bg-[#141127] border border-[#2A243E]" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Quick Tasks (one per line: Title: Description | 30min)</label>
+                <textarea value={bulkTasksText} onChange={e => setBulkTasksText(e.target.value)} className="w-full h-24 px-3 py-2 rounded bg-[#141127] border border-[#2A243E]" placeholder="Measure baseline: Followers, likes, comments | 20-30min\nProfile audit: Bio, pic, links | 20-30min" />
+                <div className="mt-2">
+                  <button className="px-3 py-2 rounded bg-[#2A243E] hover:bg-[#3a3456] text-sm" onClick={replaceTasksFromList} disabled={!selectedModule}>Replace Tasks From List</button>
+                </div>
               </div>
               <div className="flex gap-2">
                 {!selectedModule ? (
