@@ -302,25 +302,75 @@ router.post('/definitions/:trackId/generate-modules', async (req, res) => {
   try {
     const { trackId } = req.params;
 
-    // Check if modules already exist
+    // Get track definition details
+    const { data: trackDef, error: trackError } = await supabase
+      .from('marketing_track_definitions')
+      .select('*')
+      .eq('id', trackId)
+      .single();
+
+    if (trackError || !trackDef) {
+      return res.status(404).json({ success: false, error: 'Track definition not found' });
+    }
+
+    // Create or get a template marketing goal for this track definition
+    let templateGoalId = trackId; // Try using trackId first
+    
+    // Check if we can use the trackId directly (if there's already a goal with this ID)
+    const { data: existingGoal } = await supabase
+      .from('marketing_goals')
+      .select('id')
+      .eq('id', trackId)
+      .single();
+
+    if (!existingGoal) {
+      // Create a template goal for this track definition
+      const { data: newGoal, error: goalError } = await supabase
+        .from('marketing_goals')
+        .insert([{
+          id: trackId, // Use the same ID as track definition
+          title: trackDef.title + ' (Template)',
+          description: trackDef.description,
+          duration: trackDef.duration_weeks,
+          industry: trackDef.industry_tags?.[0] || 'general',
+          is_active: false, // Template goals are not active
+          current_week: 1,
+          progress: 0,
+          track_definition_id: trackId
+        }])
+        .select('id')
+        .single();
+
+      if (goalError) {
+        console.error('Error creating template goal:', goalError);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to create template goal',
+          details: goalError.message
+        });
+      }
+      templateGoalId = newGoal.id;
+    }
+
+    // Check if modules already exist for this template goal
     const { data: existing } = await supabase
       .from('marketing_modules')
       .select('week_number')
-      .eq('goal_id', trackId);
+      .eq('goal_id', templateGoalId);
 
     const existingWeeks = existing?.map(m => m.week_number) || [];
     
-    // Generate modules for missing weeks
+    // Generate modules for missing weeks (start with just Week 1 for testing)
     const modulesToInsert = [];
     for (let week = 1; week <= 12; week++) {
       if (!existingWeeks.includes(week)) {
         modulesToInsert.push({
-          goal_id: trackId,
+          goal_id: templateGoalId, // Use the template goal ID
           week_number: week,
           title: `Week ${week}`,
-          description: '',
+          description: `Week ${week} description`,
           content: `# Week ${week} Content\n\nAdd your content here...`,
-          is_unlocked: false,
+          is_unlocked: week === 1,
           is_completed: false
         });
       }
@@ -332,14 +382,25 @@ router.post('/definitions/:trackId/generate-modules', async (req, res) => {
         .insert(modulesToInsert)
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error generating modules:', error);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to generate modules',
+          details: error.message
+        });
+      }
       return res.json({ success: true, data, created: modulesToInsert.length });
     } else {
       return res.json({ success: true, data: [], created: 0, message: 'All weeks already exist' });
     }
   } catch (error) {
     console.error('Error generating modules:', error);
-    return res.status(500).json({ success: false, error: 'Failed to generate modules' });
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate modules',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
