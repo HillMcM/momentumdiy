@@ -12,6 +12,15 @@ interface TrackDefinition {
   created_at: string;
 }
 
+interface TrackPhase {
+  id: string;
+  title: string;
+  description: string;
+  startWeek: number;
+  endWeek: number;
+  color: string;
+}
+
 interface TrackModule {
   id: string;
   goal_id: string;
@@ -63,6 +72,11 @@ export default function VisualTracksAdminPage() {
   const [editingTrack, setEditingTrack] = useState<Partial<TrackDefinition>>({});
   const [editingModules, setEditingModules] = useState<{ [weekNumber: number]: Partial<TrackModule> }>({});
   const [editingTasks, setEditingTasks] = useState<{ [moduleId: string]: Partial<TrackTask>[] }>({});
+  const [editingPhases, setEditingPhases] = useState<TrackPhase[]>([
+    { id: '1', title: 'Foundation Phase', description: 'Building your strategy foundation', startWeek: 1, endWeek: 4, color: '#EF8E81' },
+    { id: '2', title: 'Growth Phase', description: 'Implementing and scaling strategies', startWeek: 5, endWeek: 8, color: '#D4AF37' },
+    { id: '3', title: 'Optimization Phase', description: 'Refining and optimizing performance', startWeek: 9, endWeek: 12, color: '#8B5CF6' }
+  ]);
 
   // Computed
   const orderedModules = useMemo(() => {
@@ -86,13 +100,20 @@ export default function VisualTracksAdminPage() {
     // Load tasks for all modules
     const loadAllTasks = async () => {
       const tasksByModule: { [moduleId: string]: TrackTask[] } = {};
+      const editingTasksByModule: { [moduleId: string]: Partial<TrackTask>[] } = {};
+      
       for (const module of modules) {
         const response = await adminApi.listTrackTasks(module.id);
         if (response.success) {
-          tasksByModule[module.id] = response.data || [];
+          const moduleTasks = response.data || [];
+          tasksByModule[module.id] = moduleTasks;
+          // Initialize editing tasks with existing tasks
+          editingTasksByModule[module.id] = moduleTasks.map(task => ({ ...task }));
         }
       }
+      
       setTasks(tasksByModule);
+      setEditingTasks(prev => ({ ...prev, ...editingTasksByModule }));
     };
 
     if (modules.length > 0) {
@@ -164,12 +185,52 @@ export default function VisualTracksAdminPage() {
     }
   };
 
+  // Helper functions
+  const getPhaseForWeek = (weekNumber: number): TrackPhase | null => {
+    return editingPhases.find(phase => weekNumber >= phase.startWeek && weekNumber <= phase.endWeek) || null;
+  };
+
+  const addTaskToModule = (moduleId: string, weekNumber: number) => {
+    const newTask: Partial<TrackTask> = {
+      title: 'New Task',
+      description: 'Task description',
+      estimated_time: '30min',
+      order_index: (editingTasks[moduleId]?.length || 0) + 1
+    };
+
+    setEditingTasks({
+      ...editingTasks,
+      [moduleId]: [...(editingTasks[moduleId] || []), newTask]
+    });
+  };
+
+  const updateTask = (moduleId: string, taskIndex: number, updates: Partial<TrackTask>) => {
+    const moduleTasks = [...(editingTasks[moduleId] || [])];
+    moduleTasks[taskIndex] = { ...moduleTasks[taskIndex], ...updates };
+    
+    setEditingTasks({
+      ...editingTasks,
+      [moduleId]: moduleTasks
+    });
+  };
+
+  const removeTask = (moduleId: string, taskIndex: number) => {
+    const moduleTasks = [...(editingTasks[moduleId] || [])];
+    moduleTasks.splice(taskIndex, 1);
+    
+    setEditingTasks({
+      ...editingTasks,
+      [moduleId]: moduleTasks
+    });
+  };
+
   // Track operations
   const handleCreateNewTrack = () => {
     setEditMode('create');
     setSelectedTrack(null);
     setModules([]);
     setTasks({});
+    setEditingTasks({});
     setEditingTrack({
       slug: '',
       title: '',
@@ -226,11 +287,24 @@ export default function VisualTracksAdminPage() {
         }
       }
 
-      // Save all module content
+      // Save all module content and tasks
       for (const weekNumber of Object.keys(editingModules)) {
         const moduleData = editingModules[parseInt(weekNumber)];
         if (moduleData && moduleData.id) {
           await adminApi.updateTrackModule(moduleData.id, moduleData);
+          
+          // Save tasks for this module
+          const moduleTasks = editingTasks[moduleData.id] || [];
+          if (moduleTasks.length > 0) {
+            // Create tasks using bulk creation
+            const tasksText = moduleTasks.map(task => 
+              `${task.title} (${task.estimated_time}): ${task.description}`
+            ).join('\n');
+            
+            if (tasksText.trim()) {
+              await adminApi.createBulkTasks(moduleData.id, tasksText);
+            }
+          }
         }
       }
 
@@ -429,15 +503,105 @@ export default function VisualTracksAdminPage() {
 
               {/* Phase Section */}
               <div className="pt-6 border-t border-[#2A243E] mb-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-[#EF8E81] flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">1</span>
+                <h3 className="text-lg font-semibold text-white mb-4">Track Phases</h3>
+                {editMode === 'edit' || editMode === 'create' ? (
+                  <div className="space-y-4">
+                    {editingPhases.map((phase, index) => (
+                      <div key={phase.id} className="bg-[#141127] rounded-lg p-4 border border-[#2A243E]">
+                        <div className="grid grid-cols-2 gap-4 mb-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">Phase Title:</label>
+                            <input
+                              value={phase.title}
+                              onChange={(e) => {
+                                const updatedPhases = [...editingPhases];
+                                updatedPhases[index] = { ...phase, title: e.target.value };
+                                setEditingPhases(updatedPhases);
+                              }}
+                              className="w-full px-3 py-2 rounded bg-[#1B1628] border border-[#2A243E] text-white"
+                              placeholder="Foundation Phase"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">Color:</label>
+                            <input
+                              type="color"
+                              value={phase.color}
+                              onChange={(e) => {
+                                const updatedPhases = [...editingPhases];
+                                updatedPhases[index] = { ...phase, color: e.target.value };
+                                setEditingPhases(updatedPhases);
+                              }}
+                              className="w-full h-10 rounded bg-[#1B1628] border border-[#2A243E]"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mb-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">Start Week:</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="12"
+                              value={phase.startWeek}
+                              onChange={(e) => {
+                                const updatedPhases = [...editingPhases];
+                                updatedPhases[index] = { ...phase, startWeek: parseInt(e.target.value) };
+                                setEditingPhases(updatedPhases);
+                              }}
+                              className="w-full px-3 py-2 rounded bg-[#1B1628] border border-[#2A243E] text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">End Week:</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="12"
+                              value={phase.endWeek}
+                              onChange={(e) => {
+                                const updatedPhases = [...editingPhases];
+                                updatedPhases[index] = { ...phase, endWeek: parseInt(e.target.value) };
+                                setEditingPhases(updatedPhases);
+                              }}
+                              className="w-full px-3 py-2 rounded bg-[#1B1628] border border-[#2A243E] text-white"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Description:</label>
+                          <input
+                            value={phase.description}
+                            onChange={(e) => {
+                              const updatedPhases = [...editingPhases];
+                              updatedPhases[index] = { ...phase, description: e.target.value };
+                              setEditingPhases(updatedPhases);
+                            }}
+                            className="w-full px-3 py-2 rounded bg-[#1B1628] border border-[#2A243E] text-white"
+                            placeholder="Building your strategy foundation"
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">Foundation Phase</h2>
-                    <p className="text-gray-400 text-sm">Weeks 1-4: Building your strategy foundation</p>
+                ) : (
+                  <div className="space-y-3">
+                    {editingPhases.map((phase, index) => (
+                      <div key={phase.id} className="flex items-center gap-3">
+                        <div 
+                          className="w-8 h-8 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: phase.color }}
+                        >
+                          <span className="text-white text-sm font-bold">{index + 1}</span>
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-semibold text-white">{phase.title}</h4>
+                          <p className="text-gray-400 text-sm">Weeks {phase.startWeek}-{phase.endWeek}: {phase.description}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
               </div>
             </>
           )}
@@ -449,33 +613,43 @@ export default function VisualTracksAdminPage() {
             {Array.from({ length: 12 }, (_, i) => i + 1).map((weekNumber) => {
               const module = editingModules[weekNumber];
               const moduleTasks = module?.id ? tasks[module.id] || [] : [];
+              const editingModuleTasks = module?.id ? editingTasks[module.id] || [] : editingTasks[`week-${weekNumber}`] || [];
+              const currentPhase = getPhaseForWeek(weekNumber);
               
               return (
                 <div key={weekNumber} className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-6">
-                  {/* Week Header */}
+                  {/* Week Header with Phase Indicator */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#2A243E] flex items-center justify-center">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: currentPhase?.color || '#2A243E' }}
+                      >
                         <span className="text-white text-sm font-bold">{weekNumber}</span>
                       </div>
-                      {editMode === 'edit' || editMode === 'create' ? (
-                        <input
-                          value={module?.title || ''}
-                          onChange={(e) => setEditingModules({
-                            ...editingModules,
-                            [weekNumber]: { ...module, title: e.target.value }
-                          })}
-                          className="text-xl font-semibold bg-transparent border-b border-[#2A243E] text-white px-2 py-1 focus:border-[#EF8E81] outline-none"
-                          placeholder={`Week ${weekNumber} Title`}
-                        />
-                      ) : (
-                        <h3 className="text-xl font-semibold text-white">
-                          {module?.title || `Week ${weekNumber}`}
-                        </h3>
-                      )}
+                      <div>
+                        {editMode === 'edit' || editMode === 'create' ? (
+                          <input
+                            value={module?.title || ''}
+                            onChange={(e) => setEditingModules({
+                              ...editingModules,
+                              [weekNumber]: { ...module, title: e.target.value }
+                            })}
+                            className="text-xl font-semibold bg-transparent border-b border-[#2A243E] text-white px-2 py-1 focus:border-[#EF8E81] outline-none"
+                            placeholder={`Week ${weekNumber} Title`}
+                          />
+                        ) : (
+                          <h3 className="text-xl font-semibold text-white">
+                            {module?.title || `Week ${weekNumber}`}
+                          </h3>
+                        )}
+                        {currentPhase && (
+                          <p className="text-xs text-gray-400">{currentPhase.title}</p>
+                        )}
+                      </div>
                     </div>
                     <div className="text-sm text-gray-400">
-                      {moduleTasks.length} tasks
+                      {(editMode === 'edit' || editMode === 'create') ? editingModuleTasks.length : moduleTasks.length} tasks
                     </div>
                   </div>
 
@@ -516,21 +690,88 @@ export default function VisualTracksAdminPage() {
                     </div>
                   )}
 
-                  {/* Tasks Preview */}
-                  {moduleTasks.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-[#2A243E]">
-                      <h4 className="text-sm font-medium text-gray-300 mb-2">Tasks:</h4>
+                  {/* Tasks Section */}
+                  <div className="mt-4 pt-4 border-t border-[#2A243E]">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-medium text-gray-300">Tasks for this week:</h4>
+                      {(editMode === 'edit' || editMode === 'create') && (
+                        <button
+                          onClick={() => addTaskToModule(module?.id || `week-${weekNumber}`, weekNumber)}
+                          className="text-xs bg-[#EF8E81] text-white px-2 py-1 rounded hover:bg-[#EF8E81]/80"
+                        >
+                          + Add Task
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Task List */}
+                    {(editMode === 'edit' || editMode === 'create') ? (
+                      <div className="space-y-3">
+                        {editingModuleTasks.map((task, taskIndex) => (
+                          <div key={taskIndex} className="bg-[#141127] rounded-lg p-3 border border-[#2A243E]">
+                            <div className="grid grid-cols-2 gap-3 mb-2">
+                              <div>
+                                <label className="block text-xs text-gray-400 mb-1">Task Title:</label>
+                                <input
+                                  value={task.title || ''}
+                                  onChange={(e) => updateTask(module?.id || `week-${weekNumber}`, taskIndex, { title: e.target.value })}
+                                  className="w-full px-2 py-1 rounded bg-[#1B1628] border border-[#2A243E] text-white text-sm"
+                                  placeholder="Task name"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-400 mb-1">Estimated Time:</label>
+                                <input
+                                  value={task.estimated_time || ''}
+                                  onChange={(e) => updateTask(module?.id || `week-${weekNumber}`, taskIndex, { estimated_time: e.target.value })}
+                                  className="w-full px-2 py-1 rounded bg-[#1B1628] border border-[#2A243E] text-white text-sm"
+                                  placeholder="30min"
+                                />
+                              </div>
+                            </div>
+                            <div className="mb-2">
+                              <label className="block text-xs text-gray-400 mb-1">Task Description:</label>
+                              <textarea
+                                value={task.description || ''}
+                                onChange={(e) => updateTask(module?.id || `week-${weekNumber}`, taskIndex, { description: e.target.value })}
+                                className="w-full px-2 py-1 rounded bg-[#1B1628] border border-[#2A243E] text-white text-sm h-16"
+                                placeholder="Describe what the user needs to do..."
+                              />
+                            </div>
+                            <div className="flex justify-end">
+                              <button
+                                onClick={() => removeTask(module?.id || `week-${weekNumber}`, taskIndex)}
+                                className="text-xs text-red-400 hover:text-red-300"
+                              >
+                                Remove Task
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        {editingModuleTasks.length === 0 && (
+                          <p className="text-gray-500 text-sm italic">No tasks added yet. Click "Add Task" to create tasks for this week.</p>
+                        )}
+                      </div>
+                    ) : (
                       <div className="space-y-2">
                         {moduleTasks.map((task) => (
                           <div key={task.id} className="flex items-center gap-3 text-sm">
                             <div className="w-4 h-4 rounded border border-[#2A243E]"></div>
-                            <span className="text-gray-300">{task.title}</span>
-                            <span className="text-gray-500 ml-auto">{task.estimated_time}</span>
+                            <div className="flex-1">
+                              <span className="text-gray-300">{task.title}</span>
+                              {task.description && (
+                                <p className="text-gray-500 text-xs mt-1">{task.description}</p>
+                              )}
+                            </div>
+                            <span className="text-gray-500">{task.estimated_time}</span>
                           </div>
                         ))}
+                        {moduleTasks.length === 0 && (
+                          <p className="text-gray-500 text-sm italic">No tasks added yet.</p>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               );
             })}
