@@ -31,6 +31,7 @@ import CheckoutPage from './CheckoutPage';
 import CheckoutSuccessPage from './CheckoutSuccessPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
+import MarketingTrackAdminPage from './MarketingTrackAdminPage';
 import FeedbackPage from './FeedbackPage';
 import SubscriptionGuard from './components/SubscriptionGuard';
 import PersonalizedDashboard from './components/PersonalizedDashboard';
@@ -1085,6 +1086,7 @@ function ProtectedApp() {
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
             <Route path="manage-subscription" element={<SubscriptionPage />} />
             <Route path="feedback" element={<Placeholder title="Feedback" />} />
+            <Route path="admin/marketing-tracks" element={<MarketingTrackAdminPage />} />
               </Routes>
               <FloatingAssistant />
             </PersonalizedDashboard>

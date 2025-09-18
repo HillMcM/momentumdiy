@@ -481,6 +481,80 @@ class ApiService {
     });
   }
 
+  // Admin: Marketing Track Definitions
+  async adminListTracks(): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>('/marketing-admin/tracks');
+  }
+
+  async adminCreateTrack(payload: { slug: string; title: string; description?: string; phases?: any }): Promise<ApiResponse<any>> {
+    return this.request<any>('/marketing-admin/tracks', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async adminUpdateTrack(id: string, payload: Partial<{ slug: string; title: string; description: string; phases: any }>): Promise<ApiResponse<any>> {
+    return this.request<any>(`/marketing-admin/tracks/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async adminDeleteTrack(id: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/marketing-admin/tracks/${id}`, { method: 'DELETE' });
+  }
+
+  async adminListModules(trackId: string): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>(`/marketing-admin/tracks/${trackId}/modules`);
+  }
+
+  async adminCreateModule(trackId: string, payload: { weekNumber: number; title: string; subtitle?: string; content?: string; proTip?: string }): Promise<ApiResponse<any>> {
+    return this.request<any>(`/marketing-admin/tracks/${trackId}/modules`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async adminUpdateModule(id: string, payload: Partial<{ weekNumber: number; title: string; subtitle?: string; content?: string; proTip?: string }>): Promise<ApiResponse<any>> {
+    return this.request<any>(`/marketing-admin/modules/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async adminDeleteModule(id: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/marketing-admin/modules/${id}`, { method: 'DELETE' });
+  }
+
+  async adminListTasks(moduleId: string): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>(`/marketing-admin/modules/${moduleId}/tasks`);
+  }
+
+  async adminCreateTask(moduleId: string, payload: { title: string; description?: string; estimatedTime?: string; orderIndex?: number }): Promise<ApiResponse<any>> {
+    return this.request<any>(`/marketing-admin/modules/${moduleId}/tasks`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async adminUpdateTask(id: string, payload: Partial<{ title: string; description?: string; estimatedTime?: string; orderIndex?: number }>): Promise<ApiResponse<any>> {
+    return this.request<any>(`/marketing-admin/tasks/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async adminDeleteTask(id: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/marketing-admin/tasks/${id}`, { method: 'DELETE' });
+  }
+
+  async adminPublishTrack(trackId: string, payload: { goalTitle: string; description?: string; industry?: string; duration?: number }): Promise<ApiResponse<{ goalId: string }>> {
+    return this.request<{ goalId: string }>(`/marketing-admin/tracks/${trackId}/publish`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
 }
 
 export const apiService = new ApiService();
