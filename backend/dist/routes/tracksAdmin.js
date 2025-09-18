@@ -413,6 +413,7 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
                 description: trackDef.description,
                 duration: trackDef.duration_weeks,
                 industry: trackDef.industry_tags?.[0] || null,
+                is_active: true,
                 updated_at: new Date().toISOString()
             })
                 .eq('id', existingGoal.id)
@@ -432,7 +433,7 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
                     duration: trackDef.duration_weeks,
                     industry: trackDef.industry_tags?.[0] || null,
                     track_definition_id: trackId,
-                    is_active: false,
+                    is_active: true,
                     current_week: 1,
                     progress: 0
                 }])
