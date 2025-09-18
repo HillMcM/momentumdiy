@@ -131,7 +131,12 @@ const limiter = (0, express_rate_limit_1.default)({
     standardHeaders: true,
     legacyHeaders: false,
 });
-app.use(limiter);
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/admin/') || req.path === '/health' || req.path === '/') {
+        return next();
+    }
+    return limiter(req, res, next);
+});
 app.use((0, compression_1.default)());
 if (process.env['NODE_ENV'] === 'development') {
     app.use((0, morgan_1.default)('dev'));
