@@ -56,7 +56,7 @@ const stripe_1 = __importDefault(require("./routes/stripe"));
 const feedback_1 = __importDefault(require("./routes/feedback"));
 const notifications_1 = __importDefault(require("./routes/notifications"));
 const index_1 = __importDefault(require("./routes/index"));
-const marketingAdmin_1 = __importDefault(require("./routes/marketingAdmin"));
+const tracksAdmin_1 = __importDefault(require("./routes/tracksAdmin"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env['PORT'] || 3001;
@@ -153,7 +153,7 @@ app.use('/api', index_1.default);
 app.use('/api/tasks', tasks_1.default);
 app.use('/api/projects', projects_1.default);
 app.use('/api/marketing', marketing_1.default);
-app.use('/api/marketing-admin', marketingAdmin_1.default);
+app.use('/api/admin/tracks', tracksAdmin_1.default);
 app.use('/api/calendar', calendar_1.default);
 app.use('/api/assets', assets_1.default);
 app.use('/api/ai', ai_1.default);
@@ -176,6 +176,7 @@ app.get('/', (_req, res) => {
             tasks: '/api/tasks',
             projects: '/api/projects',
             marketing: '/api/marketing',
+            admin: '/api/admin/tracks',
             calendar: '/api/calendar',
             profile: '/api/profile',
             health: '/health'

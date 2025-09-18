@@ -1,5 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-// Alternative: import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import './App.css';
 import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
@@ -31,7 +30,8 @@ import CheckoutPage from './CheckoutPage';
 import CheckoutSuccessPage from './CheckoutSuccessPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
-import MarketingTrackAdminPage from './MarketingTrackAdminPage';
+import TracksAdminPage from './TracksAdminPage';
+import VisualTracksAdminPage from './VisualTracksAdminPage';
 import FeedbackPage from './FeedbackPage';
 import SubscriptionGuard from './components/SubscriptionGuard';
 import PersonalizedDashboard from './components/PersonalizedDashboard';
@@ -325,6 +325,15 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
             onClick={() => handleLinkClick('/app/ai-marketing-assistant')}
           >
             AI Marketing Assistant
+          </Link>
+        </li>
+        <li>
+          <Link 
+            to="/app/admin/marketing-tracks" 
+            className={isActive('/app/admin/marketing-tracks') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/admin/marketing-tracks')}
+          >
+            Admin Panel
           </Link>
         </li>
         {/* Non-core features are temporarily hidden
@@ -1086,7 +1095,8 @@ function ProtectedApp() {
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
             <Route path="manage-subscription" element={<SubscriptionPage />} />
             <Route path="feedback" element={<Placeholder title="Feedback" />} />
-            <Route path="admin/marketing-tracks" element={<MarketingTrackAdminPage />} />
+            <Route path="admin/marketing-tracks" element={<VisualTracksAdminPage />} />
+            <Route path="admin/marketing-tracks-old" element={<TracksAdminPage />} />
               </Routes>
               <FloatingAssistant />
             </PersonalizedDashboard>

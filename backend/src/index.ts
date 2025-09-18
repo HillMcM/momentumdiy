@@ -22,7 +22,7 @@ import stripeRoutes from './routes/stripe';
 import feedbackRoutes from './routes/feedback';
 import notificationRoutes from './routes/notifications';
 import mainRoutes from './routes/index';
-import marketingAdminRoutes from './routes/marketingAdmin';
+import tracksAdminRoutes from './routes/tracksAdmin';
 
 
 // Load environment variables
@@ -159,7 +159,7 @@ app.use('/api', mainRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/marketing', marketingRoutes);
-app.use('/api/marketing-admin', marketingAdminRoutes);
+app.use('/api/admin/tracks', tracksAdminRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/ai', aiRoutes);
@@ -189,6 +189,7 @@ app.get('/', (_req, res) => {
       tasks: '/api/tasks',
       projects: '/api/projects',
       marketing: '/api/marketing',
+      admin: '/api/admin/tracks',
       calendar: '/api/calendar',
       profile: '/api/profile',
       health: '/health'

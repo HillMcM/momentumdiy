@@ -29,8 +29,11 @@ export interface MarketingModule {
   id: string;
   weekNumber: number;
   title: string;
+  subtitle?: string;
   description: string;
+  introduction?: string;
   content: string;
+  proTip?: string;
   tasks: MarketingTask[];
   isUnlocked: boolean;
   isCompleted: boolean;
