@@ -332,8 +332,7 @@ export default function VisualTracksAdminPage() {
             await adminApi.updateTrackModule(generatedModule.id, {
               title: moduleData.title || `Week ${weekNumber}`,
               description: moduleData.description || '',
-              content: moduleData.content || '',
-              pro_tip: (moduleData as any)?.pro_tip || ''
+              content: moduleData.content || ''
             });
             
             // Save tasks for this module
@@ -360,10 +359,9 @@ export default function VisualTracksAdminPage() {
         } else {
           // For existing tracks, update existing modules
           if (moduleData && moduleData.id) {
-            await adminApi.updateTrackModule(moduleData.id, {
-              ...moduleData,
-              pro_tip: (moduleData as any)?.pro_tip || ''
-            });
+            // Remove pro_tip from moduleData before sending to API
+            const { pro_tip, ...moduleUpdateData } = moduleData as any;
+            await adminApi.updateTrackModule(moduleData.id, moduleUpdateData);
             
             // Save tasks for this module
             const moduleTasks = editingTasks[moduleData.id] || [];
@@ -782,18 +780,19 @@ export default function VisualTracksAdminPage() {
                           placeholder="# Week content in markdown format..."
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Pro Tip:</label>
-                        <textarea
-                          value={(module as any)?.pro_tip || ''}
-                          onChange={(e) => setEditingModules({
-                            ...editingModules,
-                            [weekNumber]: { ...module, pro_tip: e.target.value } as Partial<TrackModule>
-                          })}
-                          className="w-full h-20 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white"
-                          placeholder="Add a helpful pro tip for this week..."
-                        />
-                      </div>
+                  {/* Pro Tip field temporarily disabled - column doesn't exist in database */}
+                  {/* <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Pro Tip:</label>
+                    <textarea
+                      value={(module as any)?.pro_tip || ''}
+                      onChange={(e) => setEditingModules({
+                        ...editingModules,
+                        [weekNumber]: { ...module, pro_tip: e.target.value } as Partial<TrackModule>
+                      })}
+                      className="w-full h-20 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white"
+                      placeholder="Add a helpful pro tip for this week..."
+                    />
+                  </div> */}
                     </div>
                   ) : (
                     <div className="text-gray-300">
@@ -801,12 +800,7 @@ export default function VisualTracksAdminPage() {
                       <div className="bg-[#141127] rounded-lg p-4 font-mono text-sm mb-4">
                         {module?.content || 'No content added yet'}
                       </div>
-                      {(module as any)?.pro_tip && (
-                        <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-lg p-4">
-                          <h5 className="text-[#D4AF37] text-sm font-semibold mb-2">💡 Pro Tip</h5>
-                          <p className="text-gray-300 text-sm">{(module as any).pro_tip}</p>
-                        </div>
-                      )}
+{/* Pro tip display disabled - column doesn't exist in database */}
                     </div>
                   )}
 
