@@ -401,7 +401,12 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
             setSelectedTask(null);
           }}
           task={selectedTask}
-          onToggle={(task) => handleTaskToggle(task)}
+          onToggle={(_taskId, _isCompleted) => {
+            const task = selectedTask;
+            if (task) {
+              handleTaskToggle(task);
+            }
+          }}
         />
       )}
     </MarketingTrackProvider>
