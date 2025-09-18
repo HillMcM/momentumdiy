@@ -40,7 +40,10 @@ export class SocialMediaRenderer extends BaseContentRenderer {
     const sanitized = this.sanitizeHtml(module.content);
     
     // Remove Pro Tip section from the content (it's rendered separately)
-    const contentWithoutProTip = sanitized.replace(/##\s*Pro Tip\s*\n(.*?)(?=\n##|$)/is, '');
+    let contentWithoutProTip = sanitized.replace(/##\s*Pro Tip\s*\n(.*?)(?=\n##|$)/is, '');
+    
+    // Remove "What to do this week:" section since tasks are now displayed separately
+    contentWithoutProTip = contentWithoutProTip.replace(/### What to do this week:([\s\S]*?)(?=##|$)/i, '');
     
     // Parse markdown-style content for Social Media tracks
     const lines = contentWithoutProTip.split('\n');

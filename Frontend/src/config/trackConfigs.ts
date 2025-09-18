@@ -137,6 +137,22 @@ const socialMediaConfig: TrackConfig = {
           const match = taskMatch.match(/- \*\*([^:*]+):\*\* ([^\n]+)/);
           if (match) {
             const [, title, description] = match;
+            
+            // Estimate time based on task complexity
+            let estimatedTime = '30min';
+            const titleLower = title.toLowerCase();
+            const descLower = description.toLowerCase();
+            
+            if (titleLower.includes('audit') || titleLower.includes('review') || titleLower.includes('record')) {
+              estimatedTime = '20-30min';
+            } else if (titleLower.includes('create') || titleLower.includes('design') || titleLower.includes('write')) {
+              estimatedTime = '45min-1hr';
+            } else if (titleLower.includes('post') || titleLower.includes('publish') || titleLower.includes('plan')) {
+              estimatedTime = '1-2hrs';
+            } else if (descLower.includes('simple') || descLower.includes('quick')) {
+              estimatedTime = '15-20min';
+            }
+            
             tasks.push({
               id: `${module.id}-task-${index + 1}`,
               title: title.trim(),
@@ -144,14 +160,14 @@ const socialMediaConfig: TrackConfig = {
               responsible: 'Hillary',
               deadline: null,
               project: goal.title,
-              timeSpent: '',
+              timeSpent: estimatedTime, // Store estimated time here temporarily
               notifications: false,
               status: 'todo' as const,
               projectId: undefined,
               marketingTrack: { 
                 goalId: goal.id, 
                 moduleId: module.id, 
-                marketingTaskId: `${module.id}-task-${index + 1}` 
+                marketingTaskId: `${module.id}-task-${index + 1}`
               }
             });
           }

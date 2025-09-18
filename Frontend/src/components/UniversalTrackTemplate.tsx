@@ -58,7 +58,7 @@ export default function UniversalTrackTemplate({
         title: task.title,
         description: task.description,
         shortDescription: task.description,
-        estimatedTime: '30min', // Default time
+        estimatedTime: task.timeSpent || '30min', // timeSpent temporarily holds estimated time
         isCompleted: false,
         taskId: task.id
       }));
