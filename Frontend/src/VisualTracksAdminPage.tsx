@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { adminApi } from './services/adminApi';
 
 // Types for the visual admin interface
@@ -203,7 +203,7 @@ export default function VisualTracksAdminPage() {
     return editingPhases.find(phase => weekNumber >= phase.startWeek && weekNumber <= phase.endWeek) || null;
   };
 
-  const addTaskToModule = (moduleId: string, weekNumber: number) => {
+  const addTaskToModule = (moduleId: string, _weekNumber: number) => {
     const newTask: Partial<TrackTask> = {
       title: 'New Task',
       description: 'Task description',
@@ -803,7 +803,7 @@ export default function VisualTracksAdminPage() {
                           value={(module as any)?.pro_tip || ''}
                           onChange={(e) => setEditingModules({
                             ...editingModules,
-                            [weekNumber]: { ...module, pro_tip: e.target.value }
+                            [weekNumber]: { ...module, pro_tip: e.target.value } as Partial<TrackModule>
                           })}
                           className="w-full h-20 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white"
                           placeholder="Add a helpful pro tip for this week..."
