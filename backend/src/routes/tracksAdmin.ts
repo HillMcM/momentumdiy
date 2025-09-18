@@ -536,12 +536,23 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
       goalId = newGoal.id;
     }
 
-    // Delete existing live modules for this goal
-    await supabase
-      .from('marketing_modules')
-      .delete()
-      .eq('goal_id', goalId)
-      .neq('goal_id', trackId); // Don't delete template modules
+    // Delete existing live modules for this goal (but not template modules)
+    // If goalId === trackId, we need to be more careful about what we delete
+    if (goalId === trackId) {
+      // When the live goal ID is the same as track definition ID,
+      // delete modules that don't have a track_definition_id (these are live modules)
+      await supabase
+        .from('marketing_modules')
+        .delete()
+        .eq('goal_id', goalId)
+        .is('track_definition_id', null);
+    } else {
+      // When they're different, simply delete all modules for the live goal
+      await supabase
+        .from('marketing_modules')
+        .delete()
+        .eq('goal_id', goalId);
+    }
 
     // Create live modules
     const liveModules = modules?.map(module => ({

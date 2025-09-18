@@ -80,9 +80,9 @@ export default function VisualTracksAdminPage() {
   ]);
 
   // Computed
-    // const orderedModules = useMemo(() => {
-    //   return [...modules].sort((a, b) => a.week_number - b.week_number);
-    // }, [modules]);
+  // const orderedModules = useMemo(() => {
+  //   return [...modules].sort((a, b) => a.week_number - b.week_number);
+  // }, [modules]);
 
   // Load data
   useEffect(() => {
