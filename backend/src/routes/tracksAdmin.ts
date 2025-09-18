@@ -502,6 +502,7 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
           description: trackDef.description,
           duration: trackDef.duration_weeks,
           industry: trackDef.industry_tags?.[0] || null,
+          is_active: true, // Published tracks are available for users
           updated_at: new Date().toISOString()
         })
         .eq('id', existingGoal.id)
@@ -522,7 +523,7 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
           duration: trackDef.duration_weeks,
           industry: trackDef.industry_tags?.[0] || null,
           track_definition_id: trackId,
-          is_active: false, // Admin can activate separately
+          is_active: true, // Published tracks are available for users
           current_week: 1,
           progress: 0
         }])
