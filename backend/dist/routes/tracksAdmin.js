@@ -251,21 +251,61 @@ router.delete('/tasks/:id', async (req, res) => {
 router.post('/definitions/:trackId/generate-modules', async (req, res) => {
     try {
         const { trackId } = req.params;
+        const { data: trackDef, error: trackError } = await supabase_1.supabase
+            .from('marketing_track_definitions')
+            .select('*')
+            .eq('id', trackId)
+            .single();
+        if (trackError || !trackDef) {
+            return res.status(404).json({ success: false, error: 'Track definition not found' });
+        }
+        let templateGoalId = trackId;
+        const { data: existingGoal } = await supabase_1.supabase
+            .from('marketing_goals')
+            .select('id')
+            .eq('id', trackId)
+            .single();
+        if (!existingGoal) {
+            const { data: newGoal, error: goalError } = await supabase_1.supabase
+                .from('marketing_goals')
+                .insert([{
+                    id: trackId,
+                    title: trackDef.title + ' (Template)',
+                    description: trackDef.description,
+                    duration: trackDef.duration_weeks,
+                    industry: trackDef.industry_tags?.[0] || 'general',
+                    is_active: false,
+                    current_week: 1,
+                    progress: 0,
+                    track_definition_id: trackId
+                }])
+                .select('id')
+                .single();
+            if (goalError) {
+                console.error('Error creating template goal:', goalError);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to create template goal',
+                    details: goalError.message
+                });
+            }
+            templateGoalId = newGoal.id;
+        }
         const { data: existing } = await supabase_1.supabase
             .from('marketing_modules')
             .select('week_number')
-            .eq('goal_id', trackId);
+            .eq('goal_id', templateGoalId);
         const existingWeeks = existing?.map(m => m.week_number) || [];
         const modulesToInsert = [];
         for (let week = 1; week <= 12; week++) {
             if (!existingWeeks.includes(week)) {
                 modulesToInsert.push({
-                    goal_id: trackId,
+                    goal_id: templateGoalId,
                     week_number: week,
                     title: `Week ${week}`,
-                    description: '',
+                    description: `Week ${week} description`,
                     content: `# Week ${week} Content\n\nAdd your content here...`,
-                    is_unlocked: false,
+                    is_unlocked: week === 1,
                     is_completed: false
                 });
             }
@@ -275,8 +315,14 @@ router.post('/definitions/:trackId/generate-modules', async (req, res) => {
                 .from('marketing_modules')
                 .insert(modulesToInsert)
                 .select();
-            if (error)
-                throw error;
+            if (error) {
+                console.error('Supabase error generating modules:', error);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to generate modules',
+                    details: error.message
+                });
+            }
             return res.json({ success: true, data, created: modulesToInsert.length });
         }
         else {
@@ -285,7 +331,11 @@ router.post('/definitions/:trackId/generate-modules', async (req, res) => {
     }
     catch (error) {
         console.error('Error generating modules:', error);
-        return res.status(500).json({ success: false, error: 'Failed to generate modules' });
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to generate modules',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        });
     }
 });
 router.post('/modules/:moduleId/bulk-tasks', async (req, res) => {
