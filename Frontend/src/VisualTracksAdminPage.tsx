@@ -114,7 +114,7 @@ export default function VisualTracksAdminPage() {
       }
       
       setTasks(tasksByModule);
-      setEditingTasks(prev => ({ ...prev, ...editingTasksByModule }));
+      setEditingTasks(editingTasksByModule); // Replace instead of merge
     };
 
     if (modules.length > 0) {
@@ -305,31 +305,79 @@ export default function VisualTracksAdminPage() {
 
       const trackId = trackResponse.data.id;
 
-      // Generate modules if creating new track
+      // Generate modules if creating new track, then reload to get IDs
       if (editMode === 'create') {
         const generateResponse = await adminApi.generateTrackModules(trackId);
         if (!generateResponse.success) {
           showMessage('Track created but failed to generate modules', true);
           return;
         }
+        
+        // Reload modules to get the generated module IDs
+        await loadModules(trackId);
       }
 
       // Save all module content and tasks
       for (const weekNumber of Object.keys(editingModules)) {
         const moduleData = editingModules[parseInt(weekNumber)];
-        if (moduleData && moduleData.id) {
-          await adminApi.updateTrackModule(moduleData.id, moduleData);
-          
-          // Save tasks for this module
-          const moduleTasks = editingTasks[moduleData.id] || [];
-          if (moduleTasks.length > 0) {
-            // Create tasks using bulk creation
-            const tasksText = moduleTasks.map(task => 
-              `${task.title} (${task.estimated_time}): ${task.description}`
-            ).join('\n');
+        
+        if (editMode === 'create') {
+          // For new tracks, find the corresponding generated module
+          const generatedModule = modules.find(m => m.week_number === parseInt(weekNumber));
+          if (generatedModule) {
+            // Update the generated module with our content
+            await adminApi.updateTrackModule(generatedModule.id, {
+              title: moduleData.title || `Week ${weekNumber}`,
+              description: moduleData.description || '',
+              content: moduleData.content || ''
+            });
             
-            if (tasksText.trim()) {
-              await adminApi.createBulkTasks(moduleData.id, tasksText);
+            // Save tasks for this module
+            const moduleTasks = editingTasks[`week-${weekNumber}`] || [];
+            if (moduleTasks.length > 0) {
+              // Clear existing tasks first
+              const existingTasks = await adminApi.listTrackTasks(generatedModule.id);
+              if (existingTasks.success && existingTasks.data) {
+                for (const task of existingTasks.data) {
+                  await adminApi.deleteTrackTask(task.id);
+                }
+              }
+              
+              // Create new tasks
+              const tasksText = moduleTasks.map(task => 
+                `${task.title} (${task.estimated_time}): ${task.description}`
+              ).join('\n');
+              
+              if (tasksText.trim()) {
+                await adminApi.createBulkTasks(generatedModule.id, tasksText);
+              }
+            }
+          }
+        } else {
+          // For existing tracks, update existing modules
+          if (moduleData && moduleData.id) {
+            await adminApi.updateTrackModule(moduleData.id, moduleData);
+            
+            // Save tasks for this module
+            const moduleTasks = editingTasks[moduleData.id] || [];
+            
+            // Clear existing tasks first
+            const existingTasks = await adminApi.listTrackTasks(moduleData.id);
+            if (existingTasks.success && existingTasks.data) {
+              for (const task of existingTasks.data) {
+                await adminApi.deleteTrackTask(task.id);
+              }
+            }
+            
+            // Create new tasks
+            if (moduleTasks.length > 0) {
+              const tasksText = moduleTasks.map(task => 
+                `${task.title} (${task.estimated_time}): ${task.description}`
+              ).join('\n');
+              
+              if (tasksText.trim()) {
+                await adminApi.createBulkTasks(moduleData.id, tasksText);
+              }
             }
           }
         }
@@ -339,12 +387,14 @@ export default function VisualTracksAdminPage() {
       await loadTracks();
       setEditMode('view');
       
-      // Select the saved track
-      if (editMode === 'create') {
-        const newTrack = tracks.find(t => t.id === trackId);
-        if (newTrack) setSelectedTrack(newTrack);
+      // Select the saved track and reload its data
+      const savedTrack = tracks.find(t => t.id === trackId) || trackResponse.data;
+      if (savedTrack) {
+        setSelectedTrack(savedTrack);
+        await loadModules(trackId);
       }
     } catch (error) {
+      console.error('Save error:', error);
       showMessage('Failed to save track', true);
     }
   };
