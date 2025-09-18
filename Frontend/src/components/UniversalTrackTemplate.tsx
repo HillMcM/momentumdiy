@@ -35,10 +35,40 @@ export default function UniversalTrackTemplate({
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   
   // Find the active goal for this track
-  const activeGoal = marketingGoals.find(g => 
+  const rawActiveGoal = marketingGoals.find(g => 
     g.title.toLowerCase().includes(trackSlug.replace('-', ' ')) ||
     g.title === trackConfig.title
   );
+
+  // Generate tasks for modules that don't have them using the track config
+  const activeGoal = rawActiveGoal ? {
+    ...rawActiveGoal,
+    modules: rawActiveGoal.modules.map(module => {
+      // If module already has tasks, use them; otherwise generate from content
+      if (module.tasks && module.tasks.length > 0) {
+        return module;
+      }
+      
+      // Generate tasks from content using track config
+      const generatedTasks = trackConfig.generateTasks(module, rawActiveGoal);
+      
+      // Convert Task[] to MarketingTask[]
+      const marketingTasks: MarketingTask[] = generatedTasks.map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        shortDescription: task.description,
+        estimatedTime: '30min', // Default time
+        isCompleted: false,
+        taskId: task.id
+      }));
+      
+      return {
+        ...module,
+        tasks: marketingTasks
+      };
+    })
+  } : null;
 
   // Handle task click to open modal
   const handleTaskClick = useCallback((task: MarketingTask) => {
@@ -104,7 +134,7 @@ export default function UniversalTrackTemplate({
       }
 
       // Check if module is completed
-      const allTasksCompleted = updatedModule.tasks?.every(task => task.isCompleted) || false;
+      const allTasksCompleted = updatedModule.tasks?.every((task: any) => task.isCompleted) || false;
       if (allTasksCompleted && !updatedModule.isCompleted) {
         showModuleCompleted(updatedModule.title, updatedModule.weekNumber);
       }
@@ -117,23 +147,21 @@ export default function UniversalTrackTemplate({
   // If no active goal, show track selection interface
   if (!activeGoal) {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: 'transparent', 
-        color: '#FFF1E7', 
-        padding: '2rem',
-        fontFamily: 'system-ui, sans-serif'
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '1rem' }}>
-            {trackConfig.title}
-          </h1>
-          <p style={{ fontSize: '1.1rem', opacity: 0.8, marginBottom: '2rem' }}>
-            {trackConfig.description}
-          </p>
-          <p style={{ color: '#FFF1E7', opacity: 0.6 }}>
-            No active {trackConfig.journeyName} track found. Please start a track from the track picker.
-          </p>
+      <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8 text-center">
+            <h1 className="text-3xl font-bold text-white mb-4">
+              {trackConfig.title}
+            </h1>
+            <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+              {trackConfig.description}
+            </p>
+            <div className="bg-[#2A243E]/30 rounded-lg p-6">
+              <p className="text-gray-400">
+                No active {trackConfig.journeyName} track found. Please start a track from the track picker.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -142,83 +170,69 @@ export default function UniversalTrackTemplate({
   // If track is active, show the full track interface
   return (
     <MarketingTrackProvider activeGoal={activeGoal}>
-      <div style={{ 
-        minHeight: '100vh', 
-        background: 'transparent', 
-        color: '#FFF1E7', 
-        padding: '2rem',
-        fontFamily: 'system-ui, sans-serif'
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
+        <div className="max-w-6xl mx-auto">
           
           {/* Header */}
-          <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ 
-              margin: '0 0 0.5rem 0', 
-              fontSize: '2.5rem', 
-              fontWeight: 700, 
-              color: '#FFF1E7' 
-            }}>
-              {activeGoal.title}
-            </h1>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#FFF1E7', opacity: 0.7, fontSize: '1.1rem' }}>
+          <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8 mb-8">
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-2">{activeGoal.title}</h1>
+                <p className="text-gray-400">Active Track</p>
+              </div>
+
+              <div className="flex gap-3">
+                {activeGoal.isActive && (
+                  <div className="bg-green-500/20 text-green-300 border border-green-500/30 rounded-full px-3 py-1 text-sm font-medium">
+                    Active • Week {activeGoal.currentWeek} of {activeGoal.duration}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Intro paragraph */}
+            <p className="text-gray-300 text-lg mb-8 leading-relaxed">
               {activeGoal.description}
             </p>
-          </div>
 
-          {/* Progress Bar */}
-          <div style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span style={{ color: '#FFF1E7', opacity: 0.7, fontSize: '0.9rem' }}>Overall Progress</span>
-              <span style={{ color: '#FFF1E7', fontWeight: 600 }}>{Math.round(activeGoal.progress)}%</span>
+            {/* Overall Progress */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-300">Overall Progress</span>
+                <span className="text-sm font-medium text-[#EF8E81]">{Math.round(activeGoal.progress)}%</span>
+              </div>
+              <div className="w-full bg-[#2A243E] rounded-full h-2 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] transition-all duration-300 ease-out"
+                  style={{ width: `${Math.round(activeGoal.progress)}%` }}
+                />
+              </div>
             </div>
-            <div style={{ 
-              width: '100%', 
-              height: '8px', 
-              background: 'rgba(42, 36, 62, 0.6)', 
-              borderRadius: '4px', 
-              overflow: 'hidden' 
-            }}>
-              <div 
-                style={{ 
-                  width: `${Math.round(activeGoal.progress)}%`, 
-                  height: '100%', 
-                  background: 'linear-gradient(90deg, #EF8E81, #D4AF37)', 
-                  transition: 'width 0.5s ease' 
-                }}
-              />
-            </div>
-          </div>
 
-          {/* Phase Section */}
-          <div style={{ 
-            marginBottom: '2rem', 
-            padding: '1.5rem', 
-            background: 'rgba(42, 36, 62, 0.3)', 
-            borderRadius: '12px', 
-            border: '1px solid rgba(42, 36, 62, 0.6)' 
-          }}>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', color: '#FFF1E7', fontWeight: 600 }}>
-              Phase 1: Foundations & Quick Wins
-            </h3>
-            <p style={{ margin: '0 0 0.5rem 0', color: '#EF8E81', fontWeight: 600 }}>
-              Goal: Set up your social media presence for success with clear baselines, themes, and recognizable style.
-            </p>
-            <p style={{ margin: 0, color: '#FFF1E7', opacity: 0.8, lineHeight: '1.6' }}>
-              Each phase starts with a quick win to give you an immediate confidence boost, then builds systems and habits that stack over time.
-            </p>
+            {/* Phase block */}
+            <div className="mt-8 pt-6 border-t border-[#2A243E]">
+              <h3 className="text-xl font-semibold text-white mb-3">Phase 1: Foundation & Strategy</h3>
+              <p className="text-gray-400 leading-relaxed">
+                Build a strong foundation with strategic planning, content creation, and audience engagement.
+                This phase focuses on establishing your brand presence and creating sustainable marketing habits.
+              </p>
+            </div>
           </div>
 
           {/* Weekly Modules */}
-          <div style={{ display: 'grid', gap: '1.5rem' }}>
-            {activeGoal.modules.map((module) => (
-              <WeekAccordion
-                key={module.id}
-                module={module}
-                currentWeek={activeGoal.currentWeek}
-                onTaskToggle={handleTaskToggle}
-                onTaskClick={handleTaskClick}
-              />
+          <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] overflow-hidden">
+            {activeGoal.modules.map((module, index) => (
+              <div key={module.id}>
+                <WeekAccordion
+                  module={module}
+                  currentWeek={activeGoal.currentWeek}
+                  onTaskToggle={handleTaskToggle}
+                  onTaskClick={handleTaskClick}
+                />
+                {index < activeGoal.modules.length - 1 && (
+                  <div className="border-t border-[#2A243E]/40" />
+                )}
+              </div>
             ))}
           </div>
           
