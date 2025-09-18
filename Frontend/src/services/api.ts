@@ -37,14 +37,18 @@ function getBackendUrl(): string {
     
     // Production domains
     if (hostname === 'momentumdiy.vercel.app' || 
-        hostname === 'momentumdiy-git-main-hillmcm.vercel.app' ||
-        hostname.includes('vercel.app')) {
+        hostname === 'momentumdiy-git-main-hillmcm.vercel.app') {
+      return 'https://momentumdiy-backend.onrender.com';
+    }
+    
+    // Feature branch deployments - use production backend but show admin warning
+    if (hostname.includes('vercel.app')) {
       return 'https://momentumdiy-backend.onrender.com';
     }
     
     // Local development
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '10.0.0.53') {
-      return 'http://10.0.0.53:3002'; // Local backend
+      return 'http://localhost:3001'; // Local backend
     }
   }
   
