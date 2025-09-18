@@ -1,6 +1,100 @@
 import type { MarketingGoal, ApiResponse, Task } from '../types';
 import { BACKEND_BASE_URL } from './api';
 
+// Get published marketing tracks available for selection
+export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>> {
+  const url = `${BACKEND_BASE_URL}/api/marketing/goals`;
+  console.log('🔍 Fetching published tracks from:', url);
+  
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('📡 Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ HTTP error:', response.status, errorText);
+      return {
+        success: false,
+        error: `HTTP ${response.status}: ${errorText}`,
+        data: []
+      };
+    }
+
+    const result = await response.json();
+    console.log('📊 Published tracks response:', result);
+
+    if (!result.success) {
+      console.error('❌ API error:', result.error);
+      return {
+        success: false,
+        error: result.error || 'Unknown API error',
+        data: []
+      };
+    }
+
+    // Filter for published/active goals only
+    const publishedTracks = (result.data || []).filter((track: MarketingGoal) => track.isActive);
+
+    return {
+      success: true,
+      data: publishedTracks,
+      message: result.message
+    };
+
+  } catch (error) {
+    console.error('❌ Network error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error',
+      data: []
+    };
+  }
+}
+
+// Activate a marketing track for the user
+export async function activateTrack(trackId: string): Promise<ApiResponse<MarketingGoal>> {
+  const url = `${BACKEND_BASE_URL}/api/marketing/goals/${trackId}/activate`;
+  console.log('🔍 Activating track:', trackId);
+  
+  try {
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ HTTP error:', response.status, errorText);
+      return {
+        success: false,
+        error: `HTTP ${response.status}: ${errorText}`,
+        data: undefined
+      };
+    }
+
+    const result = await response.json();
+    console.log('📊 Activate track response:', result);
+
+    return result;
+
+  } catch (error) {
+    console.error('❌ Network error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error',
+      data: undefined
+    };
+  }
+}
+
 // Get active marketing goal
 export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
   const url = `${BACKEND_BASE_URL}/api/marketing/goals/active`;
