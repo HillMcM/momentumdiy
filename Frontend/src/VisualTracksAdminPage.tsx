@@ -95,17 +95,8 @@ export default function VisualTracksAdminPage() {
       loadModules(selectedTrack.id);
       setEditingTrack(selectedTrack);
       
-      // Load phases from track definition
-      try {
-        const trackPhases = (selectedTrack as any).phases;
-        if (trackPhases) {
-          const parsedPhases = JSON.parse(trackPhases);
-          setEditingPhases(parsedPhases);
-        }
-      } catch (error) {
-        console.error('Error parsing phases:', error);
-        // Keep default phases if parsing fails
-      }
+      // For now, phases are not persisted in the database
+      // Keep the default 4-phase structure
     }
   }, [selectedTrack]);
 
@@ -304,16 +295,10 @@ export default function VisualTracksAdminPage() {
       
       if (editMode === 'create') {
         // Create new track
-        trackResponse = await adminApi.createTrackDefinition({
-          ...editingTrack,
-          phases: JSON.stringify(editingPhases) // Save phases as JSON
-        });
+        trackResponse = await adminApi.createTrackDefinition(editingTrack);
       } else {
         // Update existing track
-        trackResponse = await adminApi.updateTrackDefinition(selectedTrack!.id, {
-          ...editingTrack,
-          phases: JSON.stringify(editingPhases) // Save phases as JSON
-        });
+        trackResponse = await adminApi.updateTrackDefinition(selectedTrack!.id, editingTrack);
       }
 
       if (!trackResponse.success) {
