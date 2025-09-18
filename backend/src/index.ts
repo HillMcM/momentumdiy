@@ -22,6 +22,7 @@ import stripeRoutes from './routes/stripe';
 import feedbackRoutes from './routes/feedback';
 import notificationRoutes from './routes/notifications';
 import mainRoutes from './routes/index';
+import marketingAdminRoutes from './routes/marketingAdmin';
 
 
 // Load environment variables
@@ -158,6 +159,7 @@ app.use('/api', mainRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/marketing', marketingRoutes);
+app.use('/api/marketing-admin', marketingAdminRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/ai', aiRoutes);
