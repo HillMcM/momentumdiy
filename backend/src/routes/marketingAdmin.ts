@@ -47,12 +47,13 @@ router.post('/tracks', async (req: Request, res: Response) => {
 router.put('/tracks/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params['id'];
-    const { slug, title, description, phases } = req.body || {};
+    const body = req.body || {};
+    const { slug, title, description, phases } = body;
     const update: Record<string, any> = {};
-    if (slug !== undefined) update.slug = slug;
-    if (title !== undefined) update.title = title;
-    if (description !== undefined) update.description = description;
-    if (phases !== undefined) update.phases = phases;
+    if (slug !== undefined) update['slug'] = slug;
+    if (title !== undefined) update['title'] = title;
+    if (description !== undefined) update['description'] = description;
+    if (phases !== undefined) update['phases'] = phases;
     const { data, error } = await supabase
       .from('marketing_track_definitions')
       .update(update)
@@ -113,13 +114,14 @@ router.post('/tracks/:trackId/modules', async (req: Request, res: Response) => {
 router.put('/modules/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params['id'];
-    const { weekNumber, title, subtitle, content, proTip } = req.body || {};
+    const body = req.body || {};
+    const { weekNumber, title, subtitle, content, proTip } = body;
     const update: Record<string, any> = {};
-    if (weekNumber !== undefined) update.week_number = weekNumber;
-    if (title !== undefined) update.title = title;
-    if (subtitle !== undefined) update.subtitle = subtitle;
-    if (content !== undefined) update.content = content;
-    if (proTip !== undefined) update.pro_tip = proTip;
+    if (weekNumber !== undefined) update['week_number'] = weekNumber;
+    if (title !== undefined) update['title'] = title;
+    if (subtitle !== undefined) update['subtitle'] = subtitle;
+    if (content !== undefined) update['content'] = content;
+    if (proTip !== undefined) update['pro_tip'] = proTip;
     const { data, error } = await supabase
       .from('marketing_module_definitions')
       .update(update)
@@ -180,12 +182,13 @@ router.post('/modules/:moduleId/tasks', async (req: Request, res: Response) => {
 router.put('/tasks/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params['id'];
-    const { title, description, estimatedTime, orderIndex } = req.body || {};
+    const body = req.body || {};
+    const { title, description, estimatedTime, orderIndex } = body;
     const update: Record<string, any> = {};
-    if (title !== undefined) update.title = title;
-    if (description !== undefined) update.description = description;
-    if (estimatedTime !== undefined) update.estimated_time = estimatedTime;
-    if (orderIndex !== undefined) update.order_index = orderIndex;
+    if (title !== undefined) update['title'] = title;
+    if (description !== undefined) update['description'] = description;
+    if (estimatedTime !== undefined) update['estimated_time'] = estimatedTime;
+    if (orderIndex !== undefined) update['order_index'] = orderIndex;
     const { data, error } = await supabase
       .from('marketing_task_definitions')
       .update(update)
