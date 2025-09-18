@@ -453,12 +453,13 @@ export default function MarketingTrackWidget() {
                     </div>
                   </div>
                   <div style={{ 
-                    color: '#FFF1E7', 
-                    fontSize: '0.7rem', 
-                    opacity: 0.6,
-                    marginTop: 'auto'
+                    color: '#EF8E81', 
+                    fontSize: '0.75rem', 
+                    opacity: 0.8,
+                    marginTop: 'auto',
+                    fontWeight: 500
                   }}>
-                    {task.estimatedTime}
+                    ⏱️ {task.estimatedTime}
                   </div>
                 </div>
               ))}
