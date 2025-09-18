@@ -28,6 +28,18 @@ export default function MarketingTrackAdminPage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
+      
+      // Check if we're on a feature branch deployment without admin backend
+      const isFeatureBranch = window.location.hostname.includes('vercel.app') && 
+                             !window.location.hostname.includes('git-main') &&
+                             window.location.hostname !== 'momentumdiy.vercel.app';
+      
+      if (isFeatureBranch) {
+        setError('Admin features are only available in local development. Please run the backend locally on port 3001 and access this page at http://localhost:5173/app/admin/marketing-tracks');
+        setLoading(false);
+        return;
+      }
+      
       const res = await api.adminListTracks();
       if (res.success) setTracks(res.data || []);
       else setError(res.error || 'Failed to load tracks');
