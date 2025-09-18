@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import type { MarketingGoal, Project, Task, MarketingTask } from '../types';
 import WeekAccordion from './marketingTrack/WeekAccordion';
 import TaskModal from './marketingTrack/TaskModal';
@@ -28,12 +27,9 @@ interface UniversalTrackTemplateProps {
 export default function UniversalTrackTemplate({ 
   marketingGoals, 
   onMarketingGoalsChange, 
-  projects,
-  tasks,
   trackSlug,
   trackConfig
 }: UniversalTrackTemplateProps) {
-  const navigate = useNavigate();
   const { showTaskCompleted, showModuleCompleted } = useNotificationHelpers();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -102,12 +98,15 @@ export default function UniversalTrackTemplate({
       }
 
       // Show notification
-      showTaskCompleted(isCompleted);
+      const taskToUpdate = updatedModule.tasks?.find(task => task.id === taskId);
+      if (taskToUpdate) {
+        showTaskCompleted(taskToUpdate.title);
+      }
 
       // Check if module is completed
       const allTasksCompleted = updatedModule.tasks?.every(task => task.isCompleted) || false;
       if (allTasksCompleted && !updatedModule.isCompleted) {
-        showModuleCompleted();
+        showModuleCompleted(updatedModule.title, updatedModule.weekNumber);
       }
 
     } catch (error) {
@@ -228,7 +227,7 @@ export default function UniversalTrackTemplate({
             isOpen={isTaskModalOpen}
             onClose={() => setIsTaskModalOpen(false)}
             task={selectedTask}
-            onTaskToggle={handleTaskToggle}
+            onToggle={handleTaskToggle}
           />
         </div>
       </div>
