@@ -120,7 +120,7 @@ export default function VisualTracksAdminPage() {
     if (modules.length > 0) {
       loadAllTasks();
     }
-  }, [modules]);
+  }, [modules.length]); // Only depend on modules.length to avoid infinite loops
 
   // Utility functions
   const showMessage = (msg: string, isError = false) => {
@@ -384,15 +384,23 @@ export default function VisualTracksAdminPage() {
       }
 
       showMessage('Track saved successfully!');
-      await loadTracks();
       setEditMode('view');
       
-      // Select the saved track and reload its data
-      const savedTrack = tracks.find(t => t.id === trackId) || trackResponse.data;
-      if (savedTrack) {
-        setSelectedTrack(savedTrack);
-        await loadModules(trackId);
-      }
+      // Reload all data to ensure consistency
+      await loadTracks();
+      
+      // Wait a bit for the tracks to load, then reload modules
+      setTimeout(async () => {
+        const updatedTracks = await adminApi.listTrackDefinitions();
+        if (updatedTracks.success) {
+          setTracks(updatedTracks.data || []);
+          const savedTrack = (updatedTracks.data || []).find((t: any) => t.id === trackId);
+          if (savedTrack) {
+            setSelectedTrack(savedTrack);
+            await loadModules(trackId);
+          }
+        }
+      }, 500); // Small delay to ensure database consistency
     } catch (error) {
       console.error('Save error:', error);
       showMessage('Failed to save track', true);

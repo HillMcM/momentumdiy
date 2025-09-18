@@ -128,7 +128,14 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use(limiter);
+// Apply rate limiting to all routes except admin routes
+app.use((req, res, next) => {
+  // Skip rate limiting for admin routes and health checks
+  if (req.path.startsWith('/api/admin/') || req.path === '/health' || req.path === '/') {
+    return next();
+  }
+  return limiter(req, res, next);
+});
 
 // Compression middleware
 app.use(compression());
