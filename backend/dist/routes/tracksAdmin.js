@@ -444,11 +444,19 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
             }
             goalId = newGoal.id;
         }
-        await supabase_1.supabase
-            .from('marketing_modules')
-            .delete()
-            .eq('goal_id', goalId)
-            .neq('goal_id', trackId);
+        if (goalId === trackId) {
+            await supabase_1.supabase
+                .from('marketing_modules')
+                .delete()
+                .eq('goal_id', goalId)
+                .is('track_definition_id', null);
+        }
+        else {
+            await supabase_1.supabase
+                .from('marketing_modules')
+                .delete()
+                .eq('goal_id', goalId);
+        }
         const liveModules = modules?.map(module => ({
             goal_id: goalId,
             week_number: module.week_number,
