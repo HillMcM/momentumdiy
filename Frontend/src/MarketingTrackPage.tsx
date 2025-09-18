@@ -4,6 +4,7 @@ import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 import { MarketingTrackProvider } from './contexts/MarketingTrackContext';
 import type { MarketingGoal, MarketingModule, MarketingTask } from './types';
 import TaskModal from './components/marketingTrack/TaskModal';
+import { getPublishedTracks, activateTrack } from './services/marketingService';
 
 interface MarketingTrackPageProps {
   // Props removed - using context instead
@@ -14,10 +15,13 @@ interface MarketingTrackPageProps {
  * using the universal track template that matches the production UI.
  */
 export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
-  const { activeGoal, isLoading, updateGoalProgress, updateMarketingGoals } = useMarketing();
+  const { activeGoal, isLoading, updateGoalProgress, updateMarketingGoals, refreshMarketingData } = useMarketing();
   const { showTaskCompleted, showModuleCompleted } = useNotificationHelpers();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [publishedTracks, setPublishedTracks] = useState<MarketingGoal[]>([]);
+  const [loadingTracks, setLoadingTracks] = useState(false);
+  const [activatingTrack, setActivatingTrack] = useState<string | null>(null);
 
   // Handle task completion
   const handleTaskToggle = async (taskToUpdate: MarketingTask) => {
@@ -66,6 +70,49 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
     setIsTaskModalOpen(true);
   };
 
+  // Load published tracks when no active goal exists
+  const loadPublishedTracks = async () => {
+    setLoadingTracks(true);
+    try {
+      const response = await getPublishedTracks();
+      if (response.success) {
+        setPublishedTracks(response.data);
+      } else {
+        console.error('Failed to load published tracks:', response.error);
+      }
+    } catch (error) {
+      console.error('Error loading published tracks:', error);
+    } finally {
+      setLoadingTracks(false);
+    }
+  };
+
+  // Handle track activation
+  const handleActivateTrack = async (trackId: string) => {
+    setActivatingTrack(trackId);
+    try {
+      const response = await activateTrack(trackId);
+      if (response.success) {
+        // Refresh marketing data to load the newly activated track
+        await refreshMarketingData();
+      } else {
+        console.error('Failed to activate track:', response.error);
+        // You might want to show a user-friendly error message here
+      }
+    } catch (error) {
+      console.error('Error activating track:', error);
+    } finally {
+      setActivatingTrack(null);
+    }
+  };
+
+  // Load published tracks when there's no active goal
+  useEffect(() => {
+    if (!activeGoal && !isLoading) {
+      loadPublishedTracks();
+    }
+  }, [activeGoal, isLoading]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
@@ -85,15 +132,61 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
         <div className="max-w-6xl mx-auto">
           <div className="text-center py-12">
             <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8">
-              <h2 className="text-2xl font-bold text-white mb-4">No Active Marketing Track</h2>
-              <p className="text-gray-400 mb-6">
-                You don't have an active marketing track yet. Contact your admin to activate a track for you.
+              <h2 className="text-2xl font-bold text-white mb-4">Choose Your Marketing Track</h2>
+              <p className="text-gray-400 mb-8">
+                Select a marketing track to start your journey. Each track is designed to help you achieve specific business goals.
               </p>
-              <div className="bg-[#EF8E81]/10 border border-[#EF8E81]/20 rounded-lg p-4">
-                <p className="text-[#EF8E81] text-sm">
-                  💡 Tip: Marketing tracks are created and activated by administrators through the admin panel.
-                </p>
-              </div>
+
+              {loadingTracks ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81] mb-4"></div>
+                  <p className="text-gray-400 ml-4">Loading available tracks...</p>
+                </div>
+              ) : publishedTracks.length === 0 ? (
+                <div className="bg-[#EF8E81]/10 border border-[#EF8E81]/20 rounded-lg p-6">
+                  <p className="text-[#EF8E81] text-sm">
+                    📋 No marketing tracks are currently available. Check back later or contact support.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {publishedTracks.map((track) => (
+                    <div 
+                      key={track.id}
+                      className="bg-[#141127] border border-[#2A243E] rounded-xl p-6 text-left hover:border-[#EF8E81]/30 transition-colors"
+                    >
+                      <h3 className="text-xl font-semibold text-white mb-3">{track.title}</h3>
+                      <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                        {track.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-sm text-gray-500">
+                          {track.duration || 12} weeks
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {track.modules?.length || 0} modules
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => handleActivateTrack(track.id)}
+                        disabled={activatingTrack === track.id}
+                        className="w-full bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold py-2 px-4 rounded-lg hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {activatingTrack === track.id ? (
+                          <div className="flex items-center justify-center">
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Activating...
+                          </div>
+                        ) : (
+                          'Start This Track'
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
