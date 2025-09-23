@@ -104,11 +104,19 @@ export default function AuthPage() {
 
   console.log('AuthPage rendering, mode:', mode, 'user:', user);
   
+  // Add a simple test to see if the component is rendering
+  if (true) {
+    console.log('AuthPage component is definitely rendering!');
+  }
+  
   return (
     <>
-      <div className="auth-root">
-        <div className="auth-card">
-          <h1>{mode === 'signup' ? 'Create your account' : 'Sign in'}</h1>
+      <div className="auth-root" style={{ backgroundColor: 'red', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="auth-card" style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', color: 'black' }}>
+          <h1 style={{ color: 'black', fontSize: '2rem', marginBottom: '1rem' }}>
+            {mode === 'signup' ? 'Create your account' : 'Sign in'}
+          </h1>
+          <p style={{ color: 'black', marginBottom: '1rem' }}>This is a test to see if the auth page is rendering!</p>
           <div className="auth-tabs">
             <button type="button" onClick={() => setMode('signin')} disabled={mode==='signin'}>Sign in</button>
             <button type="button" onClick={() => setMode('signup')} disabled={mode==='signup'}>Sign up</button>
