@@ -156,21 +156,12 @@ function MarketingTrackModal({ isOpen, onClose, goal, module }: MarketingTrackMo
                   <div style={{ 
                     color: '#FFF1E7', 
                     fontSize: '1rem', 
-                    fontWeight: 600,
+                    fontWeight: 'bold',
                     textDecoration: task.isCompleted ? 'line-through' : 'none',
                     opacity: task.isCompleted ? 0.7 : 1,
                     marginBottom: '0.5rem'
                   }}>
                     {task.title}
-                  </div>
-                  <div style={{ 
-                    color: '#FFF1E7', 
-                    fontSize: '0.9rem', 
-                    opacity: 0.7,
-                    marginBottom: '0.5rem',
-                    lineHeight: '1.5'
-                  }}>
-                    {task.shortDescription}
                   </div>
                   <div style={{ 
                     color: '#EF8E81', 

@@ -45,14 +45,9 @@ export default function TaskItem({ task, onToggle, onTaskClick }: TaskItemProps)
       </button>
 
       <div className="flex-1">
-        <h4 className={`font-medium ${task.isCompleted ? 'text-gray-500 line-through' : 'text-white'}`}>
+        <h4 className={`font-bold ${task.isCompleted ? 'text-gray-500 line-through' : 'text-white'}`}>
           {task.title}
         </h4>
-        {task.shortDescription && (
-          <p className={`text-sm mt-1 ${task.isCompleted ? 'text-gray-600' : 'text-gray-400'}`}>
-            {task.shortDescription}
-          </p>
-        )}
       </div>
 
       <div className="flex items-center gap-2">
