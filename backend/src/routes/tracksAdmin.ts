@@ -421,7 +421,7 @@ router.post('/modules/:moduleId/bulk-tasks', async (req, res) => {
       
       // Try to parse format: "Title (time): Description"
       const match = trimmedLine.match(/^(.+?)\s*\(([^)]+)\)\s*:\s*(.+)$/);
-      if (match) {
+      if (match && match[1] && match[2] && match[3]) {
         const [, title, estimatedTime, description] = match;
         return {
           module_id: moduleId,

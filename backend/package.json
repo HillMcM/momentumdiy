@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "export:notion": "tsx src/scripts/notion-export.ts",
     "test-supabase-connection": "tsx src/scripts/test-supabase-connection.ts",
+    "automated-notifications": "tsx src/scripts/runAutomatedNotifications.ts",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix"

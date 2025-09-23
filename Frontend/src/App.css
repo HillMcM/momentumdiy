@@ -65,15 +65,29 @@
   top: 8px;
   right: 8px;
   z-index: 101;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.3);
   color: #FFF1E7;
-  border: none;
-  border-radius: 999px;
-  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px;
   cursor: pointer;
   outline: none;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.app-shell.collapsed .sidebar-toggle { left: 8px; right: auto; top: 76px; }
+
+.sidebar-toggle:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.app-shell.collapsed .sidebar-toggle { 
+  left: 8px; 
+  right: auto; 
+  top: 76px; 
+}
 
 /* Floating opener keeps the same X axis near the logo when sidebar is collapsed */
 .sidebar-opener {
@@ -81,11 +95,20 @@
   top: 80px;       /* below header */
   left: 16px;      /* slide further left near the page edge */
   z-index: 120;
-  background: transparent;
-  border: none;
-  padding: 4px;
-  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-opener:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .sidebar {
@@ -230,6 +253,23 @@
   font-size: 2rem;
   font-weight: 700;
   color: #FFF1E7;
+}
+
+.header-sidebar-toggle {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px !important;
+  padding: 8px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.header-sidebar-toggle:hover {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
   letter-spacing: 1px;
   line-height: 1;
 }

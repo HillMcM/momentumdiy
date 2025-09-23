@@ -346,13 +346,27 @@ router.post('/modules/:moduleId/bulk-tasks', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Missing tasks_text' });
         }
         const lines = tasks_text.split('\n').filter((line) => line.trim());
-        const tasksToInsert = lines.map((line, index) => ({
-            module_id: moduleId,
-            title: line.trim(),
-            description: line.trim(),
-            estimated_time: '30min',
-            order_index: index
-        }));
+        const tasksToInsert = lines.map((line, index) => {
+            const trimmedLine = line.trim();
+            const match = trimmedLine.match(/^(.+?)\s*\(([^)]+)\)\s*:\s*(.+)$/);
+            if (match && match[1] && match[2] && match[3]) {
+                const [, title, estimatedTime, description] = match;
+                return {
+                    module_id: moduleId,
+                    title: title.trim(),
+                    description: description.trim(),
+                    estimated_time: estimatedTime.trim(),
+                    order_index: index
+                };
+            }
+            return {
+                module_id: moduleId,
+                title: trimmedLine,
+                description: '',
+                estimated_time: '30min',
+                order_index: index
+            };
+        });
         if (tasksToInsert.length > 0) {
             const { data, error } = await supabase_1.supabase
                 .from('marketing_tasks')
