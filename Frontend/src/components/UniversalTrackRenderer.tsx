@@ -303,14 +303,11 @@ export default function UniversalTrackRenderer({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h4 className={`font-medium ${
+                            <h4 className={`font-bold ${
                               task.isCompleted ? 'text-green-300 line-through' : 'text-white'
                             }`}>
                               {task.title}
                             </h4>
-                            <p className="text-gray-400 text-sm mt-1">
-                              {task.shortDescription}
-                            </p>
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="text-xs text-gray-500">
