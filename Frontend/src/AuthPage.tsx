@@ -102,6 +102,8 @@ export default function AuthPage() {
     setLoading(false);
   };
 
+  console.log('AuthPage rendering, mode:', mode, 'user:', user);
+  
   return (
     <>
       <div className="auth-root">

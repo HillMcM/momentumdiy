@@ -1,4 +1,4 @@
-import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import './App.css';
 import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
