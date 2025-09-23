@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { MarketingGoal, MarketingModule } from './types';
 import { useNavigate } from 'react-router-dom';
 import { useMarketing } from './contexts/MarketingContext';
+import { renderMarketingContent } from './utils/contentRenderer';
 
 interface MarketingTrackModalProps {
   isOpen: boolean;
@@ -16,25 +17,6 @@ function MarketingTrackModal({ isOpen, onClose, goal, module }: MarketingTrackMo
   // REMOVED: withFallback function that generated fake data
   // If you see this error, marketing data is incomplete
 
-  const renderRichContent = (text: string) => {
-    if (!text) return null;
-    const lines = text.split('\n');
-    const out: React.ReactNode[] = [];
-    let list: string[] = [];
-    const flush = () => { if (list.length) { out.push(
-      <ul style={{ margin: '0.5rem 0 0.5rem 1.25rem' }}>{list.map((li, i) => <li key={`li-${i}`} style={{ marginBottom: '0.25rem' }}>{li}</li>)}</ul>
-    ); list = []; } };
-    lines.forEach((raw, idx) => {
-      const line = raw.trim();
-      if (line.length === 0) { flush(); out.push(<div key={`sp-${idx}`} style={{ height: 6 }} />); return; }
-      if (line.startsWith('## ')) { flush(); out.push(<h4 key={`h2-${idx}`} style={{ margin: '0.5rem 0' }}>{line.slice(3)}</h4>); return; }
-      if (line.startsWith('### ')) { flush(); out.push(<h5 key={`h3-${idx}`} style={{ margin: '0.5rem 0', opacity: 0.9 }}>{line.slice(4)}</h5>); return; }
-      if (/^(-|\*|•|–)\s/.test(line)) { list.push(line.replace(/^(-|\*|•|–)\s/, '')); return; }
-      flush(); out.push(<p key={`p-${idx}`} style={{ margin: '0.25rem 0', opacity: 0.9 }}>{line}</p>);
-    });
-    flush();
-    return out;
-  };
 
       const filledModule = module;
 
@@ -130,7 +112,7 @@ function MarketingTrackModal({ isOpen, onClose, goal, module }: MarketingTrackMo
               fontSize: '0.95rem',
               lineHeight: '1.6',
             }}>
-              {renderRichContent(filledModule.content)}
+              {renderMarketingContent(filledModule.content)}
             </div>
           </div>
         </div>

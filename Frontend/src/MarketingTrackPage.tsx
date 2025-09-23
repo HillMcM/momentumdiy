@@ -5,6 +5,7 @@ import { MarketingTrackProvider } from './contexts/MarketingTrackContext';
 import type { MarketingGoal, MarketingTask } from './types';
 import TaskModal from './components/marketingTrack/TaskModal';
 import { getPublishedTracks, activateTrack } from './services/marketingService';
+import { renderContentPreview } from './utils/contentRenderer';
 
 interface MarketingTrackPageProps {
   // Props removed - using context instead
@@ -311,11 +312,8 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
 
                     {/* Module Content */}
                     {isUnlocked && module.content && (
-                      <div className="prose prose-invert max-w-none">
-                        <div className="text-gray-300 text-sm leading-relaxed">
-                          {module.content.split('\n').slice(0, 3).join('\n')}
-                          {module.content.split('\n').length > 3 && '...'}
-                        </div>
+                      <div className="max-w-none">
+                        {renderContentPreview(module.content, 3)}
                       </div>
                     )}
                   </div>
