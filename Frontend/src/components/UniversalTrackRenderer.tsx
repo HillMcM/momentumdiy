@@ -309,7 +309,7 @@ export default function UniversalTrackRenderer({
                               {task.title}
                             </h4>
                             <p className="text-gray-400 text-sm mt-1">
-                              {task.shortDescription || task.description}
+                              {task.shortDescription}
                             </p>
                           </div>
                           <div className="flex items-center gap-3">

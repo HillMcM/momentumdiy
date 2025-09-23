@@ -10,10 +10,11 @@ import ProfilePage from './ProfilePage';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Project, Task, MarketingGoal } from './types';
 import OctopusLogo from './assets/octopus_icon.png';
-import SidebarToggleIcon from './assets/sidebar_toggle.svg';
+import SidebarToggleIcon from './assets/menu_hamburger.svg';
 import { apiService } from './services/api';
 import AIMarketingAssistant from './AIMarketingAssistant';
 import FloatingAssistant from './FloatingAssistant';
+import AdminGuard from './components/AdminGuard';
 
 import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
@@ -103,7 +104,7 @@ import SimpleTest from './SimpleTest';
 import CreateEventModal from './CreateEventModal';
 */
 
-function Header({ sidebarHidden, onToggleSidebar }: { sidebarHidden: boolean; onToggleSidebar: () => void }) {
+function Header() {
   const { user, signOut } = useAuth();
   const { subscription } = useSubscription();
   
@@ -127,24 +128,6 @@ function Header({ sidebarHidden, onToggleSidebar }: { sidebarHidden: boolean; on
         <span className="header-app-name">MomentumDIY</span>
       </div>
       <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-        <button 
-          className="header-sidebar-toggle"
-          onClick={onToggleSidebar}
-          title={sidebarHidden ? "Show sidebar" : "Hide sidebar"}
-          style={{
-            background: 'rgba(0, 0, 0, 0.3)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: '8px',
-            padding: '8px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <img src={SidebarToggleIcon} alt="menu" style={{ width: 20, height: 20 }} />
-        </button>
         {subscription && (
           <div style={{ 
             background: subscription.hasAccess ? '#10b981' : '#ef4444', 
@@ -1037,7 +1020,7 @@ function ProtectedApp() {
   if (isLoading) {
     return (
       <>
-        <Header sidebarHidden={sidebarHidden} onToggleSidebar={toggleSidebar} />
+        <Header />
         <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
           <Sidebar hidden={sidebarHidden} onToggle={toggleSidebar} />
           <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
@@ -1055,7 +1038,7 @@ function ProtectedApp() {
 
   return (
     <>
-      <Header sidebarHidden={sidebarHidden} onToggleSidebar={toggleSidebar} />
+      <Header />
       <NotificationContainer />
       <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
         <Sidebar
@@ -1126,8 +1109,16 @@ function ProtectedApp() {
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
             <Route path="manage-subscription" element={<SubscriptionPage />} />
             <Route path="feedback" element={<Placeholder title="Feedback" />} />
-            <Route path="admin/marketing-tracks" element={<VisualTracksAdminPage />} />
-            <Route path="admin/marketing-tracks-old" element={<TracksAdminPage />} />
+            <Route path="admin/marketing-tracks" element={
+              <AdminGuard>
+                <VisualTracksAdminPage />
+              </AdminGuard>
+            } />
+            <Route path="admin/marketing-tracks-old" element={
+              <AdminGuard>
+                <TracksAdminPage />
+              </AdminGuard>
+            } />
               </Routes>
               <FloatingAssistant />
             </PersonalizedDashboard>
