@@ -367,12 +367,18 @@ export default function VisualTracksAdminPage() {
               }
               
               // Create new tasks
-              const tasksText = moduleTasks.map(task => 
-                `${task.title} (${task.estimated_time}): ${task.description}`
-              ).join('\n');
-              
-              if (tasksText.trim()) {
-                await adminApi.createBulkTasks(generatedModule.id, tasksText);
+              if (moduleTasks.length > 0) {
+                const validTasks = moduleTasks.filter(task => 
+                  task.title && task.description && task.estimated_time
+                ).map(task => ({
+                  title: task.title!,
+                  description: task.description!,
+                  estimated_time: task.estimated_time!
+                }));
+                
+                if (validTasks.length > 0) {
+                  await adminApi.createTasks(generatedModule.id, validTasks);
+                }
               }
             }
           }
@@ -396,12 +402,16 @@ export default function VisualTracksAdminPage() {
             
             // Create new tasks
             if (moduleTasks.length > 0) {
-              const tasksText = moduleTasks.map(task => 
-                `${task.title} (${task.estimated_time}): ${task.description}`
-              ).join('\n');
+              const validTasks = moduleTasks.filter(task => 
+                task.title && task.description && task.estimated_time
+              ).map(task => ({
+                title: task.title!,
+                description: task.description!,
+                estimated_time: task.estimated_time!
+              }));
               
-              if (tasksText.trim()) {
-                await adminApi.createBulkTasks(moduleData.id, tasksText);
+              if (validTasks.length > 0) {
+                await adminApi.createTasks(moduleData.id, validTasks);
               }
             }
           }
