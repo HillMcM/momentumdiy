@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useSubscription } from '../hooks/useSubscription';
 import { useAuth } from '../contexts/useAuth';
 import PaywallModal from './PaywallModal';
@@ -23,9 +24,9 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
     }
   }, [subscription, loading, user]);
 
-  // If user is not authenticated, show children (let auth flow handle it)
+  // If user is not authenticated, redirect to pricing page
   if (!user) {
-    return <>{children}</>;
+    return <Navigate to="/pricing" replace />;
   }
 
   // Show loading state
