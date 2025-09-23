@@ -170,7 +170,7 @@ function MarketingTrackModal({ isOpen, onClose, goal, module }: MarketingTrackMo
                     marginBottom: '0.5rem',
                     lineHeight: '1.5'
                   }}>
-                    {task.shortDescription || task.description}
+                    {task.shortDescription}
                   </div>
                   <div style={{ 
                     color: '#EF8E81', 

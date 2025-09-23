@@ -255,25 +255,6 @@
   color: #FFF1E7;
 }
 
-.header-sidebar-toggle {
-  background: rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 8px !important;
-  padding: 8px !important;
-  cursor: pointer !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.2s ease !important;
-}
-
-.header-sidebar-toggle:hover {
-  background: rgba(0, 0, 0, 0.5) !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
-  letter-spacing: 1px;
-  line-height: 1;
-}
-
 .upgrade-btn {
   background: #EF8E81;
   color: #FFF1E7;
