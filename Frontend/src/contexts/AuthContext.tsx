@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useEffect, useMemo, useState, useRef } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { useNotifications } from './NotificationContext';
@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [hasShownWelcome, setHasShownWelcome] = useState<boolean>(false);
+  const hasShownWelcomeRef = useRef<boolean>(false);
   const { addNotification } = useNotifications();
 
   useEffect(() => {
@@ -42,9 +42,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     init();
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
-      const wasSignedOut = !session && !user;
-      const isNowSignedIn = newSession?.user;
-      
       setSession(newSession);
       setUser(newSession?.user ?? null);
       
@@ -52,13 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         void ensureProfileExists(newSession.user);
         
         // Show welcome notification only when user actually signs in (not on initial load)
-        if ((event === 'SIGNED_IN' || (wasSignedOut && isNowSignedIn)) && !hasShownWelcome) {
+        if (event === 'SIGNED_IN' && !hasShownWelcomeRef.current) {
           addNotification({
             type: 'success',
             title: '🎉 Welcome to MomentumDIY!',
             message: 'You\'re all set to start your marketing journey! Let\'s make amazing things happen together!',
           });
-          setHasShownWelcome(true);
+          hasShownWelcomeRef.current = true;
         }
       }
     });
@@ -66,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       sub.subscription.unsubscribe();
     };
-  }, [session, user, hasShownWelcome, addNotification]);
+  }, [addNotification]);
 
   const ensureProfileExists = async (_signedInUser: User) => {
     // Temporarily disabled to prevent errors while deployment completes
