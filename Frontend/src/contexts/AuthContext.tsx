@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { useNotifications } from './NotificationContext';
 
 export interface AuthContextValue {
   user: User | null;
@@ -19,6 +20,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [hasShownWelcome, setHasShownWelcome] = useState<boolean>(false);
+  const { addNotification } = useNotifications();
 
   useEffect(() => {
     let isMounted = true;
@@ -38,18 +41,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     init();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
+      const wasSignedOut = !session && !user;
+      const isNowSignedIn = newSession?.user;
+      
       setSession(newSession);
       setUser(newSession?.user ?? null);
+      
       if (newSession?.user) {
         void ensureProfileExists(newSession.user);
+        
+        // Show welcome notification only when user actually signs in (not on initial load)
+        if ((event === 'SIGNED_IN' || (wasSignedOut && isNowSignedIn)) && !hasShownWelcome) {
+          addNotification({
+            type: 'success',
+            title: '🎉 Welcome to MomentumDIY!',
+            message: 'You\'re all set to start your marketing journey! Let\'s make amazing things happen together!',
+          });
+          setHasShownWelcome(true);
+        }
       }
     });
     return () => {
       isMounted = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [session, user, hasShownWelcome, addNotification]);
 
   const ensureProfileExists = async (_signedInUser: User) => {
     // Temporarily disabled to prevent errors while deployment completes
