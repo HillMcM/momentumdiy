@@ -559,6 +559,42 @@ class ApiService {
     });
   }
 
+  // Email Preferences
+  async getEmailPreferences(): Promise<ApiResponse<{
+    weekly_progress: boolean;
+    task_reminders: boolean;
+    marketing_emails: boolean;
+    trial_emails: boolean;
+  }>> {
+    return this.request(`/email-preferences`, { method: 'GET' });
+  }
+
+  async updateEmailPreferences(preferences: {
+    weekly_progress: boolean;
+    task_reminders: boolean;
+    marketing_emails: boolean;
+    trial_emails: boolean;
+  }): Promise<ApiResponse<{
+    weekly_progress: boolean;
+    task_reminders: boolean;
+    marketing_emails: boolean;
+    trial_emails: boolean;
+  }>> {
+    return this.request(`/email-preferences`, {
+      method: 'PUT',
+      body: JSON.stringify(preferences),
+    });
+  }
+
+  async resetEmailPreferences(): Promise<ApiResponse<{
+    weekly_progress: boolean;
+    task_reminders: boolean;
+    marketing_emails: boolean;
+    trial_emails: boolean;
+  }>> {
+    return this.request(`/email-preferences/reset`, { method: 'POST' });
+  }
+
 }
 
 export const apiService = new ApiService();

@@ -22,13 +22,31 @@ class AutomatedNotificationsService {
                 trial_end_date: profile.trial_end_date,
                 onboarding_completed: profile.onboarding_completed || false,
                 selected_track: profile.selected_track,
-                last_activity: profile.last_activity
+                last_activity: profile.last_activity,
+                email_preferences: profile.email_preferences || {
+                    weekly_progress: true,
+                    task_reminders: true,
+                    marketing_emails: true,
+                    trial_emails: true
+                }
             })) || [];
         }
         catch (error) {
             console.error('Error in getAllUsers:', error);
             return [];
         }
+    }
+    static shouldSendEmail(user, emailType) {
+        const preferences = user.email_preferences || {
+            weekly_progress: true,
+            task_reminders: true,
+            marketing_emails: true,
+            trial_emails: true
+        };
+        if (emailType === 'trial_emails') {
+            return true;
+        }
+        return preferences[emailType] === true;
     }
     static async getUserProgressData(_userId) {
         try {
@@ -81,6 +99,10 @@ class AutomatedNotificationsService {
             console.log(`📊 Found ${activeUsers.length} active users for weekly reports`);
             for (const user of activeUsers) {
                 try {
+                    if (!this.shouldSendEmail(user, 'weekly_progress')) {
+                        console.log(`⏭️ Skipping weekly progress email for ${user.email} (preference disabled)`);
+                        continue;
+                    }
                     const progressData = await this.getUserProgressData(user.id);
                     if (progressData) {
                         await notificationService_1.NotificationService.sendWeeklyProgressNotification(user, progressData);
@@ -104,7 +126,8 @@ class AutomatedNotificationsService {
         console.log('📧 Starting trial ending notifications...');
         try {
             const users = await this.getAllUsers();
-            await notificationService_1.NotificationService.checkTrialEndingNotifications(users);
+            const usersForTrialEmails = users.filter(user => this.shouldSendEmail(user, 'trial_emails'));
+            await notificationService_1.NotificationService.checkTrialEndingNotifications(usersForTrialEmails);
             console.log('✅ Trial ending notifications completed');
         }
         catch (error) {
@@ -119,6 +142,10 @@ class AutomatedNotificationsService {
                 user.onboarding_completed);
             for (const user of activeUsers) {
                 try {
+                    if (!this.shouldSendEmail(user, 'task_reminders')) {
+                        console.log(`⏭️ Skipping task reminder email for ${user.email} (preference disabled)`);
+                        continue;
+                    }
                     const progressData = await this.getUserProgressData(user.id);
                     if (progressData &&
                         progressData.daysSinceLastActivity &&

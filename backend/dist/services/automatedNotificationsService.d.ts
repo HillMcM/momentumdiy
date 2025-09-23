@@ -8,6 +8,7 @@ export interface ProgressData {
 }
 export declare class AutomatedNotificationsService {
     private static getAllUsers;
+    private static shouldSendEmail;
     private static getUserProgressData;
     static sendWeeklyProgressReports(): Promise<void>;
     static sendTrialEndingNotifications(): Promise<void>;

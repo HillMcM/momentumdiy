@@ -1,3 +1,4 @@
+import { EmailPreferences } from '../types';
 export interface UserProfile {
     id: string;
     email: string;
@@ -7,6 +8,7 @@ export interface UserProfile {
     onboarding_completed: boolean;
     selected_track?: string;
     last_activity?: string;
+    email_preferences?: EmailPreferences;
 }
 export declare class NotificationService {
     static sendWelcomeNotification(user: UserProfile): Promise<void>;

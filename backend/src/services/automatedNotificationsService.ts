@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabase';
 import { NotificationService, UserProfile } from './notificationService';
 import { MarketingService } from './marketingService';
-import { DatabaseTask } from '../types';
+import { DatabaseTask, EmailPreferences } from '../types';
 
 export interface ProgressData {
   completedTasks: number;
@@ -35,12 +35,37 @@ export class AutomatedNotificationsService {
         trial_end_date: profile.trial_end_date,
         onboarding_completed: profile.onboarding_completed || false,
         selected_track: profile.selected_track,
-        last_activity: profile.last_activity
+        last_activity: profile.last_activity,
+        email_preferences: profile.email_preferences || {
+          weekly_progress: true,
+          task_reminders: true,
+          marketing_emails: true,
+          trial_emails: true
+        }
       })) || [];
     } catch (error) {
       console.error('Error in getAllUsers:', error);
       return [];
     }
+  }
+
+  /**
+   * Check if user wants to receive a specific type of email
+   */
+  private static shouldSendEmail(user: UserProfile, emailType: keyof EmailPreferences): boolean {
+    const preferences = user.email_preferences || {
+      weekly_progress: true,
+      task_reminders: true,
+      marketing_emails: true,
+      trial_emails: true
+    };
+
+    // Always send trial emails regardless of preferences
+    if (emailType === 'trial_emails') {
+      return true;
+    }
+
+    return preferences[emailType] === true;
   }
 
   /**
@@ -115,6 +140,12 @@ export class AutomatedNotificationsService {
 
       for (const user of activeUsers) {
         try {
+          // Check if user wants to receive weekly progress emails
+          if (!this.shouldSendEmail(user, 'weekly_progress')) {
+            console.log(`⏭️ Skipping weekly progress email for ${user.email} (preference disabled)`);
+            continue;
+          }
+
           const progressData = await this.getUserProgressData(user.id);
           if (progressData) {
             await NotificationService.sendWeeklyProgressNotification(user, progressData);
@@ -141,7 +172,13 @@ export class AutomatedNotificationsService {
     
     try {
       const users = await this.getAllUsers();
-      await NotificationService.checkTrialEndingNotifications(users);
+      
+      // Filter users who want to receive trial emails (always true, but we check anyway)
+      const usersForTrialEmails = users.filter(user => 
+        this.shouldSendEmail(user, 'trial_emails')
+      );
+      
+      await NotificationService.checkTrialEndingNotifications(usersForTrialEmails);
       console.log('✅ Trial ending notifications completed');
     } catch (error) {
       console.error('❌ Error in sendTrialEndingNotifications:', error);
@@ -163,6 +200,12 @@ export class AutomatedNotificationsService {
 
       for (const user of activeUsers) {
         try {
+          // Check if user wants to receive task reminder emails
+          if (!this.shouldSendEmail(user, 'task_reminders')) {
+            console.log(`⏭️ Skipping task reminder email for ${user.email} (preference disabled)`);
+            continue;
+          }
+
           const progressData = await this.getUserProgressData(user.id);
           
           // Send reminder if user hasn't been active for 3+ days and has incomplete tasks

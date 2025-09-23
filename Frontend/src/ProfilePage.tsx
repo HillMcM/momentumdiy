@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from './contexts/useAuth';
 import { supabase } from './lib/supabase';
+import EmailPreferences from './components/EmailPreferences';
 
 type SkillLevels = {
   social?: number;
@@ -53,7 +54,7 @@ function Input({ label, value, onChange, type = 'text' }: { label: string; value
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const [tab, setTab] = useState<'account' | 'business' | 'tracks' | 'favorites' | 'integrations'>('account');
+  const [tab, setTab] = useState<'account' | 'business' | 'tracks' | 'favorites' | 'integrations' | 'notifications'>('account');
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [profile, setProfile] = useState<ProfileRecord | null>(null);
@@ -113,7 +114,8 @@ export default function ProfilePage() {
     { key: 'business', label: 'Business Profile' },
     { key: 'tracks', label: 'My Tracks & Progress' },
     { key: 'favorites', label: 'Saved & Favorites' },
-    { key: 'integrations', label: 'Integrations' }
+    { key: 'integrations', label: 'Integrations' },
+    { key: 'notifications', label: 'Email Preferences' }
   ] as const), []);
 
   if (!user) return <div style={{ padding: '2rem' }}>Please sign in to view your profile.</div>;
@@ -201,6 +203,10 @@ export default function ProfilePage() {
         <Section title="Integrations">
           <p>Connect email, social, analytics. (Coming soon)</p>
         </Section>
+      )}
+
+      {tab === 'notifications' && (
+        <EmailPreferences />
       )}
     </div>
   );
