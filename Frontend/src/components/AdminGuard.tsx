@@ -7,8 +7,7 @@ interface AdminGuardProps {
 
 // List of admin email addresses - add your email here
 const ADMIN_EMAILS = [
-  'hillary@hillaryedenmcmullen.com', // Add your admin email here
-  'hillmcm@gmail.com', // Add any other admin emails
+  'info@hillaryedenmcmullen.com', // Admin email
 ];
 
 export default function AdminGuard({ children }: AdminGuardProps) {
