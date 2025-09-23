@@ -416,13 +416,31 @@ router.post('/modules/:moduleId/bulk-tasks', async (req, res) => {
 
     // Parse tasks from text (one task per line)
     const lines = tasks_text.split('\n').filter((line: string) => line.trim());
-    const tasksToInsert = lines.map((line: string, index: number) => ({
-      module_id: moduleId,
-      title: line.trim(),
-      description: line.trim(),
-      estimated_time: '30min',
-      order_index: index
-    }));
+    const tasksToInsert = lines.map((line: string, index: number) => {
+      const trimmedLine = line.trim();
+      
+      // Try to parse format: "Title (time): Description"
+      const match = trimmedLine.match(/^(.+?)\s*\(([^)]+)\)\s*:\s*(.+)$/);
+      if (match) {
+        const [, title, estimatedTime, description] = match;
+        return {
+          module_id: moduleId,
+          title: title.trim(),
+          description: description.trim(),
+          estimated_time: estimatedTime.trim(),
+          order_index: index
+        };
+      }
+      
+      // Fallback: treat entire line as title with default time
+      return {
+        module_id: moduleId,
+        title: trimmedLine,
+        description: '', // Empty description for simple format
+        estimated_time: '30min',
+        order_index: index
+      };
+    });
 
     if (tasksToInsert.length > 0) {
       const { data, error } = await supabase

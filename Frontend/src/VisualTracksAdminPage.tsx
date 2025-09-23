@@ -796,9 +796,28 @@ export default function VisualTracksAdminPage() {
                             ...editingModules,
                             [weekNumber]: { ...module, content: e.target.value }
                           })}
-                          className="w-full h-32 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white font-mono text-sm"
-                          placeholder="# Week content in markdown format..."
+                          className="w-full h-40 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white font-mono text-sm"
+                          placeholder={`# Week ${weekNumber}: Main Topic
+
+## Key Concepts
+- Bullet point 1
+- Bullet point 2
+
+### Action Steps
+1. Numbered step 1
+2. Numbered step 2
+
+**Bold text** for emphasis
+*Italic text* for subtle emphasis
+\`code snippets\` for technical terms
+
+> Quote important insights
+
+Use blank lines to separate paragraphs for better readability.`}
                         />
+                        <div className="mt-1 text-xs text-gray-400">
+                          💡 Tip: Use markdown formatting for better readability. Headers (#), lists (-), **bold**, *italic*, `code`, and &gt; quotes are supported.
+                        </div>
                       </div>
                   {/* Pro Tip field temporarily disabled - column doesn't exist in database */}
                   {/* <div>

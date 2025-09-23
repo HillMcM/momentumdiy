@@ -594,13 +594,23 @@ export default function TracksAdminPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Content</label>
+                  <label className="block text-sm text-gray-400 mb-1">Content (Markdown)</label>
                   <textarea
                     value={moduleForm.content}
                     onChange={e => setModuleForm({ ...moduleForm, content: e.target.value })}
-                    className="w-full h-32 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white text-sm"
-                    placeholder="# Week content in markdown..."
+                    className="w-full h-40 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white font-mono text-sm"
+                    placeholder="# Week Title
+
+## Key Topics
+- Important point 1
+- Important point 2
+
+**Bold** for emphasis, *italic* for subtle emphasis
+Use blank lines between paragraphs for better readability."
                   />
+                  <div className="mt-1 text-xs text-gray-400">
+                    💡 Use markdown: # headers, - lists, **bold**, *italic*, `code`, &gt; quotes
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   {selectedModule ? (
