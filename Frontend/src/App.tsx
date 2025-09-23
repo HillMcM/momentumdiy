@@ -21,7 +21,6 @@ import AuthPage from './AuthPage';
 import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
-import { NotificationProvider } from './contexts/NotificationContext';
 import { useSubscription } from './hooks/useSubscription';
 
 import { supabase } from './lib/supabase';
@@ -1161,13 +1160,11 @@ function App() {
 
         {/* App - Protected with subscription guard */}
         <Route path="/app/*" element={
-          <NotificationProvider>
-            <MarketingProvider>
-              <SubscriptionGuard>
-                <ProtectedApp />
-              </SubscriptionGuard>
-            </MarketingProvider>
-          </NotificationProvider>
+          <MarketingProvider>
+            <SubscriptionGuard>
+              <ProtectedApp />
+            </SubscriptionGuard>
+          </MarketingProvider>
         } />
           </Routes>
       </OnboardingProvider>
