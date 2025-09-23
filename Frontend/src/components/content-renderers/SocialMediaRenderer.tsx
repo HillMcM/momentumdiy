@@ -26,7 +26,9 @@ export class SocialMediaRenderer extends BaseContentRenderer {
               description: description.trim(),
               estimatedTime: '20 min', // Default time
               isCompleted: false,
-              shortDescription: description.trim()
+              shortDescription: description.trim().length > 100 
+                ? description.trim().substring(0, 100) + '...' 
+                : description.trim()
             });
           }
         });
