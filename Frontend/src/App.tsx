@@ -277,7 +277,7 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
           <SidebarToggle onClick={onToggle} />
         </div>
       )}
-      <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem' }}>
+      <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '3rem 1rem 1rem 1rem' }}>
         <Link to="/app/profile" style={{ textDecoration: 'none', color: 'inherit', flex: 1 }}>
           {businessName}
         </Link>
