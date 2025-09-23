@@ -10,7 +10,7 @@ import ProfilePage from './ProfilePage';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Project, Task, MarketingGoal } from './types';
 import OctopusLogo from './assets/octopus_icon.png';
-import SidebarToggleIcon from './assets/menu_hamburger.svg';
+// import SidebarToggleIcon from './assets/sidebar_toggle.svg';
 import { apiService } from './services/api';
 import AIMarketingAssistant from './AIMarketingAssistant';
 import FloatingAssistant from './FloatingAssistant';
@@ -208,7 +208,19 @@ function Header() {
 function SidebarToggle({ onClick, className }: { onClick: () => void; className?: string }) {
   return (
     <button className={className || 'sidebar-toggle'} onClick={onClick} aria-label="Toggle sidebar" title="Open menu">
-      <img src={SidebarToggleIcon} alt="menu" style={{ width: 24, height: 24 }} />
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ width: 24, height: 24 }}>
+        {/* Cream color icon */}
+        <defs>
+          <style>
+            {`.cream { stroke: #FFF1E7; fill: none; }
+            .cream-fill { fill: #FFF1E7; stroke: none; }`}
+          </style>
+        </defs>
+        {/* Outer rounded square */}
+        <rect x="2.5" y="2.5" width="19" height="19" rx="4.5" className="cream" strokeWidth="2.5"/>
+        {/* Vertical bar near the left */}
+        <rect x="7" y="5" width="3" height="14" rx="1.5" className="cream-fill"/>
+      </svg>
     </button>
   );
 }
