@@ -23,9 +23,6 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      input: {
-        app: './app.html'
-      },
       output: {
         manualChunks: undefined,
         // Force cache busting
