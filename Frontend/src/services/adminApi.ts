@@ -121,6 +121,13 @@ export const adminApi = {
     });
   },
 
+  async createTasks(moduleId: string, tasks: Array<{title: string, description: string, estimated_time: string}>): Promise<ApiResponse<any>> {
+    return apiRequest(`/modules/${moduleId}/tasks`, {
+      method: 'POST',
+      body: JSON.stringify({ tasks }),
+    });
+  },
+
   // Publishing Operations
   async publishTrack(trackId: string): Promise<ApiResponse<any>> {
     return apiRequest(`/definitions/${trackId}/publish`, {

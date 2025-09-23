@@ -385,6 +385,38 @@ router.post('/modules/:moduleId/bulk-tasks', async (req, res) => {
         return res.status(500).json({ success: false, error: 'Failed to create bulk tasks' });
     }
 });
+router.post('/modules/:moduleId/tasks', async (req, res) => {
+    try {
+        const { moduleId } = req.params;
+        const { tasks } = req.body;
+        if (!tasks || !Array.isArray(tasks)) {
+            return res.status(400).json({ success: false, error: 'Missing tasks array' });
+        }
+        const tasksToInsert = tasks.map((task, index) => ({
+            module_id: moduleId,
+            title: task.title?.trim() || '',
+            description: task.description?.trim() || '',
+            estimated_time: task.estimated_time?.trim() || '30min',
+            order_index: index
+        }));
+        if (tasksToInsert.length > 0) {
+            const { data, error } = await supabase_1.supabase
+                .from('marketing_tasks')
+                .insert(tasksToInsert)
+                .select();
+            if (error)
+                throw error;
+            return res.json({ success: true, data, created: tasksToInsert.length });
+        }
+        else {
+            return res.json({ success: true, data: [], created: 0, message: 'No tasks provided' });
+        }
+    }
+    catch (error) {
+        console.error('Error creating tasks:', error);
+        return res.status(500).json({ success: false, error: 'Failed to create tasks' });
+    }
+});
 router.post('/definitions/:trackId/publish', async (req, res) => {
     try {
         const { trackId } = req.params;
