@@ -103,7 +103,7 @@ import SimpleTest from './SimpleTest';
 import CreateEventModal from './CreateEventModal';
 */
 
-function Header() {
+function Header({ sidebarHidden, onToggleSidebar }: { sidebarHidden: boolean; onToggleSidebar: () => void }) {
   const { user, signOut } = useAuth();
   const { subscription } = useSubscription();
   
@@ -127,6 +127,24 @@ function Header() {
         <span className="header-app-name">MomentumDIY</span>
       </div>
       <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <button 
+          className="header-sidebar-toggle"
+          onClick={onToggleSidebar}
+          title={sidebarHidden ? "Show sidebar" : "Hide sidebar"}
+          style={{
+            background: 'rgba(0, 0, 0, 0.3)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '8px',
+            padding: '8px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <img src={SidebarToggleIcon} alt="menu" style={{ width: 20, height: 20 }} />
+        </button>
         {subscription && (
           <div style={{ 
             background: subscription.hasAccess ? '#10b981' : '#ef4444', 
@@ -453,7 +471,20 @@ function ProtectedApp() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
-  const [sidebarHidden, setSidebarHidden] = useState<boolean>(false);
+  const [sidebarHidden, setSidebarHidden] = useState<boolean>(() => {
+    // Check localStorage for sidebar state
+    const saved = localStorage.getItem('sidebarHidden');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  // Function to toggle sidebar and persist state
+  const toggleSidebar = useCallback(() => {
+    setSidebarHidden(prev => {
+      const newState = !prev;
+      localStorage.setItem('sidebarHidden', JSON.stringify(newState));
+      return newState;
+    });
+  }, []);
 
   // Comment out non-core state for now
   // const [assets, setAssets] = useState<Asset[]>([]);
@@ -1006,11 +1037,11 @@ function ProtectedApp() {
   if (isLoading) {
     return (
       <>
-        <Header />
+        <Header sidebarHidden={sidebarHidden} onToggleSidebar={toggleSidebar} />
         <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
-          <Sidebar hidden={sidebarHidden} onToggle={() => setSidebarHidden(s => !s)} />
+          <Sidebar hidden={sidebarHidden} onToggle={toggleSidebar} />
           <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
-            <SidebarToggle onClick={() => setSidebarHidden(s => !s)} />
+            <SidebarToggle onClick={toggleSidebar} />
           </div>
           <main className="main-content">
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -1024,17 +1055,17 @@ function ProtectedApp() {
 
   return (
     <>
-      <Header />
+      <Header sidebarHidden={sidebarHidden} onToggleSidebar={toggleSidebar} />
       <NotificationContainer />
       <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
         <Sidebar
           hidden={sidebarHidden}
-          onToggle={() => setSidebarHidden(s => !s)}
+          onToggle={toggleSidebar}
           showProfileManager={Boolean(marketingGoals.find(g => g.title === 'Improve Social Media Strategy & Engagement' && g.currentWeek >= g.duration))}
         />
         {/* Attach opener only when collapsed */}
         {sidebarHidden && (
-          <SidebarToggle className="sidebar-opener" onClick={() => setSidebarHidden(false)} />
+          <SidebarToggle className="sidebar-opener" onClick={toggleSidebar} />
         )}
         <main className="main-content">
           <MarketingProvider onTaskStatusChange={handleMarketingTaskStatusChange}>
