@@ -4,7 +4,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 
 const NotificationBell: React.FC = () => {
   console.log('NotificationBell component rendering');
-  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll, addNotification } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
   console.log('NotificationBell - notifications:', notifications.length, 'unread:', unreadCount);
   const [isOpen, setIsOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -50,14 +50,6 @@ const NotificationBell: React.FC = () => {
     }
   }, [isOpen]);
 
-  // Add a welcome notification on mount
-  useEffect(() => {
-    addNotification({
-      type: 'success',
-      title: '🎉 Welcome to MomentumDIY!',
-      message: 'You\'re all set to start your marketing journey! Let\'s make amazing things happen together!',
-    });
-  }, [addNotification]);
 
   const formatTime = (timestamp: Date) => {
     const now = new Date();
