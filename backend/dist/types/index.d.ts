@@ -1,5 +1,11 @@
 export type TaskStatus = 'todo' | 'in-progress' | 'completed';
 export type ProjectStatus = 'active' | 'completed';
+export interface EmailPreferences {
+    weekly_progress: boolean;
+    task_reminders: boolean;
+    marketing_emails: boolean;
+    trial_emails: boolean;
+}
 export type EventCategory = 'meeting' | 'social-post' | 'networking' | 'content-creation' | 'email-campaign' | 'ad-campaign' | 'website-update' | 'client-presentation' | 'strategy-session' | 'training' | 'other';
 export interface TimelinePhase {
     id: string;

@@ -2,6 +2,14 @@
 export type TaskStatus = 'todo' | 'in-progress' | 'completed';
 export type ProjectStatus = 'active' | 'completed';
 
+// Email Preferences Types
+export interface EmailPreferences {
+  weekly_progress: boolean;
+  task_reminders: boolean;
+  marketing_emails: boolean;
+  trial_emails: boolean; // Always true, cannot be disabled
+}
+
 export type EventCategory = 
   | 'meeting'
   | 'social-post'

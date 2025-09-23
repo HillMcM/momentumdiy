@@ -22,6 +22,7 @@ import stripeRoutes from './routes/stripe';
 import feedbackRoutes from './routes/feedback';
 import notificationRoutes from './routes/notifications';
 import automatedNotificationsRoutes from './routes/automatedNotifications';
+import emailPreferencesRoutes from './routes/emailPreferences';
 import mainRoutes from './routes/index';
 import tracksAdminRoutes from './routes/tracksAdmin';
 
@@ -176,6 +177,7 @@ app.use('/api/stripe', stripeRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/notifications/automated', automatedNotificationsRoutes);
+app.use('/api/email-preferences', emailPreferencesRoutes);
 
 
 // Sentry verification route: intentionally throws to test error capture
