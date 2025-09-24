@@ -77,7 +77,7 @@ export class MarketingService {
         };
       }
 
-      const goal = await this.mapDatabaseGoalToGoal(data as DatabaseMarketingGoal);
+      const goal = await this.mapDatabaseGoalToGoal(data as any);
 
       return {
         success: true,
