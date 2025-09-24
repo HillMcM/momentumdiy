@@ -157,7 +157,7 @@ router.get('/definitions/:trackId/modules', async (req, res) => {
 router.post('/definitions/:trackId/modules', async (req, res) => {
   try {
     const { trackId } = req.params;
-    const { week_number, title, description, content } = req.body;
+    const { week_number, title, description, content, pro_tip } = req.body;
 
     if (!week_number || !title || !content) {
       return res.status(400).json({ success: false, error: 'Missing required fields: week_number, title, content' });
@@ -171,6 +171,7 @@ router.post('/definitions/:trackId/modules', async (req, res) => {
         title,
         description: description || '',
         content,
+        pro_tip: pro_tip || null,
         is_unlocked: false,
         is_completed: false
       }])
@@ -671,6 +672,7 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
       title: module.title,
       description: module.description,
       content: module.content,
+      pro_tip: module.pro_tip || null,
       is_unlocked: module.week_number === 1, // Only first week unlocked
       is_completed: false
     })) || [];
