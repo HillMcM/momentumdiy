@@ -31,10 +31,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasShownWelcomeRef = useRef<boolean>(false);
   const { addNotification } = useNotifications();
 
+  // TEMPORARY: Bypass auth for feature branch testing
+  const BYPASS_AUTH = true;
+
   useEffect(() => {
     let isMounted = true;
     async function init() {
       try {
+        if (BYPASS_AUTH) {
+          // Create a mock user for testing
+          const mockUser = {
+            id: 'test-user-id',
+            email: 'test@momentumdiy.com',
+            user_metadata: { full_name: 'Test User' },
+            app_metadata: {},
+            aud: 'authenticated',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            email_confirmed_at: new Date().toISOString(),
+            last_sign_in_at: new Date().toISOString(),
+            role: 'authenticated',
+            confirmation_sent_at: new Date().toISOString(),
+            recovery_sent_at: null,
+            email_change_sent_at: null,
+            new_email: null,
+            invited_at: null,
+            action_link: null,
+            email_change: null,
+            new_phone: null,
+            phone: null,
+            phone_confirmed_at: null,
+            phone_change_sent_at: null,
+            confirmed_at: new Date().toISOString(),
+            email_change_confirm_status: 0,
+            banned_until: null,
+            reauthentication_sent_at: null,
+            reauthentication_confirm_status: 0,
+            is_sso_user: false,
+            deleted_at: null,
+            is_anonymous: false,
+            identities: [],
+            factors: []
+          } as User;
+
+          const mockSession = {
+            access_token: 'mock-access-token',
+            refresh_token: 'mock-refresh-token',
+            expires_in: 3600,
+            expires_at: Math.floor(Date.now() / 1000) + 3600,
+            token_type: 'bearer',
+            user: mockUser
+          } as Session;
+
+          if (!isMounted) return;
+          setSession(mockSession);
+          setUser(mockUser);
+          setLoading(false);
+          return;
+        }
+
         const { data } = await supabase.auth.getSession();
         if (!isMounted) return;
         setSession(data.session ?? null);
@@ -48,6 +103,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     init();
+
+    if (BYPASS_AUTH) {
+      // Skip auth state change listener in bypass mode
+      return () => {
+        isMounted = false;
+      };
+    }
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
