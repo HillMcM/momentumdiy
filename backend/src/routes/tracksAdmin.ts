@@ -78,6 +78,15 @@ router.put('/definitions/:id', async (req, res) => {
   console.log('🚀 Request body:', req.body);
   console.log('🚀 Request headers:', req.headers);
   
+  // Return early for debugging - let's see if we can reach this point
+  return res.json({ 
+    success: true, 
+    message: 'Debug endpoint reached!', 
+    params: req.params,
+    bodyKeys: Object.keys(req.body || {}),
+    timestamp: new Date().toISOString()
+  });
+  
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -133,7 +142,7 @@ router.put('/definitions/:id', async (req, res) => {
     
     console.log('Successfully updated track definition:', data);
     return res.json({ success: true, data });
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error updating track definition:', {
       error: error,
       message: error instanceof Error ? error.message : 'Unknown error',
