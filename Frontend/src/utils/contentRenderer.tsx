@@ -172,7 +172,7 @@ function renderInlineFormatting(text: string): React.ReactNode {
     // Bold text
     if (part.startsWith('**') && part.endsWith('**')) {
       return (
-        <strong key={idx} className="font-bold text-white text-lg">
+        <strong key={idx} className="font-bold text-[#EF8E81] text-lg">
           {part.slice(2, -2)}
         </strong>
       );

@@ -11,6 +11,7 @@ interface MarketingContextType {
   setCurrentModule: (module: MarketingModule | null) => void;
   setError: (error: string | null) => void;
   refreshMarketingData: () => Promise<void>;
+  updateActiveGoal: (updatedGoal: MarketingGoal) => void;
   onTaskStatusChange?: (taskId: string, isCompleted: boolean) => void;
 }
 
@@ -70,6 +71,13 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
     refreshMarketingData();
   }, []);
 
+  const updateActiveGoal = (updatedGoal: MarketingGoal) => {
+    setActiveGoal(updatedGoal);
+    // Update current module if needed
+    const current = updatedGoal.modules.find(module => module.weekNumber === updatedGoal.currentWeek);
+    setCurrentModule(current || null);
+  };
+
   const value: MarketingContextType = {
     activeGoal,
     currentModule,
@@ -79,6 +87,7 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
     setCurrentModule,
     setError,
     refreshMarketingData,
+    updateActiveGoal,
     onTaskStatusChange
   };
 

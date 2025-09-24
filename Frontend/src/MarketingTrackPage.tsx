@@ -6,6 +6,7 @@ import type { MarketingGoal, MarketingTask } from './types';
 import TaskModal from './components/marketingTrack/TaskModal';
 import { getPublishedTracks, activateTrack } from './services/marketingService';
 import { renderContentPreview, renderMarketingContent } from './utils/contentRenderer';
+import { BACKEND_BASE_URL } from './services/api';
 
 interface MarketingTrackPageProps {
   // Props removed - using context instead
@@ -16,7 +17,7 @@ interface MarketingTrackPageProps {
  * using the universal track template that matches the production UI.
  */
 export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
-  const { activeGoal, isLoading, refreshMarketingData } = useMarketing();
+  const { activeGoal, isLoading, refreshMarketingData, updateActiveGoal } = useMarketing();
   const { showTaskCompleted } = useNotificationHelpers();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -29,8 +30,51 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
   const handleTaskToggle = async (taskToUpdate: MarketingTask) => {
     if (!activeGoal) return;
 
-    // For now, just show notification - full integration will come later
-    showTaskCompleted(taskToUpdate.title);
+    try {
+      // Update task completion status via API
+      const response = await fetch(`${BACKEND_BASE_URL}/api/marketing/tasks/${taskToUpdate.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          isCompleted: !taskToUpdate.isCompleted
+        })
+      });
+
+      if (response.ok) {
+        // Update the local state immediately for better UX
+        const updatedGoal = {
+          ...activeGoal,
+          modules: activeGoal.modules.map(module => ({
+            ...module,
+            tasks: module.tasks.map(task => 
+              task.id === taskToUpdate.id 
+                ? { ...task, isCompleted: !task.isCompleted }
+                : task
+            )
+          }))
+        };
+
+        // Calculate updated progress
+        const allTasks = updatedGoal.modules.flatMap(m => m.tasks);
+        const completedTasks = allTasks.filter(t => t.isCompleted).length;
+        const totalTasks = allTasks.length;
+        const overallProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+        updatedGoal.progress = overallProgress;
+
+        // Update the active goal in context
+        updateActiveGoal(updatedGoal);
+        
+        // Show notification
+        showTaskCompleted(taskToUpdate.title);
+      } else {
+        console.error('Failed to update task:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
     
     // Close modal
     setIsTaskModalOpen(false);
@@ -80,12 +124,12 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
     }
   };
 
-  // Always load published tracks for selection
+  // Load published tracks for selection only when no active goal or track is completed
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && (!activeGoal || (activeGoal.progress ?? 0) >= 100)) {
       loadPublishedTracks();
     }
-  }, [isLoading]);
+  }, [isLoading, activeGoal]);
 
   if (isLoading) {
     return (
@@ -100,15 +144,20 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
     );
   }
 
-  if (!activeGoal || showTrackSelection) {
+  if (!activeGoal || (showTrackSelection && (activeGoal.progress ?? 0) >= 100)) {
   return (
     <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
       <div className="max-w-6xl mx-auto">
         <div className="text-center py-12">
             <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8">
-              <h2 className="text-2xl font-bold text-white mb-4">Choose Your Marketing Track</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                {(activeGoal?.progress ?? 0) >= 100 ? 'Choose Your Next Marketing Track' : 'Choose Your Marketing Track'}
+              </h2>
               <p className="text-gray-400 mb-8">
-                Select a marketing track to start your journey. Each track is designed to help you achieve specific business goals.
+                {(activeGoal?.progress ?? 0) >= 100 
+                  ? 'Congratulations on completing your track! Select a new marketing track to continue your journey.'
+                  : 'Select a marketing track to start your journey. Once you choose a track, you\'ll be committed to completing it over 12 weeks. Each track is designed to help you achieve specific business goals.'
+                }
               </p>
 
               {loadingTracks ? (
@@ -206,15 +255,14 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
               </div>
 
               <div className="flex gap-3">
-                <button
-                  onClick={() => setShowTrackSelection(true)}
-                  className="bg-[#2A243E] hover:bg-[#3A3350] text-gray-300 hover:text-white border border-[#2A243E] rounded-full px-3 py-1 text-sm font-medium transition-colors"
-                >
-                  Change Track
-                </button>
                 {activeGoal.isActive && (
                   <div className="bg-green-500/20 text-green-300 border border-green-500/30 rounded-full px-3 py-1 text-sm font-medium">
                     Active • Week {activeGoal.currentWeek} of {activeGoal.duration}
+                  </div>
+                )}
+                {(activeGoal.progress ?? 0) >= 100 && (
+                  <div className="bg-[#EF8E81]/20 text-[#EF8E81] border border-[#EF8E81]/30 rounded-full px-3 py-1 text-sm font-medium">
+                    Track Completed! 🎉
                   </div>
                 )}
               </div>
@@ -224,6 +272,27 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
             <p className="text-gray-300 text-lg mb-8 leading-relaxed">
               {activeGoal.description}
             </p>
+
+            {/* Completion message */}
+            {(activeGoal.progress ?? 0) >= 100 && (
+              <div className="bg-gradient-to-r from-[#EF8E81]/10 to-[#D4AF37]/10 rounded-xl p-6 border border-[#EF8E81]/20 mb-8">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-full bg-[#EF8E81] flex items-center justify-center">
+                    <span className="text-white text-lg">🎉</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-[#EF8E81]">Congratulations!</h3>
+                </div>
+                <p className="text-gray-300">
+                  You've successfully completed this marketing track! You can now choose a new track to continue your marketing journey.
+                </p>
+                <button
+                  onClick={() => setShowTrackSelection(true)}
+                  className="mt-4 bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold py-2 px-4 rounded-lg hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 transition-colors"
+                >
+                  Choose Next Track
+                </button>
+              </div>
+            )}
 
             {/* Overall Progress */}
             <div className="space-y-3">
