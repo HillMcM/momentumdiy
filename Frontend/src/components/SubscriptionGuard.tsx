@@ -10,7 +10,7 @@ interface SubscriptionGuardProps {
 }
 
 export default function SubscriptionGuard({ children, fallback }: SubscriptionGuardProps) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { subscription, loading } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
 
@@ -29,12 +29,24 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
     }
   }, [subscription, loading, user]);
 
-  // If user is not authenticated, redirect to pricing page
+  // Show loading state while authentication is being checked
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#EF8E81] mx-auto mb-4"></div>
+          <p className="text-[#FFF1E7]/60">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is not authenticated after loading is complete, redirect to pricing page
   if (!user) {
     return <Navigate to="/pricing" replace />;
   }
 
-  // Show loading state
+  // Show loading state for subscription data
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
