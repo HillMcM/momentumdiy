@@ -78,6 +78,15 @@ router.put('/definitions/:id', async (req, res) => {
   console.log('🚀 Request body:', req.body);
   console.log('🚀 Request headers:', req.headers);
   
+  // Simple test - return success immediately to see if route is working
+  return res.json({ 
+    success: true, 
+    message: 'PUT route is working!', 
+    params: req.params,
+    bodyKeys: Object.keys(req.body || {}),
+    timestamp: new Date().toISOString()
+  });
+  
   try {
     const { id } = req.params;
     const updates = req.body;
