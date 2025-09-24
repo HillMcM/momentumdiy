@@ -8,6 +8,7 @@ import { LocalFootTrafficTrack, SocialMediaStrategyTrack } from './marketing-tra
 import SocialProfileManager from './SocialProfileManager';
 import ProfilePage from './ProfilePage';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useWindowFocus } from './hooks/useWindowFocus';
 import type { Project, Task, MarketingGoal } from './types';
 import OctopusLogo from './assets/octopus_icon.png';
 // import SidebarToggleIcon from './assets/sidebar_toggle.svg';
@@ -540,9 +541,15 @@ function Dashboard({
 function ProtectedApp() {
   console.log('App component rendering...');
   
+  const { isFocused } = useWindowFocus();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
+
+  // Debug window focus changes
+  useEffect(() => {
+    console.log('🪟 Window focus changed:', isFocused ? 'FOCUSED' : 'UNFOCUSED');
+  }, [isFocused]);
   const [sidebarHidden, setSidebarHidden] = useState<boolean>(() => {
     // Check localStorage for sidebar state
     const saved = localStorage.getItem('sidebarHidden');

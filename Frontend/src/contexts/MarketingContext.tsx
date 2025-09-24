@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
 import { getActiveGoal } from '../services/marketingService';
 import type { MarketingGoal, MarketingModule } from '../types';
+import { useWindowFocus } from '../hooks/useWindowFocus';
 
 interface MarketingContextType {
   activeGoal: MarketingGoal | null;
@@ -35,11 +36,22 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
   const [currentModule, setCurrentModule] = useState<MarketingModule | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isFocused, hasBeenFocused } = useWindowFocus();
+  const lastRefreshRef = useRef<number>(0);
+  const REFRESH_COOLDOWN = 5000; // 5 seconds cooldown between refreshes
 
-  const refreshMarketingData = async () => {
+  const refreshMarketingData = async (force = false) => {
+    // Prevent excessive refreshes when window regains focus
+    const now = Date.now();
+    if (!force && now - lastRefreshRef.current < REFRESH_COOLDOWN) {
+      console.log('🚫 Skipping refresh - too soon since last refresh');
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
+      lastRefreshRef.current = now;
       
       console.log('🔄 Refreshing marketing data...');
       console.log('🔍 Using getActiveGoal function...');
@@ -70,6 +82,20 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
   useEffect(() => {
     refreshMarketingData();
   }, []);
+
+  // Handle window focus changes - only refresh if window was unfocused for a while
+  useEffect(() => {
+    if (isFocused && hasBeenFocused) {
+      // Window regained focus, but only refresh if it's been a while
+      const timeSinceLastRefresh = Date.now() - lastRefreshRef.current;
+      if (timeSinceLastRefresh > REFRESH_COOLDOWN) {
+        console.log('🔄 Window regained focus - refreshing data after', Math.round(timeSinceLastRefresh / 1000), 'seconds');
+        refreshMarketingData();
+      } else {
+        console.log('🚫 Window regained focus but skipping refresh - too soon since last refresh');
+      }
+    }
+  }, [isFocused]);
 
   const updateActiveGoal = (updatedGoal: MarketingGoal) => {
     setActiveGoal(updatedGoal);
