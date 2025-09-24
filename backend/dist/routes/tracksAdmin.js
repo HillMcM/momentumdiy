@@ -135,14 +135,32 @@ router.put('/modules/:id', async (req, res) => {
         if (updates.week_number) {
             updates.week_number = parseInt(updates.week_number);
         }
+        const filteredUpdates = { ...updates };
+        if (filteredUpdates.pro_tip === null || filteredUpdates.pro_tip === undefined) {
+            delete filteredUpdates.pro_tip;
+        }
         const { data, error } = await supabase_1.supabase
             .from('marketing_modules')
-            .update(updates)
+            .update(filteredUpdates)
             .eq('id', id)
             .select()
             .single();
-        if (error)
+        if (error) {
+            if (error.message && error.message.includes('pro_tip')) {
+                console.log('Pro_tip column not found, retrying without pro_tip field');
+                const { pro_tip, ...updatesWithoutProTip } = filteredUpdates;
+                const { data: retryData, error: retryError } = await supabase_1.supabase
+                    .from('marketing_modules')
+                    .update(updatesWithoutProTip)
+                    .eq('id', id)
+                    .select()
+                    .single();
+                if (retryError)
+                    throw retryError;
+                return res.json({ success: true, data: retryData });
+            }
             throw error;
+        }
         return res.json({ success: true, data });
     }
     catch (error) {
