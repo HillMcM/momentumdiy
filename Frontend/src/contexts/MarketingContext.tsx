@@ -38,7 +38,7 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
   const [error, setError] = useState<string | null>(null);
   const { isFocused, hasBeenFocused } = useWindowFocus();
   const lastRefreshRef = useRef<number>(0);
-  const REFRESH_COOLDOWN = 5000; // 5 seconds cooldown between refreshes
+  const REFRESH_COOLDOWN = 10 * 60 * 1000; // 10 minutes cooldown between refreshes
 
   const refreshMarketingData = async (force = false) => {
     // Prevent excessive refreshes when window regains focus
