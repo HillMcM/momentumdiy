@@ -589,7 +589,7 @@ router.post('/goals/:goalId/activate', async (req, res) => {
         await supabase_1.supabase
             .from('marketing_goals')
             .update({ is_active: false })
-            .neq('id', '00000000-0000-0000-0000-000000000000');
+            .neq('id', goalId);
         const { data, error } = await supabase_1.supabase
             .from('marketing_goals')
             .update({
