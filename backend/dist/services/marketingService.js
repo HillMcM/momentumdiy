@@ -327,6 +327,8 @@ class MarketingService {
                     error: error.message
                 };
             }
+            console.log('🔍 Backend - Raw modules from database:', data);
+            console.log('🔍 Backend - First module pro_tip:', data?.[0]?.pro_tip);
             const modules = await Promise.all(data.map(async (module) => {
                 return await this.mapDatabaseModuleToModule(module);
             }));

@@ -396,6 +396,9 @@ export class MarketingService {
         };
       }
 
+      console.log('🔍 Backend - Raw modules from database:', data);
+      console.log('🔍 Backend - First module pro_tip:', data?.[0]?.pro_tip);
+
       const modules: MarketingModule[] = await Promise.all(
         data.map(async (module: any) => {
           return await this.mapDatabaseModuleToModule(module);
