@@ -255,7 +255,8 @@ export default function TracksAdminPage() {
   const handleUpdateModule = async () => {
     if (!selectedModule) return;
     
-    console.log('🔧 Updating module:', selectedModule.id);
+    console.log('🔧 Selected module object:', selectedModule);
+    console.log('🔧 Updating module ID:', selectedModule.id);
     console.log('🔧 Module form data:', moduleForm);
     
     try {
@@ -386,6 +387,9 @@ export default function TracksAdminPage() {
   };
 
   const handleModuleSelect = (module: TrackModule) => {
+    console.log('🔧 Module selected:', module);
+    console.log('🔧 Module ID:', module.id);
+    console.log('🔧 Module goal_id:', module.goal_id);
     setSelectedModule(module);
     setModuleForm({
       week_number: module.week_number,
