@@ -380,6 +380,36 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Custom function to update track definitions
+CREATE OR REPLACE FUNCTION update_track_definition(
+    track_id UUID,
+    track_title TEXT DEFAULT NULL,
+    track_description TEXT DEFAULT NULL,
+    track_slug TEXT DEFAULT NULL,
+    track_industry_tags TEXT[] DEFAULT NULL,
+    track_duration_weeks INTEGER DEFAULT NULL,
+    track_phases JSONB DEFAULT NULL
+)
+RETURNS JSONB AS $$
+DECLARE
+    result JSONB;
+BEGIN
+    UPDATE public.marketing_track_definitions
+    SET 
+        title = COALESCE(track_title, title),
+        description = COALESCE(track_description, description),
+        slug = COALESCE(track_slug, slug),
+        industry_tags = COALESCE(track_industry_tags, industry_tags),
+        duration_weeks = COALESCE(track_duration_weeks, duration_weeks),
+        phases = COALESCE(track_phases, phases),
+        updated_at = NOW()
+    WHERE id = track_id
+    RETURNING to_jsonb(marketing_track_definitions.*) INTO result;
+    
+    RETURN result;
+END;
+$$ language 'plpgsql';
+
 -- Create triggers for updated_at columns
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

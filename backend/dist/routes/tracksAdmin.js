@@ -121,8 +121,7 @@ router.put('/definitions/:id', async (req, res) => {
             slug: updates.slug,
             industry_tags: updates.industry_tags,
             duration_weeks: updates.duration_weeks,
-            phases: updates.phases,
-            updated_at: new Date().toISOString()
+            phases: updates.phases
         };
         Object.keys(updateData).forEach(key => {
             if (updateData[key] === undefined) {
@@ -130,12 +129,15 @@ router.put('/definitions/:id', async (req, res) => {
             }
         });
         console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
-        const { data, error } = await supabase_1.supabase
-            .from('marketing_track_definitions')
-            .update(updateData)
-            .eq('id', id)
-            .select()
-            .single();
+        const { data, error } = await supabase_1.supabase.rpc('update_track_definition', {
+            track_id: id,
+            track_title: updateData.title,
+            track_description: updateData.description,
+            track_slug: updateData.slug,
+            track_industry_tags: updateData.industry_tags,
+            track_duration_weeks: updateData.duration_weeks,
+            track_phases: updateData.phases
+        });
         if (error) {
             console.error('❌ Supabase error:', error);
             return res.status(500).json({
