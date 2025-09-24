@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 /**
  * Hook to track window focus state and prevent unnecessary re-renders
@@ -7,6 +7,11 @@ import { useState, useEffect } from 'react';
 export function useWindowFocus() {
   const [isFocused, setIsFocused] = useState(true);
   const [hasBeenFocused, setHasBeenFocused] = useState(true);
+
+  // Debug: Track hook renders
+  const renderCountRef = useRef(0);
+  renderCountRef.current += 1;
+  console.log(`🪟 useWindowFocus render #${renderCountRef.current} - isFocused: ${isFocused}, hasBeenFocused: ${hasBeenFocused}`);
 
   useEffect(() => {
     const handleFocus = () => {

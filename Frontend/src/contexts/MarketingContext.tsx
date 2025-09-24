@@ -41,6 +41,11 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
   const prevFocusedRef = useRef<boolean>(true);
   const REFRESH_COOLDOWN = 10 * 60 * 1000; // 10 minutes cooldown between refreshes
 
+  // Debug: Track MarketingProvider renders
+  const renderCountRef = useRef(0);
+  renderCountRef.current += 1;
+  console.log(`📊 MarketingProvider render #${renderCountRef.current} - isFocused: ${isFocused}, hasBeenFocused: ${hasBeenFocused}`);
+
   const refreshMarketingData = async (force = false) => {
     // Prevent excessive refreshes when window regains focus
     const now = Date.now();
