@@ -97,14 +97,12 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
     setError(null);
 
     try {
-      console.log('🔍 TrackEditor - Phases data before stringify:', phases);
-      const phasesJson = JSON.stringify(phases);
-      console.log('🔍 TrackEditor - Phases JSON string:', phasesJson);
+      console.log('🔍 TrackEditor - Phases data:', phases);
       
       const trackData = {
         ...formData,
         industry_tags: formData.industry_tags.split(',').map(t => t.trim()).filter(Boolean),
-        phases: phasesJson
+        phases: phases // Send phases as array, let adminApi handle JSON.stringify
       };
       
       console.log('🔍 TrackEditor - Final track data being sent:', trackData);
@@ -323,3 +321,4 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
     </div>
   );
 }
+// Force new hash: 1758727952915265000
