@@ -1,5 +1,31 @@
 // Clean, simple API client for admin operations
-const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
+function getBackendUrl(): string {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    
+    // Production domains
+    if (hostname === 'momentumdiy.vercel.app' || 
+        hostname === 'momentumdiy-git-main-hillmcm.vercel.app' ||
+        hostname === 'momentumdiy.com') {
+      return 'https://momentumdiy-backend.onrender.com';
+    }
+    
+    // Feature branch deployments
+    if (hostname.includes('vercel.app')) {
+      return 'https://momentumdiy-backend.onrender.com';
+    }
+    
+    // Local development
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:3001';
+    }
+  }
+  
+  // Default to production backend
+  return 'https://momentumdiy-backend.onrender.com';
+}
+
+const API_BASE_URL = getBackendUrl();
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -11,9 +37,15 @@ interface ApiResponse<T = any> {
 async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
     const url = `${API_BASE_URL}/api/admin/tracks${endpoint}`;
+    
+    // Get authentication token
+    const { supabase } = await import('../lib/supabase');
+    const { data: { session } } = await supabase.auth.getSession();
+    
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
+        ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` }),
         ...options.headers,
       },
       ...options,
