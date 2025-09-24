@@ -59,6 +59,7 @@ const automatedNotifications_1 = __importDefault(require("./routes/automatedNoti
 const emailPreferences_1 = __importDefault(require("./routes/emailPreferences"));
 const index_1 = __importDefault(require("./routes/index"));
 const tracksAdmin_1 = __importDefault(require("./routes/tracksAdmin"));
+const testRoutes_1 = __importDefault(require("./routes/testRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env['PORT'] || 3001;
@@ -161,6 +162,7 @@ app.use('/api/tasks', tasks_1.default);
 app.use('/api/projects', projects_1.default);
 app.use('/api/marketing', marketing_1.default);
 app.use('/api/admin/tracks', tracksAdmin_1.default);
+app.use('/api/test', testRoutes_1.default);
 app.use('/api/calendar', calendar_1.default);
 app.use('/api/assets', assets_1.default);
 app.use('/api/ai', ai_1.default);

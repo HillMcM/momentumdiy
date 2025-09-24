@@ -3,9 +3,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const supabase_1 = require("../config/supabase");
 const router = (0, express_1.Router)();
+console.log('🔧 tracksAdmin routes module loaded');
 router.get('/test', (_req, res) => {
     console.log('🧪 Test endpoint hit!');
     res.json({ success: true, message: 'Backend is working!', timestamp: new Date().toISOString() });
+});
+router.put('/test-put', (req, res) => {
+    console.log('🧪 Test PUT endpoint hit!');
+    res.json({ success: true, message: 'PUT endpoint is working!', body: req.body });
+});
+router.put('/test-update/:id', (req, res) => {
+    console.log('🧪 Test PUT /test-update/:id endpoint hit!');
+    res.json({ success: true, message: 'PUT /test-update/:id is working!', id: req.params.id, body: req.body });
+});
+router.put('/minimal-test', (_req, res) => {
+    res.json({ success: true, message: 'Minimal PUT test working!' });
 });
 router.get('/definitions', async (_req, res) => {
     try {
@@ -15,7 +27,11 @@ router.get('/definitions', async (_req, res) => {
             .order('created_at', { ascending: false });
         if (error)
             throw error;
-        return res.json({ success: true, data: data || [] });
+        const processedData = (data || []).map(track => ({
+            ...track,
+            phases: track.phases ? (typeof track.phases === 'string' ? JSON.parse(track.phases) : track.phases) : []
+        }));
+        return res.json({ success: true, data: processedData });
     }
     catch (error) {
         console.error('Error fetching track definitions:', error);
@@ -28,10 +44,19 @@ router.post('/definitions', async (req, res) => {
         if (!slug || !title || !description) {
             return res.status(400).json({ success: false, error: 'Missing required fields: slug, title, description' });
         }
-        let parsedPhases = phases;
-        if (phases && typeof phases === 'string') {
+        let phasesString = phases;
+        if (phases && Array.isArray(phases)) {
             try {
-                parsedPhases = JSON.parse(phases);
+                phasesString = JSON.stringify(phases);
+            }
+            catch (stringifyError) {
+                console.error('Error stringifying phases:', stringifyError);
+                return res.status(400).json({ success: false, error: 'Invalid phases format' });
+            }
+        }
+        else if (phases && typeof phases === 'string') {
+            try {
+                JSON.parse(phases);
             }
             catch (parseError) {
                 console.error('Error parsing phases JSON:', parseError);
@@ -46,7 +71,7 @@ router.post('/definitions', async (req, res) => {
                 description,
                 industry_tags: Array.isArray(industry_tags) ? industry_tags : [industry_tags].filter(Boolean),
                 duration_weeks: duration_weeks || 12,
-                phases: parsedPhases || []
+                phases: phasesString || '[]'
             }])
             .select()
             .single();
@@ -61,73 +86,67 @@ router.post('/definitions', async (req, res) => {
 });
 router.put('/definitions/:id', async (req, res) => {
     console.log('🚀 PUT /definitions/:id - Route hit! [DEPLOYMENT TEST 2025-09-24-17:05]');
-    console.log('🚀 Request params:', req.params);
-    console.log('🚀 Request body:', req.body);
-    console.log('🚀 Request headers:', req.headers);
     try {
         const { id } = req.params;
         const updates = req.body;
-        console.log('🔄 Update track definition request:', {
-            id,
-            body: req.body,
-            headers: req.headers,
-            timestamp: new Date().toISOString()
-        });
+        console.log('🔄 Update track definition request:', { id, updates });
         if (updates.industry_tags && !Array.isArray(updates.industry_tags)) {
             updates.industry_tags = [updates.industry_tags].filter(Boolean);
         }
         if (updates.phases) {
-            if (typeof updates.phases === 'string') {
+            if (Array.isArray(updates.phases)) {
+                console.log('📝 Converting phases array to JSON string:', updates.phases);
+                updates.phases = JSON.stringify(updates.phases);
+                console.log('✅ Successfully converted phases to string:', updates.phases);
+            }
+            else if (typeof updates.phases === 'string') {
                 try {
-                    console.log('📝 Parsing phases JSON string:', updates.phases);
-                    updates.phases = JSON.parse(updates.phases);
-                    console.log('✅ Successfully parsed phases from string:', updates.phases);
+                    console.log('📝 Validating phases JSON string:', updates.phases);
+                    JSON.parse(updates.phases);
+                    console.log('✅ Phases string is valid JSON');
                 }
                 catch (parseError) {
-                    console.error('❌ Error parsing phases JSON:', parseError);
+                    console.error('❌ Error validating phases JSON:', parseError);
                     return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
                 }
-            }
-            else if (Array.isArray(updates.phases)) {
-                console.log('✅ Phases already an array:', updates.phases);
             }
             else {
                 console.error('❌ Invalid phases format:', typeof updates.phases, updates.phases);
                 return res.status(400).json({ success: false, error: 'Phases must be an array or JSON string' });
             }
         }
-        console.log('📊 Final updates object:', JSON.stringify(updates, null, 2));
-        console.log('🔍 About to call Supabase update...');
+        const updateData = {
+            ...updates
+        };
+        delete updateData.updated_at;
+        console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
         const { data, error } = await supabase_1.supabase
             .from('marketing_track_definitions')
-            .update(updates)
+            .update(updateData)
             .eq('id', id)
             .select()
             .single();
-        console.log('🔍 Supabase response - data:', data);
-        console.log('🔍 Supabase response - error:', error);
         if (error) {
-            console.error('Supabase error updating track definition:', error);
-            throw error;
+            console.error('❌ Supabase error:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Database error',
+                details: error.message
+            });
         }
-        console.log('Successfully updated track definition:', data);
+        console.log('✅ Successfully updated track definition:', data);
         return res.json({ success: true, data });
     }
     catch (error) {
-        console.error('❌ Error updating track definition:', {
-            error: error,
-            message: error instanceof Error ? error.message : 'Unknown error',
-            stack: error instanceof Error ? error.stack : undefined,
-            id: req.params.id,
-            body: req.body
-        });
+        console.error('❌ Error updating track definition:', error);
         return res.status(500).json({
             success: false,
             error: 'Failed to update track definition',
-            details: error instanceof Error ? error.message : 'Unknown error'
+            details: error.message || 'Unknown error'
         });
     }
 });
+console.log('🔧 PUT /definitions/:id route registered');
 router.delete('/definitions/:id', async (req, res) => {
     try {
         const { id } = req.params;
