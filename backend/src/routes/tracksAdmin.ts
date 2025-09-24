@@ -136,11 +136,13 @@ router.put('/definitions/:id', async (req, res) => {
       }
     }
 
-    // Prepare update data with proper handling of updated_at
+    // Prepare update data without updated_at to avoid schema issues
     const updateData = {
-      ...updates,
-      updated_at: new Date().toISOString()
+      ...updates
     };
+    
+    // Remove updated_at to avoid potential schema issues
+    delete updateData.updated_at;
     
     console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
     
