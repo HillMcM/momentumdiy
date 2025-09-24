@@ -647,25 +647,19 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
       goalId = newGoal.id;
     }
 
-    // Delete existing live modules for this goal (but not template modules)
-    // If goalId === trackId, we need to be more careful about what we delete
-    if (goalId === trackId) {
-      // When the live goal ID is the same as track definition ID,
-      // delete modules that don't have a track_definition_id (these are live modules)
-      await supabase
-        .from('marketing_modules')
-        .delete()
-        .eq('goal_id', goalId)
-        .is('track_definition_id', null);
-    } else {
-      // When they're different, simply delete all modules for the live goal
-      await supabase
-        .from('marketing_modules')
-        .delete()
-        .eq('goal_id', goalId);
+    // Get existing live modules for this goal
+    const { data: existingLiveModules, error: existingModulesError } = await supabase
+      .from('marketing_modules')
+      .select('*')
+      .eq('goal_id', goalId)
+      .is('track_definition_id', null) // Only live modules, not template modules
+      .order('week_number', { ascending: true });
+
+    if (existingModulesError) {
+      return res.status(500).json({ success: false, error: 'Failed to fetch existing live modules' });
     }
 
-    // Create live modules
+    // Prepare module data for upsert
     const liveModules = modules?.map(module => ({
       goal_id: goalId,
       week_number: module.week_number,
@@ -677,27 +671,106 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
       is_completed: false
     })) || [];
 
-    const { data: createdModules, error: moduleCreateError } = await supabase
-      .from('marketing_modules')
-      .insert(liveModules)
-      .select();
+    let createdModules = [];
+    let updatedModules = [];
 
-    if (moduleCreateError) {
-      return res.status(500).json({ success: false, error: 'Failed to create live modules' });
+    // Process each module - update existing or create new
+    for (const moduleData of liveModules) {
+      const existingModule = existingLiveModules?.find(m => m.week_number === moduleData.week_number);
+      
+      if (existingModule) {
+        // Update existing module
+        const { data: updatedModule, error: updateError } = await supabase
+          .from('marketing_modules')
+          .update({
+            title: moduleData.title,
+            description: moduleData.description,
+            content: moduleData.content,
+            pro_tip: moduleData.pro_tip,
+            is_unlocked: moduleData.is_unlocked,
+            // Keep existing is_completed status
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingModule.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error(`Error updating module ${existingModule.id}:`, updateError);
+          return res.status(500).json({ success: false, error: `Failed to update module ${existingModule.id}` });
+        }
+        
+        updatedModules.push(updatedModule);
+      } else {
+        // Create new module
+        const { data: newModule, error: createError } = await supabase
+          .from('marketing_modules')
+          .insert([moduleData])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error(`Error creating module for week ${moduleData.week_number}:`, createError);
+          return res.status(500).json({ success: false, error: `Failed to create module for week ${moduleData.week_number}` });
+        }
+        
+        createdModules.push(newModule);
+      }
     }
 
-    // Create live tasks
+    // Delete any live modules that are no longer in the template
+    const templateWeekNumbers = modules?.map(m => m.week_number) || [];
+    const modulesToDelete = existingLiveModules?.filter(m => !templateWeekNumbers.includes(m.week_number)) || [];
+    
+    if (modulesToDelete.length > 0) {
+      const moduleIdsToDelete = modulesToDelete.map(m => m.id);
+      const { error: deleteError } = await supabase
+        .from('marketing_modules')
+        .delete()
+        .in('id', moduleIdsToDelete);
+
+      if (deleteError) {
+        console.error('Error deleting obsolete modules:', deleteError);
+        return res.status(500).json({ success: false, error: 'Failed to delete obsolete modules' });
+      }
+    }
+
+    // Combine created and updated modules for task processing
+    const allLiveModules = [...createdModules, ...updatedModules];
+
+    // Process tasks for all modules (both created and updated)
     const liveTasks = [];
-    for (const module of createdModules || []) {
+    for (const module of allLiveModules || []) {
       const templateModule = modules?.find(m => m.week_number === module.week_number);
       const moduleTasks = tasks?.filter(t => t.module_id === templateModule?.id) || [];
       
+      // Get existing tasks for this module
+      const { data: existingTasks } = await supabase
+        .from('marketing_tasks')
+        .select('*')
+        .eq('module_id', module.id);
+
+      // Delete existing tasks for this module
+      if (existingTasks && existingTasks.length > 0) {
+        const { error: deleteTasksError } = await supabase
+          .from('marketing_tasks')
+          .delete()
+          .eq('module_id', module.id);
+
+        if (deleteTasksError) {
+          console.error(`Error deleting tasks for module ${module.id}:`, deleteTasksError);
+          return res.status(500).json({ success: false, error: `Failed to delete tasks for module ${module.id}` });
+        }
+      }
+      
+      // Create new tasks
       for (const task of moduleTasks) {
         liveTasks.push({
           module_id: module.id,
           title: task.title,
           description: task.description,
           estimated_time: task.estimated_time,
+          order_index: task.order_index || 0,
           is_completed: false
         });
       }
@@ -717,7 +790,8 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
       success: true, 
       message: 'Track published successfully',
       goalId,
-      modulesPublished: createdModules?.length || 0,
+      modulesCreated: createdModules?.length || 0,
+      modulesUpdated: updatedModules?.length || 0,
       tasksPublished: liveTasks.length
     });
   } catch (error) {
