@@ -97,11 +97,17 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
     setError(null);
 
     try {
+      console.log('🔍 TrackEditor - Phases data before stringify:', phases);
+      const phasesJson = JSON.stringify(phases);
+      console.log('🔍 TrackEditor - Phases JSON string:', phasesJson);
+      
       const trackData = {
         ...formData,
         industry_tags: formData.industry_tags.split(',').map(t => t.trim()).filter(Boolean),
-        phases: JSON.stringify(phases)
+        phases: phasesJson
       };
+      
+      console.log('🔍 TrackEditor - Final track data being sent:', trackData);
 
       let response;
       if (isCreating) {
