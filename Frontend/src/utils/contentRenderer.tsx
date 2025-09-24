@@ -133,7 +133,7 @@ export function renderMarketingContent(text: string, options: {
     // Regular paragraphs
     flushList();
     out.push(
-      <p key={`p-${idx}`} className="text-gray-300 mb-2 leading-relaxed">
+      <p key={`p-${idx}`} className="text-gray-300 mb-3 leading-relaxed text-base">
         {renderInlineFormatting(line)}
       </p>
     );
@@ -172,7 +172,7 @@ function renderInlineFormatting(text: string): React.ReactNode {
     // Bold text
     if (part.startsWith('**') && part.endsWith('**')) {
       return (
-        <strong key={idx} className="font-semibold text-white">
+        <strong key={idx} className="font-bold text-white text-lg">
           {part.slice(2, -2)}
         </strong>
       );

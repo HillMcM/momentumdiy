@@ -5,7 +5,7 @@ import { MarketingTrackProvider } from './contexts/MarketingTrackContext';
 import type { MarketingGoal, MarketingTask } from './types';
 import TaskModal from './components/marketingTrack/TaskModal';
 import { getPublishedTracks, activateTrack } from './services/marketingService';
-import { renderContentPreview } from './utils/contentRenderer';
+import { renderContentPreview, renderMarketingContent } from './utils/contentRenderer';
 
 interface MarketingTrackPageProps {
   // Props removed - using context instead
@@ -239,15 +239,15 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
               </div>
             </div>
 
-            {/* Phase block */}
+            {/* Phase block - Dynamic based on current week */}
             <div className="mt-8 pt-6 border-t border-[#2A243E]">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-[#EF8E81] flex items-center justify-center">
                   <span className="text-white text-sm font-bold">1</span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-white">Foundation Phase</h2>
-                  <p className="text-gray-400 text-sm">Building your strategy foundation</p>
+                  <h2 className="text-xl font-semibold text-white">Phase 1: Spark Traffic</h2>
+                  <p className="text-gray-400 text-sm">Get people in the door immediately</p>
                 </div>
               </div>
             </div>
@@ -310,10 +310,44 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
                       </div>
                     </div>
 
-                    {/* Module Content */}
+                    {/* Module Content - Full display for current week */}
                     {isUnlocked && module.content && (
                       <div className="max-w-none">
-                        {renderContentPreview(module.content, 3)}
+                        {isCurrentWeek ? (
+                          <div className="space-y-6">
+                            {/* Weekly Lesson */}
+                            <div className="bg-[#141127] rounded-xl p-6 border border-[#2A243E]">
+                              <h4 className="text-lg font-semibold text-white mb-4">Weekly Lesson</h4>
+                              <div className="space-y-4">
+                                {renderMarketingContent(module.content)}
+                              </div>
+                            </div>
+                            
+                            {/* Pro Tip */}
+                            {(() => {
+                              const proTipMatch = module.content.match(/<h[1-6]>(Pro Tip:.*?)<\/h[1-6]>(.*?)(?=<h[1-6]|$)/is);
+                              if (!proTipMatch) return null;
+                              
+                              const proTipTitle = proTipMatch[1];
+                              const proTipContent = proTipMatch[2].trim();
+                              
+                              return (
+                                <div className="bg-gradient-to-r from-[#EF8E81]/10 to-[#D4AF37]/10 rounded-xl p-6 border border-[#EF8E81]/20">
+                                  <h5 className="text-lg font-semibold text-[#EF8E81] mb-3 flex items-center gap-2">
+                                    <span>↑</span> {proTipTitle}
+                                  </h5>
+                                  <div className="text-gray-300 leading-relaxed">
+                                    {renderMarketingContent(proTipContent)}
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        ) : (
+                          <div className="text-sm text-gray-400">
+                            {renderContentPreview(module.content, 2)}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -323,11 +357,11 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
                     <div className="px-6 pb-6">
                       <div className="pt-4 border-t border-[#2A243E]">
                         <h4 className="text-sm font-medium text-gray-300 mb-3">Tasks for this week:</h4>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {module.tasks.map((task) => (
                             <div 
                               key={task.id}
-                              className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                              className={`flex items-center gap-3 p-4 rounded-lg transition-colors ${
                                 task.isCompleted 
                                   ? 'bg-green-500/10 border border-green-500/20' 
                                   : 'bg-[#141127] border border-[#2A243E] hover:border-[#EF8E81]/30'
@@ -338,14 +372,14 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
                                   e.stopPropagation();
                                   handleTaskToggle(task);
                                 }}
-                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${
+                                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${
                                   task.isCompleted 
                                     ? 'bg-green-500 border-green-500' 
                                     : 'border-[#2A243E] hover:border-[#EF8E81]'
                                 }`}
                               >
                                 {task.isCompleted && (
-                                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                   </svg>
                                 )}
@@ -354,13 +388,13 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
                                 className="flex-1 cursor-pointer"
                                 onClick={() => handleTaskClick(task)}
                               >
-                                <span className={`text-sm font-medium ${
+                                <span className={`text-base font-medium ${
                                   task.isCompleted ? 'text-green-300 line-through' : 'text-white'
                                 }`}>
                                   {task.title}
                                 </span>
                                 {task.estimatedTime && (
-                                  <span className="text-gray-500 ml-2 text-xs">({task.estimatedTime})</span>
+                                  <span className="text-gray-400 ml-2 text-sm">({task.estimatedTime})</span>
                                 )}
                               </div>
                             </div>
