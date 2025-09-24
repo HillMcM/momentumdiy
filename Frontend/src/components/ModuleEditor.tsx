@@ -1,5 +1,24 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../services/adminApi';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface TrackModule {
   id: string;
@@ -44,6 +63,14 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
   const [tasks, setTasks] = useState<TrackTask[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const showMessage = (msg: string, isError = false) => {
     if (isError) {
@@ -91,7 +118,9 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
     try {
       const response = await adminApi.listTrackTasks(module.id);
       if (response.success) {
-        setTasks(response.data || []);
+        // Sort tasks by order_index to ensure proper ordering
+        const sortedTasks = (response.data || []).sort((a, b) => a.order_index - b.order_index);
+        setTasks(sortedTasks);
       }
     } catch (error) {
       console.error('Failed to load tasks:', error);
@@ -208,6 +237,46 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
     }
   };
 
+  // Handle drag and drop reordering
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = tasks.findIndex(task => task.id === active.id);
+    const newIndex = tasks.findIndex(task => task.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    // Update local state immediately for better UX
+    const reorderedTasks = arrayMove(tasks, oldIndex, newIndex);
+    setTasks(reorderedTasks);
+
+    // Update order indices in the backend
+    try {
+      const updates = reorderedTasks.map((task, index) => ({
+        id: task.id,
+        order_index: index
+      }));
+
+      // Update all tasks with new order indices
+      await Promise.all(updates.map(update => 
+        adminApi.updateTrackTask(update.id, { order_index: update.order_index })
+      ));
+
+      showMessage('Task order updated successfully');
+    } catch (error) {
+      console.error('Failed to update task order:', error);
+      setError('Failed to update task order');
+      // Revert to original order on error
+      await loadTasks();
+    }
+  };
+
   return (
     <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8">
       <div className="flex items-center justify-between mb-6">
@@ -319,7 +388,12 @@ Use blank lines to separate paragraphs for better readability.`}
       {!isCreating && module && (
         <div className="pt-6 border-t border-[#2A243E]">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Tasks for this Module</h3>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Tasks for this Module</h3>
+              <p className="text-xs text-gray-400 mt-1">
+                💡 Drag the grip icon (⋮⋮) to reorder tasks. Order matters for user workflow!
+              </p>
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={handleCreateTask}
@@ -348,34 +422,71 @@ Use blank lines to separate paragraphs for better readability.`}
             </div>
           </div>
 
-          {/* Task List */}
-          <div className="space-y-3">
-            {tasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onUpdate={(updates) => handleUpdateTask(task.id, updates)}
-                onDelete={() => handleDeleteTask(task.id)}
-              />
-            ))}
-            {tasks.length === 0 && (
-              <p className="text-gray-500 text-sm italic">No tasks added yet. Click "Add Task" to create tasks for this module.</p>
-            )}
-          </div>
+          {/* Task List with Drag and Drop */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={tasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-3">
+                {tasks.map((task) => (
+                  <SortableTaskItem
+                    key={task.id}
+                    task={task}
+                    onUpdate={(updates) => handleUpdateTask(task.id, updates)}
+                    onDelete={() => handleDeleteTask(task.id)}
+                  />
+                ))}
+                {tasks.length === 0 && (
+                  <p className="text-gray-500 text-sm italic">No tasks added yet. Click "Add Task" to create tasks for this module.</p>
+                )}
+              </div>
+            </SortableContext>
+          </DndContext>
         </div>
       )}
     </div>
   );
 }
 
-// Task Item Component
+// Sortable Task Item Component
 interface TaskItemProps {
   task: TrackTask;
   onUpdate: (updates: Partial<TrackTask>) => void;
   onDelete: () => void;
 }
 
-function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
+function SortableTaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`bg-[#141127] rounded-lg border border-[#2A243E] ${
+        isDragging ? 'opacity-50 shadow-lg' : ''
+      }`}
+    >
+      <TaskItem task={task} onUpdate={onUpdate} onDelete={onDelete} dragHandleProps={{...attributes, ...listeners}} />
+    </div>
+  );
+}
+
+// Task Item Component
+function TaskItem({ task, onUpdate, onDelete, dragHandleProps }: TaskItemProps & { dragHandleProps?: any }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     title: task.title,
@@ -452,12 +563,26 @@ function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <h4 className="font-medium text-white text-sm">{task.title}</h4>
-            {task.description && (
-              <p className="text-gray-400 text-xs mt-1">{task.description}</p>
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3 flex-1">
+            {/* Drag Handle */}
+            {dragHandleProps && (
+              <div
+                {...dragHandleProps}
+                className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-300 p-1"
+                title="Drag to reorder"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                </svg>
+              </div>
             )}
+            <div className="flex-1">
+              <h4 className="font-medium text-white text-sm">{task.title}</h4>
+              {task.description && (
+                <p className="text-gray-400 text-xs mt-1">{task.description}</p>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-500 text-xs">{task.estimated_time}</span>
