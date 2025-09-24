@@ -534,6 +534,7 @@ class MarketingService {
             title: dbModule.title,
             description: dbModule.description || '',
             content: dbModule.content || '',
+            proTip: dbModule.pro_tip,
             tasks,
             isUnlocked: dbModule.is_unlocked,
             isCompleted: dbModule.is_completed
