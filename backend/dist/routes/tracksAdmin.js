@@ -20,9 +20,19 @@ router.get('/definitions', async (_req, res) => {
 });
 router.post('/definitions', async (req, res) => {
     try {
-        const { slug, title, description, industry_tags, duration_weeks } = req.body;
+        const { slug, title, description, industry_tags, duration_weeks, phases } = req.body;
         if (!slug || !title || !description) {
             return res.status(400).json({ success: false, error: 'Missing required fields: slug, title, description' });
+        }
+        let parsedPhases = phases;
+        if (phases && typeof phases === 'string') {
+            try {
+                parsedPhases = JSON.parse(phases);
+            }
+            catch (parseError) {
+                console.error('Error parsing phases JSON:', parseError);
+                return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
+            }
         }
         const { data, error } = await supabase_1.supabase
             .from('marketing_track_definitions')
@@ -31,7 +41,8 @@ router.post('/definitions', async (req, res) => {
                 title,
                 description,
                 industry_tags: Array.isArray(industry_tags) ? industry_tags : [industry_tags].filter(Boolean),
-                duration_weeks: duration_weeks || 12
+                duration_weeks: duration_weeks || 12,
+                phases: parsedPhases || []
             }])
             .select()
             .single();
@@ -50,6 +61,15 @@ router.put('/definitions/:id', async (req, res) => {
         const updates = req.body;
         if (updates.industry_tags && !Array.isArray(updates.industry_tags)) {
             updates.industry_tags = [updates.industry_tags].filter(Boolean);
+        }
+        if (updates.phases && typeof updates.phases === 'string') {
+            try {
+                updates.phases = JSON.parse(updates.phases);
+            }
+            catch (parseError) {
+                console.error('Error parsing phases JSON:', parseError);
+                return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
+            }
         }
         const { data, error } = await supabase_1.supabase
             .from('marketing_track_definitions')
