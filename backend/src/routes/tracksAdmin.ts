@@ -73,7 +73,7 @@ router.post('/definitions', async (req, res) => {
 
 // PUT /admin/tracks/definitions/:id - Update track definition
 router.put('/definitions/:id', async (req, res) => {
-  console.log('🚀 PUT /definitions/:id - Route hit!');
+  console.log('🚀 PUT /definitions/:id - Route hit! [DEPLOYMENT TEST 2025-09-24-17:05]');
   console.log('🚀 Request params:', req.params);
   console.log('🚀 Request body:', req.body);
   console.log('🚀 Request headers:', req.headers);
