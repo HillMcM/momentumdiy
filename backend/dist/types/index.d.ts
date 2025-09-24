@@ -63,6 +63,14 @@ export interface MarketingTask {
     dueDate?: Date;
     taskId?: string;
 }
+export interface MarketingPhase {
+    id: string;
+    title: string;
+    description: string;
+    startWeek: number;
+    endWeek: number;
+    color: string;
+}
 export interface MarketingGoal {
     id: string;
     title: string;
@@ -76,6 +84,8 @@ export interface MarketingGoal {
     progress: number;
     weekStartDates?: Date[];
     lastWeekAdvancement?: Date;
+    phases?: MarketingPhase[];
+    currentPhase?: MarketingPhase;
 }
 export interface CalendarEvent {
     id: string;
