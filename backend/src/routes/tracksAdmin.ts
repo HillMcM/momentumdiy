@@ -160,16 +160,16 @@ router.put('/definitions/:id', async (req, res) => {
     
     console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
     
-    // Use custom function to update track definition
-    const { data, error } = await supabase.rpc('update_track_definition', {
-      track_id: id,
-      track_title: updateData.title,
-      track_description: updateData.description,
-      track_slug: updateData.slug,
-      track_industry_tags: updateData.industry_tags,
-      track_duration_weeks: updateData.duration_weeks,
-      track_phases: updateData.phases
-    });
+    // Use standard update with explicit updated_at
+    const { data, error } = await supabase
+      .from('marketing_track_definitions')
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) {
       console.error('❌ Supabase error:', error);
