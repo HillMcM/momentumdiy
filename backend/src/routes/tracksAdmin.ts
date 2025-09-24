@@ -127,7 +127,25 @@ router.put('/definitions/:id', async (req, res) => {
     console.log('🔍 Supabase response - error:', error);
 
     if (error) {
-      console.error('Supabase error updating track definition:', error);
+      console.error('❌ Supabase error updating track definition:', {
+        error: error,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        id: id,
+        updates: JSON.stringify(updates, null, 2)
+      });
+      
+      // Check for specific column errors
+      if (error.message && error.message.includes('column') && error.message.includes('does not exist')) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Database schema error',
+          details: `Column error: ${error.message}. This may indicate a schema mismatch between local and production databases.`
+        });
+      }
+      
       throw error;
     }
     
