@@ -14,6 +14,12 @@ router.get('/test', (_req, res) => {
   res.json({ success: true, message: 'Backend is working!', timestamp: new Date().toISOString() });
 });
 
+// Test PUT endpoint
+router.put('/test-put', (req, res) => {
+  console.log('🧪 Test PUT endpoint hit!');
+  res.json({ success: true, message: 'PUT endpoint is working!', body: req.body });
+});
+
 // GET /admin/tracks/definitions - List all track definitions
 router.get('/definitions', async (_req, res) => {
   try {
