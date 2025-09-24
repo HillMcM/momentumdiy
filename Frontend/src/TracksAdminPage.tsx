@@ -74,11 +74,11 @@ export default function TracksAdminPage() {
 
   // Computed
   const orderedModules = useMemo(() => {
-    return [...modules].sort((a, b) => a.week_number - b.week_number);
+    return [...(modules || [])].sort((a, b) => a.week_number - b.week_number);
   }, [modules]);
 
   const orderedTasks = useMemo(() => {
-    return [...tasks].sort((a, b) => a.order_index - b.order_index);
+    return [...(tasks || [])].sort((a, b) => a.order_index - b.order_index);
   }, [tasks]);
 
   // Load tracks on mount
@@ -475,8 +475,9 @@ export default function TracksAdminPage() {
               ))}
             </div>
 
-            {/* Track Form */}
-            <div className="space-y-3">
+            {/* Track Form - Only show when no module is selected */}
+            {!selectedModule && (
+              <div className="space-y-3">
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Slug</label>
                 <input
@@ -554,16 +555,25 @@ export default function TracksAdminPage() {
                   </button>
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Column 2: Modules */}
           <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-white">
-                Modules {selectedTrack && `(${selectedTrack.title})`}
+                {selectedModule ? `Editing Module: Week ${selectedModule.week_number}` : `Modules ${selectedTrack && `(${selectedTrack.title})`}`}
               </h2>
-              {selectedTrack && (
+              {selectedModule && (
+                <button
+                  onClick={() => setSelectedModule(null)}
+                  className="px-3 py-1 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
+                >
+                  ← Back to Track
+                </button>
+              )}
+              {selectedTrack && !selectedModule && (
                 <button
                   onClick={handleCreateModule}
                   className="px-3 py-1 bg-[#EF8E81] text-white rounded-lg text-sm hover:bg-[#EF8E81]/80"
@@ -573,23 +583,25 @@ export default function TracksAdminPage() {
               )}
             </div>
 
-            {/* Module List */}
-            <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
-              {orderedModules.map((module) => (
-                <div
-                  key={module.id}
-                  onClick={() => handleModuleSelect(module)}
-                  className={`p-3 rounded-lg cursor-pointer border ${
-                    selectedModule?.id === module.id
-                      ? 'bg-[#EF8E81]/20 border-[#EF8E81]/30'
-                      : 'bg-[#141127] border-[#2A243E] hover:border-[#EF8E81]/20'
-                  }`}
-                >
-                  <h3 className="font-medium text-white text-sm">Week {module.week_number}: {module.title}</h3>
-                  <p className="text-xs text-gray-400">{module.content.substring(0, 60)}...</p>
-                </div>
-              ))}
-            </div>
+            {/* Module List - Only show when no module is selected */}
+            {!selectedModule && orderedModules && orderedModules.length > 0 && (
+              <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+                {orderedModules.map((module: TrackModule) => (
+                  <div
+                    key={module.id}
+                    onClick={() => handleModuleSelect(module)}
+                    className={`p-3 rounded-lg cursor-pointer border ${
+                      selectedModule?.id === module.id
+                        ? 'bg-[#EF8E81]/20 border-[#EF8E81]/30'
+                        : 'bg-[#141127] border-[#2A243E] hover:border-[#EF8E81]/20'
+                    }`}
+                  >
+                    <h3 className="font-medium text-white text-sm">Week {module.week_number}: {module.title}</h3>
+                    <p className="text-xs text-gray-400">{module.content.substring(0, 60)}...</p>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Module Form */}
             {(() => {
