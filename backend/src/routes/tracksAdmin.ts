@@ -71,6 +71,12 @@ router.put('/definitions/:id', async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
+    console.log('🔄 Update track definition request:', {
+      id,
+      body: req.body,
+      headers: req.headers
+    });
+
     // Clean up industry_tags if provided
     if (updates.industry_tags && !Array.isArray(updates.industry_tags)) {
       updates.industry_tags = [updates.industry_tags].filter(Boolean);
@@ -79,14 +85,16 @@ router.put('/definitions/:id', async (req, res) => {
     // Parse phases if it's a JSON string
     if (updates.phases && typeof updates.phases === 'string') {
       try {
+        console.log('📝 Parsing phases JSON:', updates.phases);
         updates.phases = JSON.parse(updates.phases);
+        console.log('✅ Successfully parsed phases:', updates.phases);
       } catch (parseError) {
-        console.error('Error parsing phases JSON:', parseError);
+        console.error('❌ Error parsing phases JSON:', parseError);
         return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
       }
     }
 
-    console.log('Updating track definition with data:', JSON.stringify(updates, null, 2));
+    console.log('📊 Final updates object:', JSON.stringify(updates, null, 2));
     
     const { data, error } = await supabase
       .from('marketing_track_definitions')
@@ -103,7 +111,13 @@ router.put('/definitions/:id', async (req, res) => {
     console.log('Successfully updated track definition:', data);
     return res.json({ success: true, data });
   } catch (error) {
-    console.error('Error updating track definition:', error);
+    console.error('❌ Error updating track definition:', {
+      error: error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      id: req.params.id,
+      body: req.body
+    });
     return res.status(500).json({ 
       success: false, 
       error: 'Failed to update track definition',
