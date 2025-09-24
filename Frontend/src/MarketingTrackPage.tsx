@@ -4,9 +4,10 @@ import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 import { MarketingTrackProvider } from './contexts/MarketingTrackContext';
 import type { MarketingGoal, MarketingTask, Task, MarketingPhase } from './types';
 import TaskModal from './components/marketingTrack/TaskModal';
-import { getPublishedTracks, activateTrack } from './services/marketingService';
+import { getPublishedTracks, activateTrack, updateMarketingGoalPhases } from './services/marketingService';
 import { renderContentPreview, renderMarketingContent } from './utils/contentRenderer';
 import { BACKEND_BASE_URL } from './services/api';
+// Updated: 2025-09-24 - Phase update functionality added
 
 interface MarketingTrackPageProps {
   tasks: Task[];
