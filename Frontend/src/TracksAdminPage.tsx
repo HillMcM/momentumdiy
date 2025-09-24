@@ -390,7 +390,15 @@ export default function TracksAdminPage() {
     console.log('🔧 Module selected:', module);
     console.log('🔧 Module ID:', module.id);
     console.log('🔧 Module goal_id:', module.goal_id);
+    console.log('🔧 Setting selectedModule to:', module);
     setSelectedModule(module);
+    console.log('🔧 Setting moduleForm with data:', {
+      week_number: module.week_number,
+      title: module.title,
+      description: module.description || '',
+      content: module.content,
+      pro_tip: module.pro_tip || ''
+    });
     setModuleForm({
       week_number: module.week_number,
       title: module.title,
@@ -584,8 +592,13 @@ export default function TracksAdminPage() {
             </div>
 
             {/* Module Form */}
-            {selectedModule && (
-              <div className="space-y-3">
+            {(() => {
+              console.log('🔧 Rendering module form check:');
+              console.log('🔧 selectedModule:', selectedModule);
+              console.log('🔧 selectedTrack:', selectedTrack);
+              console.log('🔧 Will show module form:', !!selectedModule);
+              return selectedModule && (
+                <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">Week #</label>
@@ -667,7 +680,8 @@ This will appear as a special highlighted section in the user interface."
                   )}
                 </div>
               </div>
-            )}
+              );
+            })()}
           </div>
 
           {/* Column 3: Tasks */}
