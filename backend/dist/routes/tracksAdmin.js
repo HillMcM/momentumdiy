@@ -130,7 +130,7 @@ router.get('/definitions/:trackId/modules', async (req, res) => {
 router.post('/definitions/:trackId/modules', async (req, res) => {
     try {
         const { trackId } = req.params;
-        const { week_number, title, description, content } = req.body;
+        const { week_number, title, description, content, pro_tip } = req.body;
         if (!week_number || !title || !content) {
             return res.status(400).json({ success: false, error: 'Missing required fields: week_number, title, content' });
         }
@@ -142,6 +142,7 @@ router.post('/definitions/:trackId/modules', async (req, res) => {
                 title,
                 description: description || '',
                 content,
+                pro_tip: pro_tip || null,
                 is_unlocked: false,
                 is_completed: false
             }])
@@ -536,18 +537,14 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
             }
             goalId = newGoal.id;
         }
-        if (goalId === trackId) {
-            await supabase_1.supabase
-                .from('marketing_modules')
-                .delete()
-                .eq('goal_id', goalId)
-                .is('track_definition_id', null);
-        }
-        else {
-            await supabase_1.supabase
-                .from('marketing_modules')
-                .delete()
-                .eq('goal_id', goalId);
+        const { data: existingLiveModules, error: existingModulesError } = await supabase_1.supabase
+            .from('marketing_modules')
+            .select('*')
+            .eq('goal_id', goalId)
+            .is('track_definition_id', null)
+            .order('week_number', { ascending: true });
+        if (existingModulesError) {
+            return res.status(500).json({ success: false, error: 'Failed to fetch existing live modules' });
         }
         const liveModules = modules?.map(module => ({
             goal_id: goalId,
@@ -555,26 +552,86 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
             title: module.title,
             description: module.description,
             content: module.content,
+            pro_tip: module.pro_tip || null,
             is_unlocked: module.week_number === 1,
             is_completed: false
         })) || [];
-        const { data: createdModules, error: moduleCreateError } = await supabase_1.supabase
-            .from('marketing_modules')
-            .insert(liveModules)
-            .select();
-        if (moduleCreateError) {
-            return res.status(500).json({ success: false, error: 'Failed to create live modules' });
+        let createdModules = [];
+        let updatedModules = [];
+        for (const moduleData of liveModules) {
+            const existingModule = existingLiveModules?.find(m => m.week_number === moduleData.week_number);
+            if (existingModule) {
+                const { data: updatedModule, error: updateError } = await supabase_1.supabase
+                    .from('marketing_modules')
+                    .update({
+                    title: moduleData.title,
+                    description: moduleData.description,
+                    content: moduleData.content,
+                    pro_tip: moduleData.pro_tip,
+                    is_unlocked: moduleData.is_unlocked,
+                    updated_at: new Date().toISOString()
+                })
+                    .eq('id', existingModule.id)
+                    .select()
+                    .single();
+                if (updateError) {
+                    console.error(`Error updating module ${existingModule.id}:`, updateError);
+                    return res.status(500).json({ success: false, error: `Failed to update module ${existingModule.id}` });
+                }
+                updatedModules.push(updatedModule);
+            }
+            else {
+                const { data: newModule, error: createError } = await supabase_1.supabase
+                    .from('marketing_modules')
+                    .insert([moduleData])
+                    .select()
+                    .single();
+                if (createError) {
+                    console.error(`Error creating module for week ${moduleData.week_number}:`, createError);
+                    return res.status(500).json({ success: false, error: `Failed to create module for week ${moduleData.week_number}` });
+                }
+                createdModules.push(newModule);
+            }
         }
+        const templateWeekNumbers = modules?.map(m => m.week_number) || [];
+        const modulesToDelete = existingLiveModules?.filter(m => !templateWeekNumbers.includes(m.week_number)) || [];
+        if (modulesToDelete.length > 0) {
+            const moduleIdsToDelete = modulesToDelete.map(m => m.id);
+            const { error: deleteError } = await supabase_1.supabase
+                .from('marketing_modules')
+                .delete()
+                .in('id', moduleIdsToDelete);
+            if (deleteError) {
+                console.error('Error deleting obsolete modules:', deleteError);
+                return res.status(500).json({ success: false, error: 'Failed to delete obsolete modules' });
+            }
+        }
+        const allLiveModules = [...createdModules, ...updatedModules];
         const liveTasks = [];
-        for (const module of createdModules || []) {
+        for (const module of allLiveModules || []) {
             const templateModule = modules?.find(m => m.week_number === module.week_number);
             const moduleTasks = tasks?.filter(t => t.module_id === templateModule?.id) || [];
+            const { data: existingTasks } = await supabase_1.supabase
+                .from('marketing_tasks')
+                .select('*')
+                .eq('module_id', module.id);
+            if (existingTasks && existingTasks.length > 0) {
+                const { error: deleteTasksError } = await supabase_1.supabase
+                    .from('marketing_tasks')
+                    .delete()
+                    .eq('module_id', module.id);
+                if (deleteTasksError) {
+                    console.error(`Error deleting tasks for module ${module.id}:`, deleteTasksError);
+                    return res.status(500).json({ success: false, error: `Failed to delete tasks for module ${module.id}` });
+                }
+            }
             for (const task of moduleTasks) {
                 liveTasks.push({
                     module_id: module.id,
                     title: task.title,
                     description: task.description,
                     estimated_time: task.estimated_time,
+                    order_index: task.order_index || 0,
                     is_completed: false
                 });
             }
@@ -591,7 +648,8 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
             success: true,
             message: 'Track published successfully',
             goalId,
-            modulesPublished: createdModules?.length || 0,
+            modulesCreated: createdModules?.length || 0,
+            modulesUpdated: updatedModules?.length || 0,
             tasksPublished: liveTasks.length
         });
     }

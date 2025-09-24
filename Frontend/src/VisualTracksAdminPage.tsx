@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from './services/adminApi';
+import TrackEditor from './components/TrackEditor';
+import ModuleEditor from './components/ModuleEditor';
 
 // Types for the visual admin interface
 interface TrackDefinition {
@@ -9,16 +11,8 @@ interface TrackDefinition {
   description: string;
   industry_tags?: string[];
   duration_weeks: number;
+  phases?: any;
   created_at: string;
-}
-
-interface TrackPhase {
-  id: string;
-  title: string;
-  description: string;
-  startWeek: number;
-  endWeek: number;
-  color: string;
 }
 
 interface TrackModule {
@@ -62,28 +56,13 @@ export default function VisualTracksAdminPage() {
   const [tracks, setTracks] = useState<TrackDefinition[]>([]);
   const [selectedTrack, setSelectedTrack] = useState<TrackDefinition | null>(null);
   const [modules, setModules] = useState<TrackModule[]>([]);
-  const [tasks, setTasks] = useState<{ [moduleId: string]: TrackTask[] }>({});
+  const [selectedModule, setSelectedModule] = useState<TrackModule | null>(null);
+  const [tasks, setTasks] = useState<TrackTask[]>([]);
   const [publishedGoals, setPublishedGoals] = useState<PublishedGoal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [editMode, setEditMode] = useState<'view' | 'edit' | 'create'>('view');
-
-  // Editing states
-  const [editingTrack, setEditingTrack] = useState<Partial<TrackDefinition>>({});
-  const [editingModules, setEditingModules] = useState<{ [weekNumber: number]: Partial<TrackModule> }>({});
-  const [editingTasks, setEditingTasks] = useState<{ [moduleId: string]: Partial<TrackTask>[] }>({});
-  const [editingPhases, setEditingPhases] = useState<TrackPhase[]>([
-    { id: '1', title: 'Foundation Phase', description: 'Building your strategy foundation', startWeek: 1, endWeek: 3, color: '#EF8E81' },
-    { id: '2', title: 'Implementation Phase', description: 'Putting strategies into action', startWeek: 4, endWeek: 6, color: '#D4AF37' },
-    { id: '3', title: 'Growth Phase', description: 'Scaling and expanding your reach', startWeek: 7, endWeek: 9, color: '#8B5CF6' },
-    { id: '4', title: 'Optimization Phase', description: 'Refining and optimizing performance', startWeek: 10, endWeek: 12, color: '#10B981' }
-  ]);
-
-  // Computed
-  // const orderedModules = useMemo(() => {
-  //   return [...modules].sort((a, b) => a.week_number - b.week_number);
-  // }, [modules]);
+  const [editMode, setEditMode] = useState<'view' | 'track-edit' | 'track-create' | 'module-edit' | 'module-create'>('view');
 
   // Load data
   useEffect(() => {
@@ -94,51 +73,16 @@ export default function VisualTracksAdminPage() {
   useEffect(() => {
     if (selectedTrack) {
       loadModules(selectedTrack.id);
-      setEditingTrack(selectedTrack);
-      
-      // Load phases from track definition
-      try {
-        const trackPhases = (selectedTrack as any).phases;
-        if (trackPhases) {
-          if (typeof trackPhases === 'string') {
-            const parsedPhases = JSON.parse(trackPhases);
-            setEditingPhases(parsedPhases);
-          } else {
-            // Already parsed as JSON object
-            setEditingPhases(trackPhases);
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing phases:', error);
-        // Keep default phases if parsing fails
-      }
+      setSelectedModule(null);
+      setTasks([]);
     }
   }, [selectedTrack]);
 
   useEffect(() => {
-    // Load tasks for all modules
-    const loadAllTasks = async () => {
-      const tasksByModule: { [moduleId: string]: TrackTask[] } = {};
-      const editingTasksByModule: { [moduleId: string]: Partial<TrackTask>[] } = {};
-      
-      for (const module of modules) {
-        const response = await adminApi.listTrackTasks(module.id);
-        if (response.success) {
-          const moduleTasks = response.data || [];
-          tasksByModule[module.id] = moduleTasks;
-          // Initialize editing tasks with existing tasks
-          editingTasksByModule[module.id] = moduleTasks.map(task => ({ ...task }));
-        }
-      }
-      
-      setTasks(tasksByModule);
-      setEditingTasks(editingTasksByModule); // Replace instead of merge
-    };
-
-    if (modules.length > 0) {
-      loadAllTasks();
+    if (selectedModule) {
+      loadTasks(selectedModule.id);
     }
-  }, [modules.length]); // Only depend on modules.length to avoid infinite loops
+  }, [selectedModule]);
 
   // Utility functions
   const showMessage = (msg: string, isError = false) => {
@@ -177,17 +121,24 @@ export default function VisualTracksAdminPage() {
       const response = await adminApi.listTrackModules(trackId);
       if (response.success) {
         setModules(response.data || []);
-        // Initialize editing state for modules
-        const editingState: { [weekNumber: number]: Partial<TrackModule> } = {};
-        (response.data || []).forEach((module: TrackModule) => {
-          editingState[module.week_number] = { ...module };
-        });
-        setEditingModules(editingState);
       } else {
         showMessage(response.error || 'Failed to load modules', true);
       }
     } catch (error) {
       showMessage('Failed to load modules', true);
+    }
+  };
+
+  const loadTasks = async (moduleId: string) => {
+    try {
+      const response = await adminApi.listTrackTasks(moduleId);
+      if (response.success) {
+        setTasks(response.data || []);
+      } else {
+        showMessage(response.error || 'Failed to load tasks', true);
+      }
+    } catch (error) {
+      showMessage('Failed to load tasks', true);
     }
   };
 
@@ -204,247 +155,75 @@ export default function VisualTracksAdminPage() {
     }
   };
 
-  // Helper functions
-  const getPhaseForWeek = (weekNumber: number): TrackPhase | null => {
-    return editingPhases.find(phase => weekNumber >= phase.startWeek && weekNumber <= phase.endWeek) || null;
+  // Event handlers
+  const handleTrackSaved = async (savedTrack: TrackDefinition) => {
+    showMessage('Track saved successfully');
+    setEditMode('view');
+    await loadTracks();
+    setSelectedTrack(savedTrack);
+    await loadModules(savedTrack.id);
   };
 
-  const addTaskToModule = (moduleId: string, _weekNumber: number) => {
-    const newTask: Partial<TrackTask> = {
-      title: 'New Task',
-      description: 'Task description',
-      estimated_time: '30min',
-      order_index: (editingTasks[moduleId]?.length || 0) + 1
-    };
-
-    setEditingTasks({
-      ...editingTasks,
-      [moduleId]: [...(editingTasks[moduleId] || []), newTask]
-    });
+  const handleModuleSaved = async (savedModule: TrackModule) => {
+    showMessage('Module saved successfully');
+    setEditMode('view');
+    setSelectedModule(savedModule);
+    await loadModules(savedModule.goal_id);
   };
 
-  const updateTask = (moduleId: string, taskIndex: number, updates: Partial<TrackTask>) => {
-    const moduleTasks = [...(editingTasks[moduleId] || [])];
-    moduleTasks[taskIndex] = { ...moduleTasks[taskIndex], ...updates };
-    
-    setEditingTasks({
-      ...editingTasks,
-      [moduleId]: moduleTasks
-    });
-  };
-
-  const removeTask = (moduleId: string, taskIndex: number) => {
-    const moduleTasks = [...(editingTasks[moduleId] || [])];
-    moduleTasks.splice(taskIndex, 1);
-    
-    setEditingTasks({
-      ...editingTasks,
-      [moduleId]: moduleTasks
-    });
-  };
-
-  // Phase management functions
-  const addPhase = () => {
-    const lastPhase = editingPhases[editingPhases.length - 1];
-    const newPhaseId = (editingPhases.length + 1).toString();
-    const startWeek = lastPhase ? lastPhase.endWeek + 1 : 1;
-    const endWeek = Math.min(startWeek + 2, 12);
-    
-    const newPhase: TrackPhase = {
-      id: newPhaseId,
-      title: `Phase ${newPhaseId}`,
-      description: 'New phase description',
-      startWeek,
-      endWeek,
-      color: '#6B7280'
-    };
-    
-    setEditingPhases([...editingPhases, newPhase]);
-  };
-
-  const removePhase = (phaseIndex: number) => {
-    if (editingPhases.length <= 1) return; // Keep at least one phase
-    const updatedPhases = [...editingPhases];
-    updatedPhases.splice(phaseIndex, 1);
-    setEditingPhases(updatedPhases);
-  };
-
-  // Track operations
   const handleCreateNewTrack = () => {
-    setEditMode('create');
+    setEditMode('track-create');
     setSelectedTrack(null);
     setModules([]);
-    setTasks({});
-    setEditingTasks({});
-    setEditingTrack({
-      slug: '',
-      title: '',
-      description: '',
-      industry_tags: [],
-      duration_weeks: 12
-    });
-    
-    // Create 12 empty modules for editing
-    const emptyModules: { [weekNumber: number]: Partial<TrackModule> } = {};
-    for (let i = 1; i <= 12; i++) {
-      emptyModules[i] = {
-        week_number: i,
-        title: `Week ${i}`,
-        description: '',
-        content: '',
-        is_unlocked: i === 1,
-        is_completed: false
-      };
-    }
-    setEditingModules(emptyModules);
+    setTasks([]);
   };
 
-  const handleSaveTrack = async () => {
-    if (!editingTrack.slug || !editingTrack.title || !editingTrack.description) {
-      showMessage('Please fill in all required fields (slug, title, description)', true);
-      return;
-    }
+  const handleCreateNewModule = () => {
+    if (!selectedTrack) return;
+    setEditMode('module-create');
+    setSelectedModule(null);
+  };
 
+  const handleEditTrack = () => {
+    setEditMode('track-edit');
+    setSelectedModule(null);
+  };
+
+  const handleEditModule = (module: TrackModule) => {
+    setSelectedModule(module);
+    setEditMode('module-edit');
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode('view');
+    setSelectedModule(null);
+  };
+
+  const handleTrackSelect = (track: TrackDefinition) => {
+    setSelectedTrack(track);
+    setSelectedModule(null);
+    setEditMode('view');
+  };
+
+  const handleModuleSelect = (module: TrackModule) => {
+    setSelectedModule(module);
+    setEditMode('view');
+  };
+
+  const handleGenerateModules = async () => {
+    if (!selectedTrack) return;
+    
     try {
-      let trackResponse;
-      
-      if (editMode === 'create') {
-        // Create new track
-        trackResponse = await adminApi.createTrackDefinition({
-          ...editingTrack,
-          phases: JSON.stringify(editingPhases) // Save phases as JSON
-        });
+      const response = await adminApi.generateTrackModules(selectedTrack.id);
+      if (response.success) {
+        const created = (response.data as any)?.created || 0;
+        showMessage(`Generated ${created} modules`);
+        await loadModules(selectedTrack.id);
       } else {
-        // Update existing track
-        trackResponse = await adminApi.updateTrackDefinition(selectedTrack!.id, {
-          ...editingTrack,
-          phases: JSON.stringify(editingPhases) // Save phases as JSON
-        });
+        showMessage(response.error || 'Failed to generate modules', true);
       }
-
-      if (!trackResponse.success) {
-        showMessage(trackResponse.error || 'Failed to save track', true);
-        return;
-      }
-
-      const trackId = trackResponse.data.id;
-
-      // Generate modules if creating new track, then reload to get IDs
-      if (editMode === 'create') {
-        const generateResponse = await adminApi.generateTrackModules(trackId);
-        if (!generateResponse.success) {
-          showMessage('Track created but failed to generate modules', true);
-          return;
-        }
-        
-        // Reload modules to get the generated module IDs
-        await loadModules(trackId);
-      }
-
-      // Save all module content and tasks
-      for (const weekNumber of Object.keys(editingModules)) {
-        const moduleData = editingModules[parseInt(weekNumber)];
-        
-        if (editMode === 'create') {
-          // For new tracks, find the corresponding generated module
-          const generatedModule = modules.find(m => m.week_number === parseInt(weekNumber));
-          if (generatedModule) {
-            // Update the generated module with our content
-            await adminApi.updateTrackModule(generatedModule.id, {
-              title: moduleData.title || `Week ${weekNumber}`,
-              description: moduleData.description || '',
-              content: moduleData.content || '',
-              pro_tip: (moduleData as any)?.pro_tip || ''
-            });
-            
-            // Save tasks for this module
-            const moduleTasks = editingTasks[`week-${weekNumber}`] || [];
-            if (moduleTasks.length > 0) {
-              // Clear existing tasks first
-              const existingTasks = await adminApi.listTrackTasks(generatedModule.id);
-              if (existingTasks.success && existingTasks.data) {
-                for (const task of existingTasks.data) {
-                  await adminApi.deleteTrackTask(task.id);
-                }
-              }
-              
-              // Create new tasks
-              if (moduleTasks.length > 0) {
-                const validTasks = moduleTasks.filter(task => 
-                  task.title && task.description && task.estimated_time
-                ).map(task => ({
-                  title: task.title!,
-                  description: task.description!,
-                  estimated_time: task.estimated_time!
-                }));
-                
-                if (validTasks.length > 0) {
-                  await adminApi.createTasks(generatedModule.id, validTasks);
-                }
-              }
-            }
-          }
-        } else {
-          // For existing tracks, update existing modules
-          if (moduleData && moduleData.id) {
-            // Include pro_tip in moduleData when sending to API
-            await adminApi.updateTrackModule(moduleData.id, {
-              title: moduleData.title || '',
-              description: moduleData.description || '',
-              content: moduleData.content || '',
-              pro_tip: (moduleData as any)?.pro_tip || ''
-            });
-            
-            // Save tasks for this module
-            const moduleTasks = editingTasks[moduleData.id] || [];
-            
-            // Clear existing tasks first
-            const existingTasks = await adminApi.listTrackTasks(moduleData.id);
-            if (existingTasks.success && existingTasks.data) {
-              for (const task of existingTasks.data) {
-                await adminApi.deleteTrackTask(task.id);
-              }
-            }
-            
-            // Create new tasks
-            if (moduleTasks.length > 0) {
-              const validTasks = moduleTasks.filter(task => 
-                task.title && task.description && task.estimated_time
-              ).map(task => ({
-                title: task.title!,
-                description: task.description!,
-                estimated_time: task.estimated_time!
-              }));
-              
-              if (validTasks.length > 0) {
-                await adminApi.createTasks(moduleData.id, validTasks);
-              }
-            }
-          }
-        }
-      }
-
-      showMessage('Track saved successfully!');
-      setEditMode('view');
-      
-      // Reload all data to ensure consistency
-      await loadTracks();
-      
-      // Wait a bit for the tracks to load, then reload modules
-      setTimeout(async () => {
-        const updatedTracks = await adminApi.listTrackDefinitions();
-        if (updatedTracks.success) {
-          setTracks(updatedTracks.data || []);
-          const savedTrack = (updatedTracks.data || []).find((t: any) => t.id === trackId);
-          if (savedTrack) {
-            setSelectedTrack(savedTrack);
-            await loadModules(trackId);
-          }
-        }
-      }, 500); // Small delay to ensure database consistency
     } catch (error) {
-      console.error('Save error:', error);
-      showMessage('Failed to save track', true);
+      showMessage('Failed to generate modules', true);
     }
   };
 
@@ -467,7 +246,6 @@ export default function VisualTracksAdminPage() {
     }
   };
 
-
   if (loading) {
     return (
       <div className="min-h-screen bg-transparent text-white p-6">
@@ -488,8 +266,8 @@ export default function VisualTracksAdminPage() {
         <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8 mb-8">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Marketing Tracks Admin</h1>
-              <p className="text-gray-400">Create and manage marketing track content</p>
+              <h1 className="text-3xl font-bold text-white mb-2">Visual Marketing Tracks Admin</h1>
+              <p className="text-gray-400">Create and manage marketing track content with visual interface</p>
             </div>
 
             <div className="flex gap-3">
@@ -502,10 +280,10 @@ export default function VisualTracksAdminPage() {
               {selectedTrack && (
                 <>
                   <button
-                    onClick={() => setEditMode(editMode === 'edit' ? 'view' : 'edit')}
+                    onClick={handleEditTrack}
                     className="bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full px-4 py-2 text-sm font-medium hover:bg-blue-500/30"
                   >
-                    {editMode === 'edit' ? 'Cancel Edit' : 'Edit Track'}
+                    Edit Track
                   </button>
                   <button
                     onClick={handlePublishTrack}
@@ -514,14 +292,6 @@ export default function VisualTracksAdminPage() {
                     Publish Track
                   </button>
                 </>
-              )}
-              {(editMode === 'edit' || editMode === 'create') && (
-                <button
-                  onClick={handleSaveTrack}
-                  className="bg-green-600 text-white border border-green-600 rounded-full px-4 py-2 text-sm font-medium hover:bg-green-700"
-                >
-                  Save Changes
-                </button>
               )}
             </div>
           </div>
@@ -546,7 +316,7 @@ export default function VisualTracksAdminPage() {
                 value={selectedTrack?.id || ''}
                 onChange={(e) => {
                   const track = tracks.find(t => t.id === e.target.value);
-                  setSelectedTrack(track || null);
+                  handleTrackSelect(track || null);
                 }}
                 className="w-full px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white"
               >
@@ -559,399 +329,111 @@ export default function VisualTracksAdminPage() {
               </select>
             </div>
           )}
-
-          {/* Track Title and Description */}
-          {(selectedTrack || editMode === 'create') && (
-            <>
-              {editMode === 'edit' || editMode === 'create' ? (
-                <div className="space-y-4 mb-8">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Track Slug:</label>
-                    <input
-                      value={editingTrack.slug || ''}
-                      onChange={(e) => setEditingTrack({ ...editingTrack, slug: e.target.value })}
-                      className="w-full px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white"
-                      placeholder="social-media-strategy"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Track Title:</label>
-                    <input
-                      value={editingTrack.title || ''}
-                      onChange={(e) => setEditingTrack({ ...editingTrack, title: e.target.value })}
-                      className="w-full px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white text-2xl font-bold"
-                      placeholder="Improve Social Media Strategy & Engagement"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Track Description:</label>
-                    <textarea
-                      value={editingTrack.description || ''}
-                      onChange={(e) => setEditingTrack({ ...editingTrack, description: e.target.value })}
-                      className="w-full h-24 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white text-lg"
-                      placeholder="Transform your social media presence with our comprehensive 12-week strategy..."
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold text-white mb-4">{selectedTrack?.title}</h1>
-                  <p className="text-gray-300 text-lg leading-relaxed">{selectedTrack?.description}</p>
-                </div>
-              )}
-
-              {/* Progress Bar (Static in Admin) */}
-              <div className="space-y-3 mb-8">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-300">Track Progress (Preview)</span>
-                  <span className="text-sm font-medium text-[#EF8E81]">0%</span>
-                </div>
-                <div className="w-full bg-[#2A243E] rounded-full h-2 overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] transition-all duration-300 ease-out"
-                    style={{ width: '0%' }}
-                  />
-                </div>
-              </div>
-
-              {/* Phase Section */}
-              <div className="pt-6 border-t border-[#2A243E] mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white">Track Phases</h3>
-                  {(editMode === 'edit' || editMode === 'create') && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={addPhase}
-                        className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                      >
-                        + Add Phase
-                      </button>
-                    </div>
-                  )}
-                </div>
-                
-                {editMode === 'edit' || editMode === 'create' ? (
-                  <div className="space-y-4">
-                    {editingPhases.map((phase, index) => (
-                      <div key={phase.id} className="bg-[#141127] rounded-lg p-4 border border-[#2A243E] relative">
-                        {editingPhases.length > 1 && (
-                          <button
-                            onClick={() => removePhase(index)}
-                            className="absolute top-2 right-2 text-red-400 hover:text-red-300 text-sm"
-                          >
-                            ✕
-                          </button>
-                        )}
-                        
-                        <div className="grid grid-cols-2 gap-4 mb-3">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">Phase Title:</label>
-                            <input
-                              value={phase.title}
-                              onChange={(e) => {
-                                const updatedPhases = [...editingPhases];
-                                updatedPhases[index] = { ...phase, title: e.target.value };
-                                setEditingPhases(updatedPhases);
-                              }}
-                              className="w-full px-3 py-2 rounded bg-[#1B1628] border border-[#2A243E] text-white"
-                              placeholder="Foundation Phase"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">Color:</label>
-                            <input
-                              type="color"
-                              value={phase.color}
-                              onChange={(e) => {
-                                const updatedPhases = [...editingPhases];
-                                updatedPhases[index] = { ...phase, color: e.target.value };
-                                setEditingPhases(updatedPhases);
-                              }}
-                              className="w-full h-10 rounded bg-[#1B1628] border border-[#2A243E]"
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 mb-3">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">Start Week:</label>
-                            <input
-                              type="number"
-                              min="1"
-                              max="12"
-                              value={phase.startWeek}
-                              onChange={(e) => {
-                                const updatedPhases = [...editingPhases];
-                                updatedPhases[index] = { ...phase, startWeek: parseInt(e.target.value) };
-                                setEditingPhases(updatedPhases);
-                              }}
-                              className="w-full px-3 py-2 rounded bg-[#1B1628] border border-[#2A243E] text-white"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">End Week:</label>
-                            <input
-                              type="number"
-                              min="1"
-                              max="12"
-                              value={phase.endWeek}
-                              onChange={(e) => {
-                                const updatedPhases = [...editingPhases];
-                                updatedPhases[index] = { ...phase, endWeek: parseInt(e.target.value) };
-                                setEditingPhases(updatedPhases);
-                              }}
-                              className="w-full px-3 py-2 rounded bg-[#1B1628] border border-[#2A243E] text-white"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Description:</label>
-                          <input
-                            value={phase.description}
-                            onChange={(e) => {
-                              const updatedPhases = [...editingPhases];
-                              updatedPhases[index] = { ...phase, description: e.target.value };
-                              setEditingPhases(updatedPhases);
-                            }}
-                            className="w-full px-3 py-2 rounded bg-[#1B1628] border border-[#2A243E] text-white"
-                            placeholder="Building your strategy foundation"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {editingPhases.map((phase, index) => (
-                      <div key={phase.id} className="flex items-center gap-3 bg-[#141127] rounded-lg p-3 border border-[#2A243E]">
-                        <div 
-                          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: phase.color }}
-                        >
-                          <span className="text-white text-sm font-bold">{index + 1}</span>
-                        </div>
-                        <div>
-                          <h4 className="text-base font-semibold text-white">{phase.title}</h4>
-                          <p className="text-gray-400 text-xs">Weeks {phase.startWeek}-{phase.endWeek}</p>
-                          <p className="text-gray-500 text-xs">{phase.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
         </div>
 
-        {/* Weekly Modules */}
-        {(selectedTrack || editMode === 'create') && (
-          <div className="space-y-6">
-            {Array.from({ length: 12 }, (_, i) => i + 1).map((weekNumber) => {
-              const module = editingModules[weekNumber];
-              const moduleTasks = module?.id ? tasks[module.id] || [] : [];
-              const editingModuleTasks = module?.id ? editingTasks[module.id] || [] : editingTasks[`week-${weekNumber}`] || [];
-              const currentPhase = getPhaseForWeek(weekNumber);
+        {/* Show editors when in editing mode */}
+        {(editMode === 'track-edit' || editMode === 'track-create') && (
+          <TrackEditor
+            track={editMode === 'track-edit' ? selectedTrack : null}
+            onSave={handleTrackSaved}
+            onCancel={handleCancelEdit}
+            isCreating={editMode === 'track-create'}
+          />
+        )}
+
+        {(editMode === 'module-edit' || editMode === 'module-create') && (
+          <ModuleEditor
+            module={editMode === 'module-edit' ? selectedModule : null}
+            trackId={selectedTrack?.id || ''}
+            onSave={handleModuleSaved}
+            onCancel={handleCancelEdit}
+            isCreating={editMode === 'module-create'}
+          />
+        )}
+
+        {/* Show main interface when not editing */}
+        {editMode === 'view' && selectedTrack && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Track Overview */}
+            <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8">
+              <h2 className="text-2xl font-bold text-white mb-4">{selectedTrack.title}</h2>
+              <p className="text-gray-300 text-lg leading-relaxed mb-6">{selectedTrack.description}</p>
               
-              return (
-                <div key={weekNumber} className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-6">
-                  {/* Week Header with Phase Indicator */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: currentPhase?.color || '#2A243E' }}
-                      >
-                        <span className="text-white text-sm font-bold">{weekNumber}</span>
-                      </div>
-                      <div>
-                        {editMode === 'edit' || editMode === 'create' ? (
-                          <input
-                            value={module?.title || ''}
-                            onChange={(e) => setEditingModules({
-                              ...editingModules,
-                              [weekNumber]: { ...module, title: e.target.value }
-                            })}
-                            className="text-xl font-semibold bg-transparent border-b border-[#2A243E] text-white px-2 py-1 focus:border-[#EF8E81] outline-none"
-                            placeholder={`Week ${weekNumber} Title`}
-                          />
-                        ) : (
-                          <h3 className="text-xl font-semibold text-white">
-                            {module?.title || `Week ${weekNumber}`}
-                          </h3>
-                        )}
-                        {currentPhase && (
-                          <p className="text-xs text-gray-400">{currentPhase.title}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      {(editMode === 'edit' || editMode === 'create') ? editingModuleTasks.length : moduleTasks.length} tasks
-                    </div>
-                  </div>
-
-                  {/* Week Content */}
-                  {editMode === 'edit' || editMode === 'create' ? (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Week Description:</label>
-                        <input
-                          value={module?.description || ''}
-                          onChange={(e) => setEditingModules({
-                            ...editingModules,
-                            [weekNumber]: { ...module, description: e.target.value }
-                          })}
-                          className="w-full px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white"
-                          placeholder="Brief description of this week"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Week Content (Markdown):</label>
-                        <textarea
-                          value={module?.content || ''}
-                          onChange={(e) => setEditingModules({
-                            ...editingModules,
-                            [weekNumber]: { ...module, content: e.target.value }
-                          })}
-                          className="w-full h-40 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white font-mono text-sm"
-                          placeholder={`# Week ${weekNumber}: Main Topic
-
-## Key Concepts
-- Bullet point 1
-- Bullet point 2
-
-### Action Steps
-1. Numbered step 1
-2. Numbered step 2
-
-**Bold text** for emphasis
-*Italic text* for subtle emphasis
-\`code snippets\` for technical terms
-
-> Quote important insights
-
-Use blank lines to separate paragraphs for better readability.`}
-                        />
-                        <div className="mt-1 text-xs text-gray-400">
-                          💡 Tip: Use markdown formatting for better readability. Headers (#), lists (-), **bold**, *italic*, `code`, and &gt; quotes are supported.
-                        </div>
-                      </div>
-                  {/* Pro Tip field */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Pro Tip:</label>
-                    <textarea
-                      value={(module as any)?.pro_tip || ''}
-                      onChange={(e) => setEditingModules({
-                        ...editingModules,
-                        [weekNumber]: { ...module, pro_tip: e.target.value } as Partial<TrackModule>
-                      })}
-                      className="w-full px-3 py-2 rounded bg-[#1B1628] border border-[#2A243E] text-white text-sm"
-                      placeholder="Add a helpful pro tip for this week..."
-                      rows={3}
-                    />
-                  </div>
-                    </div>
-                  ) : (
-                    <div className="text-gray-300">
-                      <p className="mb-4">{module?.description}</p>
-                      <div className="bg-[#141127] rounded-lg p-4 font-mono text-sm mb-4">
-                        {module?.content || 'No content added yet'}
-                      </div>
-                      {module?.pro_tip && (
-                        <div className="bg-[#EF8E81]/10 border border-[#EF8E81]/20 rounded-lg p-4 mb-4">
-                          <h4 className="text-[#EF8E81] font-semibold mb-2 flex items-center">
-                            💡 Pro Tip
-                          </h4>
-                          <p className="text-gray-300 leading-relaxed">{module.pro_tip}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Tasks Section */}
-                  <div className="mt-4 pt-4 border-t border-[#2A243E]">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-medium text-gray-300">Tasks for this week:</h4>
-                      {(editMode === 'edit' || editMode === 'create') && (
-                        <button
-                          onClick={() => addTaskToModule(module?.id || `week-${weekNumber}`, weekNumber)}
-                          className="text-xs bg-[#EF8E81] text-white px-2 py-1 rounded hover:bg-[#EF8E81]/80"
-                        >
-                          + Add Task
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Task List */}
-                    {(editMode === 'edit' || editMode === 'create') ? (
-                      <div className="space-y-3">
-                        {editingModuleTasks.map((task, taskIndex) => (
-                          <div key={taskIndex} className="bg-[#141127] rounded-lg p-3 border border-[#2A243E]">
-                            <div className="grid grid-cols-2 gap-3 mb-2">
-                              <div>
-                                <label className="block text-xs text-gray-400 mb-1">Task Title:</label>
-                                <input
-                                  value={task.title || ''}
-                                  onChange={(e) => updateTask(module?.id || `week-${weekNumber}`, taskIndex, { title: e.target.value })}
-                                  className="w-full px-2 py-1 rounded bg-[#1B1628] border border-[#2A243E] text-white text-sm"
-                                  placeholder="Task name"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs text-gray-400 mb-1">Estimated Time:</label>
-                                <input
-                                  value={task.estimated_time || ''}
-                                  onChange={(e) => updateTask(module?.id || `week-${weekNumber}`, taskIndex, { estimated_time: e.target.value })}
-                                  className="w-full px-2 py-1 rounded bg-[#1B1628] border border-[#2A243E] text-white text-sm"
-                                  placeholder="30min"
-                                />
-                              </div>
-                            </div>
-                            <div className="mb-2">
-                              <label className="block text-xs text-gray-400 mb-1">Task Description:</label>
-                              <textarea
-                                value={task.description || ''}
-                                onChange={(e) => updateTask(module?.id || `week-${weekNumber}`, taskIndex, { description: e.target.value })}
-                                className="w-full px-2 py-1 rounded bg-[#1B1628] border border-[#2A243E] text-white text-sm h-16"
-                                placeholder="Describe what the user needs to do..."
-                              />
-                            </div>
-                            <div className="flex justify-end">
-                              <button
-                                onClick={() => removeTask(module?.id || `week-${weekNumber}`, taskIndex)}
-                                className="text-xs text-red-400 hover:text-red-300"
-                              >
-                                Remove Task
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                        {editingModuleTasks.length === 0 && (
-                          <p className="text-gray-500 text-sm italic">No tasks added yet. Click "Add Task" to create tasks for this week.</p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {moduleTasks.map((task) => (
-                          <div key={task.id} className="flex items-center gap-3 text-sm">
-                            <div className="w-4 h-4 rounded border border-[#2A243E]"></div>
-                            <div className="flex-1">
-                              <span className="text-gray-300">{task.title}</span>
-                              {task.description && (
-                                <p className="text-gray-500 text-xs mt-1">{task.description}</p>
-                              )}
-                            </div>
-                            <span className="text-gray-500">{task.estimated_time}</span>
-                          </div>
-                        ))}
-                        {moduleTasks.length === 0 && (
-                          <p className="text-gray-500 text-sm italic">No tasks added yet.</p>
-                        )}
-                      </div>
-                    )}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Track Actions:</label>
+                  <div className="space-y-2">
+                    <button
+                      onClick={handleEditTrack}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Edit Track Details
+                    </button>
+                    <button
+                      onClick={handleGenerateModules}
+                      className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
+                      Generate 12 Weeks
+                    </button>
+                    <button
+                      onClick={handlePublishTrack}
+                      className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
+                      Publish Track
+                    </button>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            </div>
+
+            {/* Modules Overview */}
+            <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white">Modules ({modules.length})</h3>
+                <button
+                  onClick={handleCreateNewModule}
+                  className="px-3 py-1 bg-[#EF8E81] text-white rounded-lg text-sm hover:bg-[#EF8E81]/80"
+                >
+                  Create Module
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {modules.map((module) => (
+                  <div
+                    key={module.id}
+                    onClick={() => handleModuleSelect(module)}
+                    className={`p-4 rounded-lg cursor-pointer border ${
+                      selectedModule?.id === module.id
+                        ? 'bg-[#EF8E81]/20 border-[#EF8E81]/30'
+                        : 'bg-[#141127] border-[#2A243E] hover:border-[#EF8E81]/20'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-white">Week {module.week_number}: {module.title}</h4>
+                        <p className="text-xs text-gray-400 mt-1">{module.content.substring(0, 80)}...</p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditModule(module);
+                        }}
+                        className="ml-3 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {modules.length === 0 && (
+                  <p className="text-gray-500 text-sm italic text-center py-8">
+                    No modules yet. Click "Generate 12 Weeks" or "Create Module" to get started.
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -960,7 +442,7 @@ Use blank lines to separate paragraphs for better readability.`}
           <div className="mt-12 bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8">
             <h2 className="text-2xl font-bold text-white mb-6">Published Goals</h2>
             <p className="text-gray-400 text-sm mb-6">
-              These tracks have been published and are available to users. Users can select their preferred track from the marketing page or through the onboarding wizard.
+              These tracks have been published and are available to users.
             </p>
             <div className="space-y-4">
               {publishedGoals.map((goal) => (
