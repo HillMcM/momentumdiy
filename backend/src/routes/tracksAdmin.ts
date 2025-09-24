@@ -146,8 +146,9 @@ router.put('/definitions/:id', async (req, res) => {
       ...updates
     };
     
-    // Remove updated_at to avoid potential schema issues
+    // Remove updated_at and any other fields that might cause schema issues
     delete updateData.updated_at;
+    delete updateData.created_at;
     
     console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
     
