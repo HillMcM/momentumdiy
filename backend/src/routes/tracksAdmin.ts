@@ -23,7 +23,14 @@ router.get('/definitions', async (_req, res) => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return res.json({ success: true, data: data || [] });
+    
+    // Parse phases from JSON string to array for frontend
+    const processedData = (data || []).map(track => ({
+      ...track,
+      phases: track.phases ? (typeof track.phases === 'string' ? JSON.parse(track.phases) : track.phases) : []
+    }));
+    
+    return res.json({ success: true, data: processedData });
   } catch (error) {
     console.error('Error fetching track definitions:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch track definitions' });
@@ -39,11 +46,19 @@ router.post('/definitions', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing required fields: slug, title, description' });
     }
 
-    // Parse phases if it's a JSON string
-    let parsedPhases = phases;
-    if (phases && typeof phases === 'string') {
+    // Convert phases array to JSON string for database storage
+    let phasesString = phases;
+    if (phases && Array.isArray(phases)) {
       try {
-        parsedPhases = JSON.parse(phases);
+        phasesString = JSON.stringify(phases);
+      } catch (stringifyError) {
+        console.error('Error stringifying phases:', stringifyError);
+        return res.status(400).json({ success: false, error: 'Invalid phases format' });
+      }
+    } else if (phases && typeof phases === 'string') {
+      // Validate it's valid JSON
+      try {
+        JSON.parse(phases);
       } catch (parseError) {
         console.error('Error parsing phases JSON:', parseError);
         return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
@@ -58,7 +73,7 @@ router.post('/definitions', async (req, res) => {
         description,
         industry_tags: Array.isArray(industry_tags) ? industry_tags : [industry_tags].filter(Boolean),
         duration_weeks: duration_weeks || 12,
-        phases: parsedPhases || []
+        phases: phasesString || '[]'
       }])
       .select()
       .single();
@@ -94,19 +109,21 @@ router.put('/definitions/:id', async (req, res) => {
       updates.industry_tags = [updates.industry_tags].filter(Boolean);
     }
 
-    // Handle phases - it should already be an array from frontend
+    // Handle phases - convert array to JSON string for database storage
     if (updates.phases) {
-      if (typeof updates.phases === 'string') {
+      if (Array.isArray(updates.phases)) {
+        console.log('📝 Converting phases array to JSON string:', updates.phases);
+        updates.phases = JSON.stringify(updates.phases);
+        console.log('✅ Successfully converted phases to string:', updates.phases);
+      } else if (typeof updates.phases === 'string') {
         try {
-          console.log('📝 Parsing phases JSON string:', updates.phases);
-          updates.phases = JSON.parse(updates.phases);
-          console.log('✅ Successfully parsed phases from string:', updates.phases);
+          console.log('📝 Validating phases JSON string:', updates.phases);
+          JSON.parse(updates.phases); // Validate it's valid JSON
+          console.log('✅ Phases string is valid JSON');
         } catch (parseError) {
-          console.error('❌ Error parsing phases JSON:', parseError);
+          console.error('❌ Error validating phases JSON:', parseError);
           return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
         }
-      } else if (Array.isArray(updates.phases)) {
-        console.log('✅ Phases already an array:', updates.phases);
       } else {
         console.error('❌ Invalid phases format:', typeof updates.phases, updates.phases);
         return res.status(400).json({ success: false, error: 'Phases must be an array or JSON string' });
