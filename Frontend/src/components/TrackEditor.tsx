@@ -38,10 +38,10 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
   });
   
   const [phases, setPhases] = useState<TrackPhase[]>([
-    { id: '1', title: 'Foundation Phase', description: 'Building your strategy foundation', startWeek: 1, endWeek: 3, color: '#EF8E81' },
-    { id: '2', title: 'Implementation Phase', description: 'Putting strategies into action', startWeek: 4, endWeek: 6, color: '#D4AF37' },
-    { id: '3', title: 'Growth Phase', description: 'Scaling and expanding your reach', startWeek: 7, endWeek: 9, color: '#8B5CF6' },
-    { id: '4', title: 'Optimization Phase', description: 'Refining and optimizing performance', startWeek: 10, endWeek: 12, color: '#10B981' }
+    { id: '1', title: 'Phase 1: Foundation', description: 'Building your strategy foundation', startWeek: 1, endWeek: 3, color: '#EF8E81' },
+    { id: '2', title: 'Phase 2: Implementation', description: 'Putting strategies into action', startWeek: 4, endWeek: 6, color: '#D4AF37' },
+    { id: '3', title: 'Phase 3: Growth', description: 'Scaling and expanding your reach', startWeek: 7, endWeek: 9, color: '#8B5CF6' },
+    { id: '4', title: 'Phase 4: Optimization', description: 'Refining and optimizing performance', startWeek: 10, endWeek: 12, color: '#10B981' }
   ]);
   
   const [loading, setLoading] = useState(false);
@@ -79,10 +79,10 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
       });
       // Reset to default phases for new tracks
       setPhases([
-        { id: '1', title: 'Foundation Phase', description: 'Building your strategy foundation', startWeek: 1, endWeek: 3, color: '#EF8E81' },
-        { id: '2', title: 'Implementation Phase', description: 'Putting strategies into action', startWeek: 4, endWeek: 6, color: '#D4AF37' },
-        { id: '3', title: 'Growth Phase', description: 'Scaling and expanding your reach', startWeek: 7, endWeek: 9, color: '#8B5CF6' },
-        { id: '4', title: 'Optimization Phase', description: 'Refining and optimizing performance', startWeek: 10, endWeek: 12, color: '#10B981' }
+        { id: '1', title: 'Phase 1: Foundation', description: 'Building your strategy foundation', startWeek: 1, endWeek: 3, color: '#EF8E81' },
+        { id: '2', title: 'Phase 2: Implementation', description: 'Putting strategies into action', startWeek: 4, endWeek: 6, color: '#D4AF37' },
+        { id: '3', title: 'Phase 3: Growth', description: 'Scaling and expanding your reach', startWeek: 7, endWeek: 9, color: '#8B5CF6' },
+        { id: '4', title: 'Phase 4: Optimization', description: 'Refining and optimizing performance', startWeek: 10, endWeek: 12, color: '#10B981' }
       ]);
     }
   }, [track, isCreating]);
@@ -90,6 +90,19 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
   const handleSave = async () => {
     if (!formData.slug || !formData.title || !formData.description) {
       setError('Please fill in all required fields (slug, title, description)');
+      return;
+    }
+
+    // Validate phases - ensure all have complete titles and descriptions
+    const incompletePhases = phases.filter(phase => 
+      !phase.title || 
+      phase.title.trim() === '' || 
+      phase.title.endsWith(':') ||
+      !phase.description ||
+      phase.description.trim() === ''
+    );
+    if (incompletePhases.length > 0) {
+      setError('Please complete all phase titles and descriptions. Phase titles cannot be empty or end with a colon.');
       return;
     }
 
