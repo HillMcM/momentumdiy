@@ -1,16 +1,400 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/assets/octopus_icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <title>MomentumDIY - Marketing Strategy Platform</title>
-    <script type="module" src="/src/main.tsx"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MomentumDIY – Finally, a Marketing Plan Built for Real Small Business Owners</title>
+  <meta name="description" content="90-day guided marketing tracks with weekly lessons, action items, and your own AI marketing assistant—no overwhelm, no jargon." />
+  <link rel="icon" href="/assets/octopus_icon.png" type="image/png" />
+
+  <!-- Poppins font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind (CDN) - Note: CDN is used for this static landing page -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            coral: '#EF8E81',
+            ink: '#0f172a',
+            stone: '#0b1220'
+          },
+          fontFamily: {
+            sans: ['Poppins', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(15, 23, 42, 0.08)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; }
+    .hover-lift { transition: transform .25s ease, box-shadow .25s ease; }
+    .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(15,23,42,.12); }
+    :root {
+      --color-bg-gradient-from: #191628;
+      --color-bg-gradient-to: #65170C;
+    }
+    .bg-fun-1 {
+      background-color: var(--color-bg-gradient-from);
+      background-image: radial-gradient(1200px 600px at 20% 20%, var(--color-bg-gradient-to) 0%, var(--color-bg-gradient-from) 70%);
+    }
+    .bg-fun-2 {
+      background-color: var(--color-bg-gradient-from);
+      background-image: radial-gradient(1200px 600px at 80% 50%, var(--color-bg-gradient-from) 0%, var(--color-bg-gradient-to) 65%);
+    }
+  </style>
+</head>
+
+<body class="text-white font-sans">
+  <!-- Sticky mobile CTA -->
+  <div class="fixed inset-x-0 bottom-3 z-50 px-4 sm:hidden">
+    <a href="/auth?mode=signup" class="block text-center rounded-full bg-coral text-ink font-extrabold py-3 shadow-soft hover:brightness-95 active:scale-[0.98]">Start Free — No Credit Card</a>
+  </div>
+
+  <!-- Hero -->
+  <header class="relative overflow-hidden bg-fun-1" role="banner">
+    <!-- On-trend layered gradients -->
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,107,107,0.12)_0%,rgba(11,18,32,0)_60%)] pointer-events-none"></div>
+    <div class="pointer-events-none absolute -top-24 -left-16 h-[420px] w-[420px] rounded-full bg-gradient-to-tr from-coral/40 via-fuchsia-500/25 to-sky-400/20 blur-3xl"></div>
+    <div class="pointer-events-none absolute -bottom-24 -right-16 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-sky-400/20 via-purple-500/20 to-coral/30 blur-3xl"></div>
+    <div class="max-w-7xl mx-auto px-6 pt-8 lg:pt-16 pb-28 lg:pb-36">
+      <nav class="flex items-center justify-between" role="navigation" aria-label="Main navigation">
+        <div class="flex items-center gap-2">
+          <img src="/assets/octopus_icon.png" alt="MomentumDIY octopus logo" class="w-12 h-12" />
+          <span class="text-lg font-extrabold tracking-tight">MomentumDIY</span>
+        </div>
+        <div class="hidden sm:flex items-center gap-4">
+          <a href="#how" class="text-white/80 hover:text-white">How it works</a>
+          <a href="#pricing" class="text-white/80 hover:text-white">Pricing</a>
+          <a href="#faq" class="text-white/80 hover:text-white">FAQ</a>
+          <a href="/auth" class="text-white/90 hover:text-white font-semibold">Sign in</a>
+        </div>
+        <a href="/auth" class="sm:hidden text-white/90 hover:text-white font-semibold">Sign in</a>
+      </nav>
+
+      <div class="mt-12 grid lg:grid-cols-2 gap-10 items-center">
+        <!-- Left copy -->
+        <div>
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight">
+            Finally, a Marketing Plan Built for Real Small Business Owners
+          </h1>
+          <p class="mt-5 text-white/90 text-lg max-w-xl">
+            90-day guided marketing tracks with weekly lessons, action items, and your own AI marketing assistant—no overwhelm, no jargon.
+          </p>
+          <p class="mt-6 text-sm text-white/80 max-w-xl">
+            <span class="font-semibold">Launch Special:</span> $9.99/month or $99/year — First 250 users, locked for life. <span class="opacity-75">(Forever price will be $14.99/mo or $149/year)</span>
+          </p>
+          <div class="mt-4 flex items-center gap-4">
+            <a id="cta" href="/auth?mode=signup" class="rounded-full bg-coral text-ink font-extrabold px-6 py-3 shadow-soft hover:brightness-95 active:scale-[0.98]">
+              Start Free — No Credit Card Required
+            </a>
+            <a href="#how" class="text-white/80 hover:text-white font-semibold">See how it works →</a>
+          </div>
+          <!-- Trust badges -->
+          <div class="mt-5 flex flex-wrap items-center gap-2 text-xs text-white/80">
+            <span class="rounded-full bg-white/10 border border-white/10 px-3 py-1">Built by a small business marketing consultant (8+ yrs)</span>
+            <span class="rounded-full bg-white/10 border border-white/10 px-3 py-1">Your data stays yours</span>
+            <span class="rounded-full bg-white/10 border border-white/10 px-3 py-1">Cancel anytime</span>
+          </div>
+        </div>
+
+        <!-- Right visual placeholder -->
+        <div class="relative">
+          <div class="rounded-2xl bg-white/5 border border-white/10 p-3 shadow-soft backdrop-blur-[1px]">
+            <div class="aspect-[4/3] w-full rounded-xl bg-white/5 grid place-items-center text-white/70">
+              <span class="text-sm">Product Screenshot / GIF Placeholder</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main role="main">
+  <!-- What You'll Get (additive) -->
+  <section id="features" class="py-20 lg:py-28 bg-fun-2">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-3xl font-extrabold">What You’ll Get in Your First 90 Days</h2>
+      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="font-bold">Weekly plan tailored to your goals</h3>
+          <p class="mt-2 text-white/85">Know exactly what to focus on each week to move the needle.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="font-bold">Step‑by‑step lessons</h3>
+          <p class="mt-2 text-white/85">Bite‑sized learning that fits a busy owner’s schedule.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="font-bold">AI marketing assistant</h3>
+          <p class="mt-2 text-white/85">Get answers and execution tips whenever you’re stuck.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="font-bold">Simple Kanban progress</h3>
+          <p class="mt-2 text-white/85">See tasks, track wins, and keep momentum visible.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="font-bold">Milestone celebrations</h3>
+          <p class="mt-2 text-white/85">Small rewards that reinforce good habits.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="font-bold">Light analytics</h3>
+          <p class="mt-2 text-white/85">Measure progress so you know what’s working.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Founder note -->
+  <section class="bg-[#191628] py-20 lg:py-28">
+    <div class="max-w-6xl mx-auto px-6 grid sm:grid-cols-[140px,1fr] gap-8 items-center">
+      <div class="w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] rounded-full bg-white/10 border border-white/10 grid place-items-center text-white/60">
+        Photo
+      </div>
+      <div>
+        <h2 class="text-2xl font-extrabold mb-2">Why I Built MomentumDIY</h2>
+        <p class="text-white/85 max-w-3xl">I wanted a marketing system that respects real small-business constraints—time, energy, budget. MomentumDIY gives you a clear 90‑day plan, weekly action items you can actually finish, and an on‑page AI helper to keep everything moving.</p>
+        <a href="#how" class="inline-block mt-3 text-coral font-semibold">See how it works →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Audience (additive) -->
+  <section id="audience" class="py-20 lg:py-28 bg-fun-1">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-3xl font-extrabold">Who MomentumDIY Is Perfect For</h2>
+      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 text-white/90">
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-5">Local shops & cafés</div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-5">Service-based businesses</div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-5">Solo entrepreneurs</div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-5">Community‑focused brands</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how" class="py-20 lg:py-28 bg-fun-1">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-center text-3xl font-extrabold">How It Works</h2>
+      <div class="mt-10 grid gap-6 sm:grid-cols-3">
+        <!-- Step -->
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <div class="w-10 h-10 rounded-full bg-coral/20 text-coral grid place-items-center font-extrabold">1</div>
+          <h3 class="mt-4 text-xl font-bold">Pick Your 90‑Day Track</h3>
+          <p class="mt-2 text-white/85">Choose a clear growth goal and we’ll map the next 12 weeks.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <div class="w-10 h-10 rounded-full bg-coral/20 text-coral grid place-items-center font-extrabold">2</div>
+          <h3 class="mt-4 text-xl font-bold">Get Weekly Action Items</h3>
+          <p class="mt-2 text-white/85">Bite‑sized lessons and tasks designed to fit 15–45 minutes.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <div class="w-10 h-10 rounded-full bg-coral/20 text-coral grid place-items-center font-extrabold">3</div>
+          <h3 class="mt-4 text-xl font-bold">Stay on Track</h3>
+          <p class="mt-2 text-white/85">Your AI assistant answers questions and keeps you moving.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product visual tour -->
+  <section class="py-20 lg:py-28 bg-fun-2">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-center text-3xl font-extrabold">Quick Tour</h2>
+      <div class="mt-8 overflow-x-auto">
+        <div class="flex gap-4 min-w-[720px]">
+          <!-- Cards -->
+          <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
+            <div class="aspect-[4/3] rounded-lg bg-white/5 grid place-items-center text-white/70">Screenshot</div>
+            <p class="mt-3 text-sm text-white/85">Weekly plan view</p>
+          </div>
+          <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
+            <div class="aspect-[4/3] rounded-lg bg-white/5 grid place-items-center text-white/70">Screenshot</div>
+            <p class="mt-3 text-sm text-white/85">Task tracker</p>
+          </div>
+          <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
+            <div class="aspect-[4/3] rounded-lg bg-white/5 grid place-items-center text-white/70">Screenshot</div>
+            <p class="mt-3 text-sm text-white/85">AI assistant</p>
+          </div>
+          <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
+            <div class="aspect-[4/3] rounded-lg bg-white/5 grid place-items-center text-white/70">Screenshot</div>
+            <p class="mt-3 text-sm text-white/85">Asset library</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits -->
+  <section class="py-20 lg:py-28 bg-fun-1">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-center text-3xl font-extrabold">Momentum, Not Just Marketing Tasks</h2>
+      <div class="mt-10 grid gap-6 sm:grid-cols-3">
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="text-xl font-bold">Clarity</h3>
+          <p class="mt-2 text-white/85">Know exactly what to do and why, every week.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="text-xl font-bold">Consistency</h3>
+          <p class="mt-2 text-white/85">Build simple habits that keep marketing moving.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="text-xl font-bold">Confidence</h3>
+          <p class="mt-2 text-white/85">Get support from your on‑page AI assistant anytime.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3C Framework -->
+  <section class="py-20 lg:py-28 bg-fun-2">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-center text-3xl font-extrabold">Built on the 3C Framework for Small Business Growth</h2>
+      <div class="mt-10 grid gap-6 sm:grid-cols-3">
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 text-center">
+          <h3 class="text-xl font-bold">Clarity</h3>
+          <p class="mt-2 text-white/85">Define priorities and pick a 90‑day track.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 text-center">
+          <h3 class="text-xl font-bold">Consistency</h3>
+          <p class="mt-2 text-white/85">Weekly actions build momentum over time.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 text-center">
+          <h3 class="text-xl font-bold">Course‑Correction</h3>
+          <p class="mt-2 text-white/85">Review progress and adjust with data‑driven tweaks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Roadmap -->
+  <section class="py-20 lg:py-28 bg-fun-1">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-center text-3xl font-extrabold">We’re Just Getting Started</h2>
+      <ol class="mt-10 space-y-4">
+        <li class="rounded-xl bg-white/5 border border-white/10 p-4"><strong>Now</strong> — Core tracks, weekly plans, AI assistant, task tracker.</li>
+        <li class="rounded-xl bg-white/5 border border-white/10 p-4"><strong>Next</strong> — Templates library, more tracks, metrics dashboard.</li>
+        <li class="rounded-xl bg-white/5 border border-white/10 p-4"><strong>Future</strong> — Collaborator access, deeper CRM integrations.</li>
+      </ol>
+      <div class="mt-6 rounded-xl bg-white/5 border border-white/10 p-4 flex items-center gap-3">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-coral/20 text-coral font-extrabold">🔒</span>
+        <p class="text-white/85"><strong>Your Price Won’t Rise.</strong> Our promise: No hidden tiers. One price forever.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="py-20 lg:py-28 bg-fun-2">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-center text-3xl font-extrabold">Simple, Affordable Pricing — Forever.</h2>
+      <div class="mt-10 grid gap-6 sm:grid-cols-2">
+        <!-- Launch Special -->
+        <div class="relative rounded-2xl bg-white/5 border border-coral/40 p-6 shadow-soft">
+          <span class="absolute -top-3 left-6 rounded-full bg-coral text-ink text-xs font-extrabold px-3 py-1">Founding Member</span>
+          <h3 class="text-xl font-bold">Launch Special</h3>
+          <p class="mt-3 text-4xl font-extrabold text-white">$9.99<span class="text-base align-super font-semibold text-white/80">/month</span></p>
+          <p class="mt-1 text-white/85">or <strong>$99/year</strong></p>
+          <ul class="mt-4 space-y-2 text-white/90">
+            <li>✓ First 250 users, price locked for life</li>
+            <li>✓ All features included</li>
+            <li>✓ 30‑day free trial · No credit card</li>
+          </ul>
+          <a href="/auth" class="mt-6 inline-block w-full text-center rounded-full bg-coral text-ink font-extrabold px-6 py-3 hover:brightness-95">Claim My Lifetime Rate</a>
+        </div>
+
+        <!-- Forever Price -->
+        <div class="rounded-2xl bg-white/[0.04] border border-white/10 p-6">
+          <h3 class="text-xl font-bold">Forever Price</h3>
+          <p class="mt-3 text-4xl font-extrabold text-white">$14.99<span class="text-base align-super font-semibold text-white/80">/month</span></p>
+          <p class="mt-1 text-white/85">or <strong>$149/year</strong></p>
+          <ul class="mt-4 space-y-2 text-white/90">
+            <li>✓ All features included</li>
+            <li>✓ No hidden fees</li>
+            <li>✓ 30‑day free trial</li>
+          </ul>
+          <a href="/auth" class="mt-6 inline-block w-full text-center rounded-full bg-white/10 text-white font-extrabold px-6 py-3 hover:bg-white/15">Start Free Trial</a>
+        </div>
+      </div>
+      <p class="mt-4 text-center text-white/80">30-day free trial. Cancel anytime. No credit card required.</p>
+    </div>
+  </section>
+
+  <!-- Low-risk Offer -->
+  <section id="cta-end" class="py-20 lg:py-28 bg-fun-2">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+      <p class="text-white/90 text-lg">Stop guessing and start making steady progress—without the overwhelm.</p>
+      <a href="/auth" class="mt-6 inline-block rounded-full bg-coral text-ink font-extrabold px-6 py-3 shadow-soft hover:brightness-95 active:scale-[0.98]">Start Free Today</a>
+      <p class="mt-2 text-white/70">Cancel anytime. Your data stays yours.</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="py-20 lg:py-28 bg-fun-1">
+    <div class="max-w-4xl mx-auto px-6">
+      <h2 class="text-center text-3xl font-extrabold">Frequently Asked Questions</h2>
+      <div class="mt-8 divide-y divide-white/10 rounded-xl border border-white/10">
+        <!-- Item template -->
+        <details class="group p-5 open:bg-white/5">
+          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">Is this for my type of business?
+            <span class="ml-4 text-white/70 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <p class="mt-3 text-white/80">Yes. Tracks are written for local and online small businesses with flexible prompts.</p>
+        </details>
+        <details class="group p-5 open:bg-white/5">
+          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">Will my price ever go up?
+            <span class="ml-4 text-white/70 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <p class="mt-3 text-white/80">No. If you join at the launch special, your price is locked for life. Our forever public price is $14.99/mo or $149/year.</p>
+        </details>
+        <details class="group p-5 open:bg-white/5">
+          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">What if I’m not tech‑savvy?
+            <span class="ml-4 text-white/70 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <p class="mt-3 text-white/80">We keep the weekly steps simple and provide checklists. No jargon.</p>
+        </details>
+        <details class="group p-5 open:bg-white/5">
+          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">Can I cancel anytime?
+            <span class="ml-4 text-white/70 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <p class="mt-3 text-white/80">Absolutely. You can cancel from your account settings. Your data stays yours.</p>
+        </details>
+        <details class="group p-5 open:bg-white/5">
+          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">What’s the difference between MomentumDIY and a marketing course?
+            <span class="ml-4 text-white/70 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <p class="mt-3 text-white/80">Courses give knowledge; MomentumDIY gives a plan, weekly actions, and an assistant to help implement.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-12 lg:py-16 bg-[#191628] text-white/80" role="contentinfo">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-sm">© <span id="year"></span> MomentumDIY</p>
+      <nav class="flex items-center gap-5 text-sm">
+        <a href="/privacy" class="hover:text-white">Privacy Policy</a>
+        <a href="/terms" class="hover:text-white">Terms of Service</a>
+        <a href="/about" class="hover:text-white">About the Founder</a>
+        <a href="mailto:hello@momentumdiy.com" class="hover:text-white">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
 </html>
+
+
+
