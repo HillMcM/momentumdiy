@@ -255,16 +255,23 @@ export default function TracksAdminPage() {
   const handleUpdateModule = async () => {
     if (!selectedModule) return;
     
+    console.log('🔧 Updating module:', selectedModule.id);
+    console.log('🔧 Module form data:', moduleForm);
+    
     try {
       const response = await adminApi.updateTrackModule(selectedModule.id, moduleForm);
+      console.log('🔧 API response:', response);
+      
       if (response.success) {
         showMessage('Module updated successfully');
         await loadModules(selectedModule.goal_id);
         setSelectedModule(response.data);
       } else {
+        console.error('🔧 API error:', response.error);
         showMessage(response.error || 'Failed to update module', true);
       }
     } catch (error) {
+      console.error('🔧 Network error:', error);
       showMessage('Failed to update module', true);
     }
   };

@@ -37,10 +37,13 @@ interface ApiResponse<T = any> {
 async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
     const url = `${API_BASE_URL}/api/admin/tracks${endpoint}`;
+    console.log('🌐 API Request:', url);
+    console.log('🌐 Request options:', options);
     
     // Get authentication token
     const { supabase } = await import('../lib/supabase');
     const { data: { session } } = await supabase.auth.getSession();
+    console.log('🔐 Session:', session ? 'Authenticated' : 'Not authenticated');
     
     const response = await fetch(url, {
       headers: {
@@ -51,10 +54,12 @@ async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}):
       ...options,
     });
 
+    console.log('🌐 Response status:', response.status);
     const data = await response.json();
+    console.log('🌐 Response data:', data);
     return data;
   } catch (error) {
-    console.error('API request failed:', error);
+    console.error('🌐 API request failed:', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Network error' 
