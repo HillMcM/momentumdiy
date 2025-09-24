@@ -13,7 +13,7 @@ export default function AuthPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [isNewUser, setIsNewUser] = useState(false);
+  const [, setIsNewUser] = useState(false);
   const [mode, setMode] = useState<'signin' | 'signup'>(() => {
     const params = new URLSearchParams(window.location.search);
     const urlMode = params.get('mode');
@@ -86,17 +86,17 @@ export default function AuthPage() {
 
     try {
       if (mode === 'signin') {
-        const { error } = await signInWithPassword(email, password);
-        if (error) {
-          setStatus(`Sign-in failed: ${error.message}`);
+        const { ok, error } = await signInWithPassword(email, password);
+        if (!ok) {
+          setStatus(`Sign-in failed: ${error}`);
         } else {
           setStatus('Signing you in…');
           // Navigation will be handled by the useEffect when user changes
         }
       } else {
-        const { error } = await signUpWithPassword(email, password, fullName);
-        if (error) {
-          setStatus(`Sign-up failed: ${error.message}`);
+        const { ok, error } = await signUpWithPassword(email, password, fullName);
+        if (!ok) {
+          setStatus(`Sign-up failed: ${error}`);
         } else {
           setIsNewUser(true);
           setStatus('Account created! Please check your email to verify your account.');
@@ -114,9 +114,9 @@ export default function AuthPage() {
     setStatus(null);
 
     try {
-      const { error } = await signInWithGoogle();
-      if (error) {
-        setStatus(`Google sign-in failed: ${error.message}`);
+      const { ok, error } = await signInWithGoogle();
+      if (!ok) {
+        setStatus(`Google sign-in failed: ${error}`);
         setLoading(false);
       } else {
         setStatus('Signing you in with Google…');
