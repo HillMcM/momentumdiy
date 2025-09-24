@@ -148,7 +148,8 @@ router.put('/definitions/:id', async (req, res) => {
       slug: updates.slug,
       industry_tags: updates.industry_tags,
       duration_weeks: updates.duration_weeks,
-      phases: updates.phases
+      phases: updates.phases,
+      updated_at: new Date().toISOString()
     };
     
     // Remove any undefined fields
