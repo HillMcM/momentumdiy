@@ -8,6 +8,12 @@ const router = Router();
 // =====================
 // Simple, clean API for managing marketing track content
 
+// Test endpoint to verify backend is working
+router.get('/test', (_req, res) => {
+  console.log('🧪 Test endpoint hit!');
+  res.json({ success: true, message: 'Backend is working!', timestamp: new Date().toISOString() });
+});
+
 // GET /admin/tracks/definitions - List all track definitions
 router.get('/definitions', async (_req, res) => {
   try {
@@ -68,6 +74,7 @@ router.post('/definitions', async (req, res) => {
 // PUT /admin/tracks/definitions/:id - Update track definition
 router.put('/definitions/:id', async (req, res) => {
   try {
+    console.log('🚀 PUT /definitions/:id - Route hit!');
     const { id } = req.params;
     const updates = req.body;
 
