@@ -131,10 +131,7 @@ router.put('/definitions/:id', async (req, res) => {
         console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
         const { data, error } = await supabase_1.supabase
             .from('marketing_track_definitions')
-            .update({
-            ...updateData,
-            updated_at: new Date().toISOString()
-        })
+            .update(updateData)
             .eq('id', id)
             .select()
             .single();
