@@ -404,7 +404,17 @@ BEGIN
         phases = COALESCE(track_phases, phases),
         updated_at = NOW()
     WHERE id = track_id
-    RETURNING to_jsonb(marketing_track_definitions.*) INTO result;
+    RETURNING jsonb_build_object(
+        'id', id,
+        'title', title,
+        'description', description,
+        'slug', slug,
+        'industry_tags', industry_tags,
+        'duration_weeks', duration_weeks,
+        'phases', phases,
+        'created_at', created_at,
+        'updated_at', updated_at
+    ) INTO result;
     
     RETURN result;
 END;
