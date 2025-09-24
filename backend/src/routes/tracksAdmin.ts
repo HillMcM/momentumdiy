@@ -28,6 +28,11 @@ router.put('/test-update/:id', (req, res) => {
   res.json({ success: true, message: 'PUT /test-update/:id is working!', id: req.params.id, body: req.body });
 });
 
+// Minimal test PUT endpoint
+router.put('/minimal-test', (req, res) => {
+  res.json({ success: true, message: 'Minimal PUT test working!' });
+});
+
 // GET /admin/tracks/definitions - List all track definitions
 router.get('/definitions', async (_req, res) => {
   try {
