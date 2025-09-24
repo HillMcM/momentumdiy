@@ -85,7 +85,7 @@ function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]
     } else {
       console.log('ℹ️ No task changes needed');
     }
-  }, [activeGoal, tasks]);
+  }, [activeGoal]);
 
   // Sync task tracker changes back to marketing track
   useEffect(() => {
@@ -739,8 +739,8 @@ function ProtectedApp() {
         await debouncedCreateTask(payload);
       }
       
-      // Handle updated tasks
-      const existingTasks = updatedTasks.filter(t => !newTasks.find(nt => nt.id === t.id));
+      // Handle updated tasks (skip marketing track tasks as they're handled separately)
+      const existingTasks = updatedTasks.filter(t => !newTasks.find(nt => nt.id === t.id) && !t.marketingTrack);
       for (const updatedTask of existingTasks) {
         const originalTask = tasks.find(t => t.id === updatedTask.id);
         if (originalTask && !isPlaceholderId(updatedTask.id) && JSON.stringify(originalTask) !== JSON.stringify(updatedTask)) {
