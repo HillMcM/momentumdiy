@@ -707,7 +707,7 @@ router.post('/goals/:goalId/activate', async (req, res) => {
     await supabase
       .from('marketing_goals')
       .update({ is_active: false })
-      .neq('id', '00000000-0000-0000-0000-000000000000');
+      .neq('id', goalId);
 
     // Activate this goal
     const { data, error } = await supabase

@@ -263,7 +263,8 @@ class MarketingService {
         try {
             const { error: deactivateError } = await supabase_1.supabase
                 .from('marketing_goals')
-                .update({ is_active: false });
+                .update({ is_active: false })
+                .neq('id', '00000000-0000-0000-0000-000000000000');
             if (deactivateError) {
                 return {
                     success: false,

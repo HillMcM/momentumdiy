@@ -99,7 +99,7 @@ export async function activateTrack(trackId: string): Promise<ApiResponse<Market
 export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
   // TEMPORARY: Return mock data for feature branch testing
   // TODO: Set to false before merging to main
-  const BYPASS_AUTH = true;
+  const BYPASS_AUTH = false;
   
   if (BYPASS_AUTH) {
     console.log('🔍 Using mock data for testing');

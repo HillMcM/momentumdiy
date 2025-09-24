@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // TEMPORARY: Bypass auth for feature branch testing
   // TODO: Set to false before merging to main
-  const BYPASS_AUTH = true;
+  const BYPASS_AUTH = false;
 
   useEffect(() => {
     let isMounted = true;
