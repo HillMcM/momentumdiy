@@ -163,14 +163,37 @@ router.put('/modules/:id', async (req, res) => {
       updates.week_number = parseInt(updates.week_number);
     }
 
+    // Filter out pro_tip if it's null or undefined to avoid column errors
+    const filteredUpdates = { ...updates };
+    if (filteredUpdates.pro_tip === null || filteredUpdates.pro_tip === undefined) {
+      delete filteredUpdates.pro_tip;
+    }
+
     const { data, error } = await supabase
       .from('marketing_modules')
-      .update(updates)
+      .update(filteredUpdates)
       .eq('id', id)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // If the error is about pro_tip column not existing, try again without it
+      if (error.message && error.message.includes('pro_tip')) {
+        console.log('Pro_tip column not found, retrying without pro_tip field');
+        const { pro_tip, ...updatesWithoutProTip } = filteredUpdates;
+        const { data: retryData, error: retryError } = await supabase
+          .from('marketing_modules')
+          .update(updatesWithoutProTip)
+          .eq('id', id)
+          .select()
+          .single();
+        
+        if (retryError) throw retryError;
+        return res.json({ success: true, data: retryData });
+      }
+      throw error;
+    }
+    
     return res.json({ success: true, data });
   } catch (error) {
     console.error('Error updating track module:', error);
