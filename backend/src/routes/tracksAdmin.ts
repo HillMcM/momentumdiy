@@ -73,8 +73,12 @@ router.post('/definitions', async (req, res) => {
 
 // PUT /admin/tracks/definitions/:id - Update track definition
 router.put('/definitions/:id', async (req, res) => {
+  console.log('🚀 PUT /definitions/:id - Route hit!');
+  console.log('🚀 Request params:', req.params);
+  console.log('🚀 Request body:', req.body);
+  console.log('🚀 Request headers:', req.headers);
+  
   try {
-    console.log('🚀 PUT /definitions/:id - Route hit!');
     const { id } = req.params;
     const updates = req.body;
 
@@ -111,12 +115,16 @@ router.put('/definitions/:id', async (req, res) => {
 
     console.log('📊 Final updates object:', JSON.stringify(updates, null, 2));
     
+    console.log('🔍 About to call Supabase update...');
     const { data, error } = await supabase
       .from('marketing_track_definitions')
       .update(updates)
       .eq('id', id)
       .select()
       .single();
+
+    console.log('🔍 Supabase response - data:', data);
+    console.log('🔍 Supabase response - error:', error);
 
     if (error) {
       console.error('Supabase error updating track definition:', error);
