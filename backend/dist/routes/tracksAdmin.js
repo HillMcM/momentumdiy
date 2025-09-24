@@ -64,13 +64,6 @@ router.put('/definitions/:id', async (req, res) => {
     console.log('🚀 Request params:', req.params);
     console.log('🚀 Request body:', req.body);
     console.log('🚀 Request headers:', req.headers);
-    return res.json({
-        success: true,
-        message: 'Debug endpoint reached!',
-        params: req.params,
-        bodyKeys: Object.keys(req.body || {}),
-        timestamp: new Date().toISOString()
-    });
     try {
         const { id } = req.params;
         const updates = req.body;
