@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { addNotification } = useNotifications();
 
   // TEMPORARY: Bypass auth for feature branch testing
+  // TODO: Set to false before merging to main
   const BYPASS_AUTH = true;
 
   useEffect(() => {
