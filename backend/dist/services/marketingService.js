@@ -329,6 +329,8 @@ class MarketingService {
             }
             console.log('🔍 Backend - Raw modules from database:', data);
             console.log('🔍 Backend - First module pro_tip:', data?.[0]?.pro_tip);
+            console.log('🔍 Backend - All module fields:', data?.[0] ? Object.keys(data[0]) : 'No modules');
+            console.log('🔍 Backend - Module with pro_tip:', data?.find(m => m.id === '9ff6f2d5-916d-4c20-89cd-f81c3bdf424d'));
             const modules = await Promise.all(data.map(async (module) => {
                 return await this.mapDatabaseModuleToModule(module);
             }));
