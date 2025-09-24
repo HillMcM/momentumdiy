@@ -74,7 +74,8 @@ router.put('/definitions/:id', async (req, res) => {
     console.log('🔄 Update track definition request:', {
       id,
       body: req.body,
-      headers: req.headers
+      headers: req.headers,
+      timestamp: new Date().toISOString()
     });
 
     // Clean up industry_tags if provided
