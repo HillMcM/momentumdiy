@@ -141,14 +141,22 @@ router.put('/definitions/:id', async (req, res) => {
       }
     }
 
-    // Prepare update data without updated_at to avoid schema issues
+    // Prepare update data with only safe fields
     const updateData = {
-      ...updates
+      title: updates.title,
+      description: updates.description,
+      slug: updates.slug,
+      industry_tags: updates.industry_tags,
+      duration_weeks: updates.duration_weeks,
+      phases: updates.phases
     };
     
-    // Remove updated_at and any other fields that might cause schema issues
-    delete updateData.updated_at;
-    delete updateData.created_at;
+    // Remove any undefined fields
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
     
     console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
     
