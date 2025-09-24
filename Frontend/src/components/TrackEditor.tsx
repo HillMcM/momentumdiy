@@ -161,7 +161,7 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
         </h2>
         <div className="flex gap-3">
           <button
-            onClick={handleCancel}
+            onClick={onCancel}
             className="bg-gray-600 text-white border border-gray-600 rounded-full px-4 py-2 text-sm font-medium hover:bg-gray-700"
           >
             Cancel
