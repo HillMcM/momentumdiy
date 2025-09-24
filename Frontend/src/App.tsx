@@ -546,6 +546,13 @@ function ProtectedApp() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
 
+  // Debug: Track if component is mounting vs re-rendering
+  const mountTimeRef = useRef(Date.now());
+  const renderCountRef = useRef(0);
+  renderCountRef.current += 1;
+  
+  console.log(`🔄 App render #${renderCountRef.current} - Mounted ${Math.round((Date.now() - mountTimeRef.current) / 1000)}s ago`);
+
   // Debug window focus changes
   useEffect(() => {
     console.log('🪟 Window focus changed:', isFocused ? 'FOCUSED' : 'UNFOCUSED');
