@@ -262,6 +262,7 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
       lastWeekAdvancement: result.data.lastWeekAdvancement ? new Date(result.data.lastWeekAdvancement) : new Date(),
       modules: result.data.modules?.map((module: any) => ({
         ...module,
+        proTip: module.pro_tip,
         unlockedAt: module.unlockedAt ? new Date(module.unlockedAt) : null,
         completedAt: module.completedAt ? new Date(module.completedAt) : null,
       })) || []
@@ -323,6 +324,7 @@ export async function getMarketingGoal(goalId: string): Promise<ApiResponse<Mark
       lastWeekAdvancement: result.data.lastWeekAdvancement ? new Date(result.data.lastWeekAdvancement) : new Date(),
       modules: result.data.modules?.map((module: any) => ({
         ...module,
+        proTip: module.pro_tip,
         unlockedAt: module.unlockedAt ? new Date(module.unlockedAt) : null,
         completedAt: module.completedAt ? new Date(module.completedAt) : null,
       })) || []
