@@ -548,6 +548,43 @@ router.post('/sync-notion/debug', (0, rate_1.routeRateLimit)(2), async (req, res
         return res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Failed to debug page' });
     }
 });
+router.put('/goals/:id/phases', (0, rate_1.routeRateLimit)(10), (0, validate_1.validate)((req) => {
+    const { phases } = req.body || {};
+    if (!Array.isArray(phases))
+        return 'Phases must be an array';
+    if (phases.length === 0)
+        return 'At least one phase is required';
+    for (const phase of phases) {
+        if (!phase.title)
+            return 'Each phase must have a title';
+        if (!phase.description)
+            return 'Each phase must have a description';
+        if (typeof phase.startWeek !== 'number' || phase.startWeek < 1)
+            return 'Each phase must have a valid startWeek';
+        if (typeof phase.endWeek !== 'number' || phase.endWeek < 1)
+            return 'Each phase must have a valid endWeek';
+        if (phase.startWeek > phase.endWeek)
+            return 'Phase startWeek must be <= endWeek';
+    }
+    return undefined;
+}), async (req, res) => {
+    try {
+        const id = req.params['id'];
+        const { phases } = req.body;
+        const result = await marketingService_1.MarketingService.updateMarketingGoalPhases(id, phases);
+        if (!result.success) {
+            return res.status(400).json(result);
+        }
+        return res.json(result);
+    }
+    catch (error) {
+        console.error('Error updating phases:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Internal server error'
+        });
+    }
+});
 router.post('/goals/:id/seed-social', async (req, res) => {
     try {
         const id = req.params['id'];

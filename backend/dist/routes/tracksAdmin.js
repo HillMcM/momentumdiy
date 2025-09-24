@@ -116,9 +116,18 @@ router.put('/definitions/:id', async (req, res) => {
             }
         }
         const updateData = {
-            ...updates
+            title: updates.title,
+            description: updates.description,
+            slug: updates.slug,
+            industry_tags: updates.industry_tags,
+            duration_weeks: updates.duration_weeks,
+            phases: updates.phases
         };
-        delete updateData.updated_at;
+        Object.keys(updateData).forEach(key => {
+            if (updateData[key] === undefined) {
+                delete updateData[key];
+            }
+        });
         console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
         const { data, error } = await supabase_1.supabase
             .from('marketing_track_definitions')

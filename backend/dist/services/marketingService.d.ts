@@ -19,5 +19,6 @@ export declare class MarketingService {
     static updateMarketingTaskCompletion(taskId: string, isCompleted: boolean): Promise<ApiResponse<MarketingTask>>;
     private static mapDatabaseGoalToGoal;
     private static mapDatabaseModuleToModule;
+    static updateMarketingGoalPhases(goalId: string, phases: any[]): Promise<ApiResponse<MarketingGoal>>;
 }
 //# sourceMappingURL=marketingService.d.ts.map

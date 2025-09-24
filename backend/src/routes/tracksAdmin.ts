@@ -153,8 +153,8 @@ router.put('/definitions/:id', async (req, res) => {
     
     // Remove any undefined fields
     Object.keys(updateData).forEach(key => {
-      if (updateData[key] === undefined) {
-        delete updateData[key];
+      if ((updateData as any)[key] === undefined) {
+        delete (updateData as any)[key];
       }
     });
     

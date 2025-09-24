@@ -610,7 +610,20 @@ export class MarketingService {
     const modules = modulesResponse.success ? modulesResponse.data || [] : [];
 
     // Get current phase based on current week
-    const phases = dbGoal.phases || [];
+    let phases = [];
+    try {
+      if (dbGoal.phases) {
+        if (typeof dbGoal.phases === 'string') {
+          phases = JSON.parse(dbGoal.phases);
+        } else if (Array.isArray(dbGoal.phases)) {
+          phases = dbGoal.phases;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing phases JSON:', error);
+      phases = [];
+    }
+    
     const currentPhase = phases.find((phase: any) => 
       dbGoal.current_week >= phase.startWeek && dbGoal.current_week <= phase.endWeek
     ) || phases[0] || { title: 'Phase 1: Spark Traffic', description: 'Get people in the door immediately' };
@@ -658,5 +671,88 @@ export class MarketingService {
       isUnlocked: dbModule.is_unlocked,
       isCompleted: dbModule.is_completed
     };
+  }
+
+  /**
+   * Update phases for a marketing goal
+   */
+  static async updateMarketingGoalPhases(goalId: string, phases: any[]): Promise<ApiResponse<MarketingGoal>> {
+    try {
+      console.log(`🔄 Updating phases for goal ${goalId}:`, phases);
+
+      // Validate phases
+      if (!Array.isArray(phases) || phases.length === 0) {
+        return {
+          success: false,
+          error: 'Phases must be a non-empty array'
+        };
+      }
+
+      // Validate each phase
+      for (const phase of phases) {
+        if (!phase.title || !phase.description) {
+          return {
+            success: false,
+            error: 'Each phase must have a title and description'
+          };
+        }
+        if (typeof phase.startWeek !== 'number' || typeof phase.endWeek !== 'number') {
+          return {
+            success: false,
+            error: 'Each phase must have valid startWeek and endWeek numbers'
+          };
+        }
+        if (phase.startWeek > phase.endWeek) {
+          return {
+            success: false,
+            error: 'Phase startWeek must be <= endWeek'
+          };
+        }
+      }
+
+      // Convert phases to JSON string for database storage
+      const phasesString = JSON.stringify(phases);
+      console.log(`📝 Converting phases to JSON string:`, phasesString);
+
+      // Update the goal with new phases
+      const { data, error } = await supabase
+        .from('marketing_goals')
+        .update({ phases: phasesString })
+        .eq('id', goalId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error updating phases:', error);
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      if (!data) {
+        return {
+          success: false,
+          error: 'Goal not found'
+        };
+      }
+
+      console.log('✅ Successfully updated phases for goal:', goalId);
+
+      // Return the updated goal
+      const updatedGoal = await this.mapDatabaseGoalToGoal(data);
+      return {
+        success: true,
+        data: updatedGoal,
+        message: 'Phases updated successfully'
+      };
+
+    } catch (error) {
+      console.error('❌ Error updating marketing goal phases:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Internal server error'
+      };
+    }
   }
 } 

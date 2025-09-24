@@ -423,3 +423,73 @@ export async function toggleMarketingTask(taskId: string, isCompleted: boolean):
     message: 'Task status updated successfully'
   };
 }
+
+// Update phases for a marketing goal
+export async function updateMarketingGoalPhases(goalId: string, phases: any[]): Promise<ApiResponse<MarketingGoal>> {
+  const url = `${BACKEND_BASE_URL}/api/marketing/goals/${goalId}/phases`;
+  console.log('🔍 Updating phases for goal:', goalId, phases);
+  
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ phases })
+    });
+
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response ok:', response.ok);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ HTTP error:', response.status, errorText);
+      return {
+        success: false,
+        error: `HTTP ${response.status}: ${errorText}`,
+        data: undefined
+      };
+    }
+
+    const result = await response.json();
+    console.log('📊 Update phases response:', result);
+
+    if (!result.success) {
+      console.error('❌ API error:', result.error);
+      return {
+        success: false,
+        error: result.error || 'Unknown API error',
+        data: undefined
+      };
+    }
+
+    // Transform the response data to match our frontend types
+    const transformedData = result.data ? {
+      ...result.data,
+      startDate: result.data.startDate ? new Date(result.data.startDate) : new Date(),
+      weekStartDates: result.data.weekStartDates?.map((date: string) => new Date(date)) || [],
+      lastWeekAdvancement: result.data.lastWeekAdvancement ? new Date(result.data.lastWeekAdvancement) : new Date(),
+      modules: result.data.modules?.map((module: any) => ({
+        ...module,
+        proTip: module.proTip,
+        unlockedAt: module.unlockedAt ? new Date(module.unlockedAt) : null,
+        completedAt: module.completedAt ? new Date(module.completedAt) : null,
+      })) || []
+    } : null;
+
+    console.log('✅ Transformed updated goal data:', transformedData);
+    return {
+      success: true,
+      data: transformedData,
+      message: result.message
+    };
+
+  } catch (error) {
+    console.error('❌ Network error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error',
+      data: undefined
+    };
+  }
+}
