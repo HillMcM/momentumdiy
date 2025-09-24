@@ -262,10 +262,10 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
       lastWeekAdvancement: result.data.lastWeekAdvancement ? new Date(result.data.lastWeekAdvancement) : new Date(),
       modules: result.data.modules?.map((module: any) => {
         console.log('🔍 Module data from backend:', module);
-        console.log('🔍 Module pro_tip:', module.pro_tip);
+        console.log('🔍 Module proTip:', module.proTip);
         return {
           ...module,
-          proTip: module.pro_tip,
+          proTip: module.proTip, // Backend already returns proTip in camelCase
           unlockedAt: module.unlockedAt ? new Date(module.unlockedAt) : null,
           completedAt: module.completedAt ? new Date(module.completedAt) : null,
         };
