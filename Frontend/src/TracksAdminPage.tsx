@@ -19,6 +19,7 @@ interface TrackModule {
   title: string;
   description?: string;
   content: string;
+  pro_tip?: string;
   is_unlocked: boolean;
   is_completed: boolean;
   created_at: string;
@@ -58,7 +59,8 @@ export default function TracksAdminPage() {
     week_number: 1,
     title: '',
     description: '',
-    content: ''
+    content: '',
+    pro_tip: ''
   });
 
   const [taskForm, setTaskForm] = useState({
@@ -239,7 +241,8 @@ export default function TracksAdminPage() {
           week_number: 1,
           title: '',
           description: '',
-          content: ''
+          content: '',
+          pro_tip: ''
         });
       } else {
         showMessage(response.error || 'Failed to create module', true);
@@ -381,7 +384,8 @@ export default function TracksAdminPage() {
       week_number: module.week_number,
       title: module.title,
       description: module.description || '',
-      content: module.content
+      content: module.content,
+      pro_tip: module.pro_tip || ''
     });
   };
 
@@ -610,6 +614,20 @@ Use blank lines between paragraphs for better readability."
                   />
                   <div className="mt-1 text-xs text-gray-400">
                     💡 Use markdown: # headers, - lists, **bold**, *italic*, `code`, &gt; quotes
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Pro Tip (Optional)</label>
+                  <textarea
+                    value={moduleForm.pro_tip}
+                    onChange={e => setModuleForm({ ...moduleForm, pro_tip: e.target.value })}
+                    className="w-full h-24 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white font-mono text-sm"
+                    placeholder="💡 Pro tip content here...
+
+This will appear as a special highlighted section in the user interface."
+                  />
+                  <div className="mt-1 text-xs text-gray-400">
+                    💡 Optional pro tip that will be highlighted in the user interface
                   </div>
                 </div>
                 <div className="flex gap-2">
