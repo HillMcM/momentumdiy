@@ -3,6 +3,8 @@ import { supabase } from '../config/supabase';
 
 const router = Router();
 
+console.log('🔧 tracksAdmin routes module loaded');
+
 // =====================
 // MARKETING TRACKS ADMIN API
 // =====================
@@ -189,6 +191,8 @@ router.put('/definitions/:id', async (req, res) => {
     });
   }
 });
+
+console.log('🔧 PUT /definitions/:id route registered');
 
 // DELETE /admin/tracks/definitions/:id - Delete track definition
 router.delete('/definitions/:id', async (req, res) => {
