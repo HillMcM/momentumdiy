@@ -73,7 +73,7 @@ export default function TracksAdminPage() {
   const [bulkTasksText, setBulkTasksText] = useState('');
 
   // Computed
-  const orderedModules = useMemo(() => {
+  const orderedModules = useMemo((): TrackModule[] => {
     return [...(modules || [])].sort((a, b) => a.week_number - b.week_number);
   }, [modules]);
 
@@ -584,9 +584,9 @@ export default function TracksAdminPage() {
             </div>
 
             {/* Module List - Only show when no module is selected */}
-            {!selectedModule && orderedModules && orderedModules.length > 0 && (
+            {!selectedModule && (
               <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
-                {orderedModules.map((module: TrackModule) => (
+                {orderedModules.map((module) => (
                   <div
                     key={module.id}
                     onClick={() => handleModuleSelect(module)}
