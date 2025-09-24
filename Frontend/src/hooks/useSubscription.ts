@@ -18,13 +18,26 @@ export function useSubscription() {
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUserId, setLastUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('🔍 useSubscription effect triggered - user:', user?.id, 'lastUserId:', lastUserId);
+    
     if (!user) {
       setSubscription(null);
       setLoading(false);
+      setLastUserId(null);
       return;
     }
+
+    // Only fetch subscription data if the user ID has actually changed
+    // This prevents unnecessary re-fetches when Supabase refreshes the session on window focus
+    if (user.id === lastUserId) {
+      console.log('🚫 useSubscription: Skipping fetch - user ID unchanged');
+      return;
+    }
+
+    console.log('✅ useSubscription: Fetching subscription data for new user');
 
     const fetchSubscription = async () => {
       try {
@@ -74,11 +87,12 @@ export function useSubscription() {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
+        setLastUserId(user.id); // Mark this user ID as processed
       }
     };
 
     fetchSubscription();
-  }, [user]);
+  }, [user, lastUserId]);
 
   return {
     subscription,
