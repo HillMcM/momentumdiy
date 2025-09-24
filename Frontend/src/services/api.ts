@@ -445,7 +445,11 @@ class ApiService {
             goals: ['social_media']
           },
           subscription_status: 'active',
-          has_access: true
+          trial_start_date: null,
+          trial_end_date: null,
+          subscription_start_date: new Date().toISOString(),
+          subscription_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          subscription_plan: 'monthly'
         },
         message: 'Mock profile data for preview mode'
       };
