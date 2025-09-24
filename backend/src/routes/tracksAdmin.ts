@@ -110,10 +110,43 @@ router.put('/definitions/:id', async (req, res) => {
 
     console.log('🔄 Update track definition request:', { id, updates });
 
-    // Simple test - just update the title
+    // Clean up industry_tags if provided
+    if (updates.industry_tags && !Array.isArray(updates.industry_tags)) {
+      updates.industry_tags = [updates.industry_tags].filter(Boolean);
+    }
+
+    // Handle phases - convert array to JSON string for database storage
+    if (updates.phases) {
+      if (Array.isArray(updates.phases)) {
+        console.log('📝 Converting phases array to JSON string:', updates.phases);
+        updates.phases = JSON.stringify(updates.phases);
+        console.log('✅ Successfully converted phases to string:', updates.phases);
+      } else if (typeof updates.phases === 'string') {
+        try {
+          console.log('📝 Validating phases JSON string:', updates.phases);
+          JSON.parse(updates.phases); // Validate it's valid JSON
+          console.log('✅ Phases string is valid JSON');
+        } catch (parseError) {
+          console.error('❌ Error validating phases JSON:', parseError);
+          return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
+        }
+      } else {
+        console.error('❌ Invalid phases format:', typeof updates.phases, updates.phases);
+        return res.status(400).json({ success: false, error: 'Phases must be an array or JSON string' });
+      }
+    }
+
+    // Prepare update data with proper handling of updated_at
+    const updateData = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+    
+    console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
+    
     const { data, error } = await supabase
       .from('marketing_track_definitions')
-      .update({ title: updates.title || 'Updated Title' })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
