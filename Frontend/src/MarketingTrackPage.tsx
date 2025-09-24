@@ -437,24 +437,16 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                             </div>
                             
                             {/* Pro Tip */}
-                            {(() => {
-                              const proTipMatch = module.content.match(/<h[1-6]>(Pro Tip:.*?)<\/h[1-6]>(.*?)(?=<h[1-6]|$)/is);
-                              if (!proTipMatch) return null;
-                              
-                              const proTipTitle = proTipMatch[1];
-                              const proTipContent = proTipMatch[2].trim();
-                              
-                              return (
-                                <div className="bg-gradient-to-r from-[#EF8E81]/10 to-[#D4AF37]/10 rounded-xl p-6 border border-[#EF8E81]/20">
-                                  <h5 className="text-lg font-semibold text-[#EF8E81] mb-3 flex items-center gap-2">
-                                    <span>↑</span> {proTipTitle}
-                                  </h5>
-                                  <div className="text-gray-300 leading-relaxed">
-                                    {renderMarketingContent(proTipContent)}
-                                  </div>
+                            {module.proTip && (
+                              <div className="bg-gradient-to-r from-[#EF8E81]/10 to-[#D4AF37]/10 rounded-xl p-6 border border-[#EF8E81]/20">
+                                <h5 className="text-lg font-semibold text-[#EF8E81] mb-3 flex items-center gap-2">
+                                  <span>💡</span> Pro Tip
+                                </h5>
+                                <div className="text-gray-300 leading-relaxed">
+                                  {renderMarketingContent(module.proTip)}
                                 </div>
-                              );
-                            })()}
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="text-sm text-gray-400">
