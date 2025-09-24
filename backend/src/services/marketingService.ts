@@ -400,6 +400,13 @@ export class MarketingService {
       console.log('🔍 Backend - First module pro_tip:', data?.[0]?.pro_tip);
       console.log('🔍 Backend - All module fields:', data?.[0] ? Object.keys(data[0]) : 'No modules');
       console.log('🔍 Backend - Module with pro_tip:', data?.find(m => m.id === '9ff6f2d5-916d-4c20-89cd-f81c3bdf424d'));
+      
+      // Debug: Check if any modules have pro_tip
+      const modulesWithProTip = data?.filter(m => m.pro_tip && m.pro_tip.trim() !== '');
+      console.log('🔍 Backend - Modules with pro_tip:', modulesWithProTip?.length || 0);
+      if (modulesWithProTip && modulesWithProTip.length > 0) {
+        console.log('🔍 Backend - First module with pro_tip:', modulesWithProTip[0]);
+      }
 
       const modules: MarketingModule[] = await Promise.all(
         data.map(async (module: any) => {
@@ -634,6 +641,11 @@ export class MarketingService {
     // Get tasks for this module
     const tasksResponse = await this.getMarketingTasks(dbModule.id);
     const tasks = tasksResponse.success ? tasksResponse.data || [] : [];
+
+    // Debug pro_tip mapping
+    if (dbModule.pro_tip) {
+      console.log(`🔍 Backend - Mapping pro_tip for module ${dbModule.id}:`, dbModule.pro_tip);
+    }
 
     return {
       id: dbModule.id,
