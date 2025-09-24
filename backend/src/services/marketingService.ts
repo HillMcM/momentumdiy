@@ -52,14 +52,7 @@ export class MarketingService {
     try {
       const { data, error } = await supabase
         .from('marketing_goals')
-        .select(`
-          *,
-          marketing_track_definitions!inner(
-            phases,
-            title as track_title,
-            description as track_description
-          )
-        `)
+        .select('*')
         .eq('is_active', true)
         .single();
 
@@ -605,7 +598,7 @@ export class MarketingService {
     const modules = modulesResponse.success ? modulesResponse.data || [] : [];
 
     // Get current phase based on current week
-    const phases = dbGoal.marketing_track_definitions?.phases || [];
+    const phases = dbGoal.phases || [];
     const currentPhase = phases.find((phase: any) => 
       dbGoal.current_week >= phase.startWeek && dbGoal.current_week <= phase.endWeek
     ) || phases[0] || { title: 'Phase 1: Spark Traffic', description: 'Get people in the door immediately' };

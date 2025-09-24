@@ -34,14 +34,7 @@ class MarketingService {
         try {
             const { data, error } = await supabase_1.supabase
                 .from('marketing_goals')
-                .select(`
-          *,
-          marketing_track_definitions!inner(
-            phases,
-            title as track_title,
-            description as track_description
-          )
-        `)
+                .select('*')
                 .eq('is_active', true)
                 .single();
             if (error) {
@@ -509,7 +502,7 @@ class MarketingService {
     static async mapDatabaseGoalToGoal(dbGoal) {
         const modulesResponse = await this.getMarketingModules(dbGoal.id);
         const modules = modulesResponse.success ? modulesResponse.data || [] : [];
-        const phases = dbGoal.marketing_track_definitions?.phases || [];
+        const phases = dbGoal.phases || [];
         const currentPhase = phases.find((phase) => dbGoal.current_week >= phase.startWeek && dbGoal.current_week <= phase.endWeek) || phases[0] || { title: 'Phase 1: Spark Traffic', description: 'Get people in the door immediately' };
         const goal = {
             id: dbGoal.id,
