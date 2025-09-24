@@ -62,7 +62,8 @@ router.put('/definitions/:id', async (req, res) => {
         console.log('🔄 Update track definition request:', {
             id,
             body: req.body,
-            headers: req.headers
+            headers: req.headers,
+            timestamp: new Date().toISOString()
         });
         if (updates.industry_tags && !Array.isArray(updates.industry_tags)) {
             updates.industry_tags = [updates.industry_tags].filter(Boolean);
