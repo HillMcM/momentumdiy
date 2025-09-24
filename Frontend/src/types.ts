@@ -50,6 +50,15 @@ export interface MarketingTask {
   taskId?: string; // Links to the corresponding Task in the main task tracker
 }
 
+export interface MarketingPhase {
+  id: string;
+  title: string;
+  description: string;
+  startWeek: number;
+  endWeek: number;
+  color: string;
+}
+
 export interface MarketingGoal {
   id: string;
   title: string;
@@ -63,6 +72,8 @@ export interface MarketingGoal {
   progress: number; // percentage complete
   weekStartDates?: Date[]; // Array of dates when each week was started
   lastWeekAdvancement?: Date; // Date when the last week advancement occurred
+  phases?: MarketingPhase[]; // Phase information from track definition
+  currentPhase?: MarketingPhase; // Current phase based on current week
 }
 
 export interface Task {

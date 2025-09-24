@@ -242,12 +242,23 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
             {/* Phase block - Dynamic based on current week */}
             <div className="mt-8 pt-6 border-t border-[#2A243E]">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#EF8E81] flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">1</span>
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ 
+                    backgroundColor: activeGoal.currentPhase?.color || '#EF8E81' 
+                  }}
+                >
+                  <span className="text-white text-sm font-bold">
+                    {activeGoal.currentPhase?.id || '1'}
+                  </span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-white">Phase 1: Spark Traffic</h2>
-                  <p className="text-gray-400 text-sm">Get people in the door immediately</p>
+                  <h2 className="text-xl font-semibold text-white">
+                    {activeGoal.currentPhase?.title || 'Phase 1: Spark Traffic'}
+                  </h2>
+                  <p className="text-gray-400 text-sm">
+                    {activeGoal.currentPhase?.description || 'Get people in the door immediately'}
+                  </p>
                 </div>
               </div>
             </div>
