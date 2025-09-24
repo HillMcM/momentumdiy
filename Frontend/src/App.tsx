@@ -1250,11 +1250,9 @@ function App() {
 
         {/* App - Protected with subscription guard */}
         <Route path="/app/*" element={
-          <MarketingProvider>
-            <SubscriptionGuard>
-              <ProtectedApp />
-            </SubscriptionGuard>
-          </MarketingProvider>
+          <SubscriptionGuard>
+            <ProtectedApp />
+          </SubscriptionGuard>
         } />
           </Routes>
       </OnboardingProvider>

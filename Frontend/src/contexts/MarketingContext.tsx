@@ -38,6 +38,7 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
   const [error, setError] = useState<string | null>(null);
   const { isFocused, hasBeenFocused } = useWindowFocus();
   const lastRefreshRef = useRef<number>(0);
+  const prevFocusedRef = useRef<boolean>(true);
   const REFRESH_COOLDOWN = 10 * 60 * 1000; // 10 minutes cooldown between refreshes
 
   const refreshMarketingData = async (force = false) => {
@@ -85,7 +86,8 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
 
   // Handle window focus changes - only refresh if window was unfocused for a while
   useEffect(() => {
-    if (isFocused && hasBeenFocused) {
+    // Only run when window regains focus (transitions from false to true)
+    if (isFocused && !prevFocusedRef.current && hasBeenFocused) {
       // Window regained focus, but only refresh if it's been a while
       const timeSinceLastRefresh = Date.now() - lastRefreshRef.current;
       if (timeSinceLastRefresh > REFRESH_COOLDOWN) {
@@ -95,7 +97,10 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
         console.log('🚫 Window regained focus but skipping refresh - too soon since last refresh');
       }
     }
-  }, [isFocused]);
+    
+    // Update previous focus state
+    prevFocusedRef.current = isFocused;
+  }, [isFocused, hasBeenFocused]);
 
   const updateActiveGoal = (updatedGoal: MarketingGoal) => {
     setActiveGoal(updatedGoal);
