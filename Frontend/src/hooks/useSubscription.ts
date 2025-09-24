@@ -49,6 +49,13 @@ export function useSubscription() {
           const hasAccess = profile.subscription_status === 'active' || 
                            (profile.subscription_status === 'trial' && daysRemaining > 0);
 
+          console.log('🔍 Subscription data:', {
+            subscription_status: profile.subscription_status,
+            daysRemaining,
+            hasAccess,
+            profile
+          });
+
           setSubscription({
             subscription_status: profile.subscription_status,
             trial_start_date: profile.trial_start_date,

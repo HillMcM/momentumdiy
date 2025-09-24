@@ -19,6 +19,11 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
       // Show paywall if user doesn't have access
       // Temporary bypass for admin email
       if (!subscription.hasAccess && user?.email !== 'info@hillaryedenmcmullen.com') {
+        console.log('🔒 Subscription guard: User does not have access', { 
+          hasAccess: subscription.hasAccess, 
+          email: user?.email,
+          subscription_status: subscription.subscription_status 
+        });
         setShowPaywall(true);
       }
     }
