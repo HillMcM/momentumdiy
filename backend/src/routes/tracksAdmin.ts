@@ -29,7 +29,7 @@ router.put('/test-update/:id', (req, res) => {
 });
 
 // Minimal test PUT endpoint
-router.put('/minimal-test', (req, res) => {
+router.put('/minimal-test', (_req, res) => {
   res.json({ success: true, message: 'Minimal PUT test working!' });
 });
 
