@@ -2,21 +2,23 @@ import { useEffect, useState } from 'react';
 import { useMarketing } from './contexts/MarketingContext';
 import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 import { MarketingTrackProvider } from './contexts/MarketingTrackContext';
-import type { MarketingGoal, MarketingTask } from './types';
+import type { MarketingGoal, MarketingTask, Task } from './types';
 import TaskModal from './components/marketingTrack/TaskModal';
 import { getPublishedTracks, activateTrack } from './services/marketingService';
 import { renderContentPreview, renderMarketingContent } from './utils/contentRenderer';
 import { BACKEND_BASE_URL } from './services/api';
+import { apiService } from './services/api';
 
 interface MarketingTrackPageProps {
-  // Props removed - using context instead
+  tasks: Task[];
+  onTasksChange: (tasks: Task[]) => void;
 }
 
 /**
  * MarketingTrackPage now dynamically renders any active marketing goal
  * using the universal track template that matches the production UI.
  */
-export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
+export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTrackPageProps) {
   const { activeGoal, isLoading, refreshMarketingData, updateActiveGoal } = useMarketing();
   const { showTaskCompleted } = useNotificationHelpers();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
@@ -25,6 +27,35 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [activatingTrack, setActivatingTrack] = useState<string | null>(null);
   const [showTrackSelection, setShowTrackSelection] = useState(true); // Always show selection first
+
+  // Sync marketing task completion with task tracker
+  const syncWithTaskTracker = async (marketingTaskId: string, isCompleted: boolean) => {
+    try {
+      // Find the corresponding task in the task tracker
+      const correspondingTask = tasks.find(task => 
+        task.marketingTrack?.marketingTaskId === marketingTaskId
+      );
+
+      if (correspondingTask) {
+        // Update the task status in the task tracker
+        const newStatus = isCompleted ? 'completed' as const : 'todo' as const;
+        const updatedTasks = tasks.map(task => 
+          task.id === correspondingTask.id 
+            ? { ...task, status: newStatus }
+            : task
+        );
+        
+        onTasksChange(updatedTasks);
+        
+        // Also update the task status via API
+        await apiService.updateTaskStatus(correspondingTask.id, newStatus);
+        
+        console.log(`✅ Synced marketing task ${marketingTaskId} with task tracker task ${correspondingTask.id}`);
+      }
+    } catch (error) {
+      console.error('Error syncing with task tracker:', error);
+    }
+  };
 
   // Handle task completion
   const handleTaskToggle = async (taskToUpdate: MarketingTask) => {
@@ -66,6 +97,9 @@ export default function MarketingTrackPage(_props: MarketingTrackPageProps) {
 
         // Update the active goal in context
         updateActiveGoal(updatedGoal);
+        
+        // Sync with task tracker
+        await syncWithTaskTracker(taskToUpdate.id, !taskToUpdate.isCompleted);
         
         // Show notification
         showTaskCompleted(taskToUpdate.title);

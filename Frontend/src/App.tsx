@@ -42,7 +42,7 @@ import NotificationBell from './components/NotificationBell';
 
 // Component to handle task synchronization between marketing track and task tracker
 function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]) => void }) {
-  const { activeGoal } = useMarketing();
+  const { activeGoal, updateActiveGoal } = useMarketing();
   
   // Sync marketing tasks to task tracker
   useEffect(() => {
@@ -86,6 +86,69 @@ function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]
       console.log('ℹ️ No task changes needed');
     }
   }, [activeGoal, tasks]);
+
+  // Sync task tracker changes back to marketing track
+  useEffect(() => {
+    if (!activeGoal) return;
+
+    // Find tasks that have marketing track links and check if their status changed
+    const marketingTasks = tasks.filter(task => task.marketingTrack);
+    
+    if (marketingTasks.length === 0) return;
+
+    // Check if any marketing tasks have status changes that need to be synced
+    const tasksToSync = marketingTasks.filter(task => {
+      if (!task.marketingTrack) return false;
+      
+      // Find the corresponding marketing task
+      const module = activeGoal.modules.find(m => m.id === task.marketingTrack!.moduleId);
+      if (!module) return false;
+      
+      const marketingTask = module.tasks.find(t => t.id === task.marketingTrack!.marketingTaskId);
+      if (!marketingTask) return false;
+      
+      // Check if the status is different
+      const expectedCompleted = task.status === 'completed';
+      return marketingTask.isCompleted !== expectedCompleted;
+    });
+
+    if (tasksToSync.length > 0) {
+      console.log('🔄 Syncing task tracker changes to marketing track:', tasksToSync.length, 'tasks');
+      
+      // Update the marketing goal with the new task statuses
+      const updatedGoal = {
+        ...activeGoal,
+        modules: activeGoal.modules.map(module => ({
+          ...module,
+          tasks: module.tasks.map(marketingTask => {
+            const correspondingTask = tasksToSync.find(task => 
+              task.marketingTrack?.marketingTaskId === marketingTask.id
+            );
+            
+            if (correspondingTask) {
+              return {
+                ...marketingTask,
+                isCompleted: correspondingTask.status === 'completed'
+              };
+            }
+            
+            return marketingTask;
+          })
+        }))
+      };
+
+      // Recalculate progress
+      const allTasks = updatedGoal.modules.flatMap(m => m.tasks);
+      const completedTasks = allTasks.filter(t => t.isCompleted).length;
+      const totalTasks = allTasks.length;
+      const overallProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+      updatedGoal.progress = overallProgress;
+
+      updateActiveGoal(updatedGoal);
+      
+      console.log('✅ Synced task tracker changes to marketing track');
+    }
+  }, [tasks, activeGoal, updateActiveGoal]);
   
   return null; // This component doesn't render anything
 }
@@ -1081,7 +1144,7 @@ function ProtectedApp() {
               />
             } />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="marketing-track" element={<MarketingTrackPage />} />
+            <Route path="marketing-track" element={<MarketingTrackPage tasks={tasks} onTasksChange={handleTasksChange} />} />
             <Route path="marketing-track/local-foot-traffic" element={
               <LocalFootTrafficTrack 
                 marketingGoals={marketingGoals}
