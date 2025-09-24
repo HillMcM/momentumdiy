@@ -3,6 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const supabase_1 = require("../config/supabase");
 const router = (0, express_1.Router)();
+router.get('/test', (_req, res) => {
+    console.log('🧪 Test endpoint hit!');
+    res.json({ success: true, message: 'Backend is working!', timestamp: new Date().toISOString() });
+});
 router.get('/definitions', async (_req, res) => {
     try {
         const { data, error } = await supabase_1.supabase
@@ -57,6 +61,7 @@ router.post('/definitions', async (req, res) => {
 });
 router.put('/definitions/:id', async (req, res) => {
     try {
+        console.log('🚀 PUT /definitions/:id - Route hit!');
         const { id } = req.params;
         const updates = req.body;
         console.log('🔄 Update track definition request:', {
