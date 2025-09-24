@@ -535,20 +535,17 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
     // Persist changes asynchronously
     (async () => {
       try {
-        // Persist main task status if this is a real task id
-        if (!String(task.id).startsWith('tmp:')) {
-          await apiService.updateTaskStatus(task.id, newStatus);
+        // If this task is linked to a marketing task, only update the marketing task
+        if (task.marketingTrack && task.marketingTrack.marketingTaskId) {
+          await apiService.updateMarketingTaskCompletion(task.marketingTrack.marketingTaskId, newStatus === 'completed');
+        } else {
+          // Only update main task status if this is a real task id and not a marketing task
+          if (!String(task.id).startsWith('tmp:')) {
+            await apiService.updateTaskStatus(task.id, newStatus);
+          }
         }
       } catch (err) {
         if (DEBUG) console.warn('Failed to persist task status', err);
-      }
-      try {
-        // If this task is linked to a marketing task, sync that completion state as well
-        if (task.marketingTrack && task.marketingTrack.marketingTaskId) {
-          await apiService.updateMarketingTaskCompletion(task.marketingTrack.marketingTaskId, newStatus === 'completed');
-        }
-      } catch (err) {
-        if (DEBUG) console.warn('Failed to persist marketing task completion', err);
       }
     })();
   };

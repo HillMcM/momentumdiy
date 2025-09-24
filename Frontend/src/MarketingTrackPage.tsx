@@ -7,7 +7,6 @@ import TaskModal from './components/marketingTrack/TaskModal';
 import { getPublishedTracks, activateTrack } from './services/marketingService';
 import { renderContentPreview, renderMarketingContent } from './utils/contentRenderer';
 import { BACKEND_BASE_URL } from './services/api';
-import { apiService } from './services/api';
 
 interface MarketingTrackPageProps {
   tasks: Task[];
@@ -47,8 +46,8 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
         
         onTasksChange(updatedTasks);
         
-        // Also update the task status via API
-        await apiService.updateTaskStatus(correspondingTask.id, newStatus);
+        // Note: We don't need to update the main task via API for marketing track tasks
+        // since they only exist in the marketing_tasks table, not the main tasks table
         
         console.log(`✅ Synced marketing task ${marketingTaskId} with task tracker task ${correspondingTask.id}`);
       }
