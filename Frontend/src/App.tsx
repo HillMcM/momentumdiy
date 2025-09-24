@@ -146,7 +146,22 @@ function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]
 
       updateActiveGoal(updatedGoal);
       
-      console.log('✅ Synced task tracker changes to marketing track');
+      // Persist changes to the backend
+      (async () => {
+        try {
+          for (const task of tasksToSync) {
+            if (task.marketingTrack?.marketingTaskId) {
+              await apiService.updateMarketingTaskCompletion(
+                task.marketingTrack.marketingTaskId, 
+                task.status === 'completed'
+              );
+            }
+          }
+          console.log('✅ Synced task tracker changes to marketing track and persisted to backend');
+        } catch (error) {
+          console.error('❌ Failed to persist marketing task changes:', error);
+        }
+      })();
     }
   }, [tasks, activeGoal, updateActiveGoal]);
   
