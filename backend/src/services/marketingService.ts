@@ -52,7 +52,14 @@ export class MarketingService {
     try {
       const { data, error } = await supabase
         .from('marketing_goals')
-        .select('*')
+        .select(`
+          *,
+          marketing_track_definitions!inner(
+            phases,
+            title as track_title,
+            description as track_description
+          )
+        `)
         .eq('is_active', true)
         .single();
 
@@ -591,26 +598,34 @@ export class MarketingService {
   /**
    * Map database goal to frontend goal format
    */
-  private static async mapDatabaseGoalToGoal(dbGoal: DatabaseMarketingGoal): Promise<MarketingGoal> {
+  private static async mapDatabaseGoalToGoal(dbGoal: any): Promise<MarketingGoal> {
     // Get modules for this goal
     const modulesResponse = await this.getMarketingModules(dbGoal.id);
     const modules = modulesResponse.success ? modulesResponse.data || [] : [];
 
-      const goal: MarketingGoal = {
-        id: dbGoal.id,
-        title: dbGoal.title,
-        description: dbGoal.description || '',
-        industry: dbGoal.industry || '',
-        duration: dbGoal.duration,
-        modules,
-        isActive: dbGoal.is_active,
-        currentWeek: dbGoal.current_week,
-        progress: dbGoal.progress,
-      };
-      if (dbGoal.start_date) goal.startDate = new Date(dbGoal.start_date);
-      if (dbGoal.week_start_dates) goal.weekStartDates = dbGoal.week_start_dates.map((date: string) => new Date(date));
-      if (dbGoal.last_week_advancement) goal.lastWeekAdvancement = new Date(dbGoal.last_week_advancement);
-      return goal;
+    // Get current phase based on current week
+    const phases = dbGoal.marketing_track_definitions?.phases || [];
+    const currentPhase = phases.find((phase: any) => 
+      dbGoal.current_week >= phase.startWeek && dbGoal.current_week <= phase.endWeek
+    ) || phases[0] || { title: 'Phase 1: Spark Traffic', description: 'Get people in the door immediately' };
+
+    const goal: MarketingGoal = {
+      id: dbGoal.id,
+      title: dbGoal.title,
+      description: dbGoal.description || '',
+      industry: dbGoal.industry || '',
+      duration: dbGoal.duration,
+      modules,
+      isActive: dbGoal.is_active,
+      currentWeek: dbGoal.current_week,
+      progress: dbGoal.progress,
+      phases: phases,
+      currentPhase: currentPhase,
+    };
+    if (dbGoal.start_date) goal.startDate = new Date(dbGoal.start_date);
+    if (dbGoal.week_start_dates) goal.weekStartDates = dbGoal.week_start_dates.map((date: string) => new Date(date));
+    if (dbGoal.last_week_advancement) goal.lastWeekAdvancement = new Date(dbGoal.last_week_advancement);
+    return goal;
   }
 
   /**
