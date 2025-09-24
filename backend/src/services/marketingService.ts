@@ -636,6 +636,7 @@ export class MarketingService {
       title: dbModule.title,
       description: dbModule.description || '',
       content: dbModule.content || '',
+      proTip: dbModule.pro_tip, // Include pro_tip field
       tasks,
       isUnlocked: dbModule.is_unlocked,
       isCompleted: dbModule.is_completed

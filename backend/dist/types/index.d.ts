@@ -50,6 +50,7 @@ export interface MarketingModule {
     title: string;
     description: string;
     content: string;
+    proTip?: string;
     tasks: MarketingTask[];
     isUnlocked: boolean;
     isCompleted: boolean;
