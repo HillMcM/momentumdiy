@@ -22,6 +22,12 @@ router.put('/test-put', (req, res) => {
   res.json({ success: true, message: 'PUT endpoint is working!', body: req.body });
 });
 
+// Test PUT endpoint with different path
+router.put('/test-update/:id', (req, res) => {
+  console.log('🧪 Test PUT /test-update/:id endpoint hit!');
+  res.json({ success: true, message: 'PUT /test-update/:id is working!', id: req.params.id, body: req.body });
+});
+
 // GET /admin/tracks/definitions - List all track definitions
 router.get('/definitions', async (_req, res) => {
   try {
