@@ -584,7 +584,7 @@ export default function TracksAdminPage() {
             </div>
 
             {/* Module Form */}
-            {selectedTrack && (
+            {selectedModule && (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -648,7 +648,7 @@ This will appear as a special highlighted section in the user interface."
                         onClick={handleUpdateModule}
                         className="flex-1 px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                       >
-                        Update
+                        Update Module
                       </button>
                       <button
                         onClick={handleDeleteModule}
