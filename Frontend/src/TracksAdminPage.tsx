@@ -42,6 +42,7 @@ export default function TracksAdminPage() {
   const [modules, setModules] = useState<TrackModule[]>([]);
   const [selectedModule, setSelectedModule] = useState<TrackModule | null>(null);
   const [tasks, setTasks] = useState<TrackTask[]>([]);
+  const [editingMode, setEditingMode] = useState<'track' | 'module' | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -377,6 +378,8 @@ export default function TracksAdminPage() {
   // Event handlers
   const handleTrackSelect = (track: TrackDefinition) => {
     setSelectedTrack(track);
+    setSelectedModule(null);
+    setEditingMode(null);
     setTrackForm({
       slug: track.slug,
       title: track.title,
@@ -392,6 +395,7 @@ export default function TracksAdminPage() {
     console.log('🔧 Module goal_id:', module.goal_id);
     console.log('🔧 Setting selectedModule to:', module);
     setSelectedModule(module);
+    setEditingMode('module');
     console.log('🔧 Setting moduleForm with data:', {
       week_number: module.week_number,
       title: module.title,
@@ -406,6 +410,28 @@ export default function TracksAdminPage() {
       content: module.content,
       pro_tip: module.pro_tip || ''
     });
+  };
+
+  const handleEditTrack = () => {
+    setEditingMode('track');
+    setSelectedModule(null);
+  };
+
+  const handleEditModule = (module: TrackModule) => {
+    setSelectedModule(module);
+    setEditingMode('module');
+    setModuleForm({
+      week_number: module.week_number,
+      title: module.title,
+      description: module.description || '',
+      content: module.content,
+      pro_tip: module.pro_tip || ''
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMode(null);
+    setSelectedModule(null);
   };
 
   if (loading) {
@@ -475,8 +501,8 @@ export default function TracksAdminPage() {
               ))}
             </div>
 
-            {/* Track Form - Only show when no module is selected */}
-            {!selectedModule && (
+            {/* Track Form - Only show when in track editing mode */}
+            {editingMode === 'track' && (
               <div className="space-y-3">
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Slug</label>
@@ -521,13 +547,19 @@ export default function TracksAdminPage() {
                       onClick={handleUpdateTrack}
                       className="flex-1 px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                     >
-                      Update
+                      Update Track
                     </button>
                     <button
                       onClick={handleDeleteTrack}
                       className="px-3 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700"
                     >
                       Delete
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-3 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+                    >
+                      Cancel
                     </button>
                   </>
                 ) : (
@@ -563,54 +595,64 @@ export default function TracksAdminPage() {
           <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-white">
-                {selectedModule ? `Editing Module: Week ${selectedModule.week_number}` : `Modules ${selectedTrack && `(${selectedTrack.title})`}`}
+                {editingMode === 'module' ? `Editing Module: Week ${selectedModule?.week_number}` : `Modules ${selectedTrack && `(${selectedTrack.title})`}`}
               </h2>
-              {selectedModule && (
-                <button
-                  onClick={() => setSelectedModule(null)}
-                  className="px-3 py-1 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
-                >
-                  ← Back to Track
-                </button>
-              )}
-              {selectedTrack && !selectedModule && (
-                <button
-                  onClick={handleCreateModule}
-                  className="px-3 py-1 bg-[#EF8E81] text-white rounded-lg text-sm hover:bg-[#EF8E81]/80"
-                >
-                  Create
-                </button>
-              )}
+              <div className="flex gap-2">
+                {selectedTrack && editingMode !== 'module' && (
+                  <button
+                    onClick={handleEditTrack}
+                    className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                  >
+                    Edit Track
+                  </button>
+                )}
+                {editingMode === 'module' && (
+                  <button
+                    onClick={handleCancelEdit}
+                    className="px-3 py-1 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                )}
+                {selectedTrack && editingMode !== 'module' && (
+                  <button
+                    onClick={handleCreateModule}
+                    className="px-3 py-1 bg-[#EF8E81] text-white rounded-lg text-sm hover:bg-[#EF8E81]/80"
+                  >
+                    Create Module
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Module List - Only show when no module is selected */}
-            {!selectedModule && (
+            {/* Module List - Only show when not editing a module */}
+            {editingMode !== 'module' && (
               <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
                 {orderedModules.map((module) => (
                   <div
                     key={module.id}
-                    onClick={() => handleModuleSelect(module)}
-                    className={`p-3 rounded-lg cursor-pointer border ${
-                      selectedModule?.id === module.id
-                        ? 'bg-[#EF8E81]/20 border-[#EF8E81]/30'
-                        : 'bg-[#141127] border-[#2A243E] hover:border-[#EF8E81]/20'
-                    }`}
+                    className="p-3 rounded-lg border bg-[#141127] border-[#2A243E] hover:border-[#EF8E81]/20"
                   >
-                    <h3 className="font-medium text-white text-sm">Week {module.week_number}: {module.title}</h3>
-                    <p className="text-xs text-gray-400">{module.content.substring(0, 60)}...</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-white text-sm">Week {module.week_number}: {module.title}</h3>
+                        <p className="text-xs text-gray-400">{module.content.substring(0, 60)}...</p>
+                      </div>
+                      <button
+                        onClick={() => handleEditModule(module)}
+                        className="ml-3 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                      >
+                        Edit
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Module Form */}
-            {(() => {
-              console.log('🔧 Rendering module form check:');
-              console.log('🔧 selectedModule:', selectedModule);
-              console.log('🔧 selectedTrack:', selectedTrack);
-              console.log('🔧 Will show module form:', !!selectedModule);
-              return selectedModule && (
-                <div className="space-y-3">
+            {/* Module Form - Only show when in module editing mode */}
+            {editingMode === 'module' && selectedModule && (
+              <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">Week #</label>
@@ -681,6 +723,12 @@ This will appear as a special highlighted section in the user interface."
                       >
                         Delete
                       </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="px-3 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+                      >
+                        Cancel
+                      </button>
                     </>
                   ) : (
                     <button
@@ -692,8 +740,7 @@ This will appear as a special highlighted section in the user interface."
                   )}
                 </div>
               </div>
-              );
-            })()}
+            )}
           </div>
 
           {/* Column 3: Tasks */}
