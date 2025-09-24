@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
-import { getActiveGoal } from '../services/marketingService';
+import { getActiveGoal, updateMarketingGoalPhases } from '../services/marketingService';
 import type { MarketingGoal, MarketingModule } from '../types';
 import { useWindowFocus } from '../hooks/useWindowFocus';
 
@@ -13,6 +13,7 @@ interface MarketingContextType {
   setError: (error: string | null) => void;
   refreshMarketingData: () => Promise<void>;
   updateActiveGoal: (updatedGoal: MarketingGoal) => void;
+  updatePhases: (phases: any[]) => Promise<boolean>;
   onTaskStatusChange?: (taskId: string, isCompleted: boolean) => void;
 }
 
@@ -114,6 +115,32 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
     setCurrentModule(current || null);
   };
 
+  const updatePhases = async (phases: any[]): Promise<boolean> => {
+    if (!activeGoal) {
+      console.error('❌ No active goal to update phases for');
+      return false;
+    }
+
+    try {
+      console.log('🔄 Updating phases for goal:', activeGoal.id, phases);
+      const response = await updateMarketingGoalPhases(activeGoal.id, phases);
+      
+      if (response.success && response.data) {
+        console.log('✅ Phases updated successfully');
+        updateActiveGoal(response.data);
+        return true;
+      } else {
+        console.error('❌ Failed to update phases:', response.error);
+        setError(response.error || 'Failed to update phases');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Error updating phases:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update phases');
+      return false;
+    }
+  };
+
   const value: MarketingContextType = {
     activeGoal,
     currentModule,
@@ -124,6 +151,7 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
     setError,
     refreshMarketingData,
     updateActiveGoal,
+    updatePhases,
     onTaskStatusChange
   };
 

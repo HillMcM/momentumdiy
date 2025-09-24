@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMarketing } from './contexts/MarketingContext';
 import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 import { MarketingTrackProvider } from './contexts/MarketingTrackContext';
-import type { MarketingGoal, MarketingTask, Task } from './types';
+import type { MarketingGoal, MarketingTask, Task, MarketingPhase } from './types';
 import TaskModal from './components/marketingTrack/TaskModal';
 import { getPublishedTracks, activateTrack } from './services/marketingService';
 import { renderContentPreview, renderMarketingContent } from './utils/contentRenderer';
@@ -18,7 +18,7 @@ interface MarketingTrackPageProps {
  * using the universal track template that matches the production UI.
  */
 export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTrackPageProps) {
-  const { activeGoal, isLoading, refreshMarketingData, updateActiveGoal } = useMarketing();
+  const { activeGoal, isLoading, refreshMarketingData, updateActiveGoal, updatePhases } = useMarketing();
   const { showTaskCompleted } = useNotificationHelpers();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -26,6 +26,9 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [activatingTrack, setActivatingTrack] = useState<string | null>(null);
   const [showTrackSelection, setShowTrackSelection] = useState(true); // Always show selection first
+  const [isEditingPhases, setIsEditingPhases] = useState(false);
+  const [editingPhases, setEditingPhases] = useState<MarketingPhase[]>([]);
+  const [phaseUpdateLoading, setPhaseUpdateLoading] = useState(false);
 
   // Sync marketing task completion with task tracker
   const syncWithTaskTracker = async (marketingTaskId: string, isCompleted: boolean) => {
@@ -163,6 +166,47 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
       loadPublishedTracks();
     }
   }, [isLoading, activeGoal]);
+
+  // Initialize editing phases when entering edit mode
+  const startEditingPhases = () => {
+    if (activeGoal?.phases) {
+      setEditingPhases([...activeGoal.phases]);
+      setIsEditingPhases(true);
+    }
+  };
+
+  // Cancel phase editing
+  const cancelEditingPhases = () => {
+    setIsEditingPhases(false);
+    setEditingPhases([]);
+  };
+
+  // Save phase changes
+  const savePhaseChanges = async () => {
+    if (!activeGoal) return;
+
+    setPhaseUpdateLoading(true);
+    try {
+      const success = await updatePhases(editingPhases);
+      if (success) {
+        setIsEditingPhases(false);
+        setEditingPhases([]);
+        // Show success notification
+        showTaskCompleted('Phase updates saved successfully!');
+      }
+    } catch (error) {
+      console.error('Error saving phase changes:', error);
+    } finally {
+      setPhaseUpdateLoading(false);
+    }
+  };
+
+  // Update a specific phase
+  const updatePhase = (index: number, field: keyof MarketingPhase, value: string | number) => {
+    const updatedPhases = [...editingPhases];
+    updatedPhases[index] = { ...updatedPhases[index], [field]: value };
+    setEditingPhases(updatedPhases);
+  };
 
   if (isLoading) {
     return (
@@ -343,26 +387,134 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
 
             {/* Phase block - Dynamic based on current week */}
             <div className="mt-8 pt-6 border-t border-[#2A243E]">
-              <div className="flex items-center gap-3">
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center"
-                  style={{ 
-                    backgroundColor: activeGoal.currentPhase?.color || '#EF8E81' 
-                  }}
-                >
-                  <span className="text-white text-sm font-bold">
-                    {activeGoal.currentPhase?.id || '1'}
-                  </span>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    style={{ 
+                      backgroundColor: activeGoal.currentPhase?.color || '#EF8E81' 
+                    }}
+                  >
+                    <span className="text-white text-sm font-bold">
+                      {activeGoal.currentPhase?.id || '1'}
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">
+                      {activeGoal.currentPhase?.title || 'Phase 1: Spark Traffic'}
+                    </h2>
+                    <p className="text-gray-400 text-sm">
+                      {activeGoal.currentPhase?.description || 'Get people in the door immediately'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-white">
-                    {activeGoal.currentPhase?.title || 'Phase 1: Spark Traffic'}
-                  </h2>
-                  <p className="text-gray-400 text-sm">
-                    {activeGoal.currentPhase?.description || 'Get people in the door immediately'}
-                  </p>
-                </div>
+                
+                {/* Phase Edit Button */}
+                {activeGoal.phases && activeGoal.phases.length > 0 && (
+                  <button
+                    onClick={startEditingPhases}
+                    className="bg-[#2A243E] hover:bg-[#3A344E] text-gray-300 hover:text-white px-3 py-1 rounded-lg text-sm transition-colors"
+                  >
+                    Edit Phases
+                  </button>
+                )}
               </div>
+
+              {/* Phase Editor */}
+              {isEditingPhases && (
+                <div className="bg-[#141127] rounded-xl p-6 border border-[#2A243E] mb-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Edit Phases</h3>
+                  <div className="space-y-4">
+                    {editingPhases.map((phase, index) => (
+                      <div key={phase.id} className="bg-[#1B1628] rounded-lg p-4 border border-[#2A243E]">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Phase Title
+                            </label>
+                            <input
+                              type="text"
+                              value={phase.title}
+                              onChange={(e) => updatePhase(index, 'title', e.target.value)}
+                              className="w-full bg-[#2A243E] border border-[#3A344E] rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-[#EF8E81] focus:outline-none"
+                              placeholder="Phase title"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Color
+                            </label>
+                            <input
+                              type="color"
+                              value={phase.color}
+                              onChange={(e) => updatePhase(index, 'color', e.target.value)}
+                              className="w-full h-10 bg-[#2A243E] border border-[#3A344E] rounded-lg cursor-pointer"
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-4">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Description
+                          </label>
+                          <textarea
+                            value={phase.description}
+                            onChange={(e) => updatePhase(index, 'description', e.target.value)}
+                            className="w-full bg-[#2A243E] border border-[#3A344E] rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-[#EF8E81] focus:outline-none"
+                            placeholder="Phase description"
+                            rows={2}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mt-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Start Week
+                            </label>
+                            <input
+                              type="number"
+                              value={phase.startWeek}
+                              onChange={(e) => updatePhase(index, 'startWeek', parseInt(e.target.value) || 1)}
+                              min="1"
+                              max="12"
+                              className="w-full bg-[#2A243E] border border-[#3A344E] rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-[#EF8E81] focus:outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              End Week
+                            </label>
+                            <input
+                              type="number"
+                              value={phase.endWeek}
+                              onChange={(e) => updatePhase(index, 'endWeek', parseInt(e.target.value) || 1)}
+                              min="1"
+                              max="12"
+                              className="w-full bg-[#2A243E] border border-[#3A344E] rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-[#EF8E81] focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Save/Cancel Buttons */}
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={savePhaseChanges}
+                      disabled={phaseUpdateLoading}
+                      className="bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold py-2 px-4 rounded-lg hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {phaseUpdateLoading ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                      onClick={cancelEditingPhases}
+                      disabled={phaseUpdateLoading}
+                      className="bg-[#2A243E] hover:bg-[#3A344E] text-gray-300 hover:text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

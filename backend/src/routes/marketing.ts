@@ -663,6 +663,44 @@ router.post('/sync-notion/debug', routeRateLimit(2), async (req: Request, res: R
 });
 
 /**
+ * PUT /api/marketing/goals/:id/phases
+ * Update phases for a marketing goal
+ */
+router.put('/goals/:id/phases', routeRateLimit(10), validate((req) => {
+  const { phases } = req.body || {};
+  if (!Array.isArray(phases)) return 'Phases must be an array';
+  if (phases.length === 0) return 'At least one phase is required';
+  
+  for (const phase of phases) {
+    if (!phase.title) return 'Each phase must have a title';
+    if (!phase.description) return 'Each phase must have a description';
+    if (typeof phase.startWeek !== 'number' || phase.startWeek < 1) return 'Each phase must have a valid startWeek';
+    if (typeof phase.endWeek !== 'number' || phase.endWeek < 1) return 'Each phase must have a valid endWeek';
+    if (phase.startWeek > phase.endWeek) return 'Phase startWeek must be <= endWeek';
+  }
+  return undefined;
+}), async (req: Request, res: Response) => {
+  try {
+    const id = req.params['id'] as string;
+    const { phases } = req.body;
+    
+    const result = await MarketingService.updateMarketingGoalPhases(id, phases);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    return res.json(result);
+  } catch (error) {
+    console.error('Error updating phases:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
  * POST /api/marketing/goals/:id/seed-social
  * Seed a 12-week social media curriculum (modules + tasks) for a goal
  */
