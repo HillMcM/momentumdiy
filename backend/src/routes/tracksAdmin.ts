@@ -27,10 +27,21 @@ router.get('/definitions', async (_req, res) => {
 // POST /admin/tracks/definitions - Create new track definition
 router.post('/definitions', async (req, res) => {
   try {
-    const { slug, title, description, industry_tags, duration_weeks } = req.body;
+    const { slug, title, description, industry_tags, duration_weeks, phases } = req.body;
 
     if (!slug || !title || !description) {
       return res.status(400).json({ success: false, error: 'Missing required fields: slug, title, description' });
+    }
+
+    // Parse phases if it's a JSON string
+    let parsedPhases = phases;
+    if (phases && typeof phases === 'string') {
+      try {
+        parsedPhases = JSON.parse(phases);
+      } catch (parseError) {
+        console.error('Error parsing phases JSON:', parseError);
+        return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
+      }
     }
 
     const { data, error } = await supabase
@@ -40,7 +51,8 @@ router.post('/definitions', async (req, res) => {
         title,
         description,
         industry_tags: Array.isArray(industry_tags) ? industry_tags : [industry_tags].filter(Boolean),
-        duration_weeks: duration_weeks || 12
+        duration_weeks: duration_weeks || 12,
+        phases: parsedPhases || []
       }])
       .select()
       .single();
@@ -62,6 +74,16 @@ router.put('/definitions/:id', async (req, res) => {
     // Clean up industry_tags if provided
     if (updates.industry_tags && !Array.isArray(updates.industry_tags)) {
       updates.industry_tags = [updates.industry_tags].filter(Boolean);
+    }
+
+    // Parse phases if it's a JSON string
+    if (updates.phases && typeof updates.phases === 'string') {
+      try {
+        updates.phases = JSON.parse(updates.phases);
+      } catch (parseError) {
+        console.error('Error parsing phases JSON:', parseError);
+        return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
+      }
     }
 
     const { data, error } = await supabase
