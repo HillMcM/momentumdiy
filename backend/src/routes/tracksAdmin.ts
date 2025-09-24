@@ -86,6 +86,8 @@ router.put('/definitions/:id', async (req, res) => {
       }
     }
 
+    console.log('Updating track definition with data:', JSON.stringify(updates, null, 2));
+    
     const { data, error } = await supabase
       .from('marketing_track_definitions')
       .update(updates)
@@ -93,11 +95,20 @@ router.put('/definitions/:id', async (req, res) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error updating track definition:', error);
+      throw error;
+    }
+    
+    console.log('Successfully updated track definition:', data);
     return res.json({ success: true, data });
   } catch (error) {
     console.error('Error updating track definition:', error);
-    return res.status(500).json({ success: false, error: 'Failed to update track definition' });
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to update track definition',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

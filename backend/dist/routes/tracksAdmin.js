@@ -71,19 +71,27 @@ router.put('/definitions/:id', async (req, res) => {
                 return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
             }
         }
+        console.log('Updating track definition with data:', JSON.stringify(updates, null, 2));
         const { data, error } = await supabase_1.supabase
             .from('marketing_track_definitions')
             .update(updates)
             .eq('id', id)
             .select()
             .single();
-        if (error)
+        if (error) {
+            console.error('Supabase error updating track definition:', error);
             throw error;
+        }
+        console.log('Successfully updated track definition:', data);
         return res.json({ success: true, data });
     }
     catch (error) {
         console.error('Error updating track definition:', error);
-        return res.status(500).json({ success: false, error: 'Failed to update track definition' });
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to update track definition',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        });
     }
 });
 router.delete('/definitions/:id', async (req, res) => {
