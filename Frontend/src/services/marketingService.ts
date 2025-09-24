@@ -260,16 +260,12 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
       startDate: result.data.startDate ? new Date(result.data.startDate) : new Date(),
       weekStartDates: result.data.weekStartDates?.map((date: string) => new Date(date)) || [],
       lastWeekAdvancement: result.data.lastWeekAdvancement ? new Date(result.data.lastWeekAdvancement) : new Date(),
-      modules: result.data.modules?.map((module: any) => {
-        console.log('Raw module data:', module);
-        console.log('Module pro_tip:', module.pro_tip);
-        return {
-          ...module,
-          proTip: module.pro_tip,
-          unlockedAt: module.unlockedAt ? new Date(module.unlockedAt) : null,
-          completedAt: module.completedAt ? new Date(module.completedAt) : null,
-        };
-      }) || []
+      modules: result.data.modules?.map((module: any) => ({
+        ...module,
+        proTip: module.pro_tip,
+        unlockedAt: module.unlockedAt ? new Date(module.unlockedAt) : null,
+        completedAt: module.completedAt ? new Date(module.completedAt) : null,
+      })) || []
     } : null;
 
     console.log('✅ Transformed data:', transformedData);

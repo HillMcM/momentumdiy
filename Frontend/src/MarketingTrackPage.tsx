@@ -437,21 +437,16 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                             </div>
                             
                             {/* Pro Tip */}
-                            {(() => {
-                              console.log('Module data:', module);
-                              console.log('Pro tip value:', module.proTip);
-                              console.log('Pro tip exists:', !!module.proTip);
-                              return module.proTip && (
-                                <div className="bg-gradient-to-r from-[#EF8E81]/10 to-[#D4AF37]/10 rounded-xl p-6 border border-[#EF8E81]/20">
-                                  <h5 className="text-lg font-semibold text-[#EF8E81] mb-3 flex items-center gap-2">
-                                    <span>💡</span> Pro Tip
-                                  </h5>
-                                  <div className="text-gray-300 leading-relaxed">
-                                    {renderMarketingContent(module.proTip)}
-                                  </div>
+                            {module.proTip && (
+                              <div className="bg-gradient-to-r from-[#EF8E81]/10 to-[#D4AF37]/10 rounded-xl p-6 border border-[#EF8E81]/20">
+                                <h5 className="text-lg font-semibold text-[#EF8E81] mb-3 flex items-center gap-2">
+                                  <span>💡</span> Pro Tip
+                                </h5>
+                                <div className="text-gray-300 leading-relaxed">
+                                  {renderMarketingContent(module.proTip)}
                                 </div>
-                              );
-                            })()}
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="text-sm text-gray-400">
