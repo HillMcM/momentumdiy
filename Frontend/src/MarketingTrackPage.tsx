@@ -704,6 +704,7 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
           }}
         />
       )}
+
     </MarketingTrackProvider>
   );
 }// Pro tip functionality update Tue Sep 23 23:28:42 EDT 2025

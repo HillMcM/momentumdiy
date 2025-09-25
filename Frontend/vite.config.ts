@@ -11,6 +11,12 @@ export default defineConfig({
     hmr: {
       port: 5173,
       host: 'localhost'
+    },
+    // Force cache busting for development
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     }
   },
   preview: {
@@ -24,8 +30,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: './index.html',
-        app: './app.html'
+        main: './index.html'
       },
       output: {
         manualChunks: undefined,

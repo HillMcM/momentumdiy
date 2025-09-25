@@ -23,6 +23,7 @@ import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
 import { useSubscription } from './hooks/useSubscription';
+import EnvTest from './EnvTest';
 
 import { supabase } from './lib/supabase';
 // Removed mock data imports - using real database data only
@@ -1233,12 +1234,19 @@ function ProtectedApp() {
 }
 
 function App() {
+  // Debug environment variables
+  console.log('🔍 App.tsx - Environment variables:');
+  console.log('VITE_DISABLE_AUTH:', import.meta.env.VITE_DISABLE_AUTH);
+  console.log('VITE_DISABLE_AUTH type:', typeof import.meta.env.VITE_DISABLE_AUTH);
+  console.log('VITE_DISABLE_AUTH === "true":', import.meta.env.VITE_DISABLE_AUTH === 'true');
+  console.log('All env vars:', import.meta.env);
+  
   return (
     <Router>
       <OnboardingProvider>
         <Routes>
         {/* Public */}
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<><LandingPage /><EnvTest /></>} />
         <Route path="/auth" element={
           <div style={{ backgroundColor: 'blue', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '2rem' }}>
             AUTH ROUTE TEST - If you see this, routing works!

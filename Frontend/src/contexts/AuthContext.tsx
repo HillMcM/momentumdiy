@@ -31,9 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasShownWelcomeRef = useRef<boolean>(false);
   const { addNotification } = useNotifications();
 
-  // TEMPORARY: Bypass auth for feature branch testing
-  // TODO: Set to false before merging to main
-  const BYPASS_AUTH = false;
+  // Check if auth is disabled for local development
+  const BYPASS_AUTH = import.meta.env.VITE_DISABLE_AUTH === 'true';
+  
+  if (BYPASS_AUTH) {
+    console.log('🔓 AuthContext: Auth bypass enabled for local development');
+  }
 
   useEffect(() => {
     let isMounted = true;

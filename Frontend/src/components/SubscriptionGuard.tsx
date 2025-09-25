@@ -13,6 +13,20 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
   const { user, loading: authLoading } = useAuth();
   const { subscription, loading } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
+  
+  // Check if auth is disabled for local development
+  const isAuthDisabled = import.meta.env.VITE_DISABLE_AUTH === 'true';
+  
+  console.log('🔍 SubscriptionGuard - Environment check:');
+  console.log('VITE_DISABLE_AUTH:', import.meta.env.VITE_DISABLE_AUTH);
+  console.log('isAuthDisabled:', isAuthDisabled);
+
+  // If auth is disabled, bypass all checks and show the app
+  if (isAuthDisabled) {
+    console.log('🔓 Auth bypass enabled for local development');
+    console.log('🔓 Showing protected content:', children);
+    return <>{children}</>;
+  }
 
   useEffect(() => {
     if (!loading && subscription) {
