@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
+import { getPublishedTracks, activateTrack } from '../services/marketingService';
 
 // Types for onboarding data
 export interface OnboardingData {
@@ -32,6 +33,8 @@ interface OnboardingWizardProps {
 
 const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete, onSkip }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [availableTracks, setAvailableTracks] = useState<any[]>([]);
+  const [loadingTracks, setLoadingTracks] = useState(false);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     businessName: '',
     businessType: '',
@@ -48,6 +51,27 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
     notificationPreferences: [],
     checkInDay: 'monday'
   });
+
+  // Load available tracks when component mounts
+  useEffect(() => {
+    if (isOpen) {
+      loadAvailableTracks();
+    }
+  }, [isOpen]);
+
+  const loadAvailableTracks = async () => {
+    setLoadingTracks(true);
+    try {
+      const response = await getPublishedTracks();
+      if (response.success && response.data) {
+        setAvailableTracks(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading tracks:', error);
+    } finally {
+      setLoadingTracks(false);
+    }
+  };
 
   const totalSteps = 8; // Total steps across all phases
 
@@ -109,6 +133,18 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
       });
       
       console.log('✅ Onboarding data saved to profile');
+      
+      // Activate the selected track
+      if (onboardingData.selectedTrack) {
+        console.log('🎯 Activating selected track:', onboardingData.selectedTrack);
+        const trackResponse = await activateTrack(onboardingData.selectedTrack);
+        
+        if (trackResponse.success) {
+          console.log('✅ Track activated successfully');
+        } else {
+          console.error('❌ Failed to activate track:', trackResponse.error);
+        }
+      }
       
       // Call the completion handler and close the wizard
       console.log('🔧 Calling onComplete callback...');
@@ -602,94 +638,94 @@ const TrackSetupStep: React.FC<{
   const calculateRecommendedTrack = () => {
     const answers = data.quizAnswers;
     
-    // Simple scoring system
-    let localScore = 0;
-    let socialScore = 0;
+    // Find the best matching track from available tracks
+    if (availableTracks.length === 0) return null;
     
-    if (answers.quiz_1 === 'physical-only' || answers.quiz_1 === 'both') localScore += 2;
-    if (answers.quiz_2 === 'walk-ins') localScore += 2;
-    if (answers.quiz_2 === 'google-search') localScore += 1;
-    if (answers.quiz_3 === 'physical-traffic') localScore += 2;
-    
-    if (answers.quiz_1 === 'online-only' || answers.quiz_1 === 'both') socialScore += 2;
-    if (answers.quiz_2 === 'social-media') socialScore += 2;
-    if (answers.quiz_3 === 'online-presence') socialScore += 2;
-    
-    return localScore >= socialScore ? 'local-foot-traffic' : 'social-media-strategy';
+    // For now, recommend the first available track
+    // In the future, this could be more sophisticated matching based on quiz answers
+    return availableTracks[0];
   };
 
   const recommendedTrack = calculateRecommendedTrack();
-  const trackInfo = {
-    'local-foot-traffic': {
-      title: 'Increase Local Foot Traffic',
-      description: 'Perfect for businesses with a physical location looking to drive more local customers',
-      duration: '12 weeks',
-      focus: 'Local visibility, Google My Business, community engagement'
-    },
-    'social-media-strategy': {
-      title: 'Improve Social Media Strategy & Engagement',
-      description: 'Ideal for growing your online presence and building a loyal social media following',
-      duration: '12 weeks',
-      focus: 'Content strategy, engagement, growth tactics'
-    }
-  };
 
   switch (step) {
-    case 0: // Track Recommendation
+    case 0: // Track Selection
+      if (loadingTracks) {
+        return (
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81] mb-4"></div>
+            <p className="text-[#FFF1E7]">Loading available tracks...</p>
+          </div>
+        );
+      }
+
+      if (availableTracks.length === 0) {
+        return (
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-[#FFF1E7] mb-6">
+              Choose Your Marketing Track
+            </h2>
+            <div className="bg-[#EF8E81]/10 border border-[#EF8E81]/30 rounded-xl p-6">
+              <p className="text-[#FFF1E7]">
+                No marketing tracks are currently available. Please contact support or try again later.
+              </p>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className="max-w-2xl mx-auto">
           <h2 className="text-2xl font-bold text-[#FFF1E7] mb-6">
-            Your recommended track
+            Choose Your Marketing Track
           </h2>
           
-          <div className="bg-[#EF8E81]/10 border border-[#EF8E81]/30 rounded-xl p-6 mb-6">
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-[#EF8E81] rounded-lg flex items-center justify-center">
-                <span className="text-2xl">🎯</span>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-[#FFF1E7] mb-2">
-                  {trackInfo[recommendedTrack].title}
-                </h3>
-                <p className="text-[#FFF1E7]/80 mb-3">
-                  {trackInfo[recommendedTrack].description}
-                </p>
-                <div className="flex items-center space-x-4 text-sm text-[#FFF1E7]/70">
-                  <span>⏱️ {trackInfo[recommendedTrack].duration}</span>
-                  <span>🎯 {trackInfo[recommendedTrack].focus}</span>
+          {recommendedTrack && (
+            <div className="bg-[#EF8E81]/10 border border-[#EF8E81]/30 rounded-xl p-6 mb-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-[#EF8E81] rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">🎯</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-[#FFF1E7] mb-2">
+                    Recommended: {recommendedTrack.title}
+                  </h3>
+                  <p className="text-[#FFF1E7]/80 mb-3">
+                    {recommendedTrack.description}
+                  </p>
+                  <div className="flex items-center space-x-4 text-sm text-[#FFF1E7]/70">
+                    <span>⏱️ {recommendedTrack.duration_weeks} weeks</span>
+                    <span>🎯 {recommendedTrack.industry_tags?.join(', ') || 'Marketing strategy'}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-4">
-            <label className="flex items-center space-x-3 cursor-pointer p-4 bg-[#2A2438] rounded-lg hover:bg-[#2A2438]/80 transition-colors">
-              <input
-                type="radio"
-                name="selectedTrack"
-                value={recommendedTrack}
-                checked={data.selectedTrack === recommendedTrack}
-                onChange={(e) => onUpdate({ selectedTrack: e.target.value })}
-                className="w-4 h-4 text-[#EF8E81] bg-[#2A2438] border-[#EF8E81]/30 focus:ring-[#EF8E81]"
-              />
-              <span className="text-[#FFF1E7] font-medium">
-                Yes, start with the {trackInfo[recommendedTrack].title} track
-              </span>
-            </label>
-
-            <label className="flex items-center space-x-3 cursor-pointer p-4 bg-[#2A2438] rounded-lg hover:bg-[#2A2438]/80 transition-colors">
-              <input
-                type="radio"
-                name="selectedTrack"
-                value={recommendedTrack === 'local-foot-traffic' ? 'social-media-strategy' : 'local-foot-traffic'}
-                checked={data.selectedTrack === (recommendedTrack === 'local-foot-traffic' ? 'social-media-strategy' : 'local-foot-traffic')}
-                onChange={(e) => onUpdate({ selectedTrack: e.target.value })}
-                className="w-4 h-4 text-[#EF8E81] bg-[#2A2438] border-[#EF8E81]/30 focus:ring-[#EF8E81]"
-              />
-              <span className="text-[#FFF1E7] font-medium">
-                I'd prefer the {trackInfo[recommendedTrack === 'local-foot-traffic' ? 'social-media-strategy' : 'local-foot-traffic'].title} track
-              </span>
-            </label>
+            <h3 className="text-lg font-semibold text-[#FFF1E7] mb-4">Available Tracks:</h3>
+            {availableTracks.map((track) => (
+              <label key={track.id} className="flex items-start space-x-3 cursor-pointer p-4 bg-[#2A2438] rounded-lg hover:bg-[#2A2438]/80 transition-colors">
+                <input
+                  type="radio"
+                  name="selectedTrack"
+                  value={track.id}
+                  checked={data.selectedTrack === track.id}
+                  onChange={(e) => onUpdate({ selectedTrack: e.target.value })}
+                  className="w-4 h-4 text-[#EF8E81] bg-[#2A2438] border-[#EF8E81]/30 focus:ring-[#EF8E81] mt-1"
+                />
+                <div className="flex-1">
+                  <span className="text-[#FFF1E7] font-medium block mb-1">{track.title}</span>
+                  <span className="text-[#FFF1E7]/70 text-sm">{track.description}</span>
+                  <div className="flex items-center space-x-4 text-xs text-[#FFF1E7]/50 mt-2">
+                    <span>⏱️ {track.duration_weeks} weeks</span>
+                    {track.industry_tags && track.industry_tags.length > 0 && (
+                      <span>🏷️ {track.industry_tags.join(', ')}</span>
+                    )}
+                  </div>
+                </div>
+              </label>
+            ))}
           </div>
         </div>
       );
@@ -758,7 +794,7 @@ const TrackSetupStep: React.FC<{
                 You'll start seeing results within your first week!
               </p>
               <div className="text-sm text-[#FFF1E7]/70">
-                <p>✓ Your {trackInfo[data.selectedTrack as keyof typeof trackInfo]?.title} track is ready</p>
+                <p>✓ Your {availableTracks.find(t => t.id === data.selectedTrack)?.title || 'marketing'} track is ready</p>
                 <p>✓ First week's tasks are queued up</p>
                 <p>✓ Progress tracking is enabled</p>
                 <p>✓ Notifications are configured</p>
