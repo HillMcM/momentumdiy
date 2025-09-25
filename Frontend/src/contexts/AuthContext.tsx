@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { addNotification } = useNotifications();
 
   // Check if auth is disabled for local development
-  const BYPASS_AUTH = import.meta.env.VITE_DISABLE_AUTH === 'true';
+  const BYPASS_AUTH = import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE';
   
   if (BYPASS_AUTH) {
     console.log('🔓 AuthContext: Auth bypass enabled for local development');
