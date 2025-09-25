@@ -1,12 +1,7 @@
 {
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/app/(.*)", "destination": "/app.html" },
-    { "source": "/auth", "destination": "/app.html" },
-    { "source": "/pricing", "destination": "/app.html" },
-    { "source": "/checkout/(.*)", "destination": "/app.html" },
-    { "source": "/feedback", "destination": "/app.html" },
-    { "source": "/terms", "destination": "/app.html" }
+    { "source": "/((?!api/).*)", "destination": "/app.html" }
   ],
   "headers": [
     {
