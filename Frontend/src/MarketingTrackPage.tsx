@@ -4,6 +4,7 @@ import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 import { MarketingTrackProvider } from './contexts/MarketingTrackContext';
 import type { MarketingGoal, MarketingTask, Task, MarketingPhase } from './types';
 import TaskModal from './components/marketingTrack/TaskModal';
+import MarkdownRenderer from './components/MarkdownRenderer';
 import { getPublishedTracks, activateTrack, updateMarketingGoalPhases } from './services/marketingService';
 import { renderContentPreview, renderMarketingContent } from './utils/contentRenderer';
 import { BACKEND_BASE_URL } from './services/api';
@@ -381,6 +382,39 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
               const isCurrentWeek = module.weekNumber === activeGoal.currentWeek;
               const isUnlocked = module.isUnlocked || module.weekNumber <= activeGoal.currentWeek;
 
+              // Condensed view for locked weeks
+              if (!isUnlocked) {
+                return (
+                  <div 
+                    key={module.id}
+                    className="bg-[#1B1628] rounded-xl border border-[#2A243E] p-4 opacity-75"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">{module.weekNumber}</span>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-300">{module.title}</h3>
+                          <p className="text-gray-500 text-sm">{totalTasks} tasks</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-gray-500 text-sm">Locked</span>
+                        </div>
+                        <div className="w-16 bg-gray-700 rounded-full h-1.5">
+                          <div className="w-0 h-full bg-gray-600 rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div 
                   key={module.id}
@@ -437,9 +471,7 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                             {/* Weekly Lesson */}
                             <div className="bg-[#141127] rounded-xl p-6 border border-[#2A243E]">
                               <h4 className="text-lg font-semibold text-white mb-4">Weekly Lesson</h4>
-                              <div className="space-y-4">
-                                {renderMarketingContent(module.content)}
-                              </div>
+                              <MarkdownRenderer content={module.content} />
                             </div>
                             
                             {/* Pro Tip */}
@@ -452,9 +484,7 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                                   <h5 className="text-lg font-semibold text-[#EF8E81] mb-3 flex items-center gap-2">
                                     <span>💡</span> Pro Tip
                                   </h5>
-                                  <div className="text-gray-300 leading-relaxed">
-                                    {renderMarketingContent(module.proTip)}
-                                  </div>
+                                  <MarkdownRenderer content={module.proTip} />
                                 </div>
                               );
                             })()}
@@ -520,19 +550,6 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                     </div>
                   )}
 
-                  {/* Locked State */}
-                  {!isUnlocked && (
-                    <div className="p-6">
-                      <div className="text-center py-8 text-gray-500">
-                        <div className="w-12 h-12 mx-auto mb-3 bg-gray-600 rounded-full flex items-center justify-center">
-                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <p className="text-sm">This week will unlock automatically</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}
