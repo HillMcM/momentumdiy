@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { MarketingGoal, Task } from './types';
 import { supabase } from './lib/supabase';
-import SocialMediaGeneratorApp from './components/socialGenerator/SocialMediaGeneratorApp';
 
 interface AIMarketingAssistantProps {
   marketingGoals?: MarketingGoal[];
@@ -63,7 +62,6 @@ const mapBusinessSizeToExperience = (businessSize?: string | null): string => {
 };
 
 export default function AIMarketingAssistant({ marketingGoals = [], tasks = [] }: AIMarketingAssistantProps) {
-  const [isImageGeneratorOpen, setIsImageGeneratorOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -232,21 +230,8 @@ export default function AIMarketingAssistant({ marketingGoals = [], tasks = [] }
           <button onClick={() => setInputValue('I feel overwhelmed with marketing. What should I focus on?')}>
             Simplify My Approach
           </button>
-          <button 
-            onClick={() => setIsImageGeneratorOpen(true)}
-            className="social-generator-button"
-          >
-            🎨 Create Social Media Images
-          </button>
         </div>
       </div>
-
-      {/* AI Social Media Generator */}
-      <SocialMediaGeneratorApp
-        isOpen={isImageGeneratorOpen}
-        onClose={() => setIsImageGeneratorOpen(false)}
-        initialText={marketingGoals[0]?.title || 'Your awesome post content goes here!'}
-      />
     </div>
   );
 }

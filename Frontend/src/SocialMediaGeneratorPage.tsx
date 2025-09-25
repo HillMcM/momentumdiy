@@ -113,7 +113,19 @@ export default function SocialMediaGeneratorPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Start Creating</h2>
-            <p className="text-lg text-white/80">Use the generator below to create your next viral social media post</p>
+            <p className="text-lg text-white/80 mb-8">Use the generator below to create your next viral social media post</p>
+            <div className="bg-gradient-to-r from-[#EF8E81] to-[#65170C] rounded-2xl p-8 max-w-2xl mx-auto">
+              <h3 className="text-2xl font-bold mb-4">Ready to Generate?</h3>
+              <p className="text-white/90 mb-6">
+                Enter your post content below and let Gemini Nano Banana AI create 4 unique, 
+                brand-aware social media graphics in seconds!
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <span className="bg-white/20 rounded-full px-4 py-2 text-sm font-semibold">⚡ Under 30 seconds</span>
+                <span className="bg-white/20 rounded-full px-4 py-2 text-sm font-semibold">🎨 4 unique designs</span>
+                <span className="bg-white/20 rounded-full px-4 py-2 text-sm font-semibold">🎯 Brand aware</span>
+              </div>
+            </div>
           </div>
           <SocialMediaGeneratorApp />
         </div>

@@ -426,7 +426,7 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
             className={isActive('/app/social-generator') ? 'active' : ''}
             onClick={() => handleLinkClick('/app/social-generator')}
           >
-            🎨 Social Media Generator
+            Social Media Generator
           </Link>
         </li>
         <li>
