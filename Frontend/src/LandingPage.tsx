@@ -16,6 +16,8 @@ export default function LandingPage() {
         <p>Finally, marketing feels doable again. Step‑by‑step weekly plans, an AI sidekick, and an asset library — built for busy small‑business owners.</p>
         <div className="landing-cta">
           <Link to="/auth" className="cta-btn">Start Free Trial</Link>
+          <Link to="/app" className="cta-btn" style={{ marginLeft: '1rem', background: '#10b981' }}>🚀 Go to App (Dev)</Link>
+          <Link to="/app" className="cta-btn" style={{ marginLeft: '1rem', background: '#10b981' }}>🚀 Go to App (Dev)</Link>
           <div className="landing-subtext">30 days free • No credit card required</div>
         </div>
       </section>
@@ -46,6 +48,7 @@ export default function LandingPage() {
         </div>
         <div className="landing-cta" style={{marginTop: '1rem'}}>
           <Link to="/auth" className="cta-btn">Start Free Trial</Link>
+          <Link to="/app" className="cta-btn" style={{ marginLeft: '1rem', background: '#10b981' }}>🚀 Go to App (Dev)</Link>
         </div>
       </section>
 
@@ -76,6 +79,7 @@ export default function LandingPage() {
         </div>
         <div className="landing-cta" style={{marginTop: '1rem'}}>
           <Link to="/auth" className="cta-btn">Start Free Trial</Link>
+          <Link to="/app" className="cta-btn" style={{ marginLeft: '1rem', background: '#10b981' }}>🚀 Go to App (Dev)</Link>
         </div>
       </section>
 
@@ -94,6 +98,7 @@ export default function LandingPage() {
         </div>
         <div className="landing-cta" style={{marginTop: '1rem'}}>
           <Link to="/auth" className="cta-btn">Start Free Trial</Link>
+          <Link to="/app" className="cta-btn" style={{ marginLeft: '1rem', background: '#10b981' }}>🚀 Go to App (Dev)</Link>
         </div>
       </section>
 
