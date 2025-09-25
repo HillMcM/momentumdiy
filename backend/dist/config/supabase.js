@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.supabasePublic = exports.supabase = void 0;
+exports.supabaseAuth = exports.supabasePublic = exports.supabase = void 0;
 const supabase_js_1 = require("@supabase/supabase-js");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -17,5 +17,11 @@ exports.supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseServiceK
 });
 const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 exports.supabasePublic = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey);
+exports.supabaseAuth = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey, {
+    auth: {
+        autoRefreshToken: false,
+        persistSession: false
+    }
+});
 exports.default = exports.supabase;
 //# sourceMappingURL=supabase.js.map

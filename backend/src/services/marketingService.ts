@@ -61,22 +61,26 @@ export class MarketingService {
   /**
    * Get active marketing goal for the authenticated user
    */
-  static async getActiveMarketingGoal(): Promise<ApiResponse<MarketingGoal | null>> {
+  static async getActiveMarketingGoal(userId?: string): Promise<ApiResponse<MarketingGoal | null>> {
     try {
-      // Get current user ID from auth context
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        return {
-          success: false,
-          error: 'User not authenticated'
-        };
+      // Get current user ID from parameter or auth context
+      let currentUserId = userId;
+      if (!currentUserId) {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          return {
+            success: false,
+            error: 'User not authenticated'
+          };
+        }
+        currentUserId = user.id;
       }
 
       // Get user's profile with track information
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', currentUserId)
         .single();
 
       if (profileError) {
@@ -359,7 +363,7 @@ export class MarketingService {
    * Activate a track definition for the authenticated user
    * This stores track progress in the user's profile
    */
-  static async activateTrackForUser(trackDefinitionId: string): Promise<ApiResponse<MarketingGoal>> {
+  static async activateTrackForUser(trackDefinitionId: string, userId?: string): Promise<ApiResponse<MarketingGoal>> {
     try {
       // Get the track definition
       const { data: trackDef, error: trackError } = await supabase
@@ -375,13 +379,17 @@ export class MarketingService {
         };
       }
 
-      // Get current user ID from auth context
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        return {
-          success: false,
-          error: 'User not authenticated'
-        };
+      // Get current user ID from parameter or auth context
+      let currentUserId = userId;
+      if (!currentUserId) {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          return {
+            success: false,
+            error: 'User not authenticated'
+          };
+        }
+        currentUserId = user.id;
       }
 
       // Update user's profile with track information
@@ -398,7 +406,7 @@ export class MarketingService {
           track_completion_date: null,
           updated_at: now.toISOString()
         })
-        .eq('id', user.id);
+        .eq('id', currentUserId);
 
       if (updateError) {
         return {

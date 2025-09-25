@@ -19,4 +19,12 @@ const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] || 'eyJhbGciOiJIUzI1NiI
 
 export const supabasePublic = createClient(supabaseUrl, supabaseAnonKey);
 
+// Create Supabase client for user authentication (uses anon key but can validate user tokens)
+export const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
+
 export default supabase; 

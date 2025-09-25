@@ -33,15 +33,14 @@ router.get('/goals/active', async (req, res) => {
             });
         }
         const token = authHeader.substring(7);
-        const { data: { user }, error: authError } = await supabase_1.supabase.auth.getUser(token);
+        const { data: { user }, error: authError } = await supabase_1.supabaseAuth.auth.getUser(token);
         if (authError || !user) {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid or expired token'
             });
         }
-        supabase_1.supabase.auth.setSession({ access_token: token, refresh_token: '' });
-        const result = await marketingService_1.MarketingService.getActiveMarketingGoal();
+        const result = await marketingService_1.MarketingService.getActiveMarketingGoal(user.id);
         if (!result.success) {
             return res.status(400).json(result);
         }
@@ -146,15 +145,14 @@ router.patch('/tracks/:id/activate', async (req, res) => {
             });
         }
         const token = authHeader.substring(7);
-        const { data: { user }, error: authError } = await supabase_1.supabase.auth.getUser(token);
+        const { data: { user }, error: authError } = await supabase_1.supabaseAuth.auth.getUser(token);
         if (authError || !user) {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid or expired token'
             });
         }
-        supabase_1.supabase.auth.setSession({ access_token: token, refresh_token: '' });
-        const result = await marketingService_1.MarketingService.activateTrackForUser(trackDefinitionId);
+        const result = await marketingService_1.MarketingService.activateTrackForUser(trackDefinitionId, user.id);
         if (!result.success) {
             return res.status(400).json(result);
         }
