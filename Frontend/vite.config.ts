@@ -34,10 +34,10 @@ export default defineConfig({
       },
       output: {
         manualChunks: undefined,
-        // Force cache busting
-        entryFileNames: `assets/[name]-[hash]-v6.js`,
-        chunkFileNames: `assets/[name]-[hash]-v6.js`,
-        assetFileNames: `assets/[name]-[hash]-v6.[ext]`
+             // Force cache busting
+             entryFileNames: `assets/[name]-[hash]-v7.js`,
+             chunkFileNames: `assets/[name]-[hash]-v7.js`,
+             assetFileNames: `assets/[name]-[hash]-v7.[ext]`
       }
     }
   },
