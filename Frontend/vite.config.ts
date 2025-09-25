@@ -30,7 +30,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: './app.html'
+        main: './public/app.html'
       },
       output: {
         manualChunks: undefined,
