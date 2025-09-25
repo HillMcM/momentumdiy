@@ -3,7 +3,7 @@ import { BACKEND_BASE_URL } from './api';
 
 // Get published marketing tracks available for selection
 export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>> {
-  const url = `${BACKEND_BASE_URL}/api/marketing/goals`;
+  const url = `${BACKEND_BASE_URL}/api/marketing/goals?t=${Date.now()}`;
   console.log('🔍 Fetching published tracks from:', url);
   
   try {
@@ -11,6 +11,9 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
     });
 
@@ -217,7 +220,7 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
     };
   }
 
-  const url = `${BACKEND_BASE_URL}/api/marketing/goals/active`;
+  const url = `${BACKEND_BASE_URL}/api/marketing/goals/active?t=${Date.now()}`;
   console.log('🔍 Fetching from:', url);
   console.log('🔍 BACKEND_BASE_URL:', BACKEND_BASE_URL);
   
@@ -226,6 +229,9 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
     });
 
@@ -291,13 +297,16 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
 
 // Get marketing goal by ID
 export async function getMarketingGoal(goalId: string): Promise<ApiResponse<MarketingGoal>> {
-  const url = `${BACKEND_BASE_URL}/api/marketing/goals/${goalId}`;
+  const url = `${BACKEND_BASE_URL}/api/marketing/goals/${goalId}?t=${Date.now()}`;
   
   try {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
     });
 
