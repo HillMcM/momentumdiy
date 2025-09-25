@@ -15,10 +15,11 @@ export class MarketingService {
    */
   static async getMarketingGoals(): Promise<ApiResponse<MarketingGoal[]>> {
     try {
-      // Get track definitions instead of marketing goals
+      // Get published track definitions only
       const { data, error } = await supabase
         .from('marketing_track_definitions')
         .select('*')
+        .eq('published', true)
         .order('created_at', { ascending: false });
 
       if (error) {
