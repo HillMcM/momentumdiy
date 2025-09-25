@@ -32,24 +32,57 @@ class MarketingService {
     }
     static async getActiveMarketingGoal() {
         try {
-            const { data, error } = await supabase_1.supabase
-                .from('marketing_goals')
-                .select('*')
-                .eq('is_active', true)
-                .single();
-            if (error) {
-                if (error.code === 'PGRST116') {
-                    return {
-                        success: true,
-                        data: null
-                    };
-                }
+            const { data: { user }, error: userError } = await supabase_1.supabase.auth.getUser();
+            if (userError || !user) {
                 return {
                     success: false,
-                    error: error.message
+                    error: 'User not authenticated'
                 };
             }
-            const goal = await this.mapDatabaseGoalToGoal(data);
+            const { data: profile, error: profileError } = await supabase_1.supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+            if (profileError) {
+                return {
+                    success: false,
+                    error: profileError.message
+                };
+            }
+            if (!profile.active_track_id) {
+                return {
+                    success: true,
+                    data: null
+                };
+            }
+            const { data: trackDef, error: trackError } = await supabase_1.supabase
+                .from('marketing_track_definitions')
+                .select('*')
+                .eq('id', profile.active_track_id)
+                .single();
+            if (trackError) {
+                return {
+                    success: false,
+                    error: trackError.message
+                };
+            }
+            const goal = {
+                id: trackDef.id,
+                title: trackDef.title,
+                description: trackDef.description || '',
+                industry: trackDef.industry_tags?.[0] || 'General',
+                duration: trackDef.duration_weeks,
+                isActive: true,
+                startDate: profile.track_start_date || new Date().toISOString(),
+                currentWeek: profile.track_current_week || 1,
+                progress: profile.track_progress || 0,
+                weekStartDates: profile.track_week_start_dates || [],
+                lastWeekAdvancement: profile.track_last_week_advancement,
+                trackDefinitionId: trackDef.id,
+                phases: trackDef.phases || [],
+                modules: []
+            };
             return {
                 success: true,
                 data: goal
@@ -265,38 +298,49 @@ class MarketingService {
                     error: trackError.message
                 };
             }
-            const { error: deactivateError } = await supabase_1.supabase
-                .from('marketing_goals')
-                .update({ is_active: false });
-            if (deactivateError) {
-                console.warn('Warning: Could not deactivate existing goals:', deactivateError.message);
-            }
-            const now = new Date();
-            const { data: newGoal, error: createError } = await supabase_1.supabase
-                .from('marketing_goals')
-                .insert({
-                title: trackDef.title,
-                description: trackDef.description,
-                industry: trackDef.industry_tags?.[0] || 'General',
-                duration: trackDef.duration_weeks,
-                is_active: true,
-                start_date: now.toISOString(),
-                current_week: 1,
-                progress: 0,
-                week_start_dates: [now.toISOString()],
-                last_week_advancement: null,
-                track_definition_id: trackDefinitionId,
-                phases: trackDef.phases || []
-            })
-                .select()
-                .single();
-            if (createError) {
+            const { data: { user }, error: userError } = await supabase_1.supabase.auth.getUser();
+            if (userError || !user) {
                 return {
                     success: false,
-                    error: createError.message
+                    error: 'User not authenticated'
                 };
             }
-            const goal = await this.mapDatabaseGoalToGoal(newGoal);
+            const now = new Date();
+            const { error: updateError } = await supabase_1.supabase
+                .from('profiles')
+                .update({
+                active_track_id: trackDefinitionId,
+                track_start_date: now.toISOString(),
+                track_current_week: 1,
+                track_progress: 0,
+                track_week_start_dates: [now.toISOString()],
+                track_last_week_advancement: null,
+                track_completion_date: null,
+                updated_at: now.toISOString()
+            })
+                .eq('id', user.id);
+            if (updateError) {
+                return {
+                    success: false,
+                    error: updateError.message
+                };
+            }
+            const goal = {
+                id: trackDefinitionId,
+                title: trackDef.title,
+                description: trackDef.description || '',
+                industry: trackDef.industry_tags?.[0] || 'General',
+                duration: trackDef.duration_weeks,
+                isActive: true,
+                startDate: now.toISOString(),
+                currentWeek: 1,
+                progress: 0,
+                weekStartDates: [now.toISOString()],
+                lastWeekAdvancement: null,
+                trackDefinitionId: trackDefinitionId,
+                phases: trackDef.phases || [],
+                modules: []
+            };
             return {
                 success: true,
                 data: goal
@@ -686,11 +730,11 @@ class MarketingService {
             currentPhase: currentPhase,
         };
         if (dbGoal.start_date)
-            goal.startDate = new Date(dbGoal.start_date);
+            goal.startDate = dbGoal.start_date;
         if (dbGoal.week_start_dates)
-            goal.weekStartDates = dbGoal.week_start_dates.map((date) => new Date(date));
+            goal.weekStartDates = dbGoal.week_start_dates;
         if (dbGoal.last_week_advancement)
-            goal.lastWeekAdvancement = new Date(dbGoal.last_week_advancement);
+            goal.lastWeekAdvancement = dbGoal.last_week_advancement;
         return goal;
     }
     static async mapDatabaseModuleToModule(dbModule) {

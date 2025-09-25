@@ -50,27 +50,68 @@ export class MarketingService {
    */
   static async getActiveMarketingGoal(): Promise<ApiResponse<MarketingGoal | null>> {
     try {
-      const { data, error } = await supabase
-        .from('marketing_goals')
-        .select('*')
-        .eq('is_active', true)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No active goal found
-          return {
-            success: true,
-            data: null
-          };
-        }
+      // Get current user ID from auth context
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
         return {
           success: false,
-          error: error.message
+          error: 'User not authenticated'
         };
       }
 
-      const goal = await this.mapDatabaseGoalToGoal(data as any);
+      // Get user's profile with track information
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        return {
+          success: false,
+          error: profileError.message
+        };
+      }
+
+      // If no active track, return null
+      if (!profile.active_track_id) {
+        return {
+          success: true,
+          data: null
+        };
+      }
+
+      // Get the track definition
+      const { data: trackDef, error: trackError } = await supabase
+        .from('marketing_track_definitions')
+        .select('*')
+        .eq('id', profile.active_track_id)
+        .single();
+
+      if (trackError) {
+        return {
+          success: false,
+          error: trackError.message
+        };
+      }
+
+      // Create MarketingGoal object from track definition + user progress
+      const goal: MarketingGoal = {
+        id: trackDef.id,
+        title: trackDef.title,
+        description: trackDef.description || '',
+        industry: trackDef.industry_tags?.[0] || 'General',
+        duration: trackDef.duration_weeks,
+        isActive: true,
+        startDate: profile.track_start_date || new Date().toISOString(),
+        currentWeek: profile.track_current_week || 1,
+        progress: profile.track_progress || 0,
+        weekStartDates: profile.track_week_start_dates || [],
+        lastWeekAdvancement: profile.track_last_week_advancement,
+        trackDefinitionId: trackDef.id,
+        phases: trackDef.phases || [],
+        modules: [] // Will be populated by getMarketingModules
+      };
 
       return {
         success: true,
@@ -303,7 +344,7 @@ export class MarketingService {
 
   /**
    * Activate a track definition for the authenticated user
-   * This creates a new marketing goal instance for the user
+   * This stores track progress in the user's profile
    */
   static async activateTrackForUser(trackDefinitionId: string): Promise<ApiResponse<MarketingGoal>> {
     try {
@@ -321,44 +362,56 @@ export class MarketingService {
         };
       }
 
-      // Deactivate any existing goals for this user
-      const { error: deactivateError } = await supabase
-        .from('marketing_goals')
-        .update({ is_active: false });
-
-      if (deactivateError) {
-        console.warn('Warning: Could not deactivate existing goals:', deactivateError.message);
-      }
-
-      // Create a new marketing goal for this user
-      const now = new Date();
-      const { data: newGoal, error: createError } = await supabase
-        .from('marketing_goals')
-        .insert({
-          title: trackDef.title,
-          description: trackDef.description,
-          industry: trackDef.industry_tags?.[0] || 'General',
-          duration: trackDef.duration_weeks,
-          is_active: true,
-          start_date: now.toISOString(),
-          current_week: 1,
-          progress: 0,
-          week_start_dates: [now.toISOString()],
-          last_week_advancement: null,
-          track_definition_id: trackDefinitionId,
-          phases: trackDef.phases || []
-        })
-        .select()
-        .single();
-
-      if (createError) {
+      // Get current user ID from auth context
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
         return {
           success: false,
-          error: createError.message
+          error: 'User not authenticated'
         };
       }
 
-      const goal = await this.mapDatabaseGoalToGoal(newGoal as any);
+      // Update user's profile with track information
+      const now = new Date();
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          active_track_id: trackDefinitionId,
+          track_start_date: now.toISOString(),
+          track_current_week: 1,
+          track_progress: 0,
+          track_week_start_dates: [now.toISOString()],
+          track_last_week_advancement: null,
+          track_completion_date: null,
+          updated_at: now.toISOString()
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        return {
+          success: false,
+          error: updateError.message
+        };
+      }
+
+      // Create a MarketingGoal object from the track definition for API consistency
+      const goal: MarketingGoal = {
+        id: trackDefinitionId, // Use track definition ID as goal ID
+        title: trackDef.title,
+        description: trackDef.description || '',
+        industry: trackDef.industry_tags?.[0] || 'General',
+        duration: trackDef.duration_weeks,
+        isActive: true,
+        startDate: now.toISOString(),
+        currentWeek: 1,
+        progress: 0,
+        weekStartDates: [now.toISOString()],
+        lastWeekAdvancement: null,
+        trackDefinitionId: trackDefinitionId,
+        phases: trackDef.phases || [],
+        modules: [] // Will be populated by getMarketingModules
+      };
+
       return {
         success: true,
         data: goal
@@ -819,9 +872,9 @@ export class MarketingService {
       phases: phases,
       currentPhase: currentPhase,
     };
-    if (dbGoal.start_date) goal.startDate = new Date(dbGoal.start_date);
-    if (dbGoal.week_start_dates) goal.weekStartDates = dbGoal.week_start_dates.map((date: string) => new Date(date));
-    if (dbGoal.last_week_advancement) goal.lastWeekAdvancement = new Date(dbGoal.last_week_advancement);
+    if (dbGoal.start_date) goal.startDate = dbGoal.start_date;
+    if (dbGoal.week_start_dates) goal.weekStartDates = dbGoal.week_start_dates;
+    if (dbGoal.last_week_advancement) goal.lastWeekAdvancement = dbGoal.last_week_advancement;
     return goal;
   }
 

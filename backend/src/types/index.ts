@@ -105,13 +105,14 @@ export interface MarketingGoal {
   duration: number; // in weeks
   modules: MarketingModule[];
   isActive: boolean;
-  startDate?: Date;
+  startDate?: string; // ISO string for API consistency
   currentWeek: number;
   progress: number; // percentage complete
-  weekStartDates?: Date[]; // Array of dates when each week was started
-  lastWeekAdvancement?: Date; // Date when the last week advancement occurred
+  weekStartDates?: string[]; // Array of ISO strings when each week was started
+  lastWeekAdvancement?: string | null; // ISO string when the last week advancement occurred
   phases?: MarketingPhase[]; // Phase information from track definition
   currentPhase?: MarketingPhase; // Current phase based on current week
+  trackDefinitionId?: string; // Reference to the track definition
 }
 
 // Calendar Types

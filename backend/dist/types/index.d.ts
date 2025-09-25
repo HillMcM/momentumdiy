@@ -80,13 +80,14 @@ export interface MarketingGoal {
     duration: number;
     modules: MarketingModule[];
     isActive: boolean;
-    startDate?: Date;
+    startDate?: string;
     currentWeek: number;
     progress: number;
-    weekStartDates?: Date[];
-    lastWeekAdvancement?: Date;
+    weekStartDates?: string[];
+    lastWeekAdvancement?: string | null;
     phases?: MarketingPhase[];
     currentPhase?: MarketingPhase;
+    trackDefinitionId?: string;
 }
 export interface CalendarEvent {
     id: string;
