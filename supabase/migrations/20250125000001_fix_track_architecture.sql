@@ -1,15 +1,44 @@
 -- Fix marketing track architecture for scalability
 -- Instead of duplicating marketing_goals per user, store track progress in profiles
 
--- Add track progress fields to profiles table
-ALTER TABLE public.profiles 
-ADD COLUMN active_track_id UUID REFERENCES public.marketing_track_definitions(id) ON DELETE SET NULL,
-ADD COLUMN track_start_date TIMESTAMP WITH TIME ZONE,
-ADD COLUMN track_current_week INTEGER DEFAULT 1,
-ADD COLUMN track_progress INTEGER DEFAULT 0 CHECK (track_progress >= 0 AND track_progress <= 100),
-ADD COLUMN track_week_start_dates JSONB DEFAULT '[]'::jsonb,
-ADD COLUMN track_last_week_advancement TIMESTAMP WITH TIME ZONE,
-ADD COLUMN track_completion_date TIMESTAMP WITH TIME ZONE;
+-- Add track progress fields to profiles table (only if they don't exist)
+DO $$ 
+BEGIN
+    -- Add active_track_id column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'active_track_id') THEN
+        ALTER TABLE public.profiles ADD COLUMN active_track_id UUID REFERENCES public.marketing_track_definitions(id) ON DELETE SET NULL;
+    END IF;
+    
+    -- Add track_start_date column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'track_start_date') THEN
+        ALTER TABLE public.profiles ADD COLUMN track_start_date TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- Add track_current_week column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'track_current_week') THEN
+        ALTER TABLE public.profiles ADD COLUMN track_current_week INTEGER DEFAULT 1;
+    END IF;
+    
+    -- Add track_progress column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'track_progress') THEN
+        ALTER TABLE public.profiles ADD COLUMN track_progress INTEGER DEFAULT 0 CHECK (track_progress >= 0 AND track_progress <= 100);
+    END IF;
+    
+    -- Add track_week_start_dates column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'track_week_start_dates') THEN
+        ALTER TABLE public.profiles ADD COLUMN track_week_start_dates JSONB DEFAULT '[]'::jsonb;
+    END IF;
+    
+    -- Add track_last_week_advancement column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'track_last_week_advancement') THEN
+        ALTER TABLE public.profiles ADD COLUMN track_last_week_advancement TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- Add track_completion_date column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'track_completion_date') THEN
+        ALTER TABLE public.profiles ADD COLUMN track_completion_date TIMESTAMP WITH TIME ZONE;
+    END IF;
+END $$;
 
 -- Create index for efficient track queries
 CREATE INDEX IF NOT EXISTS idx_profiles_active_track ON public.profiles(active_track_id);
@@ -23,7 +52,12 @@ DROP POLICY IF EXISTS "Admins can manage all marketing goals" ON public.marketin
 
 -- Revert the marketing_goals table changes since we're using a different approach
 -- Remove user_id from marketing_goals (these should be global track definitions)
-ALTER TABLE public.marketing_goals DROP COLUMN IF EXISTS user_id;
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'marketing_goals' AND column_name = 'user_id') THEN
+        ALTER TABLE public.marketing_goals DROP COLUMN user_id;
+    END IF;
+END $$;
 
 -- Restore original marketing_goals policies (global track management)
 CREATE POLICY "Authenticated users can view marketing goals" ON public.marketing_goals 
