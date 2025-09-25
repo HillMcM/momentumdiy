@@ -12,7 +12,14 @@ interface TaskTrackerPageProps {
 export default function TaskTrackerPage({ projects, tasks, onTasksChange, onProjectsChange, marketingGoals }: TaskTrackerPageProps) {
   const activeGoal = marketingGoals.find(g => g.isActive);
   const visibleTasks = activeGoal 
-    ? tasks.filter(t => t.marketingTrack && t.marketingTrack.goalId === activeGoal.id)
+    ? tasks.filter(t => {
+        // Only show marketing track tasks that belong to the active goal and are in unlocked modules
+        if (t.marketingTrack && t.marketingTrack.goalId === activeGoal.id) {
+          const module = activeGoal.modules.find(m => m.id === t.marketingTrack!.moduleId);
+          return module ? module.isUnlocked : false;
+        }
+        return false;
+      })
     : tasks;
 
   const handleSubsetTasksChange = (updatedVisible: Task[]) => {

@@ -32,12 +32,12 @@ export default function SocialMediaGeneratorPage() {
             </div>
             
             {/* Start Creating Button */}
-            <div className="mb-8">
+            <div className="mb-8 flex justify-center">
               <button
                 onClick={() => setIsGeneratorOpen(true)}
                 className="bg-[#EF8E81] text-[#0F0A1A] font-bold px-12 py-4 rounded-full hover:bg-[#EF8E81]/90 transition-colors text-xl shadow-lg"
               >
-                🎨 Start Creating
+                Start Creating
               </button>
             </div>
           </div>
