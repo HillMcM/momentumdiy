@@ -1,5 +1,6 @@
 import React from 'react';
 import type { MarketingTask } from '../../types';
+import MarkdownRenderer from '../MarkdownRenderer';
 
 interface TaskModalProps {
   task: MarketingTask | null;
@@ -73,7 +74,7 @@ export default function TaskModal({ task, isOpen, onClose, onToggle }: TaskModal
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">{task.title}</h3>
             {task.description && (
-              <p className="text-gray-300 leading-relaxed">{task.description}</p>
+              <MarkdownRenderer content={task.description} />
             )}
           </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../services/adminApi';
+import MarkdownRenderer from './MarkdownRenderer';
 import {
   DndContext,
   closestCenter,
@@ -63,6 +64,8 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
   const [tasks, setTasks] = useState<TrackTask[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [contentPreviewMode, setContentPreviewMode] = useState<'edit' | 'preview'>('edit');
+  const [proTipPreviewMode, setProTipPreviewMode] = useState<'edit' | 'preview'>('edit');
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -342,12 +345,40 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Content (Markdown):</label>
-          <textarea
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-            className="w-full h-40 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white font-mono text-sm"
-            placeholder={`# Week ${formData.week_number}: Main Topic
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-300">Content (Markdown):</label>
+            <div className="flex bg-[#2A243E] rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => setContentPreviewMode('edit')}
+                className={`px-3 py-1 rounded text-sm transition-colors ${
+                  contentPreviewMode === 'edit' 
+                    ? 'bg-[#EF8E81] text-white' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => setContentPreviewMode('preview')}
+                className={`px-3 py-1 rounded text-sm transition-colors ${
+                  contentPreviewMode === 'preview' 
+                    ? 'bg-[#EF8E81] text-white' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Preview
+              </button>
+            </div>
+          </div>
+          
+          {contentPreviewMode === 'edit' ? (
+            <textarea
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              className="w-full h-40 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white font-mono text-sm"
+              placeholder={`# Week ${formData.week_number}: Main Topic
 
 ## Key Concepts
 - Bullet point 1
@@ -364,20 +395,60 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
 > Quote important insights
 
 Use blank lines to separate paragraphs for better readability.`}
-          />
+            />
+          ) : (
+            <div className="w-full h-40 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] overflow-y-auto">
+              <MarkdownRenderer content={formData.content || '*No content yet*'} />
+            </div>
+          )}
+          
           <div className="mt-1 text-xs text-gray-400">
             💡 Tip: Use markdown formatting for better readability. Headers (#), lists (-), **bold**, *italic*, `code`, and &gt; quotes are supported.
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Pro Tip:</label>
-          <textarea
-            value={formData.pro_tip}
-            onChange={(e) => setFormData({ ...formData, pro_tip: e.target.value })}
-            className="w-full h-24 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white text-sm"
-            placeholder="Add a helpful pro tip for this week..."
-          />
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-300">Pro Tip (Markdown):</label>
+            <div className="flex bg-[#2A243E] rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => setProTipPreviewMode('edit')}
+                className={`px-3 py-1 rounded text-sm transition-colors ${
+                  proTipPreviewMode === 'edit' 
+                    ? 'bg-[#EF8E81] text-white' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => setProTipPreviewMode('preview')}
+                className={`px-3 py-1 rounded text-sm transition-colors ${
+                  proTipPreviewMode === 'preview' 
+                    ? 'bg-[#EF8E81] text-white' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Preview
+              </button>
+            </div>
+          </div>
+          
+          {proTipPreviewMode === 'edit' ? (
+            <textarea
+              value={formData.pro_tip}
+              onChange={(e) => setFormData({ ...formData, pro_tip: e.target.value })}
+              className="w-full h-24 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white text-sm"
+              placeholder="Add a helpful pro tip for this week..."
+            />
+          ) : (
+            <div className="w-full h-24 px-3 py-2 rounded bg-[#141127] border border-[#2A243E] overflow-y-auto">
+              <MarkdownRenderer content={formData.pro_tip || '*No pro tip yet*'} />
+            </div>
+          )}
+          
           <div className="mt-1 text-xs text-gray-400">
             💡 Optional pro tip that will be highlighted in the user interface
           </div>
@@ -493,6 +564,7 @@ function TaskItem({ task, onUpdate, onDelete, dragHandleProps }: TaskItemProps &
     description: task.description,
     estimated_time: task.estimated_time
   });
+  const [taskDescriptionPreviewMode, setTaskDescriptionPreviewMode] = useState<'edit' | 'preview'>('edit');
 
   const handleSave = () => {
     onUpdate(editData);
@@ -533,13 +605,46 @@ function TaskItem({ task, onUpdate, onDelete, dragHandleProps }: TaskItemProps &
             </div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Task Description:</label>
-            <textarea
-              value={editData.description}
-              onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-              className="w-full px-2 py-1 rounded bg-[#1B1628] border border-[#2A243E] text-white text-sm h-16"
-              placeholder="Describe what the user needs to do..."
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs text-gray-400">Task Description (Markdown):</label>
+              <div className="flex bg-[#2A243E] rounded p-1">
+                <button
+                  type="button"
+                  onClick={() => setTaskDescriptionPreviewMode('edit')}
+                  className={`px-2 py-1 rounded text-xs transition-colors ${
+                    taskDescriptionPreviewMode === 'edit' 
+                      ? 'bg-[#EF8E81] text-white' 
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTaskDescriptionPreviewMode('preview')}
+                  className={`px-2 py-1 rounded text-xs transition-colors ${
+                    taskDescriptionPreviewMode === 'preview' 
+                      ? 'bg-[#EF8E81] text-white' 
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Preview
+                </button>
+              </div>
+            </div>
+            
+            {taskDescriptionPreviewMode === 'edit' ? (
+              <textarea
+                value={editData.description}
+                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                className="w-full px-2 py-1 rounded bg-[#1B1628] border border-[#2A243E] text-white text-sm h-16"
+                placeholder="Describe what the user needs to do..."
+              />
+            ) : (
+              <div className="w-full px-2 py-1 rounded bg-[#1B1628] border border-[#2A243E] text-white text-sm h-16 overflow-y-auto">
+                <MarkdownRenderer content={editData.description || '*No description yet*'} />
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <button
