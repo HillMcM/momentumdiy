@@ -8,6 +8,7 @@ class MarketingService {
             const { data, error } = await supabase_1.supabase
                 .from('marketing_track_definitions')
                 .select('*')
+                .eq('published', true)
                 .order('created_at', { ascending: false });
             if (error) {
                 return {
