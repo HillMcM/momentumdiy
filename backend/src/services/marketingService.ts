@@ -46,7 +46,7 @@ export class MarketingService {
   }
 
   /**
-   * Get active marketing goal
+   * Get active marketing goal for the authenticated user
    */
   static async getActiveMarketingGoal(): Promise<ApiResponse<MarketingGoal | null>> {
     try {
@@ -302,7 +302,77 @@ export class MarketingService {
   }
 
   /**
-   * Set active marketing goal
+   * Activate a track definition for the authenticated user
+   * This creates a new marketing goal instance for the user
+   */
+  static async activateTrackForUser(trackDefinitionId: string): Promise<ApiResponse<MarketingGoal>> {
+    try {
+      // Get the track definition
+      const { data: trackDef, error: trackError } = await supabase
+        .from('marketing_track_definitions')
+        .select('*')
+        .eq('id', trackDefinitionId)
+        .single();
+
+      if (trackError) {
+        return {
+          success: false,
+          error: trackError.message
+        };
+      }
+
+      // Deactivate any existing goals for this user
+      const { error: deactivateError } = await supabase
+        .from('marketing_goals')
+        .update({ is_active: false });
+
+      if (deactivateError) {
+        console.warn('Warning: Could not deactivate existing goals:', deactivateError.message);
+      }
+
+      // Create a new marketing goal for this user
+      const now = new Date();
+      const { data: newGoal, error: createError } = await supabase
+        .from('marketing_goals')
+        .insert({
+          title: trackDef.title,
+          description: trackDef.description,
+          industry: trackDef.industry_tags?.[0] || 'General',
+          duration: trackDef.duration_weeks,
+          is_active: true,
+          start_date: now.toISOString(),
+          current_week: 1,
+          progress: 0,
+          week_start_dates: [now.toISOString()],
+          last_week_advancement: null,
+          track_definition_id: trackDefinitionId,
+          phases: trackDef.phases || []
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        return {
+          success: false,
+          error: createError.message
+        };
+      }
+
+      const goal = await this.mapDatabaseGoalToGoal(newGoal as any);
+      return {
+        success: true,
+        data: goal
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  /**
+   * Set active marketing goal for the authenticated user
    */
   static async setActiveMarketingGoal(goalId: string): Promise<ApiResponse<void>> {
     try {
@@ -326,11 +396,10 @@ export class MarketingService {
         };
       }
 
-      // First, deactivate all goals
+      // Deactivate all goals for this user (RLS will handle user filtering)
       const { error: deactivateError } = await supabase
         .from('marketing_goals')
-        .update({ is_active: false })
-        .neq('id', '00000000-0000-0000-0000-000000000000');
+        .update({ is_active: false });
 
       if (deactivateError) {
         return {
