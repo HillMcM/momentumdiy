@@ -11,7 +11,7 @@ const STORAGE_KEY = 'socialGeneratorUsage';
 // Monthly limits based on subscription tier
 export const USAGE_LIMITS = {
   free: { sessionsPerMonth: 10, imagesPerSession: 2 },
-  basic: { sessionsPerMonth: 100, imagesPerSession: 2 },
+  basic: { sessionsPerMonth: 200, imagesPerSession: 2 },
   pro: { sessionsPerMonth: 500, imagesPerSession: 4 },
   enterprise: { sessionsPerMonth: -1, imagesPerSession: 8 } // -1 = unlimited
 };
