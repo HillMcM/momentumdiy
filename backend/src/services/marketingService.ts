@@ -340,7 +340,15 @@ export class MarketingService {
       }
 
       // Prepare update data with phases from track definition
-      const updateData: any = { is_active: true };
+      const now = new Date();
+      const updateData: any = { 
+        is_active: true,
+        start_date: now.toISOString(),
+        current_week: 1,
+        progress: 0,
+        week_start_dates: [now.toISOString()], // Week 1 starts now
+        last_week_advancement: null
+      };
       
       // Copy phases from track definition to marketing goal if available
       if (goalData.marketing_track_definitions?.phases) {

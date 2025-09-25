@@ -130,19 +130,19 @@ export default function AuthPage() {
   
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#1B1628] to-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         {/* Background decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#EF8E81]/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#D4AF37]/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#EF8E81]/10 rounded-full blur-3xl"></div>
         </div>
         
         <div className="max-w-md w-full space-y-8 relative z-10">
           <div className="text-center">
             <div className="relative">
               <img src="/assets/octopus_icon.png" alt="MomentumDIY" className="mx-auto h-16 w-16 drop-shadow-2xl" />
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full blur-lg opacity-30 -z-10"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] rounded-full blur-lg opacity-30 -z-10"></div>
             </div>
             <h2 className="mt-6 text-4xl font-extrabold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
               {mode === 'signup' ? 'Create your account' : 'Sign in to your account'}
@@ -203,7 +203,7 @@ export default function AuthPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none rounded-xl relative block w-full px-4 py-4 border border-white/20 placeholder-gray-400 text-gray-900 bg-white/95 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 focus:z-10 text-sm transition-all duration-200 hover:bg-white focus:bg-white shadow-lg"
+                  className="appearance-none rounded-xl relative block w-full px-4 py-4 border border-white/20 placeholder-gray-400 text-gray-900 bg-white/95 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#EF8E81] focus:border-[#EF8E81] focus:z-10 text-sm transition-all duration-200 hover:bg-white focus:bg-white shadow-lg"
                   placeholder="Enter your email"
                 />
               </div>
@@ -220,7 +220,7 @@ export default function AuthPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none rounded-xl relative block w-full px-4 py-4 border border-white/20 placeholder-gray-400 text-gray-900 bg-white/95 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 focus:z-10 text-sm transition-all duration-200 hover:bg-white focus:bg-white shadow-lg"
+                  className="appearance-none rounded-xl relative block w-full px-4 py-4 border border-white/20 placeholder-gray-400 text-gray-900 bg-white/95 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#EF8E81] focus:border-[#EF8E81] focus:z-10 text-sm transition-all duration-200 hover:bg-white focus:bg-white shadow-lg"
                   placeholder="Enter your password"
                 />
               </div>
@@ -237,7 +237,7 @@ export default function AuthPage() {
                     autoComplete="name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="appearance-none rounded-xl relative block w-full px-4 py-4 border border-white/20 placeholder-gray-400 text-gray-900 bg-white/95 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 focus:z-10 text-sm transition-all duration-200 hover:bg-white focus:bg-white shadow-lg"
+                    className="appearance-none rounded-xl relative block w-full px-4 py-4 border border-white/20 placeholder-gray-400 text-gray-900 bg-white/95 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#EF8E81] focus:border-[#EF8E81] focus:z-10 text-sm transition-all duration-200 hover:bg-white focus:bg-white shadow-lg"
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -247,7 +247,7 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group relative w-full flex justify-center py-4 px-6 border border-transparent text-base font-semibold rounded-xl text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
+                  className="group relative w-full flex justify-center py-4 px-6 border border-transparent text-base font-semibold rounded-xl text-white bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#EF8E81] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
                 >
                   {loading ? (
                     <div className="flex items-center">
@@ -280,7 +280,7 @@ export default function AuthPage() {
                     type="button"
                     onClick={handleGoogleSignIn}
                     disabled={loading}
-                    className="w-full inline-flex justify-center items-center py-4 px-6 border border-white/20 rounded-xl shadow-lg bg-white/95 backdrop-blur-sm text-base font-semibold text-gray-700 hover:bg-white hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 disabled:transform-none"
+                    className="w-full inline-flex justify-center items-center py-4 px-6 border border-white/20 rounded-xl shadow-lg bg-white/95 backdrop-blur-sm text-base font-semibold text-gray-700 hover:bg-white hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#EF8E81] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 disabled:transform-none"
                   >
                     <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24">
                       <path

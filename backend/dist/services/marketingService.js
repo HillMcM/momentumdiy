@@ -281,7 +281,15 @@ class MarketingService {
                     error: deactivateError.message
                 };
             }
-            const updateData = { is_active: true };
+            const now = new Date();
+            const updateData = {
+                is_active: true,
+                start_date: now.toISOString(),
+                current_week: 1,
+                progress: 0,
+                week_start_dates: [now.toISOString()],
+                last_week_advancement: null
+            };
             if (goalData.marketing_track_definitions?.phases) {
                 updateData.phases = goalData.marketing_track_definitions.phases;
                 console.log('🔄 Copying phases from track definition to marketing goal:', updateData.phases);
