@@ -34,8 +34,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check if auth is disabled for local development
   const BYPASS_AUTH = import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE';
   
+  console.log('🔍 AuthContext - Environment check:');
+  console.log('VITE_DISABLE_AUTH:', import.meta.env.VITE_DISABLE_AUTH);
+  console.log('BYPASS_AUTH:', BYPASS_AUTH);
+  
   if (BYPASS_AUTH) {
     console.log('🔓 AuthContext: Auth bypass enabled for local development');
+  } else {
+    console.log('🔐 AuthContext: Normal authentication enabled');
   }
 
   useEffect(() => {
