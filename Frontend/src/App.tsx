@@ -35,6 +35,7 @@ import PricingPage from './PricingPage';
 import TracksAdminPage from './TracksAdminPage';
 import VisualTracksAdminPage from './VisualTracksAdminPage';
 import FeedbackPage from './FeedbackPage';
+import SocialMediaGeneratorPage from './SocialMediaGeneratorPage';
 import SubscriptionGuard from './components/SubscriptionGuard';
 import PersonalizedDashboard from './components/PersonalizedDashboard';
 import OnboardingWizard from './components/OnboardingWizard';
@@ -421,6 +422,15 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
         </li>
         <li>
           <Link 
+            to="/app/social-generator" 
+            className={isActive('/app/social-generator') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/social-generator')}
+          >
+            🎨 Social Media Generator
+          </Link>
+        </li>
+        <li>
+          <Link 
             to="/app/admin/marketing-tracks" 
             className={isActive('/app/admin/marketing-tracks') ? 'active' : ''}
             onClick={() => handleLinkClick('/app/admin/marketing-tracks')}
@@ -511,6 +521,32 @@ function Dashboard({
   return (
     <div>
       <MarketingTrackWidget />
+
+      {/* Social Media Generator CTA */}
+      <div className="bg-gradient-to-r from-[#EF8E81] to-[#65170C] rounded-2xl p-8 mb-8 text-white">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold mb-2">🎨 AI-Powered Social Media Generator</h2>
+            <p className="text-white/90 mb-4">
+              Create stunning social media posts in seconds with Gemini Nano Banana AI. 
+              Generate 4 unique variations for any platform with your brand colors and logo.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <span className="bg-white/20 rounded-full px-3 py-1 text-sm">⚡ Lightning Fast</span>
+              <span className="bg-white/20 rounded-full px-3 py-1 text-sm">🎯 Brand Aware</span>
+              <span className="bg-white/20 rounded-full px-3 py-1 text-sm">📱 All Platforms</span>
+            </div>
+          </div>
+          <div className="flex-shrink-0">
+            <Link 
+              to="/app/social-generator" 
+              className="bg-white text-[#EF8E81] font-bold px-8 py-3 rounded-full hover:bg-white/90 transition-colors inline-block"
+            >
+              Try Social Generator
+            </Link>
+          </div>
+        </div>
+      </div>
 
       <TaskTrackerWidget 
         projects={projects}
@@ -1211,6 +1247,7 @@ function ProtectedApp() {
               />
             } />
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
+            <Route path="social-generator" element={<SocialMediaGeneratorPage />} />
             <Route path="manage-subscription" element={<SubscriptionPage />} />
             <Route path="feedback" element={<Placeholder title="Feedback" />} />
             <Route path="admin/marketing-tracks" element={

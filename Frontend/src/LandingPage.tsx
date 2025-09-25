@@ -40,7 +40,12 @@ export default function LandingPage() {
           <div className="feature">
             <div className="feature-icon">🤖</div>
             <h3>Your Own AI Marketing Expert</h3>
-            <p>Never get stuck in your marketing again. Ask your AI sidekick anything about your marketing; you’ll have 24/7 access to a marketing expert.</p>
+            <p>Never get stuck in your marketing again. Ask your AI sidekick anything about your marketing; you'll have 24/7 access to a marketing expert.</p>
+          </div>
+          <div className="feature">
+            <div className="feature-icon">🎨</div>
+            <h3>AI-Powered Social Media Generator</h3>
+            <p>Create stunning social media posts in seconds with Gemini Nano Banana AI. Generate 4 unique variations for any platform with your brand colors and logo.</p>
           </div>
           <div className="feature">
             <div className="feature-icon">📦</div>
@@ -51,6 +56,38 @@ export default function LandingPage() {
         <div className="landing-cta" style={{marginTop: '1rem'}}>
           <Link to="/auth" className="cta-btn">Start Free Trial</Link>
           <Link to="/app" className="cta-btn" style={{ marginLeft: '1rem', background: '#10b981' }}>🚀 Go to App (Dev)</Link>
+        </div>
+      </section>
+
+      {/* Social Media Generator Highlight */}
+      <section className="landing-generator" style={{padding: '4rem 0', background: 'linear-gradient(135deg, #191628 0%, #65170C 100%)'}}>
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-extrabold mb-4">🎨 AI-Powered Social Media Generator</h2>
+          <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
+            Create stunning social media posts in seconds with Gemini Nano Banana - the most advanced AI image generator available. 
+            Generate 4 unique variations for any platform with your brand colors and logo.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="text-3xl mb-3">⚡</div>
+              <h3 className="text-lg font-bold mb-2">Lightning Fast</h3>
+              <p className="text-sm text-white/80">Generate 4 unique designs in under 30 seconds</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="text-3xl mb-3">🎯</div>
+              <h3 className="text-lg font-bold mb-2">Brand Aware</h3>
+              <p className="text-sm text-white/80">Uses your logo and brand colors automatically</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="text-3xl mb-3">📱</div>
+              <h3 className="text-lg font-bold mb-2">All Platforms</h3>
+              <p className="text-sm text-white/80">Perfect for Instagram, Facebook, Twitter, LinkedIn</p>
+            </div>
+          </div>
+          <div className="landing-cta">
+            <Link to="/app/social-generator" className="cta-btn" style={{ background: '#EF8E81', color: '#0F0A1A' }}>Try Social Generator</Link>
+            <Link to="/app" className="cta-btn" style={{ marginLeft: '1rem', background: '#10b981' }}>🚀 Go to App (Dev)</Link>
+          </div>
         </div>
       </section>
 
