@@ -6,6 +6,7 @@ import { AspectRatioSelector } from './AspectRatioSelector';
 import { generateSocialGraphics, describeImageStyle, refineBrandVoice } from '../../services/socialGenerator/geminiService';
 import { useLocalStorage } from '../../hooks/socialGenerator/useLocalStorage';
 import { getAllImages, addImage } from '../../services/socialGenerator/dbService';
+import { canGenerateImages, recordSession, getUsageStats, getUpgradeMessage } from '../../services/socialGenerator/usageService';
 import type { BrandSettings, GeneratedImage, AspectRatio, BrandPreset } from '../../types/socialGenerator';
 import { AspectRatios } from '../../constants/socialGenerator';
 
@@ -37,6 +38,8 @@ const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isRefining, setIsRefining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usageStats, setUsageStats] = useState(() => getUsageStats('basic'));
+  const [userTier] = useState<'free' | 'basic' | 'pro' | 'enterprise'>('basic');
   
   useEffect(() => {
     const loadPersistedImages = async () => {
@@ -53,6 +56,13 @@ const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({
   }, []);
 
   const handleGenerate = useCallback(async () => {
+    // Check usage limits before generating
+    const usageCheck = canGenerateImages(userTier);
+    if (!usageCheck.allowed) {
+      setError(usageCheck.reason || 'Usage limit reached');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -68,13 +78,19 @@ const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({
       }
 
       setGeneratedImages(prev => [...newImageObjects, ...prev]);
+      
+      // Record the session usage
+      recordSession(newImages.length, userTier);
+      
+      // Update usage stats
+      setUsageStats(getUsageStats(userTier));
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred during image generation.');
     } finally {
       setIsLoading(false);
     }
-  }, [brandSettings, aspectRatio, brandVoice]);
+  }, [brandSettings, aspectRatio, brandVoice, userTier]);
 
   const handleSelectImage = useCallback(async (image: GeneratedImage) => {
     setIsRefining(true);
@@ -158,7 +174,32 @@ const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-4 sm:p-8 h-[calc(95vh-120px)] overflow-hidden">
+        {/* Usage Stats Display */}
+        <div className="px-6 py-3 bg-gray-800 border-b border-gray-700">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-4">
+              <span className="text-gray-300">
+                Sessions used: <span className="text-white font-semibold">{usageStats.sessionsUsed}</span>
+                {!usageStats.isUnlimited && (
+                  <span className="text-gray-400"> / {usageStats.monthlyLimit}</span>
+                )}
+              </span>
+              <span className="text-gray-300">
+                Images per session: <span className="text-white font-semibold">{usageStats.imagesPerSession}</span>
+              </span>
+            </div>
+            {!usageStats.isUnlimited && usageStats.sessionsRemaining <= 10 && (
+              <div className="text-yellow-400 text-sm">
+                {usageStats.sessionsRemaining > 0 
+                  ? `${usageStats.sessionsRemaining} sessions remaining`
+                  : 'Monthly limit reached'
+                }
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-4 sm:p-8 h-[calc(95vh-180px)] overflow-hidden">
           <aside className="lg:col-span-3 xl:col-span-3 overflow-y-auto">
             <BrandPanel
               settings={brandSettings}

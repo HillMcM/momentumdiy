@@ -45,7 +45,7 @@ export default function SocialMediaGeneratorPage() {
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <span className="text-[#EF8E81] text-xl">✨</span>
-                  <span>Generate 4 unique variations of each post</span>
+                  <span>Generate 2 unique variations of each post</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-[#EF8E81] text-xl">🎨</span>
@@ -101,7 +101,7 @@ export default function SocialMediaGeneratorPage() {
               <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
                 <div className="w-16 h-16 bg-[#EF8E81] rounded-full flex items-center justify-center text-2xl font-bold text-white mx-auto mb-6">3</div>
                 <h3 className="text-xl font-bold mb-4">Generate & Download</h3>
-                <p className="text-white/80">Get 4 unique designs powered by Gemini Nano Banana AI</p>
+                <p className="text-white/80">Get 2 unique designs powered by Gemini 2.5 Flash-Lite AI</p>
               </div>
             </div>
           </div>
@@ -117,13 +117,14 @@ export default function SocialMediaGeneratorPage() {
             <div className="bg-gradient-to-r from-[#EF8E81] to-[#65170C] rounded-2xl p-8 max-w-2xl mx-auto">
               <h3 className="text-2xl font-bold mb-4">Ready to Generate?</h3>
               <p className="text-white/90 mb-6">
-                Enter your post content below and let Gemini Nano Banana AI create 4 unique, 
+                Enter your post content below and let Gemini 2.5 Flash-Lite AI create 2 unique, 
                 brand-aware social media graphics in seconds!
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <span className="bg-white/20 rounded-full px-4 py-2 text-sm font-semibold">⚡ Under 30 seconds</span>
-                <span className="bg-white/20 rounded-full px-4 py-2 text-sm font-semibold">🎨 4 unique designs</span>
+                <span className="bg-white/20 rounded-full px-4 py-2 text-sm font-semibold">🎨 2 unique designs</span>
                 <span className="bg-white/20 rounded-full px-4 py-2 text-sm font-semibold">🎯 Brand aware</span>
+                <span className="bg-white/20 rounded-full px-4 py-2 text-sm font-semibold">💰 Cost optimized</span>
               </div>
             </div>
           </div>
