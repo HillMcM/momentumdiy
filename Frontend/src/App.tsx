@@ -1309,12 +1309,7 @@ function App() {
         <Routes>
         {/* Public */}
         <Route path="/" element={<><LandingPage /><EnvTest /></>} />
-        <Route path="/auth" element={
-          <div style={{ backgroundColor: 'blue', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '2rem' }}>
-            AUTH ROUTE TEST - If you see this, routing works!
-            <AuthPage />
-          </div>
-        } />
+        <Route path="/auth" element={<AuthPage />} />
         <Route path="/terms" element={<Placeholder title="Terms & Conditions" />} />
 
         {/* Pricing */}
