@@ -374,6 +374,122 @@ export class MarketingService {
   }
 
   /**
+   * Seed a 12-week local foot traffic track curriculum (modules + tasks) for a goal
+   */
+  static async seedLocalFootTrafficModules(goalId: string): Promise<ApiResponse<void>> {
+    try {
+      // If modules already exist, do nothing
+      const existing = await this.getMarketingModules(goalId);
+      if (existing.success && (existing.data?.length || 0) > 0) {
+        return { success: true, message: 'Modules already exist; skipping seed' };
+      }
+
+      const weekDefs: Array<{ title: string; description: string; content: string; tasks: { title: string; description: string; estimatedTime: string }[] }>= [
+        { title: 'Business Audit & Local Baseline', description: 'Audit your current visibility and record baseline metrics', content: 'Do a quick audit of your current local presence: Google Business Profile, local directory listings, current foot traffic patterns. Record baseline metrics like daily walk-ins, local search visibility, and existing local partnerships.', tasks: [
+          { title: 'Google Business Profile Audit', description: 'Review and optimize your Google Business Profile', estimatedTime: '45-60m' },
+          { title: 'Local Directory Check', description: 'Verify listings on Yelp, Yellow Pages, local directories', estimatedTime: '30-45m' },
+          { title: 'Record Baseline Metrics', description: 'Track current daily walk-ins and local visibility', estimatedTime: '15-20m' },
+          { title: 'Quick Local Competition Scan', description: 'Identify 3-5 local competitors and their tactics', estimatedTime: '30-45m' }
+        ]},
+        { title: 'Street Appeal & Storefront Optimization', description: 'Make your storefront irresistible to passersby', content: 'Focus on your physical presence: eye-catching signage, window displays, sidewalk appeal. Small changes can dramatically increase walk-ins from existing foot traffic.', tasks: [
+          { title: 'Signage Assessment', description: 'Evaluate and improve visibility of your business signs', estimatedTime: '30-45m' },
+          { title: 'Window Display Refresh', description: 'Create an engaging window display that draws people in', estimatedTime: '1-2h' },
+          { title: 'Sidewalk A-Frame Setup', description: 'Design and deploy daily sidewalk signage', estimatedTime: '45-60m' },
+          { title: 'Quick Curb Appeal Fixes', description: 'Clean entrance, add plants, improve lighting', estimatedTime: '1-2h' }
+        ]},
+        { title: 'Google Business Profile Mastery', description: 'Dominate local search results', content: 'Optimize your Google Business Profile to appear first in local searches. This is your most powerful tool for local visibility.', tasks: [
+          { title: 'Complete Profile Optimization', description: 'Fill out all sections, add photos, services, hours', estimatedTime: '45-60m' },
+          { title: 'Weekly Photo Updates', description: 'Add fresh photos of products, team, behind-scenes', estimatedTime: '30-45m' },
+          { title: 'Google Posts Creation', description: 'Create weekly updates, offers, event announcements', estimatedTime: '30-45m' },
+          { title: 'Review Response Strategy', description: 'Respond to all reviews professionally and promptly', estimatedTime: '20-30m' }
+        ]},
+        { title: 'Local Partnerships Phase 1', description: 'Build relationships with nearby businesses', content: 'Start building relationships with complementary businesses in your area. Cross-promotion with neighbors can significantly boost foot traffic.', tasks: [
+          { title: 'Identify 5 Partnership Targets', description: 'List nearby businesses that serve similar customers', estimatedTime: '30-45m' },
+          { title: 'Initial Outreach', description: 'Visit or call 2-3 businesses to discuss partnerships', estimatedTime: '1-2h' },
+          { title: 'Create Cross-Promotion Offer', description: 'Design a mutually beneficial promotion or referral program', estimatedTime: '30-45m' },
+          { title: 'Launch First Partnership', description: 'Execute your first cross-promotion with a neighbor', estimatedTime: '45-60m' }
+        ]},
+        { title: 'Customer Incentive Campaign', description: 'Create irresistible reasons to visit now', content: 'Design and launch time-sensitive offers that create urgency and drive immediate foot traffic. Focus on new customer acquisition.', tasks: [
+          { title: 'Design New Customer Offer', description: 'Create compelling offer for first-time visitors', estimatedTime: '30-45m' },
+          { title: 'Create Promotional Materials', description: 'Design flyers, social posts, signage for your offer', estimatedTime: '45-60m' },
+          { title: 'Multi-Channel Promotion', description: 'Promote via Google, social media, email, signage', estimatedTime: '1-2h' },
+          { title: 'Track Campaign Results', description: 'Monitor redemptions and new customer acquisition', estimatedTime: '15-20m/day' }
+        ]},
+        { title: 'Community Event Participation', description: 'Get visible in local community events', content: 'Participate in or sponsor local events to increase brand awareness and connect with potential customers in a friendly, community-focused way.', tasks: [
+          { title: 'Research Local Events', description: 'Find upcoming farmers markets, fairs, community events', estimatedTime: '45-60m' },
+          { title: 'Choose 1-2 Events to Join', description: 'Select events that align with your target customers', estimatedTime: '30-45m' },
+          { title: 'Plan Event Presence', description: 'Design booth/table setup, promotional materials, giveaways', estimatedTime: '1-2h' },
+          { title: 'Execute Event Participation', description: 'Attend event, engage with community, collect contacts', estimatedTime: '4-6h' }
+        ]},
+        { title: 'Referral Program Launch', description: 'Turn customers into advocates', content: 'Launch a simple but effective referral program that incentivizes existing customers to bring friends and family.', tasks: [
+          { title: 'Design Referral Program', description: 'Create simple rewards for both referrer and new customer', estimatedTime: '45-60m' },
+          { title: 'Create Program Materials', description: 'Design referral cards, instructions, tracking system', estimatedTime: '1-2h' },
+          { title: 'Train Staff on Program', description: 'Ensure team knows how to explain and track referrals', estimatedTime: '30-45m' },
+          { title: 'Launch and Promote', description: 'Announce to existing customers via multiple channels', estimatedTime: '45-60m' }
+        ]},
+        { title: 'Local Media & PR Push', description: 'Get free publicity in local media', content: 'Reach out to local newspapers, blogs, radio stations with newsworthy stories about your business. Free media coverage can drive significant foot traffic.', tasks: [
+          { title: 'Craft Your Story Angle', description: 'Develop newsworthy angle (new location, milestone, community impact)', estimatedTime: '45-60m' },
+          { title: 'Create Media Contact List', description: 'Research local journalists, bloggers, radio hosts', estimatedTime: '45-60m' },
+          { title: 'Write and Send Press Release', description: 'Compose professional press release and send to contacts', estimatedTime: '1-2h' },
+          { title: 'Follow Up and Build Relationships', description: 'Follow up with interested media, offer exclusive access', estimatedTime: '45-60m' }
+        ]},
+        { title: 'Seasonal Campaign Execution', description: 'Capitalize on seasonal foot traffic patterns', content: 'Design and execute a campaign that takes advantage of seasonal shopping patterns, holidays, or local events to maximize foot traffic during peak times.', tasks: [
+          { title: 'Identify Seasonal Opportunities', description: 'Research upcoming holidays, seasons, local events', estimatedTime: '30-45m' },
+          { title: 'Design Seasonal Promotion', description: 'Create themed offer or event around seasonal opportunity', estimatedTime: '45-60m' },
+          { title: 'Create Campaign Materials', description: 'Design signage, social posts, promotional materials', estimatedTime: '1-2h' },
+          { title: 'Execute Multi-Week Campaign', description: 'Launch and maintain campaign with consistent promotion', estimatedTime: '2-3h/week' }
+        ]},
+        { title: 'Advanced Local SEO', description: 'Dominate local search beyond Google My Business', content: 'Implement advanced local SEO strategies to appear in more local searches and directories. Get found when locals search for what you offer.', tasks: [
+          { title: 'Optimize for Local Keywords', description: 'Research and target "near me" and location-based keywords', estimatedTime: '1-2h' },
+          { title: 'Build Local Citations', description: 'Ensure consistent business info across 10+ local directories', estimatedTime: '2-3h' },
+          { title: 'Create Location-Based Content', description: 'Write blog posts about local topics and events', estimatedTime: '1-2h' },
+          { title: 'Get Local Backlinks', description: 'Reach out to local organizations for website mentions', estimatedTime: '1-2h' }
+        ]},
+        { title: 'Customer Experience Optimization', description: 'Perfect the in-store experience to encourage repeat visits', content: 'Focus on creating such a positive experience that customers naturally return and tell others. Small improvements in customer experience can dramatically increase lifetime value.', tasks: [
+          { title: 'Mystery Shop Your Business', description: 'Experience your business as a first-time customer would', estimatedTime: '1-2h' },
+          { title: 'Staff Training Session', description: 'Train team on greeting, upselling, creating memorable experiences', estimatedTime: '1-2h' },
+          { title: 'Implement Follow-Up System', description: 'Create system to follow up with new customers', estimatedTime: '45-60m' },
+          { title: 'Gather Customer Feedback', description: 'Survey recent customers for improvement suggestions', estimatedTime: '30-45m' }
+        ]},
+        { title: 'Growth Measurement & Future Planning', description: 'Measure success and plan sustainable growth', content: 'Compare your results to baseline metrics and create a sustainable plan for continued local foot traffic growth.', tasks: [
+          { title: 'Calculate Traffic Increase', description: 'Compare current metrics to Week 1 baseline', estimatedTime: '30-45m' },
+          { title: 'Identify Top Performing Tactics', description: 'Determine which strategies drove the most traffic', estimatedTime: '45-60m' },
+          { title: 'Create Maintenance Plan', description: 'Design ongoing activities to sustain traffic levels', estimatedTime: '45-60m' },
+          { title: 'Plan Next Growth Phase', description: 'Set goals and strategies for next 3-6 months', estimatedTime: '1-2h' }
+        ]}
+      ];
+
+      // Insert modules then tasks
+      weekDefs.forEach((_def, _i) => {}); // no-op to satisfy linter about unused vars in next loop signature change
+      for (let i = 0; i < weekDefs.length; i++) {
+        const weekNumber = i + 1;
+        const def = weekDefs[i]!;
+        const { data: moduleRow, error: moduleErr } = await supabase
+          .from('marketing_modules')
+          .insert([{ goal_id: goalId, week_number: weekNumber, title: def.title, description: def.description, content: def.content, is_unlocked: weekNumber === 1, is_completed: false }])
+          .select('*')
+          .single();
+        if (moduleErr) {
+          return { success: false, error: moduleErr.message };
+        }
+        const moduleId = (moduleRow as any).id as string;
+        for (const t of def.tasks) {
+          const { error: taskErr } = await supabase
+            .from('marketing_tasks')
+            .insert([{ module_id: moduleId, title: t.title, description: t.description, estimated_time: t.estimatedTime, is_completed: false }]);
+          if (taskErr) {
+            return { success: false, error: taskErr.message };
+          }
+        }
+      }
+
+      return { success: true, message: 'Seeded 12-week local foot traffic modules' };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  /**
    * Activate a track definition for the authenticated user
    * This stores track progress in the user's profile
    */
@@ -456,9 +572,29 @@ export class MarketingService {
         };
       }
 
+      // Seed modules for the newly created goal based on track type
+      let modules: MarketingModule[] = [];
+      if (trackDef.title.toLowerCase().includes('social media') || trackDef.title.toLowerCase().includes('social')) {
+        console.log('🌱 Seeding social media modules for goal:', goalData.id);
+        const seedResponse = await this.seedSocialMediaModules(goalData.id);
+        if (seedResponse.success) {
+          console.log('✅ Social media modules seeded successfully');
+        } else {
+          console.error('❌ Error seeding social media modules:', seedResponse.error);
+        }
+      } else if (trackDef.title.toLowerCase().includes('foot traffic') || trackDef.title.toLowerCase().includes('local')) {
+        console.log('🌱 Seeding local foot traffic modules for goal:', goalData.id);
+        const seedResponse = await this.seedLocalFootTrafficModules(goalData.id);
+        if (seedResponse.success) {
+          console.log('✅ Local foot traffic modules seeded successfully');
+        } else {
+          console.error('❌ Error seeding local foot traffic modules:', seedResponse.error);
+        }
+      }
+
       // Get modules for the newly created goal
       const modulesResponse = await this.getMarketingModules(goalData.id);
-      const modules = modulesResponse.success ? modulesResponse.data || [] : [];
+      modules = modulesResponse.success ? modulesResponse.data || [] : [];
 
       // Create a MarketingGoal object from the track definition for API consistency
       const goal: MarketingGoal = {
