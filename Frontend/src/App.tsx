@@ -727,9 +727,9 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
         console.log('🎉 All data loaded successfully!');
 
-        // Check if user needs onboarding - only on app pages, not auth pages
-        const isOnAppPages = location.pathname.startsWith('/app') || location.pathname === '/';
-        if (isOnAppPages) {
+        // Check if user needs onboarding - only on authenticated app pages, not auth pages
+        const isOnAppPages = location.pathname.startsWith('/app') || (location.pathname === '/' && user);
+        if (isOnAppPages && user) {
           try {
             const profileResponse = await apiService.getProfile();
             const hasCompletedOnboarding = profileResponse.success && 
@@ -1044,43 +1044,24 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     console.log('🔧 About to close onboarding wizard...');
 
     try {
-      // Create the marketing goal based on selected track
-      const trackTitle = onboardingData.selectedTrack === 'local-foot-traffic'
-        ? 'Increase Local Foot Traffic'
-        : 'Improve Social Media Strategy & Engagement';
-
-      // Create the goal in the backend first
-      const goalResponse = await apiService.createMarketingGoal({
-        title: trackTitle,
-        description: `12-week ${trackTitle} program`,
-        industry: onboardingData.industry || 'General',
-        duration: 12,
-        isActive: true
-      });
-
-      if (goalResponse.success && goalResponse.data) {
-        // Add the new goal to the list
-        const updatedGoals = [...marketingGoals, goalResponse.data];
-        await handleMarketingGoalsChange(updatedGoals);
-      } else {
-        console.error('Failed to create marketing goal:', goalResponse.error);
+      // The OnboardingWizard component already handles track activation
+      // We just need to refresh the marketing data to show the activated track
+      console.log('🔄 Refreshing marketing data after onboarding...');
+      
+      // Refresh marketing goals to show the activated track
+      const goalsResponse = await apiService.getMarketingGoals();
+      if (goalsResponse.success && goalsResponse.data) {
+        await handleMarketingGoalsChange(goalsResponse.data);
       }
 
-      // Create a project for the marketing track
-      const newProject: Project = {
-        id: `project-${Date.now()}`,
-        name: trackTitle,
-        description: `Marketing track project for ${onboardingData.businessName}`,
-        deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days from now
-        tasks: [],
-        progress: 0,
-        status: 'active',
-        timeline: []
-      };
+      // Refresh active goal
+      const activeGoalResponse = await getActiveGoal();
+      if (activeGoalResponse.success && activeGoalResponse.data) {
+        // The MarketingProvider will handle updating the active goal
+        console.log('✅ Active goal refreshed:', activeGoalResponse.data.title);
+      }
 
-      await handleProjectsChange([...projects, newProject]);
-
-      console.log('✅ Onboarding setup complete - marketing goal and project created');
+      console.log('✅ Onboarding setup complete - track activated and data refreshed');
 
       // Send onboarding complete notification
       try {
