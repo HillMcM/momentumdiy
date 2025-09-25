@@ -618,7 +618,7 @@ function Dashboard({
   );
 }
 
-function ProtectedApp() {
+function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   console.log('App component rendering...');
   
   const { isFocused } = useWindowFocus();
@@ -1204,7 +1204,7 @@ function ProtectedApp() {
   if (isLoading) {
     return (
       <>
-        <Header onLogoClick={handleLogoClick} />
+        <Header onLogoClick={onLogoClick} />
         <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
           <Sidebar hidden={sidebarHidden} onToggle={toggleSidebar} />
           <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
@@ -1222,7 +1222,7 @@ function ProtectedApp() {
 
   return (
     <>
-      <Header />
+      <Header onLogoClick={onLogoClick} />
       <NotificationContainer />
       <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
         <Sidebar
@@ -1382,7 +1382,7 @@ function App() {
         {/* App - Protected with subscription guard */}
         <Route path="/app/*" element={
           <SubscriptionGuard>
-            <ProtectedApp />
+            <ProtectedApp onLogoClick={handleLogoClick} />
           </SubscriptionGuard>
                } />
                  </Routes>
