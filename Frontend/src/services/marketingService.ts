@@ -11,9 +11,6 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
       },
     });
 
@@ -229,9 +226,6 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
       },
     });
 
@@ -304,9 +298,6 @@ export async function getMarketingGoal(goalId: string): Promise<ApiResponse<Mark
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
       },
     });
 
