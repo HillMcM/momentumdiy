@@ -6,7 +6,7 @@ class MarketingService {
     static async getMarketingGoals() {
         try {
             const { data, error } = await supabase_1.supabase
-                .from('marketing_goals')
+                .from('marketing_track_definitions')
                 .select('*')
                 .order('created_at', { ascending: false });
             if (error) {
@@ -15,12 +15,24 @@ class MarketingService {
                     error: error.message
                 };
             }
-            const goals = await Promise.all(data.map(async (dbGoal) => {
-                return await this.mapDatabaseGoalToGoal(dbGoal);
+            const trackDefinitions = (data || []).map(trackDef => ({
+                id: trackDef.id,
+                title: trackDef.title,
+                description: trackDef.description || '',
+                industry: trackDef.industry_tags?.[0] || 'General',
+                duration: trackDef.duration_weeks,
+                isActive: false,
+                currentWeek: 1,
+                progress: 0,
+                weekStartDates: [],
+                lastWeekAdvancement: null,
+                trackDefinitionId: trackDef.id,
+                phases: trackDef.phases || [],
+                modules: []
             }));
             return {
                 success: true,
-                data: goals
+                data: trackDefinitions
             };
         }
         catch (error) {

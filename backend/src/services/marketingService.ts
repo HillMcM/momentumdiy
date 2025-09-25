@@ -15,8 +15,9 @@ export class MarketingService {
    */
   static async getMarketingGoals(): Promise<ApiResponse<MarketingGoal[]>> {
     try {
+      // Get track definitions instead of marketing goals
       const { data, error } = await supabase
-        .from('marketing_goals')
+        .from('marketing_track_definitions')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -27,15 +28,26 @@ export class MarketingService {
         };
       }
 
-      const goals: MarketingGoal[] = await Promise.all(
-        (data as DatabaseMarketingGoal[]).map(async (dbGoal) => {
-          return await this.mapDatabaseGoalToGoal(dbGoal);
-        })
-      );
+      // Convert track definitions to MarketingGoal format for API consistency
+      const trackDefinitions: MarketingGoal[] = (data || []).map(trackDef => ({
+        id: trackDef.id,
+        title: trackDef.title,
+        description: trackDef.description || '',
+        industry: trackDef.industry_tags?.[0] || 'General',
+        duration: trackDef.duration_weeks,
+        isActive: false, // Track definitions are not active by default
+        currentWeek: 1,
+        progress: 0,
+        weekStartDates: [],
+        lastWeekAdvancement: null,
+        trackDefinitionId: trackDef.id,
+        phases: trackDef.phases || [],
+        modules: [] // Will be populated when activated
+      }));
 
       return {
         success: true,
-        data: goals
+        data: trackDefinitions
       };
     } catch (error) {
       return {
