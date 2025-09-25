@@ -493,3 +493,38 @@ export async function updateMarketingGoalPhases(goalId: string, phases: any[]): 
     };
   }
 }
+
+// Sync phases from track definition to marketing goal
+export async function syncPhasesFromTrackDefinition(goalId: string): Promise<ApiResponse<void>> {
+  const url = `${BACKEND_BASE_URL}/api/marketing/goals/${goalId}/sync-phases`;
+  console.log('🔄 Syncing phases from track definition for goal:', goalId);
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ HTTP error:', response.status, errorText);
+      return {
+        success: false,
+        error: `HTTP ${response.status}: ${errorText}`
+      };
+    }
+
+    const result = await response.json();
+    console.log('📊 Sync phases response:', result);
+    return result;
+  } catch (error) {
+    console.error('❌ Network error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error',
+      data: undefined
+    };
+  }
+}

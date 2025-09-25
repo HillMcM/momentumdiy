@@ -135,6 +135,22 @@ router.patch('/goals/:id/activate', async (req, res) => {
         });
     }
 });
+router.post('/goals/:id/sync-phases', async (req, res) => {
+    try {
+        const id = req.params['id'];
+        const result = await marketingService_1.MarketingService.syncPhasesFromTrackDefinition(id);
+        if (!result.success) {
+            return res.status(400).json(result);
+        }
+        return res.json(result);
+    }
+    catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: 'Internal server error'
+        });
+    }
+});
 router.get('/goals/:id/modules', async (req, res) => {
     try {
         const id = req.params['id'];

@@ -19,7 +19,7 @@ interface MarketingTrackPageProps {
  * using the universal track template that matches the production UI.
  */
 export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTrackPageProps) {
-  const { activeGoal, isLoading, refreshMarketingData, updateActiveGoal, updatePhases } = useMarketing();
+  const { activeGoal, isLoading, refreshMarketingData, updateActiveGoal, updatePhases, syncPhasesFromTrackDefinition } = useMarketing();
   const { showTaskCompleted } = useNotificationHelpers();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -357,7 +357,7 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                       {activeGoal.currentPhase?.id || '1'}
                     </span>
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h2 className="text-xl font-semibold text-white">
                       {activeGoal.currentPhase?.title || 'Phase 1: Spark Traffic'}
                     </h2>
@@ -365,6 +365,18 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                       {activeGoal.currentPhase?.description || 'Get people in the door immediately'}
                     </p>
                   </div>
+                  <button
+                    onClick={async () => {
+                      const success = await syncPhasesFromTrackDefinition();
+                      if (success) {
+                        showTaskCompleted('Phases synced from track definition!', () => {});
+                      }
+                    }}
+                    className="ml-4 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                    title="Sync phases from track definition"
+                  >
+                    🔄 Sync
+                  </button>
                 </div>
                 
               </div>

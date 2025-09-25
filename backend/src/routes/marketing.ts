@@ -180,6 +180,29 @@ router.patch('/goals/:id/activate', async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/marketing/goals/:id/sync-phases
+ * Sync phases from track definition to marketing goal
+ */
+router.post('/goals/:id/sync-phases', async (req: Request, res: Response) => {
+  try {
+    const id = req.params['id'] as string;
+    
+    const result = await MarketingService.syncPhasesFromTrackDefinition(id);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    return res.json(result);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
  * GET /api/marketing/goals/:id/modules
  * Get marketing modules for a goal
  */
