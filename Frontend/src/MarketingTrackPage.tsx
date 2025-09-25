@@ -27,7 +27,7 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
   const [publishedTracks, setPublishedTracks] = useState<MarketingGoal[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [activatingTrack, setActivatingTrack] = useState<string | null>(null);
-  const [showTrackSelection, setShowTrackSelection] = useState(true); // Always show selection first
+  const [showTrackSelection, setShowTrackSelection] = useState(false); // Only show selection when no active goal
 
   // Sync marketing task completion with task tracker
   const syncWithTaskTracker = async (marketingTaskId: string, isCompleted: boolean) => {
@@ -180,7 +180,7 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
     );
   }
 
-  if (!activeGoal || (showTrackSelection && (activeGoal.progress ?? 0) >= 100)) {
+  if (!activeGoal || showTrackSelection) {
   return (
     <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
       <div className="max-w-6xl mx-auto">
