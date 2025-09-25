@@ -692,10 +692,28 @@ export class MarketingService {
     const modulesResponse = await this.getMarketingModules(dbGoal.id);
     const modules = modulesResponse.success ? modulesResponse.data || [] : [];
 
-    // Get current phase based on current week
+    // Load phases from track definition (source of truth)
     let phases = [];
     try {
-      if (dbGoal.phases) {
+      if (dbGoal.track_definition_id) {
+        // Get phases from track definition
+        const { data: trackDef, error: trackError } = await supabase
+          .from('marketing_track_definitions')
+          .select('phases')
+          .eq('id', dbGoal.track_definition_id)
+          .single();
+
+        if (!trackError && trackDef?.phases) {
+          if (typeof trackDef.phases === 'string') {
+            phases = JSON.parse(trackDef.phases);
+          } else if (Array.isArray(trackDef.phases)) {
+            phases = trackDef.phases;
+          }
+        }
+      }
+      
+      // Fallback to phases stored in marketing goal if no track definition
+      if (phases.length === 0 && dbGoal.phases) {
         if (typeof dbGoal.phases === 'string') {
           phases = JSON.parse(dbGoal.phases);
         } else if (Array.isArray(dbGoal.phases)) {
@@ -703,7 +721,7 @@ export class MarketingService {
         }
       }
     } catch (error) {
-      console.error('Error parsing phases JSON:', error);
+      console.error('Error loading phases:', error);
       phases = [];
     }
     

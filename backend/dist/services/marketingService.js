@@ -579,7 +579,22 @@ class MarketingService {
         const modules = modulesResponse.success ? modulesResponse.data || [] : [];
         let phases = [];
         try {
-            if (dbGoal.phases) {
+            if (dbGoal.track_definition_id) {
+                const { data: trackDef, error: trackError } = await supabase_1.supabase
+                    .from('marketing_track_definitions')
+                    .select('phases')
+                    .eq('id', dbGoal.track_definition_id)
+                    .single();
+                if (!trackError && trackDef?.phases) {
+                    if (typeof trackDef.phases === 'string') {
+                        phases = JSON.parse(trackDef.phases);
+                    }
+                    else if (Array.isArray(trackDef.phases)) {
+                        phases = trackDef.phases;
+                    }
+                }
+            }
+            if (phases.length === 0 && dbGoal.phases) {
                 if (typeof dbGoal.phases === 'string') {
                     phases = JSON.parse(dbGoal.phases);
                 }
@@ -589,7 +604,7 @@ class MarketingService {
             }
         }
         catch (error) {
-            console.error('Error parsing phases JSON:', error);
+            console.error('Error loading phases:', error);
             phases = [];
         }
         const currentPhase = phases.find((phase) => dbGoal.current_week >= phase.startWeek && dbGoal.current_week <= phase.endWeek) || phases[0] || { title: 'Phase 1: Spark Traffic', description: 'Get people in the door immediately' };
