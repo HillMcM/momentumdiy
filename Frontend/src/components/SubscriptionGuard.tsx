@@ -15,7 +15,7 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
   const [showPaywall, setShowPaywall] = useState(false);
   
   // Check if auth is disabled for local development
-  const isAuthDisabled = import.meta.env.VITE_DISABLE_AUTH === 'true';
+  const isAuthDisabled = import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE';
   
   console.log('🔍 SubscriptionGuard - Environment check:');
   console.log('VITE_DISABLE_AUTH:', import.meta.env.VITE_DISABLE_AUTH);

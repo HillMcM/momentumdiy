@@ -1239,6 +1239,8 @@ function App() {
   console.log('VITE_DISABLE_AUTH:', import.meta.env.VITE_DISABLE_AUTH);
   console.log('VITE_DISABLE_AUTH type:', typeof import.meta.env.VITE_DISABLE_AUTH);
   console.log('VITE_DISABLE_AUTH === "true":', import.meta.env.VITE_DISABLE_AUTH === 'true');
+  console.log('VITE_DISABLE_AUTH === "TRUE":', import.meta.env.VITE_DISABLE_AUTH === 'TRUE');
+  console.log('Auth bypass should work:', import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE');
   console.log('All env vars:', import.meta.env);
   
   // Basic React debugging
