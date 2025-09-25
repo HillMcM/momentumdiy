@@ -53,12 +53,10 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
       };
     }
 
-    // Filter for published/active goals only
-    const publishedTracks = (result.data || []).filter((track: MarketingGoal) => track.isActive);
-
+    // Return all published track definitions (they are already filtered by published=true in backend)
     return {
       success: true,
-      data: publishedTracks,
+      data: result.data || [],
       message: result.message
     };
 
