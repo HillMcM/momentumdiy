@@ -726,23 +726,28 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
         console.log('🎉 All data loaded successfully!');
 
-        // Check if user needs onboarding
-        // Always check onboarding status, regardless of active goals
-        try {
-          const profileResponse = await apiService.getProfile();
-          const hasCompletedOnboarding = profileResponse.success && 
-            (profileResponse.data as any)?.onboarding_completed === true;
-          
-          if (!hasCompletedOnboarding) {
-            console.log('🎯 Onboarding not completed, showing onboarding wizard');
+        // Check if user needs onboarding - only on app pages, not auth pages
+        const isOnAppPages = location.pathname.startsWith('/app') || location.pathname === '/';
+        if (isOnAppPages) {
+          try {
+            const profileResponse = await apiService.getProfile();
+            const hasCompletedOnboarding = profileResponse.success && 
+              (profileResponse.data as any)?.onboarding_completed === true;
+            
+            if (!hasCompletedOnboarding) {
+              console.log('🎯 Onboarding not completed, showing onboarding wizard');
+              setShowOnboarding(true);
+            } else {
+              console.log('✅ Onboarding already completed, skipping wizard');
+              setShowOnboarding(false);
+            }
+          } catch (error) {
+            console.log('🎯 Error checking onboarding status, showing onboarding as fallback');
             setShowOnboarding(true);
-          } else {
-            console.log('✅ Onboarding already completed, skipping wizard');
-            setShowOnboarding(false);
           }
-        } catch (error) {
-          console.log('🎯 Error checking onboarding status, showing onboarding as fallback');
-          setShowOnboarding(true);
+        } else {
+          console.log('🚫 Not on app pages, skipping onboarding check');
+          setShowOnboarding(false);
         }
 
       } catch (error) {
@@ -1312,6 +1317,8 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 }
 
 function App() {
+  const location = useLocation();
+  
   // Debug environment variables
   console.log('🔍 App.tsx - Environment variables:');
   console.log('VITE_DISABLE_AUTH:', import.meta.env.VITE_DISABLE_AUTH);
