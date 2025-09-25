@@ -306,6 +306,26 @@ export class MarketingService {
    */
   static async setActiveMarketingGoal(goalId: string): Promise<ApiResponse<void>> {
     try {
+      // First, get the goal and its track definition to copy phases
+      const { data: goalData, error: goalError } = await supabase
+        .from('marketing_goals')
+        .select(`
+          *,
+          marketing_track_definitions!inner(
+            id,
+            phases
+          )
+        `)
+        .eq('id', goalId)
+        .single();
+
+      if (goalError) {
+        return {
+          success: false,
+          error: goalError.message
+        };
+      }
+
       // First, deactivate all goals
       const { error: deactivateError } = await supabase
         .from('marketing_goals')
@@ -319,10 +339,19 @@ export class MarketingService {
         };
       }
 
-      // Then activate the specified goal
+      // Prepare update data with phases from track definition
+      const updateData: any = { is_active: true };
+      
+      // Copy phases from track definition to marketing goal if available
+      if (goalData.marketing_track_definitions?.phases) {
+        updateData.phases = goalData.marketing_track_definitions.phases;
+        console.log('🔄 Copying phases from track definition to marketing goal:', updateData.phases);
+      }
+
+      // Then activate the specified goal with updated phases
       const { error: activateError } = await supabase
         .from('marketing_goals')
-        .update({ is_active: true })
+        .update(updateData)
         .eq('id', goalId);
 
       if (activateError) {
@@ -335,6 +364,60 @@ export class MarketingService {
       return {
         success: true,
         message: 'Active marketing goal updated successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  /**
+   * Sync phases from track definition to marketing goal
+   */
+  static async syncPhasesFromTrackDefinition(goalId: string): Promise<ApiResponse<void>> {
+    try {
+      // Get the goal and its track definition
+      const { data: goalData, error: goalError } = await supabase
+        .from('marketing_goals')
+        .select(`
+          *,
+          marketing_track_definitions!inner(
+            id,
+            phases
+          )
+        `)
+        .eq('id', goalId)
+        .single();
+
+      if (goalError) {
+        return {
+          success: false,
+          error: goalError.message
+        };
+      }
+
+      // Update the marketing goal with phases from track definition
+      if (goalData.marketing_track_definitions?.phases) {
+        const { error: updateError } = await supabase
+          .from('marketing_goals')
+          .update({ phases: goalData.marketing_track_definitions.phases })
+          .eq('id', goalId);
+
+        if (updateError) {
+          return {
+            success: false,
+            error: updateError.message
+          };
+        }
+
+        console.log('✅ Synced phases from track definition to marketing goal:', goalData.marketing_track_definitions.phases);
+      }
+
+      return {
+        success: true,
+        message: 'Phases synced successfully from track definition'
       };
     } catch (error) {
       return {

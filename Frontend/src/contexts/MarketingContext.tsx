@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
-import { getActiveGoal, updateMarketingGoalPhases } from '../services/marketingService';
+import { getActiveGoal, updateMarketingGoalPhases, syncPhasesFromTrackDefinition } from '../services/marketingService';
 import type { MarketingGoal, MarketingModule } from '../types';
 import { useWindowFocus } from '../hooks/useWindowFocus';
 
@@ -14,6 +14,7 @@ interface MarketingContextType {
   refreshMarketingData: () => Promise<void>;
   updateActiveGoal: (updatedGoal: MarketingGoal) => void;
   updatePhases: (phases: any[]) => Promise<boolean>;
+  syncPhasesFromTrackDefinition: () => Promise<boolean>;
   onTaskStatusChange?: (taskId: string, isCompleted: boolean) => void;
 }
 
@@ -141,6 +142,33 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
     }
   };
 
+  const syncPhasesFromTrackDefinition = async (): Promise<boolean> => {
+    if (!activeGoal) {
+      console.error('❌ No active goal to sync phases for');
+      return false;
+    }
+
+    try {
+      console.log('🔄 Syncing phases from track definition for active goal:', activeGoal.id);
+      const response = await syncPhasesFromTrackDefinition(activeGoal.id);
+      
+      if (response.success) {
+        console.log('✅ Phases synced successfully from track definition');
+        // Refresh the marketing data to get the updated goal
+        await refreshMarketingData();
+        return true;
+      } else {
+        console.error('❌ Failed to sync phases:', response.error);
+        setError(response.error || 'Failed to sync phases from track definition');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Error syncing phases:', error);
+      setError(error instanceof Error ? error.message : 'Failed to sync phases from track definition');
+      return false;
+    }
+  };
+
   const value: MarketingContextType = {
     activeGoal,
     currentModule,
@@ -152,6 +180,7 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
     refreshMarketingData,
     updateActiveGoal,
     updatePhases,
+    syncPhasesFromTrackDefinition,
     onTaskStatusChange
   };
 
