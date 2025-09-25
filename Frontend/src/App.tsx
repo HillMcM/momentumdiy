@@ -728,31 +728,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
         console.log('🎉 All data loaded successfully!');
 
-        // Check if user needs onboarding - only on authenticated app pages, not auth pages
-        const isOnAppPages = location.pathname.startsWith('/app') || (location.pathname === '/' && user);
-        const isOnAuthPage = location.pathname.startsWith('/auth');
-        if (isOnAppPages && user && !isOnAuthPage) {
-          try {
-            const profileResponse = await apiService.getProfile();
-            const hasCompletedOnboarding = profileResponse.success && 
-              (profileResponse.data as any)?.onboarding_completed === true;
-            
-            if (!hasCompletedOnboarding) {
-              console.log('🎯 Onboarding not completed, showing onboarding wizard');
-              setShowOnboarding(true);
-            } else {
-              console.log('✅ Onboarding already completed, skipping wizard');
-              setShowOnboarding(false);
-            }
-          } catch (error) {
-            console.log('🎯 Error checking onboarding status, showing onboarding as fallback');
-            setShowOnboarding(true);
-          }
-        } else {
-          console.log('🚫 Not on app pages, skipping onboarding check');
-          setShowOnboarding(false);
-        }
-
       } catch (error) {
         console.error('❌ Unexpected error loading data:', error);
         // Set empty data on error
@@ -766,6 +741,51 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
     loadData();
   }, []);
+
+  // Separate effect for onboarding check - only run when component is fully loaded
+  useEffect(() => {
+    if (isLoading || !user) return;
+
+    // Wait for a short delay to ensure auth is fully complete
+    const checkOnboarding = async () => {
+      console.log('🔍 Checking onboarding status...');
+      console.log('Current pathname:', location.pathname);
+      console.log('User authenticated:', !!user);
+
+      // Check if user needs onboarding - only on app pages after auth completion
+      const isOnAppPages = location.pathname.startsWith('/app');
+      const isOnAuthPage = location.pathname.startsWith('/auth');
+      const isOnHomePage = location.pathname === '/';
+      
+      console.log('App pages check:', { isOnAppPages, isOnAuthPage, isOnHomePage });
+
+      if (isOnAppPages && !isOnAuthPage) {
+        try {
+          const profileResponse = await apiService.getProfile();
+          const hasCompletedOnboarding = profileResponse.success && 
+            (profileResponse.data as any)?.onboarding_completed === true;
+          
+          if (!hasCompletedOnboarding) {
+            console.log('🎯 Onboarding not completed, showing onboarding wizard');
+            setShowOnboarding(true);
+          } else {
+            console.log('✅ Onboarding already completed, skipping wizard');
+            setShowOnboarding(false);
+          }
+        } catch (error) {
+          console.log('🎯 Error checking onboarding status:', error);
+          setShowOnboarding(false);
+        }
+      } else {
+        console.log('🚫 Not on app pages or on auth page, skipping onboarding check');
+        setShowOnboarding(false);
+      }
+    };
+
+    // Add a small delay to ensure auth flow is complete
+    const timeoutId = setTimeout(checkOnboarding, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [isLoading, user, location.pathname]);
 
   // Cleanup effect to clear pending task creation timeouts
   // Debounced task creation to prevent rapid duplicate API calls
@@ -1056,24 +1076,30 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
         await handleMarketingGoalsChange(goalsResponse.data);
       }
 
-      // Refresh active goal
-      const activeGoalResponse = await getActiveGoal();
-      if (activeGoalResponse.success && activeGoalResponse.data) {
-        // The MarketingProvider will handle updating the active goal
-        console.log('✅ Active goal refreshed:', activeGoalResponse.data.title);
+      // Reload marketing data after onboarding
+      try {
+        const activeGoalResponse = await getActiveGoal();
+        if (activeGoalResponse.success && activeGoalResponse.data) {
+          const marketingGoalsArray = [activeGoalResponse.data];
+          setMarketingGoals(marketingGoalsArray);
+          console.log('✅ Active goal refreshed after onboarding:', activeGoalResponse.data.title);
+        }
+      } catch (error) {
+        console.error('❌ Error refreshing marketing data after onboarding:', error);
       }
 
       console.log('✅ Onboarding setup complete - track activated and data refreshed');
 
-      // Send onboarding complete notification
+      // Send onboarding complete notification (temporarily disabled to prevent errors)
       try {
-        const notificationResponse = await apiService.sendNotification({
-          type: 'onboarding_complete',
-          data: onboardingData
-        });
-        if (notificationResponse.success) {
-          console.log('📧 Onboarding complete notification sent');
-        }
+        console.log('📧 Onboarding complete notification temporarily disabled');
+        // const notificationResponse = await apiService.sendNotification({
+        //   type: 'onboarding_complete',
+        //   data: onboardingData
+        // });
+        // if (notificationResponse.success) {
+        //   console.log('📧 Onboarding complete notification sent');
+        // }
       } catch (error) {
         console.error('❌ Error sending onboarding notification:', error);
       }
