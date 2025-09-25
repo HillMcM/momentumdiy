@@ -541,6 +541,8 @@ function Dashboard({
 
 function ProtectedApp() {
   console.log('App component rendering...');
+  console.log('🔍 ProtectedApp: Current URL:', window.location.href);
+  console.log('🔍 ProtectedApp: Current pathname:', window.location.pathname);
   
   const { isFocused } = useWindowFocus();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -1265,9 +1267,14 @@ function App() {
 
         {/* App - Protected with subscription guard */}
         <Route path="/app/*" element={
-          <SubscriptionGuard>
-            <ProtectedApp />
-          </SubscriptionGuard>
+          <div>
+            <div style={{ position: 'fixed', top: 0, left: 0, background: 'red', color: 'white', padding: '10px', zIndex: 9999 }}>
+              DEBUG: /app route matched! URL: {window.location.href}
+            </div>
+            <SubscriptionGuard>
+              <ProtectedApp />
+            </SubscriptionGuard>
+          </div>
         } />
           </Routes>
       </OnboardingProvider>

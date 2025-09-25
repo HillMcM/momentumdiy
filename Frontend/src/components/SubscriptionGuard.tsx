@@ -25,7 +25,14 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
   if (isAuthDisabled) {
     console.log('🔓 Auth bypass enabled for local development');
     console.log('🔓 Showing protected content:', children);
-    return <>{children}</>;
+    return (
+      <div>
+        <div style={{ position: 'fixed', top: 30, left: 0, background: 'green', color: 'white', padding: '10px', zIndex: 9999 }}>
+          DEBUG: SubscriptionGuard bypassed - showing app
+        </div>
+        {children}
+      </div>
+    );
   }
 
   useEffect(() => {
