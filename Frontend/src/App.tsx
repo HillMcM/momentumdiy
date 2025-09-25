@@ -500,10 +500,20 @@ function Dashboard({
     // Include tasks linked via marketingTrack OR via the active goal's projectId
     const activeProject = activeGoal ? projects.find(p => p.name === activeGoal.title) : undefined;
     let visibleTasks = activeGoal 
-      ? tasks.filter(t => (
-          (t.marketingTrack && t.marketingTrack.goalId === activeGoal.id) ||
-          (activeProject && t.projectId === activeProject.id)
-        ))
+      ? tasks.filter(t => {
+          // Regular tasks (not marketing track)
+          if (!t.marketingTrack) {
+            return activeProject && t.projectId === activeProject.id;
+          }
+          
+          // Marketing track tasks - only show if module is unlocked
+          if (t.marketingTrack.goalId === activeGoal.id) {
+            const module = activeGoal.modules.find(m => m.id === t.marketingTrack!.moduleId);
+            return module ? module.isUnlocked : false;
+          }
+          
+          return false;
+        })
       : tasks;
     // Fallback: if none found via filters, show all tasks so dashboard isn't empty
     if (activeGoal && visibleTasks.length === 0) {
