@@ -1,5 +1,6 @@
 import type { MarketingGoal, ApiResponse, Task } from '../types';
 import { BACKEND_BASE_URL } from './api';
+import { supabase } from '../lib/supabase';
 
 // Get published marketing tracks available for selection
 export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>> {
@@ -63,11 +64,19 @@ export async function activateTrack(trackDefinitionId: string): Promise<ApiRespo
   console.log('🔍 Activating track definition:', trackDefinitionId);
   
   try {
+    // Get authentication token
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
     const response = await fetch(url, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {
