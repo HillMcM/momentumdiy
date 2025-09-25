@@ -10,12 +10,18 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
   try {
     // Get authentication token
     const { data: { session } } = await supabase.auth.getSession();
+    console.log('🔐 getPublishedTracks - Session data:', session ? 'Session exists' : 'No session');
+    console.log('🔐 getPublishedTracks - Access token exists:', !!session?.access_token);
+    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
     
     if (session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`;
+      console.log('🔐 getPublishedTracks - Authorization header set');
+    } else {
+      console.log('❌ getPublishedTracks - No access token available');
     }
 
     const response = await fetch(url, {
@@ -238,12 +244,18 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
   try {
     // Get authentication token
     const { data: { session } } = await supabase.auth.getSession();
+    console.log('🔐 getActiveGoal - Session data:', session ? 'Session exists' : 'No session');
+    console.log('🔐 getActiveGoal - Access token exists:', !!session?.access_token);
+    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
     
     if (session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`;
+      console.log('🔐 getActiveGoal - Authorization header set');
+    } else {
+      console.log('❌ getActiveGoal - No access token available');
     }
 
     const response = await fetch(url, {
