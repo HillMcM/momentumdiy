@@ -5,7 +5,7 @@ import { Client as NotionClient } from '@notionhq/client';
 import { CreateMarketingGoalRequest, UpdateMarketingGoalRequest } from '../types';
 import { routeRateLimit } from '../middleware/rate';
 import { validate } from '../middleware/validate';
-import { supabase } from '../config/supabase';
+import { supabase, supabaseAuth } from '../config/supabase';
 
 const router = Router();
 
@@ -46,7 +46,7 @@ router.get('/goals/active', async (req: Request, res: Response) => {
     }
 
     const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
     
     if (authError || !user) {
       return res.status(401).json({
@@ -55,10 +55,8 @@ router.get('/goals/active', async (req: Request, res: Response) => {
       });
     }
 
-    // Set the user context for RLS
-    supabase.auth.setSession({ access_token: token, refresh_token: '' });
-
-    const result = await MarketingService.getActiveMarketingGoal();
+    // Pass the user ID to the service method
+    const result = await MarketingService.getActiveMarketingGoal(user.id);
 
     if (!result.success) {
       return res.status(400).json(result);
@@ -196,7 +194,7 @@ router.patch('/tracks/:id/activate', async (req: Request, res: Response) => {
     }
 
     const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
     
     if (authError || !user) {
       return res.status(401).json({
@@ -205,10 +203,8 @@ router.patch('/tracks/:id/activate', async (req: Request, res: Response) => {
       });
     }
 
-    // Set the user context for RLS
-    supabase.auth.setSession({ access_token: token, refresh_token: '' });
-    
-    const result = await MarketingService.activateTrackForUser(trackDefinitionId);
+    // Pass the user ID to the service method
+    const result = await MarketingService.activateTrackForUser(trackDefinitionId, user.id);
 
     if (!result.success) {
       return res.status(400).json(result);

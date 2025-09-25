@@ -43,19 +43,23 @@ class MarketingService {
             };
         }
     }
-    static async getActiveMarketingGoal() {
+    static async getActiveMarketingGoal(userId) {
         try {
-            const { data: { user }, error: userError } = await supabase_1.supabase.auth.getUser();
-            if (userError || !user) {
-                return {
-                    success: false,
-                    error: 'User not authenticated'
-                };
+            let currentUserId = userId;
+            if (!currentUserId) {
+                const { data: { user }, error: userError } = await supabase_1.supabase.auth.getUser();
+                if (userError || !user) {
+                    return {
+                        success: false,
+                        error: 'User not authenticated'
+                    };
+                }
+                currentUserId = user.id;
             }
             const { data: profile, error: profileError } = await supabase_1.supabase
                 .from('profiles')
                 .select('*')
-                .eq('id', user.id)
+                .eq('id', currentUserId)
                 .single();
             if (profileError) {
                 return {
@@ -298,7 +302,7 @@ class MarketingService {
             return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
         }
     }
-    static async activateTrackForUser(trackDefinitionId) {
+    static async activateTrackForUser(trackDefinitionId, userId) {
         try {
             const { data: trackDef, error: trackError } = await supabase_1.supabase
                 .from('marketing_track_definitions')
@@ -311,12 +315,16 @@ class MarketingService {
                     error: trackError.message
                 };
             }
-            const { data: { user }, error: userError } = await supabase_1.supabase.auth.getUser();
-            if (userError || !user) {
-                return {
-                    success: false,
-                    error: 'User not authenticated'
-                };
+            let currentUserId = userId;
+            if (!currentUserId) {
+                const { data: { user }, error: userError } = await supabase_1.supabase.auth.getUser();
+                if (userError || !user) {
+                    return {
+                        success: false,
+                        error: 'User not authenticated'
+                    };
+                }
+                currentUserId = user.id;
             }
             const now = new Date();
             const { error: updateError } = await supabase_1.supabase
@@ -331,7 +339,7 @@ class MarketingService {
                 track_completion_date: null,
                 updated_at: now.toISOString()
             })
-                .eq('id', user.id);
+                .eq('id', currentUserId);
             if (updateError) {
                 return {
                     success: false,
