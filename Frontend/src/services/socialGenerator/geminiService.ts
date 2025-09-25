@@ -73,7 +73,7 @@ export const generateSocialGraphics = async (settings: BrandSettings, aspectRati
 
         const generateSingleImage = async () => {
             const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image-preview',
+            model: 'gemini-2.5-flash-lite',
             contents: { parts },
             config: {
                 responseModalities: [Modality.IMAGE, Modality.TEXT],
@@ -94,7 +94,7 @@ export const generateSocialGraphics = async (settings: BrandSettings, aspectRati
     };
 
         try {
-            const imagePromises = Array(4).fill(0).map(() => generateSingleImage());
+            const imagePromises = Array(2).fill(0).map(() => generateSingleImage());
             const images = await Promise.all(imagePromises);
             return images;
         } catch (error) {

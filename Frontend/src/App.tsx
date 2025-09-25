@@ -528,13 +528,14 @@ function Dashboard({
           <div className="flex-1">
             <h2 className="text-2xl font-bold mb-2">🎨 AI-Powered Social Media Generator</h2>
             <p className="text-white/90 mb-4">
-              Create stunning social media posts in seconds with Gemini Nano Banana AI. 
-              Generate 4 unique variations for any platform with your brand colors and logo.
+              Create stunning social media posts in seconds with Gemini 2.5 Flash-Lite AI. 
+              Generate 2 unique variations for any platform with your brand colors and logo.
             </p>
             <div className="flex flex-wrap gap-2">
               <span className="bg-white/20 rounded-full px-3 py-1 text-sm">⚡ Lightning Fast</span>
               <span className="bg-white/20 rounded-full px-3 py-1 text-sm">🎯 Brand Aware</span>
               <span className="bg-white/20 rounded-full px-3 py-1 text-sm">📱 All Platforms</span>
+              <span className="bg-white/20 rounded-full px-3 py-1 text-sm">💰 Cost Optimized</span>
             </div>
           </div>
           <div className="flex-shrink-0">
