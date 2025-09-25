@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import './App.css';
 import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
@@ -28,6 +28,41 @@ import EnvTest from './EnvTest';
 import { supabase } from './lib/supabase';
 // Removed mock data imports - using real database data only
 import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketingService';
+
+// Admin Access Modal Component
+function AdminAccessModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const navigate = useNavigate();
+  
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8 max-w-md mx-4">
+        <h3 className="text-xl font-bold text-white mb-4">🔐 Admin Access</h3>
+        <p className="text-gray-300 mb-6">
+          You've discovered the secret admin access! This is for development and content management only.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate('/app/admin/marketing-tracks')}
+            className="flex-1 bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold py-2 px-4 rounded-lg hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 transition-colors"
+          >
+            Open Admin Panel
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 bg-[#2A243E] hover:bg-[#3A344E] text-gray-300 hover:text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-4 text-center">
+          Tip: You can also use Ctrl+Shift+A to access this
+        </p>
+      </div>
+    </div>
+  );
+}
 import CheckoutPage from './CheckoutPage';
 import CheckoutSuccessPage from './CheckoutSuccessPage';
 import SubscriptionPage from './SubscriptionPage';
@@ -1301,10 +1336,9 @@ function App() {
     console.log('🚀 Force deployment - Auth bypass should be working now!');
   }
   
-  // Secret admin access (moved from ProtectedApp)
+  // Secret admin access state
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [showAdminAccess, setShowAdminAccess] = useState(false);
-  const navigate = useNavigate();
   
   // Handle secret admin access
   const handleLogoClick = () => {
@@ -1355,33 +1389,10 @@ function App() {
              </OnboardingProvider>
              
              {/* Secret Admin Access Modal */}
-             {showAdminAccess && (
-               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                 <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8 max-w-md mx-4">
-                   <h3 className="text-xl font-bold text-white mb-4">🔐 Admin Access</h3>
-                   <p className="text-gray-300 mb-6">
-                     You've discovered the secret admin access! This is for development and content management only.
-                   </p>
-                   <div className="flex gap-3">
-                     <button
-                       onClick={() => navigate('/app/admin/marketing-tracks')}
-                       className="flex-1 bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold py-2 px-4 rounded-lg hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 transition-colors"
-                     >
-                       Open Admin Panel
-                     </button>
-                     <button
-                       onClick={() => setShowAdminAccess(false)}
-                       className="flex-1 bg-[#2A243E] hover:bg-[#3A344E] text-gray-300 hover:text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                     >
-                       Cancel
-                     </button>
-                   </div>
-                   <p className="text-xs text-gray-500 mt-4 text-center">
-                     Tip: You can also use Ctrl+Shift+A to access this
-                   </p>
-                 </div>
-               </div>
-             )}
+             <AdminAccessModal 
+               isOpen={showAdminAccess} 
+               onClose={() => setShowAdminAccess(false)} 
+             />
            </Router>
          );
        }
