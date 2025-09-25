@@ -73,7 +73,7 @@ export const generateSocialGraphics = async (settings: BrandSettings, aspectRati
 
         const generateSingleImage = async () => {
             const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-image-preview',
             contents: { parts },
             config: {
                 responseModalities: [Modality.IMAGE, Modality.TEXT],
