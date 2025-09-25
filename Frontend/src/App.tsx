@@ -1246,6 +1246,12 @@ function App() {
   console.log('🔍 Current URL:', window.location.href);
   console.log('🔍 Current pathname:', window.location.pathname);
   
+  // Production debugging
+  if (window.location.hostname !== 'localhost') {
+    console.log('🌐 Production environment detected');
+    console.log('🔍 Auth disabled:', import.meta.env.VITE_DISABLE_AUTH === 'true');
+  }
+  
   return (
     <Router>
       <OnboardingProvider>
