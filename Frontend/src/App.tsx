@@ -1250,6 +1250,7 @@ function App() {
   if (window.location.hostname !== 'localhost') {
     console.log('🌐 Production environment detected');
     console.log('🔍 Auth disabled:', import.meta.env.VITE_DISABLE_AUTH === 'true');
+    console.log('🚀 Force deployment - Auth bypass should be working now!');
   }
   
   return (
