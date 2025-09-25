@@ -8,11 +8,19 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
   console.log('🔍 Fetching published tracks from:', url);
   
   try {
+    // Get authentication token
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     console.log('📡 Response status:', response.status);
@@ -228,11 +236,19 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
   console.log('🔍 BACKEND_BASE_URL:', BACKEND_BASE_URL);
   
   try {
+    // Get authentication token
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     console.log('📡 Response status:', response.status);
