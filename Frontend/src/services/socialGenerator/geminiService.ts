@@ -1,7 +1,14 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import type { BrandSettings, AspectRatio } from "../../types/socialGenerator";
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
+// Initialize Gemini AI with error handling
+const getGeminiAI = () => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+    throw new Error('Gemini API key not configured. Please set VITE_GEMINI_API_KEY in your environment variables.');
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 const generateImagePrompt = (settings: BrandSettings, aspectRatio: AspectRatio, brandVoice: string): string => {
     const textToRender = settings.postText;
@@ -47,23 +54,25 @@ const generateImagePrompt = (settings: BrandSettings, aspectRatio: AspectRatio, 
 };
 
 export const generateSocialGraphics = async (settings: BrandSettings, aspectRatio: AspectRatio, brandVoice: string): Promise<string[]> => {
-    const promptText = generateImagePrompt(settings, aspectRatio, brandVoice);
+    try {
+        const ai = getGeminiAI();
+        const promptText = generateImagePrompt(settings, aspectRatio, brandVoice);
 
-    const parts: any[] = [{ text: promptText }];
-    
-    // Prioritize logo, then icon if available
-    const imageAsset = settings.logo || settings.icon;
-    if (imageAsset) {
-        parts.unshift({
-            inlineData: {
-                mimeType: imageAsset.mimeType,
-                data: imageAsset.data,
-            }
-        });
-    }
+        const parts: any[] = [{ text: promptText }];
+        
+        // Prioritize logo, then icon if available
+        const imageAsset = settings.logo || settings.icon;
+        if (imageAsset) {
+            parts.unshift({
+                inlineData: {
+                    mimeType: imageAsset.mimeType,
+                    data: imageAsset.data,
+                }
+            });
+        }
 
-    const generateSingleImage = async () => {
-        const response = await ai.models.generateContent({
+        const generateSingleImage = async () => {
+            const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-image-preview',
             contents: { parts },
             config: {
@@ -84,21 +93,30 @@ export const generateSocialGraphics = async (settings: BrandSettings, aspectRati
         throw new Error("The AI did not return an image. Please try again.");
     };
 
-    try {
-        const imagePromises = Array(4).fill(0).map(() => generateSingleImage());
-        const images = await Promise.all(imagePromises);
-        return images;
-    } catch (error) {
-        console.error("Error generating images with nano-banana:", error);
-        if (error instanceof Error) {
-            throw new Error(`Image generation failed: ${error.message}`);
+        try {
+            const imagePromises = Array(4).fill(0).map(() => generateSingleImage());
+            const images = await Promise.all(imagePromises);
+            return images;
+        } catch (error) {
+            console.error("Error generating images with nano-banana:", error);
+            if (error instanceof Error) {
+                throw new Error(`Image generation failed: ${error.message}`);
+            }
+            throw new Error("An unexpected error occurred during image generation.");
         }
-        throw new Error("An unexpected error occurred during image generation.");
+    } catch (error) {
+        console.error("Error initializing Gemini AI:", error);
+        if (error instanceof Error) {
+            throw new Error(`API initialization failed: ${error.message}`);
+        }
+        throw new Error("An unexpected error occurred during API initialization.");
     }
 };
 
 export const describeImageStyle = async (imageBase64: string): Promise<string> => {
-    const response = await ai.models.generateContent({
+    try {
+        const ai = getGeminiAI();
+        const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: {
             parts: [
@@ -106,26 +124,42 @@ export const describeImageStyle = async (imageBase64: string): Promise<string> =
                 { inlineData: { mimeType: 'image/png', data: imageBase64 } }
             ]
         }
-    });
-    return response.text;
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error describing image style:", error);
+        if (error instanceof Error) {
+            throw new Error(`Image analysis failed: ${error.message}`);
+        }
+        throw new Error("An unexpected error occurred during image analysis.");
+    }
 };
 
 
 export const refineBrandVoice = async (currentVoice: string, selectionStyle: string): Promise<string> => {
-    const prompt = `
-    As a brand strategist AI, your task is to refine a user's brand style guide.
-    The user's current brand style preference is: "${currentVoice}".
-    They just selected a new design, and its style is described as: "${selectionStyle}".
+    try {
+        const ai = getGeminiAI();
+        const prompt = `
+        As a brand strategist AI, your task is to refine a user's brand style guide.
+        The user's current brand style preference is: "${currentVoice}".
+        They just selected a new design, and its style is described as: "${selectionStyle}".
 
-    Synthesize these two descriptions into a new, updated brand style preference. The new description should be a single, concise sentence that is clear and actionable for future image generation prompts. It should smoothly blend the user's established preference with their latest choice.
+        Synthesize these two descriptions into a new, updated brand style preference. The new description should be a single, concise sentence that is clear and actionable for future image generation prompts. It should smoothly blend the user's established preference with their latest choice.
 
-    Output only the new, refined brand style preference sentence.
-    `;
+        Output only the new, refined brand style preference sentence.
+        `;
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt
-    });
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt
+        });
 
-    return response.text.trim();
+        return response.text.trim();
+    } catch (error) {
+        console.error("Error refining brand voice:", error);
+        if (error instanceof Error) {
+            throw new Error(`Brand voice refinement failed: ${error.message}`);
+        }
+        throw new Error("An unexpected error occurred during brand voice refinement.");
+    }
 };

@@ -1243,6 +1243,11 @@ function App() {
   console.log('VITE_DISABLE_AUTH === "true":', import.meta.env.VITE_DISABLE_AUTH === 'true');
   console.log('All env vars:', import.meta.env);
   
+  // Basic React debugging
+  console.log('🚀 App component is rendering!');
+  console.log('🔍 Current URL:', window.location.href);
+  console.log('🔍 Current pathname:', window.location.pathname);
+  
   return (
     <Router>
       <OnboardingProvider>
