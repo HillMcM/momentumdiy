@@ -243,6 +243,8 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
               step={currentStep - 7}
               data={onboardingData}
               onUpdate={updateData}
+              availableTracks={availableTracks}
+              loadingTracks={loadingTracks}
             />
           )}
         </div>
@@ -633,7 +635,9 @@ const TrackSetupStep: React.FC<{
   step: number;
   data: OnboardingData;
   onUpdate: (updates: Partial<OnboardingData>) => void;
-}> = ({ step, data, onUpdate }) => {
+  availableTracks: any[];
+  loadingTracks: boolean;
+}> = ({ step, data, onUpdate, availableTracks, loadingTracks }) => {
   // Calculate recommended track based on quiz answers
   const calculateRecommendedTrack = () => {
     const answers = data.quizAnswers;
