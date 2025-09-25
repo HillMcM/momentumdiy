@@ -48,11 +48,21 @@ router.post('/send', routeRateLimit(10), async (req: Request, res: Response) => 
       });
     }
 
-    // Create user profile object
+    // Create user profile object with validation
+    const userEmail = user.email || profile.email;
+    const userName = profile.business_name || profile.full_name || user.email?.split('@')[0] || 'User';
+    
+    if (!userEmail) {
+      return res.status(400).json({
+        success: false,
+        error: 'User email is required'
+      });
+    }
+    
     const userProfile = {
       id: user.id,
-      email: user.email || profile.email || 'unknown@example.com',
-      name: profile.business_name || profile.full_name || user.email?.split('@')[0] || 'User',
+      email: userEmail,
+      name: userName,
       subscription_status: profile.subscription_status || 'trial',
       trial_end_date: profile.trial_end_date,
       onboarding_completed: profile.onboarding_completed || false,
