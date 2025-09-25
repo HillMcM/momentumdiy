@@ -623,6 +623,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   
   const location = useLocation();
   const { isFocused } = useWindowFocus();
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
