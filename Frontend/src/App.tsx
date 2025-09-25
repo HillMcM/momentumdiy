@@ -730,7 +730,8 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
         // Check if user needs onboarding - only on authenticated app pages, not auth pages
         const isOnAppPages = location.pathname.startsWith('/app') || (location.pathname === '/' && user);
-        if (isOnAppPages && user) {
+        const isOnAuthPage = location.pathname.startsWith('/auth');
+        if (isOnAppPages && user && !isOnAuthPage) {
           try {
             const profileResponse = await apiService.getProfile();
             const hasCompletedOnboarding = profileResponse.success && 
