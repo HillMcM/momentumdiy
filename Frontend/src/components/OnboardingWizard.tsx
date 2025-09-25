@@ -62,9 +62,14 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
   const loadAvailableTracks = async () => {
     setLoadingTracks(true);
     try {
+      console.log('🔍 OnboardingWizard - Loading available tracks...');
       const response = await getPublishedTracks();
+      console.log('🔍 OnboardingWizard - Response:', response);
       if (response.success && response.data) {
+        console.log('🔍 OnboardingWizard - Setting tracks:', response.data);
         setAvailableTracks(response.data);
+      } else {
+        console.log('❌ OnboardingWizard - No tracks data:', response);
       }
     } catch (error) {
       console.error('Error loading tracks:', error);
@@ -708,6 +713,7 @@ const TrackSetupStep: React.FC<{
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-[#FFF1E7] mb-4">Available Tracks:</h3>
+            {console.log('🔍 OnboardingWizard - Rendering tracks:', availableTracks.length, availableTracks)}
             {availableTracks.map((track) => (
               <label key={track.id} className="flex items-start space-x-3 cursor-pointer p-4 bg-[#2A2438] rounded-lg hover:bg-[#2A2438]/80 transition-colors">
                 <input
