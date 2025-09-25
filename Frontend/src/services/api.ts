@@ -77,7 +77,8 @@ class ApiService {
 
     // Check if we're in preview mode (skip auth)
     const isPreviewBranch = window.location.hostname !== 'app.momentumdiy.com' && 
-                            window.location.hostname !== 'momentumdiy.com';
+                            window.location.hostname !== 'momentumdiy.com' &&
+                            window.location.hostname !== 'www.momentumdiy.com';
 
     // Get the current session for authentication (skip in preview mode)
     const authHeaders: Record<string, string> = {};
@@ -89,44 +90,7 @@ class ApiService {
       }
     }
 
-    // Only use mock responses when backend is not accessible
-    // This prevents backend errors when the backend is not available
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-      console.log('Using mock API response for localhost development');
-      
-      // Return appropriate mock data based on the endpoint
-      if (endpoint.includes('/tasks/') && endpoint.includes('/status')) {
-        // Mock task status update
-        return {
-          success: true,
-          data: { id: endpoint.split('/')[2], status: 'completed' } as T,
-          message: 'Task status updated successfully'
-        };
-      } else if (endpoint.includes('/tasks/') && options.method === 'PUT') {
-        // Mock task update - return the task data that was sent
-        const taskId = endpoint.split('/')[2];
-        const body = options.body ? JSON.parse(options.body as string) : {};
-        return {
-          success: true,
-          data: { id: taskId, ...body } as T,
-          message: 'Task updated successfully'
-        };
-      } else if (endpoint.includes('/marketing-tasks/') && endpoint.includes('/completion')) {
-        // Mock marketing task completion
-        return {
-          success: true,
-          data: { id: endpoint.split('/')[2], isCompleted: true } as T,
-          message: 'Marketing task completion updated'
-        };
-      } else {
-        // Generic mock response
-        return {
-          success: true,
-          data: {} as T,
-          message: 'Mock response'
-        };
-      }
-    }
+    // Always use real API - no mock responses
 
     const config: RequestInit = {
       headers: {
@@ -429,32 +393,7 @@ class ApiService {
   }
 
   async getProfile(): Promise<ApiResponse<unknown>> {
-    // Check if we're in preview mode
-    const isPreviewBranch = window.location.hostname !== 'app.momentumdiy.com' && 
-                            window.location.hostname !== 'momentumdiy.com';
-    
-    if (isPreviewBranch) {
-      // Return mock profile data for preview mode
-      return {
-        success: true,
-        data: {
-          onboarding_completed: true,
-          onboarding_data: {
-            businessName: 'Preview Business',
-            industry: 'marketing',
-            goals: ['social_media']
-          },
-          subscription_status: 'active',
-          trial_start_date: null,
-          trial_end_date: null,
-          subscription_start_date: new Date().toISOString(),
-          subscription_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          subscription_plan: 'monthly'
-        },
-        message: 'Mock profile data for preview mode'
-      };
-    }
-    
+    // Always use real API - no mock data
     return this.request<unknown>('/stripe/profile');
   }
 

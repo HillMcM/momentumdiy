@@ -692,9 +692,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
         setIsLoading(true);
         console.log('🚀 Loading data in development mode...');
 
-        // Skip all backend connectivity tests and API calls in development
-        console.log('🔄 Using mock data for development - no backend required');
-
         // Load tasks from marketing goals (empty initially)
         setTasks([]);
         console.log('✅ Initialized empty tasks array');
@@ -727,7 +724,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
         // Skip calendar events (deactivated)
         console.log('🚫 Skipping calendar API call - feature deactivated');
 
-        console.log('🎉 All data loaded successfully from mock data!');
+        console.log('🎉 All data loaded successfully!');
 
         // Check if user needs onboarding
         // Always check onboarding status, regardless of active goals
@@ -750,7 +747,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
       } catch (error) {
         console.error('❌ Unexpected error loading data:', error);
-        // Set fallback data on error
+        // Set empty data on error
         setTasks([]);
         setMarketingGoals([]);
         setProjects([]);
