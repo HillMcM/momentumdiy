@@ -84,6 +84,16 @@ class MarketingService {
                     error: trackError.message
                 };
             }
+            const { data: goalData, error: goalError } = await supabase_1.supabase
+                .from('marketing_goals')
+                .select('id')
+                .eq('track_definition_id', trackDef.id)
+                .single();
+            let modules = [];
+            if (!goalError && goalData) {
+                const modulesResponse = await this.getMarketingModules(goalData.id);
+                modules = modulesResponse.success ? modulesResponse.data || [] : [];
+            }
             const goal = {
                 id: trackDef.id,
                 title: trackDef.title,
@@ -98,7 +108,7 @@ class MarketingService {
                 lastWeekAdvancement: profile.track_last_week_advancement,
                 trackDefinitionId: trackDef.id,
                 phases: trackDef.phases || [],
-                modules: []
+                modules: modules
             };
             return {
                 success: true,
@@ -326,6 +336,30 @@ class MarketingService {
                 }
                 currentUserId = user.id;
             }
+            const { data: goalData, error: goalError } = await supabase_1.supabase
+                .from('marketing_goals')
+                .insert([{
+                    title: trackDef.title,
+                    description: trackDef.description || '',
+                    industry: trackDef.industry_tags?.[0] || 'General',
+                    duration: trackDef.duration_weeks,
+                    is_active: true,
+                    start_date: new Date().toISOString(),
+                    current_week: 1,
+                    progress: 0,
+                    week_start_dates: [new Date().toISOString()],
+                    last_week_advancement: null,
+                    track_definition_id: trackDefinitionId,
+                    phases: trackDef.phases || []
+                }])
+                .select()
+                .single();
+            if (goalError) {
+                return {
+                    success: false,
+                    error: goalError.message
+                };
+            }
             const now = new Date();
             const { error: updateError } = await supabase_1.supabase
                 .from('profiles')
@@ -346,8 +380,10 @@ class MarketingService {
                     error: updateError.message
                 };
             }
+            const modulesResponse = await this.getMarketingModules(goalData.id);
+            const modules = modulesResponse.success ? modulesResponse.data || [] : [];
             const goal = {
-                id: trackDefinitionId,
+                id: goalData.id,
                 title: trackDef.title,
                 description: trackDef.description || '',
                 industry: trackDef.industry_tags?.[0] || 'General',
@@ -360,7 +396,7 @@ class MarketingService {
                 lastWeekAdvancement: null,
                 trackDefinitionId: trackDefinitionId,
                 phases: trackDef.phases || [],
-                modules: []
+                modules: modules
             };
             return {
                 success: true,

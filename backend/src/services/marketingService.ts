@@ -112,6 +112,20 @@ export class MarketingService {
         };
       }
 
+      // Get modules for this track definition by looking up the goal ID
+      // First, find the marketing goal that was created for this track definition
+      const { data: goalData, error: goalError } = await supabase
+        .from('marketing_goals')
+        .select('id')
+        .eq('track_definition_id', trackDef.id)
+        .single();
+
+      let modules: MarketingModule[] = [];
+      if (!goalError && goalData) {
+        const modulesResponse = await this.getMarketingModules(goalData.id);
+        modules = modulesResponse.success ? modulesResponse.data || [] : [];
+      }
+
       // Create MarketingGoal object from track definition + user progress
       const goal: MarketingGoal = {
         id: trackDef.id,
@@ -127,7 +141,7 @@ export class MarketingService {
         lastWeekAdvancement: profile.track_last_week_advancement,
         trackDefinitionId: trackDef.id,
         phases: trackDef.phases || [],
-        modules: [] // Will be populated by getMarketingModules
+        modules: modules
       };
 
       return {
@@ -392,6 +406,33 @@ export class MarketingService {
         currentUserId = user.id;
       }
 
+      // Create a marketing goal for this track definition
+      const { data: goalData, error: goalError } = await supabase
+        .from('marketing_goals')
+        .insert([{
+          title: trackDef.title,
+          description: trackDef.description || '',
+          industry: trackDef.industry_tags?.[0] || 'General',
+          duration: trackDef.duration_weeks,
+          is_active: true,
+          start_date: new Date().toISOString(),
+          current_week: 1,
+          progress: 0,
+          week_start_dates: [new Date().toISOString()],
+          last_week_advancement: null,
+          track_definition_id: trackDefinitionId,
+          phases: trackDef.phases || []
+        }])
+        .select()
+        .single();
+
+      if (goalError) {
+        return {
+          success: false,
+          error: goalError.message
+        };
+      }
+
       // Update user's profile with track information
       const now = new Date();
       const { error: updateError } = await supabase
@@ -415,9 +456,13 @@ export class MarketingService {
         };
       }
 
+      // Get modules for the newly created goal
+      const modulesResponse = await this.getMarketingModules(goalData.id);
+      const modules = modulesResponse.success ? modulesResponse.data || [] : [];
+
       // Create a MarketingGoal object from the track definition for API consistency
       const goal: MarketingGoal = {
-        id: trackDefinitionId, // Use track definition ID as goal ID
+        id: goalData.id, // Use the actual goal ID
         title: trackDef.title,
         description: trackDef.description || '',
         industry: trackDef.industry_tags?.[0] || 'General',
@@ -430,7 +475,7 @@ export class MarketingService {
         lastWeekAdvancement: null,
         trackDefinitionId: trackDefinitionId,
         phases: trackDef.phases || [],
-        modules: [] // Will be populated by getMarketingModules
+        modules: modules
       };
 
       return {
