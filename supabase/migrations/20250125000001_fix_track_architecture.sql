@@ -60,24 +60,58 @@ BEGIN
 END $$;
 
 -- Restore original marketing_goals policies (global track management)
-CREATE POLICY "Authenticated users can view marketing goals" ON public.marketing_goals 
-  FOR SELECT USING (auth.role() = 'authenticated');
+DO $$
+BEGIN
+    -- Create policy for authenticated users to view marketing goals
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'marketing_goals' 
+        AND policyname = 'Authenticated users can view marketing goals'
+    ) THEN
+        CREATE POLICY "Authenticated users can view marketing goals" ON public.marketing_goals 
+        FOR SELECT USING (auth.role() = 'authenticated');
+    END IF;
 
-CREATE POLICY "Admins can manage marketing goals" ON public.marketing_goals 
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE id = auth.uid() 
-      AND email IN ('info@hillaryedenmcmullen.com')
-    )
-  );
+    -- Create policy for admins to manage marketing goals
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'marketing_goals' 
+        AND policyname = 'Admins can manage marketing goals'
+    ) THEN
+        CREATE POLICY "Admins can manage marketing goals" ON public.marketing_goals 
+        FOR ALL USING (
+            EXISTS (
+                SELECT 1 FROM public.profiles 
+                WHERE id = auth.uid() 
+                AND email IN ('info@hillaryedenmcmullen.com')
+            )
+        );
+    END IF;
+END $$;
 
 -- Add policies for profile track progress (user-specific)
-CREATE POLICY "Users can view own track progress" ON public.profiles 
-  FOR SELECT USING (auth.uid() = id);
+DO $$
+BEGIN
+    -- Create policy for users to view own track progress
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'profiles' 
+        AND policyname = 'Users can view own track progress'
+    ) THEN
+        CREATE POLICY "Users can view own track progress" ON public.profiles 
+        FOR SELECT USING (auth.uid() = id);
+    END IF;
 
-CREATE POLICY "Users can update own track progress" ON public.profiles 
-  FOR UPDATE USING (auth.uid() = id);
+    -- Create policy for users to update own track progress
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'profiles' 
+        AND policyname = 'Users can update own track progress'
+    ) THEN
+        CREATE POLICY "Users can update own track progress" ON public.profiles 
+        FOR UPDATE USING (auth.uid() = id);
+    END IF;
+END $$;
 
 -- Add comments for clarity
 COMMENT ON COLUMN public.profiles.active_track_id IS 'Currently active marketing track definition ID';
