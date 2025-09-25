@@ -528,7 +528,7 @@ function Dashboard({
           <div className="flex-1">
             <h2 className="text-2xl font-bold mb-2">🎨 AI-Powered Social Media Generator</h2>
             <p className="text-white/90 mb-4">
-              Create stunning social media posts in seconds with Gemini 2.5 Flash-Lite AI. 
+              Create stunning social media posts in seconds with Gemini 2.5 Flash AI. 
               Generate 2 unique variations for any platform with your brand colors and logo.
             </p>
             <div className="flex flex-wrap gap-2">

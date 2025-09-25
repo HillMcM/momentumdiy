@@ -14,7 +14,7 @@ export default function SocialMediaGeneratorPage() {
               AI-Powered Social Media Generator
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-4xl mx-auto">
-              Create stunning social media posts in seconds with Gemini 2.5 Flash-Lite - the most cost-effective AI image generator available
+              Create stunning social media posts in seconds with Gemini 2.5 Flash - the most advanced AI image generator available
             </p>
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 border border-white/20">
@@ -27,7 +27,7 @@ export default function SocialMediaGeneratorPage() {
                 <span className="text-sm font-semibold">⚡ Instant Generation</span>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 border border-white/20">
-                <span className="text-sm font-semibold">🤖 Gemini 2.5 Flash-Lite AI</span>
+                <span className="text-sm font-semibold">🤖 Gemini 2.5 Flash AI</span>
               </div>
             </div>
             
@@ -49,9 +49,9 @@ export default function SocialMediaGeneratorPage() {
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
             <div>
-              <h2 className="text-3xl font-bold mb-6">Powered by Gemini 2.5 Flash-Lite</h2>
+              <h2 className="text-3xl font-bold mb-6">Powered by Gemini 2.5 Flash</h2>
               <p className="text-lg text-white/80 mb-6">
-                We use Google's most cost-effective AI image generation model - Gemini 2.5 Flash-Lite - 
+                We use Google's most advanced AI image generation model - Gemini 2.5 Flash - 
                 to create professional-quality social media graphics that match your brand perfectly.
               </p>
               <ul className="space-y-4">
@@ -113,7 +113,7 @@ export default function SocialMediaGeneratorPage() {
               <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
                 <div className="w-16 h-16 bg-[#EF8E81] rounded-full flex items-center justify-center text-2xl font-bold text-white mx-auto mb-6">3</div>
                 <h3 className="text-xl font-bold mb-4">Generate & Download</h3>
-                <p className="text-white/80">Get 2 unique designs powered by Gemini 2.5 Flash-Lite AI</p>
+                <p className="text-white/80">Get 2 unique designs powered by Gemini 2.5 Flash AI</p>
               </div>
             </div>
           </div>
