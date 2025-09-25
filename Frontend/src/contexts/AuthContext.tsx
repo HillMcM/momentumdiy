@@ -35,13 +35,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const disableAuthValue = import.meta.env.VITE_DISABLE_AUTH;
   const BYPASS_AUTH = disableAuthValue === 'true' || disableAuthValue === 'TRUE';
   
+  // TEMPORARY: Force auth enabled to show beautiful auth page
+  const FORCE_AUTH_ENABLED = true;
+  
   console.log('🔍 AuthContext - Environment check:');
   console.log('VITE_DISABLE_AUTH raw value:', disableAuthValue);
   console.log('VITE_DISABLE_AUTH type:', typeof disableAuthValue);
   console.log('BYPASS_AUTH:', BYPASS_AUTH);
+  console.log('FORCE_AUTH_ENABLED:', FORCE_AUTH_ENABLED);
   console.log('All env vars:', import.meta.env);
   
-  if (BYPASS_AUTH) {
+  if (BYPASS_AUTH && !FORCE_AUTH_ENABLED) {
     console.log('🔓 AuthContext: Auth bypass enabled for local development');
   } else {
     console.log('🔐 AuthContext: Normal authentication enabled - proceeding with real auth');
@@ -51,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true;
     async function init() {
       try {
-        if (BYPASS_AUTH) {
+        if (BYPASS_AUTH && !FORCE_AUTH_ENABLED) {
           // Create a mock user for testing
           const mockUser = {
             id: 'test-user-id',

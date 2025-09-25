@@ -17,6 +17,9 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
   // Check if auth is disabled for local development
   const isAuthDisabled = import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE';
   
+  // TEMPORARY: Force auth enabled to show beautiful auth page
+  const FORCE_AUTH_ENABLED = true;
+  
   console.log('🔍 SubscriptionGuard - Environment check:');
   console.log('VITE_DISABLE_AUTH:', import.meta.env.VITE_DISABLE_AUTH);
   console.log('isAuthDisabled:', isAuthDisabled);
@@ -24,7 +27,7 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
   console.log('authLoading:', authLoading);
 
   // If auth is disabled, bypass all checks and show the app
-  if (isAuthDisabled) {
+  if (isAuthDisabled && !FORCE_AUTH_ENABLED) {
     console.log('🔓 Auth bypass enabled for local development');
     console.log('🔓 Showing protected content:', children);
     return <>{children}</>;
