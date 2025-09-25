@@ -184,7 +184,7 @@ import SimpleTest from './SimpleTest';
 import CreateEventModal from './CreateEventModal';
 */
 
-function Header() {
+function Header({ onLogoClick }: { onLogoClick?: () => void }) {
   const { user, signOut } = useAuth();
   const { subscription } = useSubscription();
   
@@ -208,7 +208,7 @@ function Header() {
           src={OctopusLogo} 
           alt="MomentumDIY Logo" 
           className="header-logo" 
-          onClick={handleLogoClick}
+          onClick={onLogoClick}
           style={{ cursor: 'pointer' }}
         />
         <span className="header-app-name">MomentumDIY</span>
@@ -591,31 +591,6 @@ function ProtectedApp() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
   
-  // Secret admin access
-  const [adminClickCount, setAdminClickCount] = useState(0);
-  const [showAdminAccess, setShowAdminAccess] = useState(false);
-  
-  // Handle secret admin access
-  const handleLogoClick = () => {
-    setAdminClickCount(prev => prev + 1);
-    if (adminClickCount >= 4) { // 5 clicks total
-      setShowAdminAccess(true);
-      setAdminClickCount(0);
-    }
-  };
-  
-  // Keyboard shortcut for admin access (Ctrl+Shift+A)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-        e.preventDefault();
-        setShowAdminAccess(true);
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   // Debug: Track if component is mounting vs re-rendering
   const mountTimeRef = useRef(Date.now());
@@ -1194,7 +1169,7 @@ function ProtectedApp() {
   if (isLoading) {
     return (
       <>
-        <Header />
+        <Header onLogoClick={handleLogoClick} />
         <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
           <Sidebar hidden={sidebarHidden} onToggle={toggleSidebar} />
           <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
@@ -1296,35 +1271,6 @@ function ProtectedApp() {
             } />
               </Routes>
               <FloatingAssistant />
-              
-              {/* Secret Admin Access */}
-              {showAdminAccess && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                  <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8 max-w-md mx-4">
-                    <h3 className="text-xl font-bold text-white mb-4">🔐 Admin Access</h3>
-                    <p className="text-gray-300 mb-6">
-                      You've discovered the secret admin access! This is for development and content management only.
-                    </p>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => navigate('/app/admin/marketing-tracks')}
-                        className="flex-1 bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold py-2 px-4 rounded-lg hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 transition-colors"
-                      >
-                        Open Admin Panel
-                      </button>
-                      <button
-                        onClick={() => setShowAdminAccess(false)}
-                        className="flex-1 bg-[#2A243E] hover:bg-[#3A344E] text-gray-300 hover:text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-4 text-center">
-                      Tip: You can also use Ctrl+Shift+A to access this
-                    </p>
-                  </div>
-                </div>
-              )}
             </PersonalizedDashboard>
           </MarketingProvider>
         </main>
@@ -1355,6 +1301,33 @@ function App() {
     console.log('🚀 Force deployment - Auth bypass should be working now!');
   }
   
+  // Secret admin access (moved from ProtectedApp)
+  const [adminClickCount, setAdminClickCount] = useState(0);
+  const [showAdminAccess, setShowAdminAccess] = useState(false);
+  const navigate = useNavigate();
+  
+  // Handle secret admin access
+  const handleLogoClick = () => {
+    setAdminClickCount(prev => prev + 1);
+    if (adminClickCount >= 4) { // 5 clicks total
+      setShowAdminAccess(true);
+      setAdminClickCount(0);
+    }
+  };
+  
+  // Keyboard shortcut for admin access (Ctrl+Shift+A)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+        e.preventDefault();
+        setShowAdminAccess(true);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+  
   return (
     <Router>
       <OnboardingProvider>
@@ -1377,11 +1350,40 @@ function App() {
           <SubscriptionGuard>
             <ProtectedApp />
           </SubscriptionGuard>
-        } />
-          </Routes>
-      </OnboardingProvider>
-    </Router>
-  );
-}
+               } />
+                 </Routes>
+             </OnboardingProvider>
+             
+             {/* Secret Admin Access Modal */}
+             {showAdminAccess && (
+               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                 <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8 max-w-md mx-4">
+                   <h3 className="text-xl font-bold text-white mb-4">🔐 Admin Access</h3>
+                   <p className="text-gray-300 mb-6">
+                     You've discovered the secret admin access! This is for development and content management only.
+                   </p>
+                   <div className="flex gap-3">
+                     <button
+                       onClick={() => navigate('/app/admin/marketing-tracks')}
+                       className="flex-1 bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold py-2 px-4 rounded-lg hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 transition-colors"
+                     >
+                       Open Admin Panel
+                     </button>
+                     <button
+                       onClick={() => setShowAdminAccess(false)}
+                       className="flex-1 bg-[#2A243E] hover:bg-[#3A344E] text-gray-300 hover:text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                     >
+                       Cancel
+                     </button>
+                   </div>
+                   <p className="text-xs text-gray-500 mt-4 text-center">
+                     Tip: You can also use Ctrl+Shift+A to access this
+                   </p>
+                 </div>
+               </div>
+             )}
+           </Router>
+         );
+       }
 
 export default App;
