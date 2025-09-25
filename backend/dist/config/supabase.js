@@ -17,7 +17,7 @@ exports.supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseServiceK
 });
 const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 exports.supabasePublic = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey);
-exports.supabaseAuth = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey, {
+exports.supabaseAuth = (0, supabase_js_1.createClient)(supabaseUrl, supabaseServiceKey, {
     auth: {
         autoRefreshToken: false,
         persistSession: false
