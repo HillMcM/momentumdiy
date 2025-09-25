@@ -3,7 +3,6 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { supabase } from './lib/supabase';
 import { apiService } from './services/api';
-import OnboardingWizard, { type OnboardingData } from './components/OnboardingWizard';
 
 export default function AuthPage() {
   const { signInWithPassword, signUpWithPassword, signInWithGoogle, user } = useAuth();
@@ -12,7 +11,6 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [, setIsNewUser] = useState(false);
   const [mode, setMode] = useState<'signin' | 'signup'>(() => {
     const params = new URLSearchParams(window.location.search);
@@ -45,39 +43,11 @@ export default function AuthPage() {
     }
 
     if (user) {
-      // Check if user needs onboarding
-      checkOnboardingStatus();
+      // User is authenticated, redirect to app (onboarding will be handled there)
+      navigate('/app', { replace: true });
     }
   }, [user, navigate, location.state]);
 
-  const checkOnboardingStatus = async () => {
-    try {
-      // Check if user has completed onboarding using apiService
-      const response = await apiService.getProfile();
-      
-      if (response.success && (response.data as any)?.onboarding_completed) {
-        // User has completed onboarding, go to app
-        navigate('/app', { replace: true });
-      } else {
-        // User needs onboarding
-        setShowOnboarding(true);
-      }
-    } catch (error) {
-      console.error('Error checking onboarding status:', error);
-      // On error, show onboarding to be safe
-      setShowOnboarding(true);
-    }
-  };
-
-  const handleOnboardingComplete = (_data: OnboardingData) => {
-    setShowOnboarding(false);
-    navigate('/app', { replace: true });
-  };
-
-  const handleOnboardingSkip = () => {
-    setShowOnboarding(false);
-    navigate('/app', { replace: true });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -341,13 +311,6 @@ export default function AuthPage() {
           </div>
         </div>
       </div>
-
-      {/* Onboarding Wizard */}
-      <OnboardingWizard
-        isOpen={showOnboarding}
-        onComplete={handleOnboardingComplete}
-        onSkip={handleOnboardingSkip}
-      />
     </>
   );
 }
