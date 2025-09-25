@@ -6,6 +6,7 @@ export declare class MarketingService {
     static updateMarketingGoal(id: string, updates: UpdateMarketingGoalRequest): Promise<ApiResponse<MarketingGoal>>;
     static deleteMarketingGoal(id: string): Promise<ApiResponse<void>>;
     static seedSocialMediaModules(goalId: string): Promise<ApiResponse<void>>;
+    static activateTrackForUser(trackDefinitionId: string): Promise<ApiResponse<MarketingGoal>>;
     static setActiveMarketingGoal(goalId: string): Promise<ApiResponse<void>>;
     static syncPhasesFromTrackDefinition(goalId: string): Promise<ApiResponse<void>>;
     static updateMarketingGoalProgress(goalId: string, progress: number): Promise<ApiResponse<MarketingGoal>>;

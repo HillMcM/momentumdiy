@@ -23,8 +23,24 @@ router.get('/goals', async (_req, res) => {
         });
     }
 });
-router.get('/goals/active', async (_req, res) => {
+router.get('/goals/active', async (req, res) => {
     try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authorization header required'
+            });
+        }
+        const token = authHeader.substring(7);
+        const { data: { user }, error: authError } = await supabase_1.supabase.auth.getUser(token);
+        if (authError || !user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid or expired token'
+            });
+        }
+        supabase_1.supabase.auth.setSession({ access_token: token, refresh_token: '' });
         const result = await marketingService_1.MarketingService.getActiveMarketingGoal();
         if (!result.success) {
             return res.status(400).json(result);
@@ -119,10 +135,26 @@ router.put('/goals/:id', (0, rate_1.routeRateLimit)(10), async (req, res) => {
         });
     }
 });
-router.patch('/goals/:id/activate', async (req, res) => {
+router.patch('/tracks/:id/activate', async (req, res) => {
     try {
-        const id = req.params['id'];
-        const result = await marketingService_1.MarketingService.setActiveMarketingGoal(id);
+        const trackDefinitionId = req.params['id'];
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authorization header required'
+            });
+        }
+        const token = authHeader.substring(7);
+        const { data: { user }, error: authError } = await supabase_1.supabase.auth.getUser(token);
+        if (authError || !user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid or expired token'
+            });
+        }
+        supabase_1.supabase.auth.setSession({ access_token: token, refresh_token: '' });
+        const result = await marketingService_1.MarketingService.activateTrackForUser(trackDefinitionId);
         if (!result.success) {
             return res.status(400).json(result);
         }

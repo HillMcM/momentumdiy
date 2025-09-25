@@ -32,10 +32,32 @@ router.get('/goals', async (_req: Request, res: Response) => {
 
 /**
  * GET /api/marketing/goals/active
- * Get active marketing goal
+ * Get active marketing goal for the authenticated user
  */
-router.get('/goals/active', async (_req: Request, res: Response) => {
+router.get('/goals/active', async (req: Request, res: Response) => {
   try {
+    // Set the user context for RLS
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authorization header required'
+      });
+    }
+
+    const token = authHeader.substring(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid or expired token'
+      });
+    }
+
+    // Set the user context for RLS
+    supabase.auth.setSession({ access_token: token, refresh_token: '' });
+
     const result = await MarketingService.getActiveMarketingGoal();
 
     if (!result.success) {
@@ -157,14 +179,36 @@ router.put('/goals/:id', routeRateLimit(10), async (req: Request, res: Response)
 });
 
 /**
- * PATCH /api/marketing/goals/:id/activate
- * Set a marketing goal as active
+ * PATCH /api/marketing/tracks/:id/activate
+ * Activate a track definition for the authenticated user
  */
-router.patch('/goals/:id/activate', async (req: Request, res: Response) => {
+router.patch('/tracks/:id/activate', async (req: Request, res: Response) => {
   try {
-    const id = req.params['id'] as string;
+    const trackDefinitionId = req.params['id'] as string;
     
-    const result = await MarketingService.setActiveMarketingGoal(id);
+    // Set the user context for RLS
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authorization header required'
+      });
+    }
+
+    const token = authHeader.substring(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid or expired token'
+      });
+    }
+
+    // Set the user context for RLS
+    supabase.auth.setSession({ access_token: token, refresh_token: '' });
+    
+    const result = await MarketingService.activateTrackForUser(trackDefinitionId);
 
     if (!result.success) {
       return res.status(400).json(result);

@@ -252,6 +252,63 @@ class MarketingService {
             return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
         }
     }
+    static async activateTrackForUser(trackDefinitionId) {
+        try {
+            const { data: trackDef, error: trackError } = await supabase_1.supabase
+                .from('marketing_track_definitions')
+                .select('*')
+                .eq('id', trackDefinitionId)
+                .single();
+            if (trackError) {
+                return {
+                    success: false,
+                    error: trackError.message
+                };
+            }
+            const { error: deactivateError } = await supabase_1.supabase
+                .from('marketing_goals')
+                .update({ is_active: false });
+            if (deactivateError) {
+                console.warn('Warning: Could not deactivate existing goals:', deactivateError.message);
+            }
+            const now = new Date();
+            const { data: newGoal, error: createError } = await supabase_1.supabase
+                .from('marketing_goals')
+                .insert({
+                title: trackDef.title,
+                description: trackDef.description,
+                industry: trackDef.industry_tags?.[0] || 'General',
+                duration: trackDef.duration_weeks,
+                is_active: true,
+                start_date: now.toISOString(),
+                current_week: 1,
+                progress: 0,
+                week_start_dates: [now.toISOString()],
+                last_week_advancement: null,
+                track_definition_id: trackDefinitionId,
+                phases: trackDef.phases || []
+            })
+                .select()
+                .single();
+            if (createError) {
+                return {
+                    success: false,
+                    error: createError.message
+                };
+            }
+            const goal = await this.mapDatabaseGoalToGoal(newGoal);
+            return {
+                success: true,
+                data: goal
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred'
+            };
+        }
+    }
     static async setActiveMarketingGoal(goalId) {
         try {
             const { data: goalData, error: goalError } = await supabase_1.supabase
@@ -273,8 +330,7 @@ class MarketingService {
             }
             const { error: deactivateError } = await supabase_1.supabase
                 .from('marketing_goals')
-                .update({ is_active: false })
-                .neq('id', '00000000-0000-0000-0000-000000000000');
+                .update({ is_active: false });
             if (deactivateError) {
                 return {
                     success: false,

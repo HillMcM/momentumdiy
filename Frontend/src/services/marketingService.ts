@@ -58,9 +58,9 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
 }
 
 // Activate a marketing track for the user
-export async function activateTrack(trackId: string): Promise<ApiResponse<MarketingGoal>> {
-  const url = `${BACKEND_BASE_URL}/api/marketing/goals/${trackId}/activate`;
-  console.log('🔍 Activating track:', trackId);
+export async function activateTrack(trackDefinitionId: string): Promise<ApiResponse<MarketingGoal>> {
+  const url = `${BACKEND_BASE_URL}/api/marketing/tracks/${trackDefinitionId}/activate`;
+  console.log('🔍 Activating track definition:', trackDefinitionId);
   
   try {
     const response = await fetch(url, {
