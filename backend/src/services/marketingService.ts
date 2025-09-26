@@ -601,29 +601,61 @@ export class MarketingService {
         };
       }
 
-      // Seed modules for the newly created goal based on track type
-      let modules: MarketingModule[] = [];
-      if (trackDef.title.toLowerCase().includes('social media') || trackDef.title.toLowerCase().includes('social')) {
-        console.log('🌱 Seeding social media modules for goal:', goalData.id);
-        const seedResponse = await this.seedSocialMediaModules(goalData.id);
-        if (seedResponse.success) {
-          console.log('✅ Social media modules seeded successfully');
-        } else {
-          console.error('❌ Error seeding social media modules:', seedResponse.error);
-        }
-      } else if (trackDef.title.toLowerCase().includes('foot traffic') || trackDef.title.toLowerCase().includes('local')) {
-        console.log('🌱 Seeding local foot traffic modules for goal:', goalData.id);
-        const seedResponse = await this.seedLocalFootTrafficModules(goalData.id);
-        if (seedResponse.success) {
-          console.log('✅ Local foot traffic modules seeded successfully');
-        } else {
-          console.error('❌ Error seeding local foot traffic modules:', seedResponse.error);
+    // Get modules from the track definition (existing curated content)
+    let modules: MarketingModule[] = [];
+    console.log('🔍 Loading existing modules for goal...');
+    
+    // First, try to get modules that are already associated with this goal
+    const { data: existingModules, error: modulesError } = await supabase
+      .from('marketing_modules')
+      .select('*')
+      .eq('goal_id', goalData.id)
+      .order('week_number', { ascending: true });
+
+    if (modulesError) {
+      console.error('❌ Error loading existing modules:', modulesError);
+    } else if (existingModules && existingModules.length > 0) {
+      console.log('✅ Found existing modules for goal:', existingModules.length);
+      // Convert to MarketingModule format
+      modules = existingModules.map(module => ({
+        id: module.id,
+        title: module.title,
+        description: module.description || '',
+        weekNumber: module.week_number,
+        content: module.content || '',
+        proTip: module.pro_tip || '',
+        isUnlocked: module.week_number <= 1, // First week is unlocked
+        tasks: [] // Tasks will be loaded separately
+      }));
+    } else {
+      console.log('⚠️ No existing modules found for goal, this track may need to be seeded first');
+    }
+
+    // Load tasks for each module
+    if (modules.length > 0) {
+      console.log('🔍 Loading tasks for modules...');
+      for (const module of modules) {
+        const { data: tasks, error: tasksError } = await supabase
+          .from('marketing_tasks')
+          .select('*')
+          .eq('module_id', module.id)
+          .order('order_index', { ascending: true });
+
+        if (tasksError) {
+          console.error(`❌ Error loading tasks for module ${module.id}:`, tasksError);
+        } else if (tasks && tasks.length > 0) {
+          module.tasks = tasks.map(task => ({
+            id: task.id,
+            title: task.title,
+            description: task.description || '',
+            estimatedTime: task.estimated_time || '',
+            isCompleted: task.is_completed || false,
+            orderIndex: task.order_index || 0
+          }));
+          console.log(`✅ Loaded ${tasks.length} tasks for module ${module.title}`);
         }
       }
-
-      // Get modules for the newly created goal
-      const modulesResponse = await this.getMarketingModules(goalData.id);
-      modules = modulesResponse.success ? modulesResponse.data || [] : [];
+    }
 
       // Create a MarketingGoal object from the track definition for API consistency
       const goal: MarketingGoal = {
