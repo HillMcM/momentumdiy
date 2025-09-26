@@ -293,7 +293,7 @@ router.put('/modules/:id', async (req, res) => {
       // If the error is about pro_tip column not existing, try again without it
       if (error.message && error.message.includes('pro_tip')) {
         console.log('Pro_tip column not found, retrying without pro_tip field');
-        const { pro_tip, ...updatesWithoutProTip } = filteredUpdates;
+        const { pro_tip: _pro_tip, ...updatesWithoutProTip } = filteredUpdates;
         const { data: retryData, error: retryError } = await supabase
           .from('marketing_modules')
           .update(updatesWithoutProTip)
@@ -750,8 +750,8 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
       is_completed: false
     })) || [];
 
-    let createdModules = [];
-    let updatedModules = [];
+    const createdModules: any[] = [];
+    const updatedModules: any[] = [];
 
     // Process each module - update existing or create new
     for (const moduleData of liveModules) {

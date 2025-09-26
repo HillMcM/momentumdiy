@@ -24,7 +24,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -54,7 +54,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -97,7 +97,7 @@ router.post('/', routeRateLimit(60), validate((req) => {
     }
 
     return res.status(201).json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -129,7 +129,7 @@ router.put('/:id', routeRateLimit(60), async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -159,7 +159,7 @@ router.delete('/:id', routeRateLimit(60), async (req: Request, res: Response) =>
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -189,7 +189,7 @@ router.get('/category/:category', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

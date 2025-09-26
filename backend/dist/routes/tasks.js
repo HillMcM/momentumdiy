@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -35,7 +35,7 @@ router.get('/:id', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -62,7 +62,7 @@ router.post('/', (0, rate_1.routeRateLimit)(60), (0, validate_1.validate)((req) 
         }
         return res.status(201).json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -79,7 +79,7 @@ router.put('/:id', (0, rate_1.routeRateLimit)(60), async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -95,7 +95,7 @@ router.delete('/:id', (0, rate_1.routeRateLimit)(60), async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -123,7 +123,7 @@ router.patch('/:id/status', (0, rate_1.routeRateLimit)(60), (0, validate_1.valid
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -151,7 +151,7 @@ router.patch('/:id/time-spent', (0, rate_1.routeRateLimit)(60), (0, validate_1.v
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -167,7 +167,7 @@ router.get('/project/:projectId', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'

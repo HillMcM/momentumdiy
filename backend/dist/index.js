@@ -64,22 +64,6 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env['PORT'] || 3001;
 app.set('trust proxy', 1);
-if ((process.env['NODE_ENV'] || 'development') !== 'production') {
-    app.use((req, res, next) => {
-        const origin = req.headers.origin || '*';
-        res.header('Access-Control-Allow-Origin', origin);
-        res.header('Vary', 'Origin');
-        res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
-        if (req.method === 'OPTIONS') {
-            res.sendStatus(204);
-            return;
-        }
-        next();
-        return;
-    });
-}
 const configuredOrigins = (process.env['CORS_ORIGIN'] || '')
     .split(',')
     .map(o => o.trim())
@@ -101,27 +85,6 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use((0, cors_1.default)(corsOptions));
-if ((process.env['NODE_ENV'] || 'development') !== 'production') {
-    app.use((req, res, next) => {
-        const origin = req.headers.origin;
-        if (origin && /^(http:\/\/(localhost|127\.0\.0\.1):\d+)$/.test(origin)) {
-            res.header('Access-Control-Allow-Origin', origin);
-            res.header('Vary', 'Origin');
-        }
-        else {
-            res.header('Access-Control-Allow-Origin', '*');
-        }
-        res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
-        if (req.method === 'OPTIONS') {
-            res.sendStatus(200);
-            return;
-        }
-        next();
-        return;
-    });
-}
 app.options('*', (0, cors_1.default)(corsOptions));
 app.use((0, helmet_1.default)());
 const limiter = (0, express_rate_limit_1.default)({

@@ -22,7 +22,7 @@ router.get('/goals', async (_req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -63,7 +63,7 @@ router.get('/goals/active', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -101,7 +101,7 @@ router.get('/goals/:id', async (req: Request, res: Response) => {
       success: true,
       data: goal
     });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -144,7 +144,7 @@ router.post('/goals', routeRateLimit(10), validate((req) => {
     }
 
     return res.status(201).json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -168,7 +168,7 @@ router.put('/goals/:id', routeRateLimit(10), async (req: Request, res: Response)
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -211,7 +211,7 @@ router.patch('/tracks/:id/activate', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -234,7 +234,7 @@ router.post('/goals/:id/sync-phases', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -257,7 +257,7 @@ router.get('/goals/:id/modules', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -304,7 +304,7 @@ router.post('/goals/:id/modules', routeRateLimit(20), validate((req) => {
     }
 
     return res.status(201).json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -327,7 +327,7 @@ router.get('/modules/:id/tasks', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -366,7 +366,7 @@ router.post('/modules/:id/tasks', routeRateLimit(60), validate((req) => {
     }
 
     return res.status(201).json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -401,7 +401,7 @@ router.patch('/tasks/:id/completion', routeRateLimit(60), validate((req) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -436,7 +436,7 @@ router.put('/tasks/:id', routeRateLimit(60), validate((req) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -473,7 +473,7 @@ router.put('/goals/:id', routeRateLimit(10), validate((req) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -495,7 +495,7 @@ router.delete('/goals/:id', async (req: Request, res: Response) => {
       return res.status(400).json(result);
     }
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -773,7 +773,7 @@ router.post('/goals/:id/seed-social', async (req: Request, res: Response) => {
     const result = await MarketingService.seedSocialMediaModules(id);
     if (!result.success) return res.status(400).json(result);
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });

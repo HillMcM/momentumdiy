@@ -144,8 +144,8 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
     try {
       const response = await activateTrack(trackId);
       if (response.success) {
-        // Refresh marketing data to load the newly activated track
-        await refreshMarketingData();
+        // Force refresh marketing data to load the newly activated track immediately
+        await refreshMarketingData(true);
         // Hide track selection after successful activation
         setShowTrackSelection(false);
     } else {
