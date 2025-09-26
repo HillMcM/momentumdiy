@@ -14,7 +14,7 @@ router.get('/events', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -30,7 +30,7 @@ router.get('/events/:id', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -73,7 +73,7 @@ router.post('/events', (0, rate_1.routeRateLimit)(60), (0, validate_1.validate)(
                 new Date(eventData.end);
             }
         }
-        catch (error) {
+        catch (_error) {
             return res.status(400).json({
                 success: false,
                 error: 'Invalid date format'
@@ -85,7 +85,7 @@ router.post('/events', (0, rate_1.routeRateLimit)(60), (0, validate_1.validate)(
         }
         return res.status(201).json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -102,7 +102,7 @@ router.put('/events/:id', (0, rate_1.routeRateLimit)(60), async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -118,7 +118,7 @@ router.delete('/events/:id', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -140,7 +140,7 @@ router.get('/events/date-range', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -162,7 +162,7 @@ router.get('/events/type/:type', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -178,7 +178,7 @@ router.get('/events/category/:category', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -194,7 +194,7 @@ router.get('/events/reference/:refId', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'

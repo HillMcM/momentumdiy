@@ -40,24 +40,6 @@ const PORT = process.env['PORT'] || 3001;
 // so that rate limiting and logging use the real client IP rather than the proxy IP.
 app.set('trust proxy', 1);
 
-// Ultra-permissive CORS for local development (placed FIRST)
-if ((process.env['NODE_ENV'] || 'development') !== 'production') {
-  app.use((req, res, next) => {
-    const origin = (req.headers.origin as string) || '*';
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Vary', 'Origin');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
-    if (req.method === 'OPTIONS') {
-      res.sendStatus(204);
-      return; // ensure explicit return for TS
-    }
-    next();
-    return; // ensure explicit return for TS
-  });
-}
-
 // CORS configuration
 const configuredOrigins = (process.env['CORS_ORIGIN'] || '')
   .split(',')
@@ -90,28 +72,6 @@ const corsOptions: cors.CorsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// Dev fallback CORS headers (ensure ACAO is present for local preview servers)
-if ((process.env['NODE_ENV'] || 'development') !== 'production') {
-  app.use((req, res, next) => {
-    const origin = req.headers.origin as string | undefined;
-    if (origin && /^(http:\/\/(localhost|127\.0\.0\.1):\d+)$/.test(origin)) {
-      res.header('Access-Control-Allow-Origin', origin);
-      res.header('Vary', 'Origin');
-    } else {
-      res.header('Access-Control-Allow-Origin', '*');
-    }
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
-    if (req.method === 'OPTIONS') {
-      res.sendStatus(200);
-      return; // ensure explicit return for TS
-    }
-    next();
-    return; // ensure explicit return for TS
-  });
-}
 
 // Handle CORS preflight for all routes
 app.options('*', cors(corsOptions));

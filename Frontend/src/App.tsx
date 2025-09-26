@@ -1070,19 +1070,19 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       // We just need to refresh the marketing data to show the activated track
       console.log('🔄 Refreshing marketing data after onboarding...');
       
-      // Refresh marketing goals to show the activated track
-      const goalsResponse = await apiService.getMarketingGoals();
-      if (goalsResponse.success && goalsResponse.data) {
-        await handleMarketingGoalsChange(goalsResponse.data);
-      }
+      // Skip refreshing marketing goals here - the track activation already handles this
+      console.log('🔄 Skipping marketing goals refresh - track activation already handled this');
 
-      // Reload marketing data after onboarding
+      // Force reload marketing data after onboarding to show the activated track
       try {
+        console.log('🔄 Force refreshing marketing data after onboarding...');
         const activeGoalResponse = await getActiveGoal();
         if (activeGoalResponse.success && activeGoalResponse.data) {
           const marketingGoalsArray = [activeGoalResponse.data];
           setMarketingGoals(marketingGoalsArray);
           console.log('✅ Active goal refreshed after onboarding:', activeGoalResponse.data.title);
+        } else {
+          console.log('⚠️ No active goal found after onboarding');
         }
       } catch (error) {
         console.error('❌ Error refreshing marketing data after onboarding:', error);

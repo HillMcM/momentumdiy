@@ -256,9 +256,7 @@ interface ApiResponse<T = any> {
 
 ## Testing
 
-```bash
-npm test
-```
+Currently no tests are implemented. Test endpoints are available at `/api/test` for manual testing.
 
 ## Linting
 

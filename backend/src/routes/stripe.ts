@@ -284,6 +284,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   let event;
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const stripe = require('stripe')(process.env['STRIPE_SECRET_KEY']);
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err: any) {

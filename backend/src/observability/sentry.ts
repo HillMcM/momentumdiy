@@ -10,10 +10,10 @@ export function initSentry(app: express.Express): { enabled: boolean } {
   if (!dsn) return { enabled: false };
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const Sentry = require('@sentry/node');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    require('@sentry/tracing');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const Sentry = require('@sentry/node');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+require('@sentry/tracing');
 
     Sentry.init({
       dsn,
@@ -26,8 +26,8 @@ export function initSentry(app: express.Express): { enabled: boolean } {
 
     // Attach error handler later in the chain (exported below)
     return { enabled: true };
-  } catch (err: any) {
-    console.warn('Sentry not initialized (module missing?):', err?.message || err);
+  } catch (_err: any) {
+    console.warn('Sentry not initialized (module missing?):', _err?.message || _err);
     return { enabled: false };
   }
 }
@@ -38,7 +38,7 @@ export function initSentry(app: express.Express): { enabled: boolean } {
  */
 export function getSentryErrorHandler(): express.ErrorRequestHandler {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Sentry = require('@sentry/node');
     return Sentry.Handlers.errorHandler();
   } catch {

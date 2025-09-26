@@ -48,11 +48,15 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
   console.log(`📊 MarketingProvider render #${renderCountRef.current} - isFocused: ${isFocused}, hasBeenFocused: ${hasBeenFocused}`);
 
   const refreshMarketingData = async (force = false) => {
-    // Prevent excessive refreshes when window regains focus
+    // Prevent excessive refreshes when window regains focus, but allow forced refreshes
     const now = Date.now();
     if (!force && now - lastRefreshRef.current < REFRESH_COOLDOWN) {
       console.log('🚫 Skipping refresh - too soon since last refresh');
       return;
+    }
+    
+    if (force) {
+      console.log('🔄 Force refresh requested - bypassing cooldown');
     }
 
     try {

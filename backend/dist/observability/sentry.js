@@ -18,8 +18,8 @@ function initSentry(app) {
         app.use(Sentry.Handlers.tracingHandler());
         return { enabled: true };
     }
-    catch (err) {
-        console.warn('Sentry not initialized (module missing?):', err?.message || err);
+    catch (_err) {
+        console.warn('Sentry not initialized (module missing?):', _err?.message || _err);
         return { enabled: false };
     }
 }

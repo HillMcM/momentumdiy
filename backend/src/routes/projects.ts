@@ -21,7 +21,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -44,7 +44,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -79,7 +79,7 @@ router.post('/', routeRateLimit(30), validate((req) => {
     }
 
     return res.status(201).json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -103,7 +103,7 @@ router.put('/:id', routeRateLimit(30), async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -126,7 +126,7 @@ router.delete('/:id', routeRateLimit(30), async (req: Request, res: Response) =>
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -149,7 +149,7 @@ router.get('/:id/timeline', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -184,7 +184,7 @@ router.post('/:id/timeline', async (req: Request, res: Response) => {
     }
 
     return res.status(201).json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -207,7 +207,7 @@ router.patch('/:id/progress', async (req: Request, res: Response) => {
     }
 
     return res.json(result);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

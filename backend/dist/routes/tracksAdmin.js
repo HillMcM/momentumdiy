@@ -239,7 +239,7 @@ router.put('/modules/:id', async (req, res) => {
         if (error) {
             if (error.message && error.message.includes('pro_tip')) {
                 console.log('Pro_tip column not found, retrying without pro_tip field');
-                const { pro_tip, ...updatesWithoutProTip } = filteredUpdates;
+                const { pro_tip: _pro_tip, ...updatesWithoutProTip } = filteredUpdates;
                 const { data: retryData, error: retryError } = await supabase_1.supabase
                     .from('marketing_modules')
                     .update(updatesWithoutProTip)
@@ -618,8 +618,8 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
             is_unlocked: module.week_number === 1,
             is_completed: false
         })) || [];
-        let createdModules = [];
-        let updatedModules = [];
+        const createdModules = [];
+        const updatedModules = [];
         for (const moduleData of liveModules) {
             const existingModule = existingLiveModules?.find(m => m.week_number === moduleData.week_number);
             if (existingModule) {

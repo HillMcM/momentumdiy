@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -30,7 +30,7 @@ router.get('/:id', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -57,7 +57,7 @@ router.post('/', (0, rate_1.routeRateLimit)(30), (0, validate_1.validate)((req) 
         }
         return res.status(201).json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -74,7 +74,7 @@ router.put('/:id', (0, rate_1.routeRateLimit)(30), async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -90,7 +90,7 @@ router.delete('/:id', (0, rate_1.routeRateLimit)(30), async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -106,7 +106,7 @@ router.get('/:id/timeline', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -132,7 +132,7 @@ router.post('/:id/timeline', async (req, res) => {
         }
         return res.status(201).json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -148,7 +148,7 @@ router.patch('/:id/progress', async (req, res) => {
         }
         return res.json(result);
     }
-    catch (error) {
+    catch (_error) {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
