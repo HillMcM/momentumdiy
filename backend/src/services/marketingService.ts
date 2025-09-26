@@ -112,18 +112,15 @@ export class MarketingService {
         };
       }
 
-      // Get modules for this track definition by looking up the goal ID
-      // First, find the marketing goal that was created for this track definition
-      const { data: goalData, error: goalError } = await supabase
-        .from('marketing_goals')
-        .select('id')
-        .eq('track_definition_id', trackDef.id)
-        .single();
-
+      // Get modules using the active_goal_id from profile (more direct approach)
       let modules: MarketingModule[] = [];
-      if (!goalError && goalData) {
-        const modulesResponse = await this.getMarketingModules(goalData.id);
+      if (profile.active_goal_id) {
+        console.log('🔍 Found active goal ID in profile:', profile.active_goal_id);
+        const modulesResponse = await this.getMarketingModules(profile.active_goal_id);
         modules = modulesResponse.success ? modulesResponse.data || [] : [];
+        console.log('📊 Loaded modules count:', modules.length);
+      } else {
+        console.log('❌ No active_goal_id in profile');
       }
 
       // Create MarketingGoal object from track definition + user progress
@@ -526,6 +523,7 @@ export class MarketingService {
       const { data: goalData, error: goalError } = await supabase
         .from('marketing_goals')
         .insert([{
+          user_id: currentUserId, // Add user_id to link goal to user
           title: trackDef.title,
           description: trackDef.description || '',
           industry: trackDef.industry_tags?.[0] || 'General',
@@ -555,6 +553,7 @@ export class MarketingService {
         .from('profiles')
         .update({
           active_track_id: trackDefinitionId,
+          active_goal_id: goalData.id, // Link to the specific goal created for this user
           track_start_date: now.toISOString(),
           track_current_week: 1,
           track_progress: 0,
