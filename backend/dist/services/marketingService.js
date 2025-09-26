@@ -84,15 +84,15 @@ class MarketingService {
                     error: trackError.message
                 };
             }
-            const { data: goalData, error: goalError } = await supabase_1.supabase
-                .from('marketing_goals')
-                .select('id')
-                .eq('track_definition_id', trackDef.id)
-                .single();
             let modules = [];
-            if (!goalError && goalData) {
-                const modulesResponse = await this.getMarketingModules(goalData.id);
+            if (profile.active_goal_id) {
+                console.log('🔍 Found active goal ID in profile:', profile.active_goal_id);
+                const modulesResponse = await this.getMarketingModules(profile.active_goal_id);
                 modules = modulesResponse.success ? modulesResponse.data || [] : [];
+                console.log('📊 Loaded modules count:', modules.length);
+            }
+            else {
+                console.log('❌ No active_goal_id in profile');
             }
             const goal = {
                 id: trackDef.id,
@@ -447,6 +447,7 @@ class MarketingService {
             const { data: goalData, error: goalError } = await supabase_1.supabase
                 .from('marketing_goals')
                 .insert([{
+                    user_id: currentUserId,
                     title: trackDef.title,
                     description: trackDef.description || '',
                     industry: trackDef.industry_tags?.[0] || 'General',
@@ -473,6 +474,7 @@ class MarketingService {
                 .from('profiles')
                 .update({
                 active_track_id: trackDefinitionId,
+                active_goal_id: goalData.id,
                 track_start_date: now.toISOString(),
                 track_current_week: 1,
                 track_progress: 0,
