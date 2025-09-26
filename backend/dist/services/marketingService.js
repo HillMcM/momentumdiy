@@ -89,10 +89,30 @@ class MarketingService {
                 console.log('🔍 Found active goal ID in profile:', profile.active_goal_id);
                 const modulesResponse = await this.getMarketingModules(profile.active_goal_id);
                 modules = modulesResponse.success ? modulesResponse.data || [] : [];
-                console.log('📊 Loaded modules count:', modules.length);
+                console.log('📊 Loaded modules count from active_goal_id:', modules.length);
             }
             else {
-                console.log('❌ No active_goal_id in profile');
+                console.log('🔄 No active_goal_id, trying fallback approach');
+                try {
+                    const { data: goalData, error: goalError } = await supabase_1.supabase
+                        .from('marketing_goals')
+                        .select('id')
+                        .eq('track_definition_id', trackDef.id)
+                        .eq('is_active', true)
+                        .single();
+                    if (!goalError && goalData) {
+                        console.log('🔍 Found marketing goal via fallback:', goalData.id);
+                        const modulesResponse = await this.getMarketingModules(goalData.id);
+                        modules = modulesResponse.success ? modulesResponse.data || [] : [];
+                        console.log('📊 Loaded modules count from fallback:', modules.length);
+                    }
+                    else {
+                        console.log('❌ No marketing goal found via fallback:', goalError?.message);
+                    }
+                }
+                catch (err) {
+                    console.log('⚠️ Fallback approach failed, probably user_id column not yet added:', err);
+                }
             }
             const goal = {
                 id: trackDef.id,
@@ -444,23 +464,24 @@ class MarketingService {
                 }
                 currentUserId = user.id;
             }
+            const goalInsert = {
+                title: trackDef.title,
+                description: trackDef.description || '',
+                industry: trackDef.industry_tags?.[0] || 'General',
+                duration: trackDef.duration_weeks,
+                is_active: true,
+                start_date: new Date().toISOString(),
+                current_week: 1,
+                progress: 0,
+                week_start_dates: [new Date().toISOString()],
+                last_week_advancement: null,
+                track_definition_id: trackDefinitionId,
+                phases: trackDef.phases || []
+            };
+            goalInsert.user_id = currentUserId;
             const { data: goalData, error: goalError } = await supabase_1.supabase
                 .from('marketing_goals')
-                .insert([{
-                    user_id: currentUserId,
-                    title: trackDef.title,
-                    description: trackDef.description || '',
-                    industry: trackDef.industry_tags?.[0] || 'General',
-                    duration: trackDef.duration_weeks,
-                    is_active: true,
-                    start_date: new Date().toISOString(),
-                    current_week: 1,
-                    progress: 0,
-                    week_start_dates: [new Date().toISOString()],
-                    last_week_advancement: null,
-                    track_definition_id: trackDefinitionId,
-                    phases: trackDef.phases || []
-                }])
+                .insert([goalInsert])
                 .select()
                 .single();
             if (goalError) {
@@ -470,11 +491,8 @@ class MarketingService {
                 };
             }
             const now = new Date();
-            const { error: updateError } = await supabase_1.supabase
-                .from('profiles')
-                .update({
+            const profileUpdate = {
                 active_track_id: trackDefinitionId,
-                active_goal_id: goalData.id,
                 track_start_date: now.toISOString(),
                 track_current_week: 1,
                 track_progress: 0,
@@ -482,7 +500,11 @@ class MarketingService {
                 track_last_week_advancement: null,
                 track_completion_date: null,
                 updated_at: now.toISOString()
-            })
+            };
+            profileUpdate.active_goal_id = goalData.id;
+            const { error: updateError } = await supabase_1.supabase
+                .from('profiles')
+                .update(profileUpdate)
                 .eq('id', currentUserId);
             if (updateError) {
                 return {
