@@ -147,7 +147,7 @@ export class MarketingService {
 
       // Create MarketingGoal object from track definition + user progress
       const goal: MarketingGoal = {
-        id: trackDef.id,
+        id: profile.active_goal_id || trackDef.id, // Use active_goal_id if available, fallback to track definition ID
         title: trackDef.title,
         description: trackDef.description || '',
         industry: trackDef.industry_tags?.[0] || 'General',
