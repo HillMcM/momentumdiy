@@ -449,44 +449,7 @@ router.post('/definitions/:trackId/generate-modules', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Track definition not found' });
     }
 
-    // Create or get a template marketing goal for this track definition
-    let templateGoalId = trackId; // Try using trackId first
-    
-    // Check if we can use the trackId directly (if there's already a goal with this ID)
-    const { data: existingGoal } = await supabase
-      .from('marketing_goals')
-      .select('id')
-      .eq('id', trackId)
-      .single();
-
-    if (!existingGoal) {
-      // Create a template goal for this track definition
-      const { data: newGoal, error: goalError } = await supabase
-        .from('marketing_goals')
-        .insert([{
-          id: trackId, // Use the same ID as track definition
-          title: trackDef.title + ' (Template)',
-          description: trackDef.description,
-          duration: trackDef.duration_weeks,
-          industry: trackDef.industry_tags?.[0] || 'general',
-          is_active: false, // Template goals are not active
-          current_week: 1,
-          progress: 0,
-          track_definition_id: trackId
-        }])
-        .select('id')
-        .single();
-
-      if (goalError) {
-        console.error('Error creating template goal:', goalError);
-        return res.status(500).json({ 
-          success: false, 
-          error: 'Failed to create template goal',
-          details: goalError.message
-        });
-      }
-      templateGoalId = newGoal.id;
-    }
+    // Note: Modules are now directly linked to track definitions, no template goals needed
 
     // Check if modules already exist for this track definition
     const { data: existing } = await supabase
