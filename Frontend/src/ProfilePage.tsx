@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from './contexts/useAuth';
 import { supabase } from './lib/supabase';
 import EmailPreferences from './components/EmailPreferences';
+import { useMarketing } from './contexts/MarketingContext';
 
 type SkillLevels = {
   social?: number;
@@ -54,10 +55,12 @@ function Input({ label, value, onChange, type = 'text' }: { label: string; value
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const [tab, setTab] = useState<'account' | 'business' | 'tracks' | 'favorites' | 'integrations' | 'notifications'>('account');
+  const { activeGoal } = useMarketing();
+  const [tab, setTab] = useState<'account' | 'business' | 'tracks' | 'favorites' | 'notifications'>('account');
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [profile, setProfile] = useState<ProfileRecord | null>(null);
+  const [taskCompletions, setTaskCompletions] = useState<number>(0);
 
   useEffect(() => {
     if (!user) return;
@@ -72,6 +75,23 @@ export default function ProfilePage() {
         setProfile(data as ProfileRecord);
       }
       setLoading(false);
+    })();
+    return () => { mounted = false; };
+  }, [user?.id]);
+
+  // Load task completions count
+  useEffect(() => {
+    if (!user) return;
+    let mounted = true;
+    (async () => {
+      const { count, error } = await supabase
+        .from('user_task_completions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      if (!mounted) return;
+      if (!error && count !== null) {
+        setTaskCompletions(count);
+      }
     })();
     return () => { mounted = false; };
   }, [user?.id]);
@@ -114,7 +134,6 @@ export default function ProfilePage() {
     { key: 'business', label: 'Business Profile' },
     { key: 'tracks', label: 'My Tracks & Progress' },
     { key: 'favorites', label: 'Saved & Favorites' },
-    { key: 'integrations', label: 'Integrations' },
     { key: 'notifications', label: 'Email Preferences' }
   ] as const), []);
 
@@ -138,10 +157,6 @@ export default function ProfilePage() {
             <Input label="Full Name" value={profile.full_name} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), full_name: v }))} />
             <Input label="Contact Email" value={profile.contact_email ?? profile.email} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), contact_email: v }))} />
             <Input label="Avatar URL" value={profile.avatar_url} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), avatar_url: v }))} />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
-              <input type="checkbox" checked={!!profile.two_factor_enabled} onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), two_factor_enabled: e.target.checked }))} />
-              Enable 2FA (coming soon)
-            </label>
           </Section>
           <Section title="Branding Settings">
             <Input label="Brand Primary Color" value={profile.brand_primary_color} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), brand_primary_color: v }))} />
@@ -178,30 +193,54 @@ export default function ProfilePage() {
 
       {tab === 'tracks' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
-          <Section title="My Tracks & Progress">
-            <p>Active 90-Day Track progress snapshot and past tracks badges will appear here. (Coming soon)</p>
-          </Section>
-          <Section title="Progress & Metrics">
-            <p>Tasks completed this week, streaks, reach improvement, milestones. (Coming soon)</p>
+          <Section title="Active Marketing Track">
+            {activeGoal ? (
+              <div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#EF8E81', marginBottom: '0.5rem' }}>
+                    {activeGoal.title}
+                  </div>
+                  <div style={{ fontSize: '0.9rem', color: '#FFF1E7', opacity: 0.8 }}>
+                    {activeGoal.description}
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+                  <div style={{ background: 'rgba(239, 142, 129, 0.1)', border: '1px solid rgba(239, 142, 129, 0.3)', borderRadius: 8, padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.25rem' }}>Current Week</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#EF8E81' }}>
+                      {activeGoal.currentWeek} <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>/ {activeGoal.duration}</span>
+                    </div>
+                  </div>
+                  <div style={{ background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: 8, padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.25rem' }}>Progress</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#D4AF37' }}>
+                      {activeGoal.progress}%
+                    </div>
+                  </div>
+                  <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 8, padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.25rem' }}>Tasks Done</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#10B981' }}>
+                      {taskCompletions}
+                    </div>
+                  </div>
+                </div>
+                {activeGoal.startDate && (
+                  <div style={{ marginTop: '1rem', fontSize: '0.85rem', opacity: 0.7 }}>
+                    Started: {new Date(activeGoal.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p style={{ opacity: 0.7 }}>No active marketing track. Visit the Marketing Track page to get started!</p>
+            )}
           </Section>
         </div>
       )}
 
       {tab === 'favorites' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '1rem' }}>
-          <Section title="Favorite Templates/Tools">
-            <Input label="Favorite Templates (comma-separated)" value={(profile.favorite_templates || []).join(', ')} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), favorite_templates: v.split(',').map(s => s.trim()).filter(Boolean) }))} />
-            <Input label="Favorite Tools (comma-separated)" value={(profile.favorite_tools || []).join(', ')} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), favorite_tools: v.split(',').map(s => s.trim()).filter(Boolean) }))} />
-          </Section>
-          <Section title="AI History & Pins">
-            <p>AI chat history & pinned conversations will surface here. (Coming soon)</p>
-          </Section>
-        </div>
-      )}
-
-      {tab === 'integrations' && (
-        <Section title="Integrations">
-          <p>Connect email, social, analytics. (Coming soon)</p>
+        <Section title="Favorite Templates/Tools">
+          <Input label="Favorite Templates (comma-separated)" value={(profile.favorite_templates || []).join(', ')} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), favorite_templates: v.split(',').map(s => s.trim()).filter(Boolean) }))} />
+          <Input label="Favorite Tools (comma-separated)" value={(profile.favorite_tools || []).join(', ')} onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), favorite_tools: v.split(',').map(s => s.trim()).filter(Boolean) }))} />
         </Section>
       )}
 

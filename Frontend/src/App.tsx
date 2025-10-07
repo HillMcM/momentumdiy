@@ -70,6 +70,7 @@ import PricingPage from './PricingPage';
 import TracksAdminPage from './TracksAdminPage';
 import VisualTracksAdminPage from './VisualTracksAdminPage';
 import FeedbackPage from './FeedbackPage';
+import TermsPage from './TermsPage';
 import SocialMediaGeneratorPage from './SocialMediaGeneratorPage';
 import SubscriptionGuard from './components/SubscriptionGuard';
 import PersonalizedDashboard from './components/PersonalizedDashboard';
@@ -1254,7 +1255,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
             <Route path="social-generator" element={<SocialMediaGeneratorPage />} />
             <Route path="manage-subscription" element={<SubscriptionPage />} />
-            <Route path="feedback" element={<Placeholder title="Feedback" />} />
+            <Route path="feedback" element={<FeedbackPage />} />
             <Route path="admin/marketing-tracks" element={
               <AdminGuard>
                 <VisualTracksAdminPage />
@@ -1330,7 +1331,7 @@ function App() {
         {/* Public */}
         <Route path="/" element={<><LandingPage /><EnvTest /></>} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/terms" element={<Placeholder title="Terms & Conditions" />} />
+        <Route path="/terms" element={<TermsPage />} />
 
         {/* Pricing */}
         <Route path="/pricing" element={<PricingPage />} />
