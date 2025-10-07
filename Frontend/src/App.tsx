@@ -79,24 +79,32 @@ import NotificationBell from './components/NotificationBell';
 
 
 // Component to handle task synchronization between marketing track and task tracker
-function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]) => void }) {
+function TaskSync({ 
+  tasks, 
+  setTasks,
+  setMarketingGoals 
+}: { 
+  tasks: Task[], 
+  setTasks: (tasks: Task[]) => void,
+  setMarketingGoals?: (goals: MarketingGoal[]) => void
+}) {
   const { activeGoal, updateActiveGoal } = useMarketing();
+  
+  // Sync activeGoal from MarketingProvider to parent marketingGoals state
+  useEffect(() => {
+    if (setMarketingGoals) {
+      setMarketingGoals(activeGoal ? [activeGoal] : []);
+    }
+  }, [activeGoal, setMarketingGoals]);
   
   // Sync marketing tasks to task tracker
   useEffect(() => {
-    console.log('🔄 Marketing tasks sync effect triggered');
-    console.log('📊 Current tasks count:', tasks.length);
-    console.log('🎯 Active goal:', activeGoal);
-    console.log('🔍 Active goal modules unlock status:', activeGoal?.modules.map(m => `Week ${m.weekNumber}: unlocked=${m.isUnlocked}`));
-    
     if (!activeGoal) {
-      console.log('❌ No active marketing goal to sync');
       return;
     }
     
     // Convert marketing tasks to regular tasks (only from unlocked modules)
     const marketingTasks = convertMarketingTasksToTasks(activeGoal);
-    console.log('🔄 Converted marketing tasks from unlocked modules:', marketingTasks);
     
     // Get all marketing task IDs that should be in the task tracker
     const marketingTaskIds = new Set(marketingTasks.map(t => t.id));
@@ -118,10 +126,7 @@ function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]
     const addedCount = newMarketingTasks.length;
     
     if (removedCount > 0 || addedCount > 0) {
-      console.log(`✅ Task sync complete: ${removedCount} removed, ${addedCount} added`);
       setTasks(updatedTasks);
-    } else {
-      console.log('ℹ️ No task changes needed');
     }
   }, [activeGoal]);
 
@@ -151,8 +156,6 @@ function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]
     });
 
     if (tasksToSync.length > 0) {
-      console.log('🔄 Syncing task tracker changes to marketing track:', tasksToSync.length, 'tasks');
-      
       // Update the marketing goal with the new task statuses
       const updatedGoal = {
         ...activeGoal,
@@ -195,9 +198,8 @@ function TaskSync({ tasks, setTasks }: { tasks: Task[], setTasks: (tasks: Task[]
               );
             }
           }
-          console.log('✅ Synced task tracker changes to marketing track and persisted to backend');
         } catch (error) {
-          console.error('❌ Failed to persist marketing task changes:', error);
+          console.error('Failed to persist marketing task changes:', error);
         }
       })();
     }
@@ -619,8 +621,6 @@ function Dashboard({
 }
 
 function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
-  console.log('App component rendering...');
-  
   const location = useLocation();
   const { isFocused } = useWindowFocus();
   const { user } = useAuth();
@@ -633,13 +633,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   const mountTimeRef = useRef(Date.now());
   const renderCountRef = useRef(0);
   renderCountRef.current += 1;
-  
-  console.log(`🔄 App render #${renderCountRef.current} - Mounted ${Math.round((Date.now() - mountTimeRef.current) / 1000)}s ago`);
-
-  // Debug window focus changes
-  useEffect(() => {
-    console.log('🪟 Window focus changed:', isFocused ? 'FOCUSED' : 'UNFOCUSED');
-  }, [isFocused]);
   const [sidebarHidden, setSidebarHidden] = useState<boolean>(() => {
     // Check localStorage for sidebar state
     const saved = localStorage.getItem('sidebarHidden');
@@ -681,52 +674,21 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     return Array.from(map.values());
   };
 
-  console.log('App state initialized:', { tasks: tasks.length, projects: projects.length, marketingGoals: marketingGoals.length });
-  console.log('App: Current marketing goals details:');
-  marketingGoals.forEach((g, index) => {
-    console.log(`  Goal ${index + 1}:`, { id: g.id, title: g.title, isActive: g.isActive, currentWeek: g.currentWeek });
-  });
-
   // Load data from API on component mount
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        console.log('🚀 Loading data in development mode...');
 
         // Load tasks from marketing goals (empty initially)
         setTasks([]);
-        console.log('✅ Initialized empty tasks array');
 
         // Load projects (empty in development)
         setProjects([]);
 
-        // Load marketing goals from service (same source as marketing track page)
-        try {
-          console.log('🔄 Attempting to load marketing goals from service...');
-          const activeGoalResponse = await getActiveGoal();
-          console.log('📡 Service response:', activeGoalResponse);
-          
-          if (activeGoalResponse.success && activeGoalResponse.data) {
-            // Create a marketing goals array with the active goal
-            const marketingGoalsArray = [activeGoalResponse.data];
-            setMarketingGoals(marketingGoalsArray);
-            console.log('✅ Loaded marketing goals from service:', marketingGoalsArray.length);
-            console.log('🎯 Active goal details:', activeGoalResponse.data);
-          } else {
-            // No active goal - user needs to select a track
-            console.log('ℹ️ No active marketing goal - user should select a track');
-            setMarketingGoals([]);
-          }
-        } catch (error) {
-          console.warn('⚠️ Marketing service error:', error);
-          setMarketingGoals([]);
-        }
-
-        // Skip calendar events (deactivated)
-        console.log('🚫 Skipping calendar API call - feature deactivated');
-
-        console.log('🎉 All data loaded successfully!');
+        // Note: Marketing goals are now loaded by MarketingProvider to avoid duplicate API calls
+        // The activeGoal from MarketingProvider will be synced to marketingGoals state below
+        setMarketingGoals([]);
 
       } catch (error) {
         console.error('❌ Unexpected error loading data:', error);
@@ -748,16 +710,10 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
     // Wait for a short delay to ensure auth is fully complete
     const checkOnboarding = async () => {
-      console.log('🔍 Checking onboarding status...');
-      console.log('Current pathname:', location.pathname);
-      console.log('User authenticated:', !!user);
-
       // Check if user needs onboarding - only on app pages after auth completion
       const isOnAppPages = location.pathname.startsWith('/app');
       const isOnAuthPage = location.pathname.startsWith('/auth');
       const isOnHomePage = location.pathname === '/';
-      
-      console.log('App pages check:', { isOnAppPages, isOnAuthPage, isOnHomePage });
 
       if (isOnAppPages && !isOnAuthPage) {
         try {
@@ -765,19 +721,12 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           const hasCompletedOnboarding = profileResponse.success && 
             (profileResponse.data as any)?.onboarding_completed === true;
           
-          if (!hasCompletedOnboarding) {
-            console.log('🎯 Onboarding not completed, showing onboarding wizard');
-            setShowOnboarding(true);
-          } else {
-            console.log('✅ Onboarding already completed, skipping wizard');
-            setShowOnboarding(false);
-          }
+          setShowOnboarding(!hasCompletedOnboarding);
         } catch (error) {
-          console.log('🎯 Error checking onboarding status:', error);
+          console.error('Error checking onboarding status:', error);
           setShowOnboarding(false);
         }
       } else {
-        console.log('🚫 Not on app pages or on auth page, skipping onboarding check');
         setShowOnboarding(false);
       }
     };
@@ -1248,7 +1197,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
         )}
         <main className="main-content">
           <MarketingProvider onTaskStatusChange={handleMarketingTaskStatusChange}>
-            <TaskSync tasks={tasks} setTasks={setTasks} />
+            <TaskSync tasks={tasks} setTasks={setTasks} setMarketingGoals={setMarketingGoals} />
             <OnboardingWizard
               isOpen={showOnboarding}
               onSkip={() => setShowOnboarding(false)}

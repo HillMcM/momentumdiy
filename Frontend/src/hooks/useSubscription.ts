@@ -21,8 +21,6 @@ export function useSubscription() {
   const [lastUserId, setLastUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔍 useSubscription effect triggered - user:', user?.id, 'lastUserId:', lastUserId);
-    
     if (!user) {
       setSubscription(null);
       setLoading(false);
@@ -33,11 +31,8 @@ export function useSubscription() {
     // Only fetch subscription data if the user ID has actually changed
     // This prevents unnecessary re-fetches when Supabase refreshes the session on window focus
     if (user.id === lastUserId) {
-      console.log('🚫 useSubscription: Skipping fetch - user ID unchanged');
       return;
     }
-
-    console.log('✅ useSubscription: Fetching subscription data for new user');
 
     const fetchSubscription = async () => {
       try {
@@ -62,13 +57,6 @@ export function useSubscription() {
           const hasAccess = profile.subscription_status === 'active' || 
                            (profile.subscription_status === 'trial' && daysRemaining > 0);
 
-          console.log('🔍 Subscription data:', {
-            subscription_status: profile.subscription_status,
-            daysRemaining,
-            hasAccess,
-            profile
-          });
-
           setSubscription({
             subscription_status: profile.subscription_status,
             trial_start_date: profile.trial_start_date,
@@ -92,7 +80,7 @@ export function useSubscription() {
     };
 
     fetchSubscription();
-  }, [user, lastUserId]);
+  }, [user?.id]); // Only depend on user.id, not lastUserId to avoid infinite loop
 
   return {
     subscription,
