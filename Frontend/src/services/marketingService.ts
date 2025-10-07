@@ -236,14 +236,10 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
   }
 
   const url = `${BACKEND_BASE_URL}/api/marketing/goals/active?t=${Date.now()}`;
-  console.log('🔍 Fetching from:', url);
-  console.log('🔍 BACKEND_BASE_URL:', BACKEND_BASE_URL);
   
   try {
     // Get authentication token
     const { data: { session } } = await supabase.auth.getSession();
-    console.log('🔐 getActiveGoal - Session data:', session ? 'Session exists' : 'No session');
-    console.log('🔐 getActiveGoal - Access token exists:', !!session?.access_token);
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -251,9 +247,6 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
     
     if (session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`;
-      console.log('🔐 getActiveGoal - Authorization header set');
-    } else {
-      console.log('❌ getActiveGoal - No access token available');
     }
 
     const response = await fetch(url, {
@@ -261,12 +254,9 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
       headers,
     });
 
-    console.log('📡 Response status:', response.status);
-    console.log('📡 Response ok:', response.ok);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ HTTP error:', response.status, errorText);
+      console.error('HTTP error:', response.status, errorText);
       return {
         success: false,
         error: `HTTP ${response.status}: ${errorText}`,
@@ -275,10 +265,9 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
     }
 
     const result = await response.json();
-    console.log('📊 Raw response:', result);
 
     if (!result.success) {
-      console.error('❌ API error:', result.error);
+      console.error('API error:', result.error);
       return {
         success: false,
         error: result.error || 'Unknown API error',
@@ -293,8 +282,6 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
       weekStartDates: result.data.weekStartDates?.map((date: string) => new Date(date)) || [],
       lastWeekAdvancement: result.data.lastWeekAdvancement ? new Date(result.data.lastWeekAdvancement) : new Date(),
       modules: result.data.modules?.map((module: any) => {
-        console.log('🔍 Module data from backend:', module);
-        console.log('🔍 Module proTip:', module.proTip);
         return {
           ...module,
           proTip: module.proTip, // Backend already returns proTip in camelCase
@@ -304,7 +291,6 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
       }) || []
     } : null;
 
-    console.log('✅ Transformed data:', transformedData);
     return {
       success: true,
       data: transformedData,

@@ -45,18 +45,12 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
   // Debug: Track MarketingProvider renders
   const renderCountRef = useRef(0);
   renderCountRef.current += 1;
-  console.log(`📊 MarketingProvider render #${renderCountRef.current} - isFocused: ${isFocused}, hasBeenFocused: ${hasBeenFocused}`);
 
   const refreshMarketingData = async (force = false) => {
     // Prevent excessive refreshes when window regains focus, but allow forced refreshes
     const now = Date.now();
     if (!force && now - lastRefreshRef.current < REFRESH_COOLDOWN) {
-      console.log('🚫 Skipping refresh - too soon since last refresh');
       return;
-    }
-    
-    if (force) {
-      console.log('🔄 Force refresh requested - bypassing cooldown');
     }
 
     try {
@@ -64,16 +58,9 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
       setError(null);
       lastRefreshRef.current = now;
       
-      console.log('🔄 Refreshing marketing data...');
-      console.log('🔍 Using getActiveGoal function...');
       const response = await getActiveGoal();
-      console.log('📡 Marketing data response:', response);
       
       if (response.success && response.data) {
-        console.log('✅ Setting active goal:', response.data);
-        console.log('🔓 Modules unlock status:', response.data.modules.map(m => `Week ${m.weekNumber}: unlocked=${m.isUnlocked}`));
-        console.log('📊 Total modules:', response.data.modules.length);
-        console.log('📋 Module titles:', response.data.modules.map(m => m.title));
         setActiveGoal(response.data);
         // Set current module based on active goal
         const current = response.data.modules.find(module => module.weekNumber === response.data?.currentWeek);
@@ -101,10 +88,7 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
       // Window regained focus, but only refresh if it's been a while
       const timeSinceLastRefresh = Date.now() - lastRefreshRef.current;
       if (timeSinceLastRefresh > REFRESH_COOLDOWN) {
-        console.log('🔄 Window regained focus - refreshing data after', Math.round(timeSinceLastRefresh / 1000), 'seconds');
         refreshMarketingData();
-      } else {
-        console.log('🚫 Window regained focus but skipping refresh - too soon since last refresh');
       }
     }
     
@@ -126,11 +110,9 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
     }
 
     try {
-      console.log('🔄 Updating phases for goal:', activeGoal.id, phases);
       const response = await updateMarketingGoalPhases(activeGoal.id, phases);
       
       if (response.success && response.data) {
-        console.log('✅ Phases updated successfully');
         updateActiveGoal(response.data);
         return true;
       } else {

@@ -33,11 +33,18 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const lastUserIdRef = React.useRef<string | null>(null);
 
-  const fetchOnboardingData = async () => {
+  const fetchOnboardingData = React.useCallback(async () => {
     if (!user) {
       setOnboardingData(null);
       setLoading(false);
+      lastUserIdRef.current = null;
+      return;
+    }
+
+    // Only fetch if user ID has changed to avoid duplicate calls
+    if (user.id === lastUserIdRef.current) {
       return;
     }
 
@@ -63,12 +70,13 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       setOnboardingData(null);
     } finally {
       setLoading(false);
+      lastUserIdRef.current = user.id;
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     fetchOnboardingData();
-  }, [user]);
+  }, [fetchOnboardingData]);
 
   const refetch = () => {
     fetchOnboardingData();
