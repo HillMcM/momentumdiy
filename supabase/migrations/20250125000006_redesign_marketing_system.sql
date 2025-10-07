@@ -50,17 +50,50 @@ CREATE INDEX IF NOT EXISTS idx_user_module_progress_module_id ON public.user_mod
 CREATE INDEX IF NOT EXISTS idx_user_task_progress_user_id ON public.user_task_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_task_progress_task_id ON public.user_task_progress(task_id);
 
--- Add updated_at triggers
-CREATE TRIGGER update_user_track_progress_updated_at BEFORE UPDATE ON public.user_track_progress FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_user_module_progress_updated_at BEFORE UPDATE ON public.user_module_progress FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_user_task_progress_updated_at BEFORE UPDATE ON public.user_task_progress FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Add updated_at triggers (only if they don't exist)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.triggers 
+        WHERE trigger_name = 'update_user_track_progress_updated_at' 
+        AND event_object_table = 'user_track_progress'
+    ) THEN
+        CREATE TRIGGER update_user_track_progress_updated_at BEFORE UPDATE ON public.user_track_progress FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
+
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.triggers 
+        WHERE trigger_name = 'update_user_module_progress_updated_at' 
+        AND event_object_table = 'user_module_progress'
+    ) THEN
+        CREATE TRIGGER update_user_module_progress_updated_at BEFORE UPDATE ON public.user_module_progress FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
+
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.triggers 
+        WHERE trigger_name = 'update_user_task_progress_updated_at' 
+        AND event_object_table = 'user_task_progress'
+    ) THEN
+        CREATE TRIGGER update_user_task_progress_updated_at BEFORE UPDATE ON public.user_task_progress FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
 -- Add RLS policies
 ALTER TABLE public.user_track_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_module_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_task_progress ENABLE ROW LEVEL SECURITY;
 
--- Users can only access their own progress
+-- Users can only access their own progress (drop existing policies first)
+DROP POLICY IF EXISTS "Users can access own track progress" ON public.user_track_progress;
+DROP POLICY IF EXISTS "Users can access own module progress" ON public.user_module_progress;
+DROP POLICY IF EXISTS "Users can access own task progress" ON public.user_task_progress;
+
 CREATE POLICY "Users can access own track progress" ON public.user_track_progress FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can access own module progress" ON public.user_module_progress FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can access own task progress" ON public.user_task_progress FOR ALL USING (auth.uid() = user_id);
