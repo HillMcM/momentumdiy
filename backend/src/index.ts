@@ -24,7 +24,7 @@ import notificationRoutes from './routes/notifications';
 import automatedNotificationsRoutes from './routes/automatedNotifications';
 import emailPreferencesRoutes from './routes/emailPreferences';
 import mainRoutes from './routes/index';
-import tracksAdminRoutes from './routes/tracksAdminSimple';
+import tracksAdminRoutes from './routes/marketingTracks';
 import testRoutes from './routes/testRoutes';
 
 
@@ -130,6 +130,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/marketing', marketingRoutes);
 app.use('/api/admin/tracks', tracksAdminRoutes);
+app.use('/api/admin/modules', tracksAdminRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/assets', assetRoutes);
