@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useOnboarding } from '../contexts/OnboardingContext';
+import { useMarketing } from '../contexts/MarketingContext';
 
 interface PersonalizedDashboardProps {
   children: React.ReactNode;
@@ -8,6 +9,7 @@ interface PersonalizedDashboardProps {
 
 export default function PersonalizedDashboard({ children }: PersonalizedDashboardProps) {
   const { onboardingData } = useOnboarding();
+  const { activeGoal } = useMarketing();
   const location = useLocation();
   
   // Only show personalized containers on the dashboard page
@@ -39,19 +41,17 @@ export default function PersonalizedDashboard({ children }: PersonalizedDashboar
         </div>
       )}
 
-      {/* Your selected track info - only on dashboard */}
-      {isDashboard && onboardingData.selectedTrack && (
+      {/* Your active track info - only on dashboard */}
+      {isDashboard && activeGoal && (
         <div className="mb-6 p-4 bg-[#2A2438] rounded-lg border border-[#EF8E81]/30">
           <h2 className="text-lg font-semibold text-[#FFF1E7] mb-2">
             Your Marketing Track
           </h2>
           <p className="text-[#FFF1E7]/80">
-            {onboardingData.selectedTrack === 'local-foot-traffic' 
-              ? 'Increase Local Foot Traffic' 
-              : 'Improve Social Media Strategy & Engagement'}
+            {activeGoal.title}
           </p>
           <p className="text-[#FFF1E7]/60 text-sm mt-1">
-            Based on your goals: {onboardingData.primaryGoal}
+            Week {activeGoal.currentWeek} of {activeGoal.duration} • {activeGoal.progress || 0}% complete
           </p>
         </div>
       )}
