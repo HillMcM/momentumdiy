@@ -24,7 +24,7 @@ import notificationRoutes from './routes/notifications';
 import automatedNotificationsRoutes from './routes/automatedNotifications';
 import emailPreferencesRoutes from './routes/emailPreferences';
 import mainRoutes from './routes/index';
-import tracksAdminRoutes from './routes/tracksAdmin';
+import tracksAdminRoutes from './routes/tracksAdminSimple';
 import testRoutes from './routes/testRoutes';
 
 
