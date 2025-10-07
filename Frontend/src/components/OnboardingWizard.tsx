@@ -131,13 +131,25 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
 
   const handleComplete = async () => {
     try {
-      // Save onboarding data to user profile
+      // Save onboarding data to individual profile columns (not JSONB)
       await apiService.updateProfile({
         onboarding_completed: true,
-        onboarding_data: onboardingData
+        business_name: onboardingData.businessName,
+        business_type: onboardingData.businessType,
+        industry: onboardingData.industry,
+        business_stage: onboardingData.businessStage,
+        primary_goal: onboardingData.primaryGoal,
+        biggest_challenge: onboardingData.biggestChallenge,
+        current_activities: onboardingData.currentActivities,
+        time_available: onboardingData.timeAvailable,
+        quiz_answers: onboardingData.quizAnswers,
+        selected_track: onboardingData.selectedTrack,
+        start_date: onboardingData.startDate,
+        notification_preferences: onboardingData.notificationPreferences,
+        check_in_day: onboardingData.checkInDay
       });
       
-      console.log('✅ Onboarding data saved to profile');
+      console.log('✅ Onboarding data saved to profile columns');
       
       // Activate the selected track
       if (onboardingData.selectedTrack) {
