@@ -402,20 +402,24 @@ export class MarketingTrackService {
           .eq('id', progress.id);
 
         // Unlock modules up to current week
-        await supabase
-          .from('user_module_progress')
-          .update({ 
-            is_unlocked: true,
-            unlocked_at: new Date().toISOString()
-          })
-          .eq('user_id', userId)
-          .in('module_id', 
-            supabase
-              .from('marketing_modules')
-              .select('id')
-              .eq('track_definition_id', progress.track_definition_id)
-              .lte('week_number', currentWeek)
-          );
+        // First get the module IDs that should be unlocked
+        const { data: modulesToUnlock } = await supabase
+          .from('marketing_modules')
+          .select('id')
+          .eq('track_definition_id', progress.track_definition_id)
+          .lte('week_number', currentWeek);
+
+        if (modulesToUnlock && modulesToUnlock.length > 0) {
+          const moduleIds = modulesToUnlock.map(m => m.id);
+          await supabase
+            .from('user_module_progress')
+            .update({ 
+              is_unlocked: true,
+              unlocked_at: new Date().toISOString()
+            })
+            .eq('user_id', userId)
+            .in('module_id', moduleIds);
+        }
       }
 
       return { success: true };
