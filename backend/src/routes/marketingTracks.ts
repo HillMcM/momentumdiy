@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { MarketingTrackService } from '../services/marketingTrackService';
+import { supabase } from '../config/supabase';
 
 const router = Router();
 
@@ -7,8 +8,8 @@ const router = Router();
 // ADMIN ROUTES
 // ===============
 
-// GET /api/admin/tracks - List all track definitions
-router.get('/', async (_req, res) => {
+// GET /api/admin/tracks/definitions - List all track definitions
+router.get('/definitions', async (_req, res) => {
   try {
     const result = await MarketingTrackService.getTrackDefinitions();
     
@@ -26,8 +27,8 @@ router.get('/', async (_req, res) => {
   }
 });
 
-// POST /api/admin/tracks - Create new track definition
-router.post('/', async (req, res) => {
+// POST /api/admin/tracks/definitions - Create new track definition
+router.post('/definitions', async (req, res) => {
   try {
     const { slug, title, description, industry_tags, duration_weeks, phases } = req.body;
 
@@ -61,8 +62,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/admin/tracks/:id/modules - Get modules for a track
-router.get('/:id/modules', async (req, res) => {
+// GET /api/admin/tracks/definitions/:id/modules - Get modules for a track
+router.get('/definitions/:id/modules', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await MarketingTrackService.getTrackModules(id);
@@ -81,8 +82,8 @@ router.get('/:id/modules', async (req, res) => {
   }
 });
 
-// POST /api/admin/tracks/:id/modules - Create new module
-router.post('/:id/modules', async (req, res) => {
+// POST /api/admin/tracks/definitions/:id/modules - Create new module
+router.post('/definitions/:id/modules', async (req, res) => {
   try {
     const { id } = req.params;
     const { week_number, title, description, content, pro_tip } = req.body;
@@ -116,7 +117,46 @@ router.post('/:id/modules', async (req, res) => {
   }
 });
 
-// GET /api/admin/modules/:id/tasks - Get tasks for a module
+// PUT /api/admin/tracks/modules/:id - Update module
+router.put('/modules/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const { data, error } = await supabase
+      .from('marketing_modules')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error updating track module:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update track module' });
+  }
+});
+
+// DELETE /api/admin/tracks/modules/:id - Delete module
+router.delete('/modules/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from('marketing_modules')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return res.json({ success: true, message: 'Module deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting track module:', error);
+    return res.status(500).json({ success: false, error: 'Failed to delete track module' });
+  }
+});
+
+// GET /api/admin/tracks/modules/:id/tasks - Get tasks for a module
 router.get('/modules/:id/tasks', async (req, res) => {
   try {
     const { id } = req.params;
@@ -128,7 +168,7 @@ router.get('/modules/:id/tasks', async (req, res) => {
     
     return res.json(result);
   } catch (error) {
-    console.error('Error in GET /api/admin/modules/:id/tasks:', error);
+    console.error('Error in GET /api/admin/tracks/modules/:id/tasks:', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -136,7 +176,7 @@ router.get('/modules/:id/tasks', async (req, res) => {
   }
 });
 
-// POST /api/admin/modules/:id/tasks - Create task for module
+// POST /api/admin/tracks/modules/:id/tasks - Create task for module
 router.post('/modules/:id/tasks', async (req, res) => {
   try {
     const { id } = req.params;
@@ -162,11 +202,41 @@ router.post('/modules/:id/tasks', async (req, res) => {
 
     return res.status(201).json(result);
   } catch (error) {
-    console.error('Error in POST /api/admin/modules/:id/tasks:', error);
+    console.error('Error in POST /api/admin/tracks/modules/:id/tasks:', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
     });
+  }
+});
+
+// GET /api/admin/tracks/goals - List published goals (for compatibility)
+router.get('/goals', async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('marketing_goals')
+      .select(`
+        id,
+        title,
+        description,
+        industry,
+        duration,
+        is_active,
+        start_date,
+        current_week,
+        progress,
+        created_at,
+        updated_at,
+        track_definition_id,
+        marketing_track_definitions!inner(slug, title)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return res.json({ success: true, data: data || [] });
+  } catch (error) {
+    console.error('Error fetching published goals:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch published goals' });
   }
 });
 
