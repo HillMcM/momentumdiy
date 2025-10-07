@@ -221,7 +221,7 @@ router.get('/definitions/:trackId/modules', async (req, res) => {
     const { data, error } = await supabase
       .from('marketing_modules')
       .select('*')
-      .eq('goal_id', trackId)
+      .eq('track_definition_id', trackId)
       .order('week_number', { ascending: true });
 
     if (error) throw error;
@@ -245,7 +245,7 @@ router.post('/definitions/:trackId/modules', async (req, res) => {
     const { data, error } = await supabase
       .from('marketing_modules')
       .insert([{
-        goal_id: trackId,
+        track_definition_id: trackId,
         week_number: parseInt(week_number),
         title,
         description: description || '',
@@ -488,11 +488,11 @@ router.post('/definitions/:trackId/generate-modules', async (req, res) => {
       templateGoalId = newGoal.id;
     }
 
-    // Check if modules already exist for this template goal
+    // Check if modules already exist for this track definition
     const { data: existing } = await supabase
       .from('marketing_modules')
       .select('week_number')
-      .eq('goal_id', templateGoalId);
+      .eq('track_definition_id', trackId);
 
     const existingWeeks = existing?.map(m => m.week_number) || [];
     
@@ -501,7 +501,7 @@ router.post('/definitions/:trackId/generate-modules', async (req, res) => {
     for (let week = 1; week <= 12; week++) {
       if (!existingWeeks.includes(week)) {
         modulesToInsert.push({
-          goal_id: templateGoalId, // Use the template goal ID
+          track_definition_id: trackId, // Use the track definition ID
           week_number: week,
           title: `Week ${week}`,
           description: `Week ${week} description`,
@@ -655,7 +655,7 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
     const { data: modules, error: modulesError } = await supabase
       .from('marketing_modules')
       .select('*')
-      .eq('goal_id', trackId) // Note: using goal_id for template linkage
+      .eq('track_definition_id', trackId) // Use track_definition_id for template linkage
       .order('week_number', { ascending: true });
 
     if (modulesError) {
