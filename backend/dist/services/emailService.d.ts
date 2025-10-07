@@ -17,7 +17,6 @@ export interface NotificationEmailData {
     data?: any;
 }
 export declare class EmailService {
-    private static getEmailFootnote;
     static sendFeedbackEmail(data: FeedbackEmailData): Promise<{
         success: boolean;
         error?: string;
@@ -34,12 +33,12 @@ export declare class EmailService {
         success: boolean;
         error?: string;
     }>;
-    private static getWelcomeEmailTemplate;
-    private static getOnboardingCompleteTemplate;
-    private static getTrialEndingTemplate;
-    private static getSubscriptionActiveTemplate;
-    private static getSubscriptionCancelledTemplate;
-    private static getWeeklyProgressTemplate;
-    private static getTaskReminderTemplate;
+    static getWelcomeEmailTemplate(name: string): string;
+    static getOnboardingCompleteTemplate(name: string, data: any): string;
+    static getTrialEndingTemplate(name: string, data: any): string;
+    static getSubscriptionActiveTemplate(name: string, data: any): string;
+    static getSubscriptionCancelledTemplate(name: string, data: any): string;
+    static getWeeklyProgressTemplate(name: string, data: any): string;
+    static getTaskReminderTemplate(name: string, data: any): string;
 }
 //# sourceMappingURL=emailService.d.ts.map
