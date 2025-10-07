@@ -7,14 +7,9 @@ export declare class MarketingService {
     static deleteMarketingGoal(id: string): Promise<ApiResponse<void>>;
     static seedSocialMediaModules(goalId: string): Promise<ApiResponse<void>>;
     static seedLocalFootTrafficModules(goalId: string): Promise<ApiResponse<void>>;
-    private static getTrackDefinition;
     private static getCurrentUserId;
-    private static createMarketingGoalFromTrack;
-    private static updateUserProfileForTrack;
-    private static loadModulesWithTasks;
-    private static loadModuleWithTasks;
-    private static createMarketingGoalObject;
     static activateTrackForUser(trackDefinitionId: string, userId?: string): Promise<ApiResponse<MarketingGoal>>;
+    static clearActiveTrack(userId?: string): Promise<ApiResponse<void>>;
     static setActiveMarketingGoal(goalId: string): Promise<ApiResponse<void>>;
     static syncPhasesFromTrackDefinition(goalId: string): Promise<ApiResponse<void>>;
     static updateMarketingGoalProgress(goalId: string, progress: number): Promise<ApiResponse<MarketingGoal>>;
