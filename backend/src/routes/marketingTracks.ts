@@ -249,33 +249,20 @@ router.delete('/tasks/:id', async (req, res) => {
   }
 });
 
-// GET /api/admin/tracks/goals - List published goals (for compatibility)
+// GET /api/admin/tracks/goals - List published tracks (renamed for compatibility)
 router.get('/goals', async (_req, res) => {
   try {
     const { data, error } = await supabase
-      .from('marketing_goals')
-      .select(`
-        id,
-        title,
-        description,
-        industry,
-        duration,
-        is_active,
-        start_date,
-        current_week,
-        progress,
-        created_at,
-        updated_at,
-        track_definition_id,
-        marketing_track_definitions!inner(slug, title)
-      `)
+      .from('marketing_tracks')
+      .select('*')
+      .eq('published', true)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
     return res.json({ success: true, data: data || [] });
   } catch (error) {
-    console.error('Error fetching published goals:', error);
-    return res.status(500).json({ success: false, error: 'Failed to fetch published goals' });
+    console.error('Error fetching published tracks:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch published tracks' });
   }
 });
 

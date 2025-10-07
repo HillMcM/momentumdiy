@@ -1,303 +1,138 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProjectService = void 0;
-const supabase_1 = require("../config/supabase");
-const taskService_1 = require("./taskService");
+const projectServiceHelpers_1 = require("./projectServiceHelpers");
 class ProjectService {
     static async getProjects(status) {
         try {
-            let query = supabase_1.supabase
-                .from('projects')
-                .select('*')
-                .order('created_at', { ascending: false });
-            if (status) {
-                query = query.eq('status', status);
-            }
-            const { data, error } = await query;
+            const { data, error } = await projectServiceHelpers_1.ProjectQueries.getAll(status);
             if (error) {
-                return {
-                    success: false,
-                    error: error.message
-                };
+                return projectServiceHelpers_1.ErrorHandler.handleError(error);
             }
             const projects = await Promise.all(data.map(async (dbProject) => {
-                return await this.mapDatabaseProjectToProject(dbProject);
+                return await projectServiceHelpers_1.ProjectDataMapper.mapDatabaseProjectToProject(dbProject);
             }));
-            return {
-                success: true,
-                data: projects
-            };
+            return projectServiceHelpers_1.ResponseBuilder.success(projects);
         }
         catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error occurred'
-            };
+            return projectServiceHelpers_1.ErrorHandler.handleError(error);
         }
     }
     static async getProjectById(id) {
         try {
-            const { data, error } = await supabase_1.supabase
-                .from('projects')
-                .select('*')
-                .eq('id', id)
-                .single();
+            const { data, error } = await projectServiceHelpers_1.ProjectQueries.getById(id);
             if (error) {
-                return {
-                    success: false,
-                    error: error.message
-                };
+                return projectServiceHelpers_1.ErrorHandler.handleError(error);
             }
             if (!data) {
-                return {
-                    success: false,
-                    error: 'Project not found'
-                };
+                return projectServiceHelpers_1.ErrorHandler.handleNotFound('Project');
             }
-            const project = await this.mapDatabaseProjectToProject(data);
-            return {
-                success: true,
-                data: project
-            };
+            const project = await projectServiceHelpers_1.ProjectDataMapper.mapDatabaseProjectToProject(data);
+            return projectServiceHelpers_1.ResponseBuilder.success(project);
         }
         catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error occurred'
-            };
+            return projectServiceHelpers_1.ErrorHandler.handleError(error);
         }
     }
     static async createProject(projectData) {
         try {
-            const { data, error } = await supabase_1.supabase
-                .from('projects')
-                .insert([{
-                    name: projectData.name,
-                    description: projectData.description || '',
-                    deadline: projectData.deadline ? new Date(projectData.deadline).toISOString() : null,
-                    status: projectData.status || 'active',
-                    progress: 0
-                }])
-                .select()
-                .single();
-            if (error) {
-                return {
-                    success: false,
-                    error: error.message
-                };
+            const validation = projectServiceHelpers_1.ProjectValidator.validateCreateRequest(projectData);
+            if (!validation.valid) {
+                return projectServiceHelpers_1.ErrorHandler.handleValidationError(validation.error);
             }
-            const project = await this.mapDatabaseProjectToProject(data);
-            return {
-                success: true,
-                data: project,
-                message: 'Project created successfully'
-            };
+            const dbData = projectServiceHelpers_1.ProjectDataMapper.mapCreateRequestToDb(projectData);
+            const { data, error } = await projectServiceHelpers_1.ProjectQueries.create(dbData);
+            if (error) {
+                return projectServiceHelpers_1.ErrorHandler.handleError(error);
+            }
+            const project = await projectServiceHelpers_1.ProjectDataMapper.mapDatabaseProjectToProject(data);
+            return projectServiceHelpers_1.ResponseBuilder.success(project, 'Project created successfully');
         }
         catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error occurred'
-            };
+            return projectServiceHelpers_1.ErrorHandler.handleError(error);
         }
     }
     static async updateProject(id, updates) {
         try {
-            const updateData = {};
-            if (updates.name !== undefined)
-                updateData.name = updates.name;
-            if (updates.description !== undefined)
-                updateData.description = updates.description;
-            if (updates.deadline !== undefined) {
-                updateData.deadline = updates.deadline ? new Date(updates.deadline).toISOString() : null;
+            const validation = projectServiceHelpers_1.ProjectValidator.validateUpdateRequest(updates);
+            if (!validation.valid) {
+                return projectServiceHelpers_1.ErrorHandler.handleValidationError(validation.error);
             }
-            if (updates.status !== undefined)
-                updateData.status = updates.status;
-            const { data, error } = await supabase_1.supabase
-                .from('projects')
-                .update(updateData)
-                .eq('id', id)
-                .select()
-                .single();
+            const updateData = projectServiceHelpers_1.ProjectDataMapper.mapUpdateRequestToDb(updates);
+            const { data, error } = await projectServiceHelpers_1.ProjectQueries.update(id, updateData);
             if (error) {
-                return {
-                    success: false,
-                    error: error.message
-                };
+                return projectServiceHelpers_1.ErrorHandler.handleError(error);
             }
             if (!data) {
-                return {
-                    success: false,
-                    error: 'Project not found'
-                };
+                return projectServiceHelpers_1.ErrorHandler.handleNotFound('Project');
             }
-            const project = await this.mapDatabaseProjectToProject(data);
-            return {
-                success: true,
-                data: project,
-                message: 'Project updated successfully'
-            };
+            const project = await projectServiceHelpers_1.ProjectDataMapper.mapDatabaseProjectToProject(data);
+            return projectServiceHelpers_1.ResponseBuilder.success(project, 'Project updated successfully');
         }
         catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error occurred'
-            };
+            return projectServiceHelpers_1.ErrorHandler.handleError(error);
         }
     }
     static async deleteProject(id) {
         try {
-            const { error } = await supabase_1.supabase
-                .from('projects')
-                .delete()
-                .eq('id', id);
+            const { error } = await projectServiceHelpers_1.ProjectQueries.delete(id);
             if (error) {
-                return {
-                    success: false,
-                    error: error.message
-                };
+                return projectServiceHelpers_1.ErrorHandler.handleError(error);
             }
-            return {
-                success: true,
-                message: 'Project deleted successfully'
-            };
+            return projectServiceHelpers_1.ResponseBuilder.successMessage('Project deleted successfully');
         }
         catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error occurred'
-            };
+            return projectServiceHelpers_1.ErrorHandler.handleError(error);
         }
     }
     static async getTimelinePhases(projectId) {
-        try {
-            const { data, error } = await supabase_1.supabase
-                .from('timeline_phases')
-                .select('*')
-                .eq('project_id', projectId)
-                .order('order_index', { ascending: true });
-            if (error) {
-                return {
-                    success: false,
-                    error: error.message
-                };
-            }
-            const phases = data.map((phase) => ({
-                id: phase.id,
-                name: phase.name,
-                description: phase.description || '',
-                startDate: phase.start_date ? new Date(phase.start_date) : null,
-                endDate: phase.end_date ? new Date(phase.end_date) : null,
-                status: phase.status,
-                tasks: [],
-                order: phase.order_index
-            }));
-            return {
-                success: true,
-                data: phases
-            };
-        }
-        catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error occurred'
-            };
-        }
+        return await projectServiceHelpers_1.TimelineQueries.getPhases(projectId);
     }
     static async createTimelinePhase(phaseData) {
         try {
-            const { data, error } = await supabase_1.supabase
-                .from('timeline_phases')
-                .insert([{
-                    project_id: phaseData.projectId,
-                    name: phaseData.name,
-                    description: phaseData.description,
-                    start_date: phaseData.startDate ? new Date(phaseData.startDate).toISOString() : null,
-                    end_date: phaseData.endDate ? new Date(phaseData.endDate).toISOString() : null,
-                    status: phaseData.status,
-                    order_index: phaseData.order
-                }])
-                .select()
-                .single();
-            if (error) {
-                return {
-                    success: false,
-                    error: error.message
-                };
+            const validation = projectServiceHelpers_1.ProjectValidator.validatePhaseData(phaseData);
+            if (!validation.valid) {
+                return projectServiceHelpers_1.ErrorHandler.handleValidationError(validation.error);
             }
-            const phase = {
-                id: data.id,
-                name: data.name,
-                description: data.description || '',
-                startDate: data.start_date ? new Date(data.start_date) : null,
-                endDate: data.end_date ? new Date(data.end_date) : null,
-                status: data.status,
-                tasks: [],
-                order: data.order_index
-            };
-            return {
-                success: true,
-                data: phase,
-                message: 'Timeline phase created successfully'
-            };
+            const dbData = projectServiceHelpers_1.ProjectDataMapper.mapPhaseRequestToDb(phaseData);
+            const { data, error } = await projectServiceHelpers_1.TimelineQueries.createPhase(dbData);
+            if (error) {
+                return projectServiceHelpers_1.ErrorHandler.handleError(error);
+            }
+            const phase = projectServiceHelpers_1.ProjectDataMapper.mapDatabasePhaseToPhase(data);
+            return projectServiceHelpers_1.ResponseBuilder.success(phase, 'Timeline phase created successfully');
         }
         catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error occurred'
-            };
+            return projectServiceHelpers_1.ErrorHandler.handleError(error);
         }
     }
     static async updateProjectProgress(projectId) {
         try {
-            const tasksResponse = await taskService_1.TaskService.getTasksByProject(projectId);
-            if (!tasksResponse.success || !tasksResponse.data) {
-                return {
-                    success: false,
-                    error: 'Failed to fetch project tasks'
-                };
-            }
-            const tasks = tasksResponse.data;
-            const totalTasks = tasks.length;
-            const completedTasks = tasks.filter(task => task.status === 'completed').length;
-            const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-            const { error } = await supabase_1.supabase
-                .from('projects')
-                .update({ progress })
-                .eq('id', projectId);
+            const { progress } = await projectServiceHelpers_1.ProgressCalculator.calculateProjectProgress(projectId);
+            const { error } = await projectServiceHelpers_1.ProjectQueries.updateProgress(projectId, progress);
             if (error) {
-                return {
-                    success: false,
-                    error: error.message
-                };
+                return projectServiceHelpers_1.ErrorHandler.handleError(error);
             }
-            return {
-                success: true,
-                message: 'Project progress updated successfully'
-            };
+            return projectServiceHelpers_1.ResponseBuilder.successMessage('Project progress updated successfully');
         }
         catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error occurred'
-            };
+            return projectServiceHelpers_1.ErrorHandler.handleError(error);
         }
     }
-    static async mapDatabaseProjectToProject(dbProject) {
-        const tasksResponse = await taskService_1.TaskService.getTasksByProject(dbProject.id);
-        const tasks = tasksResponse.success ? tasksResponse.data || [] : [];
-        const taskIds = tasks.map(task => task.id);
-        const phasesResponse = await this.getTimelinePhases(dbProject.id);
-        const timeline = phasesResponse.success ? phasesResponse.data || [] : [];
-        return {
-            id: dbProject.id,
-            name: dbProject.name,
-            description: dbProject.description || '',
-            deadline: dbProject.deadline ? new Date(dbProject.deadline) : null,
-            tasks: taskIds,
-            progress: dbProject.progress,
-            status: dbProject.status,
-            timeline
-        };
+    static async getProjectProgressDetails(projectId) {
+        try {
+            const details = await projectServiceHelpers_1.ProgressCalculator.calculateProjectProgress(projectId);
+            return projectServiceHelpers_1.ResponseBuilder.success(details);
+        }
+        catch (error) {
+            return projectServiceHelpers_1.ErrorHandler.handleError(error);
+        }
+    }
+    static validateProjectData(projectData) {
+        return projectServiceHelpers_1.ProjectValidator.validateCreateRequest(projectData);
+    }
+    static validateUpdateData(updates) {
+        return projectServiceHelpers_1.ProjectValidator.validateUpdateRequest(updates);
     }
 }
 exports.ProjectService = ProjectService;

@@ -10,6 +10,18 @@ export declare class ProjectService {
         projectId: string;
     }): Promise<ApiResponse<TimelinePhase>>;
     static updateProjectProgress(projectId: string): Promise<ApiResponse<void>>;
-    private static mapDatabaseProjectToProject;
+    static getProjectProgressDetails(projectId: string): Promise<ApiResponse<{
+        progress: number;
+        totalTasks: number;
+        completedTasks: number;
+    }>>;
+    static validateProjectData(projectData: CreateProjectRequest): {
+        valid: boolean;
+        error?: string;
+    };
+    static validateUpdateData(updates: UpdateProjectRequest): {
+        valid: boolean;
+        error?: string;
+    };
 }
 //# sourceMappingURL=projectService.d.ts.map

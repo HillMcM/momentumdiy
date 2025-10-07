@@ -18,9 +18,9 @@ export declare class MarketingService {
     static setActiveMarketingGoal(goalId: string): Promise<ApiResponse<void>>;
     static syncPhasesFromTrackDefinition(goalId: string): Promise<ApiResponse<void>>;
     static updateMarketingGoalProgress(goalId: string, progress: number): Promise<ApiResponse<MarketingGoal>>;
-    static getMarketingModules(goalId: string): Promise<ApiResponse<MarketingModule[]>>;
+    static getMarketingModules(trackId: string): Promise<ApiResponse<MarketingModule[]>>;
     static createMarketingModule(moduleData: Omit<MarketingModule, 'id' | 'tasks'> & {
-        goalId: string;
+        trackId: string;
     }): Promise<ApiResponse<MarketingModule>>;
     static getMarketingTasks(moduleId: string): Promise<ApiResponse<MarketingTask[]>>;
     static createMarketingTask(taskData: Omit<MarketingTask, 'id'> & {
