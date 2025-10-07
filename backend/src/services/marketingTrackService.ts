@@ -14,7 +14,7 @@ export interface TrackDefinition {
 
 export interface TrackModule {
   id: string;
-  track_definition_id: string;
+  track_id: string;
   week_number: number;
   title: string;
   description: string;
@@ -37,7 +37,7 @@ export interface TrackTask {
 export interface UserTrackProgress {
   id: string;
   user_id: string;
-  track_definition_id: string;
+  track_id: string;
   start_date: string;
   current_week: number;
   progress: number;
@@ -64,7 +64,7 @@ export class MarketingTrackService {
   static async getTrackDefinitions(): Promise<ApiResponse<TrackDefinition[]>> {
     try {
       const { data, error } = await supabase
-        .from('marketing_track_definitions')
+        .from('marketing_tracks')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -91,7 +91,7 @@ export class MarketingTrackService {
   }): Promise<ApiResponse<TrackDefinition>> {
     try {
       const { data, error } = await supabase
-        .from('marketing_track_definitions')
+        .from('marketing_tracks')
         .insert([{
           slug: trackData.slug,
           title: trackData.title,
@@ -121,7 +121,7 @@ export class MarketingTrackService {
       const { data, error } = await supabase
         .from('marketing_modules')
         .select('*')
-        .eq('track_definition_id', trackId)
+        .eq('track_id', trackId)
         .order('week_number', { ascending: true });
 
       if (error) throw error;
@@ -147,7 +147,7 @@ export class MarketingTrackService {
     try {
       // Verify track definition exists
       const { data: trackDef, error: trackError } = await supabase
-        .from('marketing_track_definitions')
+        .from('marketing_tracks')
         .select('id')
         .eq('id', trackId)
         .single();
@@ -159,7 +159,7 @@ export class MarketingTrackService {
       const { data, error } = await supabase
         .from('marketing_modules')
         .insert([{
-          track_definition_id: trackId,
+          track_id: trackId,
           week_number: moduleData.week_number,
           title: moduleData.title,
           description: moduleData.description || '',
@@ -241,11 +241,11 @@ export class MarketingTrackService {
    */
   static async getPublishedTracks(): Promise<ApiResponse<TrackDefinition[]>> {
     try {
-      const { data, error } = await supabase
-        .from('marketing_track_definitions')
+      const { data, error} = await supabase
+        .from('marketing_tracks')
         .select('*')
         .eq('published', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false});
 
       if (error) throw error;
       return { success: true, data: data || [] };
@@ -279,7 +279,7 @@ export class MarketingTrackService {
         .from('user_track_progress')
         .insert([{
           user_id: userId,
-          track_definition_id: trackId,
+          track_id: trackId,
           start_date: new Date().toISOString(),
           current_week: 1,
           progress: 0,
@@ -311,7 +311,7 @@ export class MarketingTrackService {
       const { data: modules } = await supabase
         .from('marketing_modules')
         .select('id, week_number')
-        .eq('track_definition_id', trackId)
+        .eq('track_id', trackId)
         .order('week_number', { ascending: true });
 
       if (!modules) return;
@@ -361,7 +361,7 @@ export class MarketingTrackService {
         .from('user_track_progress')
         .select(`
           *,
-          marketing_track_definitions!inner(title, description, duration_weeks, phases)
+          marketing_tracks!inner(title, description, duration_weeks, phases)
         `)
         .eq('user_id', userId)
         .eq('is_active', true)
@@ -406,7 +406,7 @@ export class MarketingTrackService {
         const { data: modulesToUnlock } = await supabase
           .from('marketing_modules')
           .select('id')
-          .eq('track_definition_id', progress.track_definition_id)
+          .eq('track_id', progress.track_id)
           .lte('week_number', currentWeek);
 
         if (modulesToUnlock && modulesToUnlock.length > 0) {

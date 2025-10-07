@@ -178,7 +178,7 @@ router.get('/definitions/:trackId/modules', async (req, res) => {
         const { data, error } = await supabase_1.supabase
             .from('marketing_modules')
             .select('*')
-            .eq('goal_id', trackId)
+            .eq('track_definition_id', trackId)
             .order('week_number', { ascending: true });
         if (error)
             throw error;
@@ -199,7 +199,7 @@ router.post('/definitions/:trackId/modules', async (req, res) => {
         const { data, error } = await supabase_1.supabase
             .from('marketing_modules')
             .insert([{
-                goal_id: trackId,
+                track_definition_id: trackId,
                 week_number: parseInt(week_number),
                 title,
                 description: description || '',
@@ -368,48 +368,16 @@ router.post('/definitions/:trackId/generate-modules', async (req, res) => {
         if (trackError || !trackDef) {
             return res.status(404).json({ success: false, error: 'Track definition not found' });
         }
-        let templateGoalId = trackId;
-        const { data: existingGoal } = await supabase_1.supabase
-            .from('marketing_goals')
-            .select('id')
-            .eq('id', trackId)
-            .single();
-        if (!existingGoal) {
-            const { data: newGoal, error: goalError } = await supabase_1.supabase
-                .from('marketing_goals')
-                .insert([{
-                    id: trackId,
-                    title: trackDef.title + ' (Template)',
-                    description: trackDef.description,
-                    duration: trackDef.duration_weeks,
-                    industry: trackDef.industry_tags?.[0] || 'general',
-                    is_active: false,
-                    current_week: 1,
-                    progress: 0,
-                    track_definition_id: trackId
-                }])
-                .select('id')
-                .single();
-            if (goalError) {
-                console.error('Error creating template goal:', goalError);
-                return res.status(500).json({
-                    success: false,
-                    error: 'Failed to create template goal',
-                    details: goalError.message
-                });
-            }
-            templateGoalId = newGoal.id;
-        }
         const { data: existing } = await supabase_1.supabase
             .from('marketing_modules')
             .select('week_number')
-            .eq('goal_id', templateGoalId);
+            .eq('track_definition_id', trackId);
         const existingWeeks = existing?.map(m => m.week_number) || [];
         const modulesToInsert = [];
         for (let week = 1; week <= 12; week++) {
             if (!existingWeeks.includes(week)) {
                 modulesToInsert.push({
-                    goal_id: templateGoalId,
+                    track_definition_id: trackId,
                     week_number: week,
                     title: `Week ${week}`,
                     description: `Week ${week} description`,
@@ -540,7 +508,7 @@ router.post('/definitions/:trackId/publish', async (req, res) => {
         const { data: modules, error: modulesError } = await supabase_1.supabase
             .from('marketing_modules')
             .select('*')
-            .eq('goal_id', trackId)
+            .eq('track_definition_id', trackId)
             .order('week_number', { ascending: true });
         if (modulesError) {
             return res.status(500).json({ success: false, error: 'Failed to fetch track modules' });

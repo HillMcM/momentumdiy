@@ -17,7 +17,7 @@ export class MarketingService {
     try {
       // Get published track definitions only
       const { data, error } = await supabase
-        .from('marketing_track_definitions')
+        .from('marketing_tracks')
         .select('*')
         .eq('published', true)
         .order('created_at', { ascending: false });
@@ -100,7 +100,7 @@ export class MarketingService {
 
       // Get the track definition
       const { data: trackDef, error: trackError } = await supabase
-        .from('marketing_track_definitions')
+        .from('marketing_tracks')
         .select('*')
         .eq('id', profile.active_track_id)
         .single();
@@ -112,37 +112,27 @@ export class MarketingService {
         };
       }
 
-      // Get modules using the active_goal_id from profile (if available) or fallback to finding by track
+      // Get modules for the track (modules are now linked directly to track_id)
       let modules: MarketingModule[] = [];
       
-      // First try using active_goal_id if it exists (new approach)
-      if (profile.active_goal_id) {
-        console.log('🔍 Found active goal ID in profile:', profile.active_goal_id);
-        const modulesResponse = await this.getMarketingModules(profile.active_goal_id);
-        modules = modulesResponse.success ? modulesResponse.data || [] : [];
-        console.log('📊 Loaded modules count from active_goal_id:', modules.length);
-      } else {
-        // Fallback: Find marketing goal by track_definition_id and user (if user_id column exists)
-        console.log('🔄 No active_goal_id, trying fallback approach');
-        try {
-          const { data: goalData, error: goalError } = await supabase
-            .from('marketing_goals')
-            .select('id')
-            .eq('track_definition_id', trackDef.id)
-            .eq('is_active', true)
-            .single();
+      console.log('🔍 Loading modules for track:', trackDef.id);
+      const { data: modulesData, error: modulesError } = await supabase
+        .from('marketing_modules')
+        .select('*')
+        .eq('track_id', trackDef.id)
+        .order('week_number', { ascending: true });
 
-          if (!goalError && goalData) {
-            console.log('🔍 Found marketing goal via fallback:', goalData.id);
-            const modulesResponse = await this.getMarketingModules(goalData.id);
-            modules = modulesResponse.success ? modulesResponse.data || [] : [];
-            console.log('📊 Loaded modules count from fallback:', modules.length);
-          } else {
-            console.log('❌ No marketing goal found via fallback:', goalError?.message);
-          }
-        } catch (err) {
-          console.log('⚠️ Fallback approach failed, probably user_id column not yet added:', err);
+      if (modulesError) {
+        console.error('❌ Error loading modules:', modulesError);
+      } else if (modulesData && modulesData.length > 0) {
+        // Convert to MarketingModule format and load tasks
+        for (const moduleData of modulesData) {
+          const moduleWithTasks = await this.mapDatabaseModuleToModule(moduleData);
+          modules.push(moduleWithTasks);
         }
+        console.log('📊 Loaded modules count:', modules.length);
+      } else {
+        console.log('⚠️ No modules found for track');
       }
 
       // Create MarketingGoal object from track definition + user progress
@@ -959,14 +949,14 @@ export class MarketingService {
   }
 
   /**
-   * Get marketing modules for a goal
+   * Get marketing modules for a track
    */
-  static async getMarketingModules(goalId: string): Promise<ApiResponse<MarketingModule[]>> {
+  static async getMarketingModules(trackId: string): Promise<ApiResponse<MarketingModule[]>> {
     try {
       const { data, error } = await supabase
         .from('marketing_modules')
         .select('*')
-        .eq('goal_id', goalId)
+        .eq('track_id', trackId)
         .order('week_number', { ascending: true });
 
       if (error) {
@@ -979,7 +969,6 @@ export class MarketingService {
       console.log('🔍 Backend - Raw modules from database:', data);
       console.log('🔍 Backend - First module pro_tip:', data?.[0]?.pro_tip);
       console.log('🔍 Backend - All module fields:', data?.[0] ? Object.keys(data[0]) : 'No modules');
-      console.log('🔍 Backend - Module with pro_tip:', data?.find(m => m.id === '9ff6f2d5-916d-4c20-89cd-f81c3bdf424d'));
       
       // Debug: Check if any modules have pro_tip
       const modulesWithProTip = data?.filter(m => m.pro_tip && m.pro_tip.trim() !== '');
@@ -1009,12 +998,12 @@ export class MarketingService {
   /**
    * Create a marketing module
    */
-  static async createMarketingModule(moduleData: Omit<MarketingModule, 'id' | 'tasks'> & { goalId: string }): Promise<ApiResponse<MarketingModule>> {
+  static async createMarketingModule(moduleData: Omit<MarketingModule, 'id' | 'tasks'> & { trackId: string }): Promise<ApiResponse<MarketingModule>> {
     try {
       const { data, error } = await supabase
         .from('marketing_modules')
         .insert([{
-          goal_id: moduleData.goalId,
+          track_id: moduleData.trackId,
           week_number: moduleData.weekNumber,
           title: moduleData.title,
           description: moduleData.description,
