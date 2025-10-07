@@ -210,6 +210,45 @@ router.post('/modules/:id/tasks', async (req, res) => {
   }
 });
 
+// PUT /api/admin/tracks/tasks/:id - Update task
+router.put('/tasks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const { data, error } = await supabase
+      .from('marketing_tasks')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error updating track task:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update track task' });
+  }
+});
+
+// DELETE /api/admin/tracks/tasks/:id - Delete task
+router.delete('/tasks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from('marketing_tasks')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return res.json({ success: true, message: 'Task deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting track task:', error);
+    return res.status(500).json({ success: false, error: 'Failed to delete track task' });
+  }
+});
+
 // GET /api/admin/tracks/goals - List published goals (for compatibility)
 router.get('/goals', async (_req, res) => {
   try {
