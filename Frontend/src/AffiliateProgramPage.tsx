@@ -22,8 +22,31 @@ export default function AffiliateProgramPage() {
   useEffect(() => {
     if (user) {
       checkEligibility();
+      // Also check if user is already an affiliate
+      checkExistingAffiliate();
     }
   }, [user]);
+
+  const checkExistingAffiliate = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+
+      const response = await fetch(`${API_URL}/api/affiliate/dashboard`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // User already has an affiliate account, redirect to dashboard
+        navigate('/app/affiliate/dashboard');
+      }
+    } catch (err) {
+      // Ignore errors - user just isn't an affiliate yet
+    }
+  };
 
   const checkEligibility = async () => {
     if (!user) return;
