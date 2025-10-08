@@ -329,38 +329,44 @@ export default function ProfilePage() {
       {/* Track Completion Confetti */}
       <CompletionConfetti isComplete={activeGoal?.progress >= 100} />
 
-      {/* Tabs */}
+      {/* Tabs - Scrollable on mobile */}
       <div style={{ 
-        display: 'flex', 
-        gap: '0.5rem', 
-        marginBottom: '1.5rem', 
-        flexWrap: isMobile ? 'nowrap' : 'wrap',
-        overflowX: isMobile ? 'auto' : 'visible',
-        WebkitOverflowScrolling: 'touch',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none'
+        marginBottom: isMobile ? '1rem' : '1.5rem'
       }}>
-        {tabs.map(t => (
-          <button 
-            key={t.key} 
-            onClick={() => setTab(t.key)} 
-            style={{ 
-              padding: isMobile ? '0.75rem 1rem' : '0.75rem 1.25rem', 
-              borderRadius: 10, 
-              border: tab === t.key ? '2px solid #EF8E81' : '1px solid rgba(255,255,255,0.12)', 
-              background: tab === t.key ? 'rgba(239, 142, 129, 0.15)' : 'rgba(255,255,255,0.02)', 
-              color: tab === t.key ? '#EF8E81' : '#FFF1E7', 
-              cursor: 'pointer',
-              fontWeight: tab === t.key ? 600 : 400,
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap',
-              fontSize: isMobile ? '0.85rem' : '1rem',
-              minHeight: '44px'
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+        <div style={{ 
+          display: 'flex', 
+          gap: '0.5rem', 
+          flexWrap: isMobile ? 'nowrap' : 'wrap',
+          overflowX: isMobile ? 'auto' : 'visible',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'thin',
+          paddingBottom: isMobile ? '0.5rem' : '0'
+        }}>
+          {tabs.map(t => (
+            <button 
+              key={t.key} 
+              onClick={() => setTab(t.key)} 
+              style={{ 
+                padding: isMobile ? '0.75rem 1rem' : '0.75rem 1.25rem', 
+                borderRadius: 10, 
+                border: tab === t.key ? '2px solid #EF8E81' : '1px solid rgba(255,255,255,0.12)', 
+                background: tab === t.key ? 'rgba(239, 142, 129, 0.15)' : 'rgba(255,255,255,0.02)', 
+                color: tab === t.key ? '#EF8E81' : '#FFF1E7', 
+                cursor: 'pointer',
+                fontWeight: tab === t.key ? 600 : 400,
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
+                fontSize: isMobile ? '0.85rem' : '1rem',
+                minHeight: '44px',
+                flexShrink: 0
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        
+        {/* Save button - separate row on mobile for visibility */}
         {!isMobile && <span style={{ marginLeft: 'auto' }} />}
         <button 
           onClick={save} 
@@ -378,7 +384,7 @@ export default function ProfilePage() {
             whiteSpace: 'nowrap',
             width: isMobile ? '100%' : 'auto',
             minHeight: '44px',
-            marginTop: isMobile ? '0.5rem' : '0'
+            marginTop: isMobile ? '0.75rem' : '0'
           }}
         >
           {saving ? 'Saving…' : '💾 Save Changes'}
