@@ -236,7 +236,7 @@ function SortableTaskCard({ task, onEdit, onCheck }: { task: Task; onEdit: (task
 }
 
 // Droppable Column
-function DroppableColumn({ columnKey, children }: { columnKey: TaskStatus; children: React.ReactNode }) {
+function DroppableColumn({ columnKey, children, isMobile }: { columnKey: TaskStatus; children: React.ReactNode; isMobile?: boolean }) {
   const { setNodeRef } = useDroppable({
     id: columnKey,
     data: {
@@ -252,7 +252,7 @@ function DroppableColumn({ columnKey, children }: { columnKey: TaskStatus; child
       ref={setNodeRef} 
       style={{ 
         minHeight: 200, 
-        width: '33%',
+        width: isMobile ? '100%' : '33%',
         padding: '1rem',
         background: '#22202F',
         borderRadius: '12px',
@@ -658,8 +658,8 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
           alignItems: 'flex-start' 
         }}>
           {columns.map(({ key }) => (
-            <DroppableColumn key={key} columnKey={key}>
-              <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 4 }}>
+            <DroppableColumn key={key} columnKey={key} isMobile={isMobile}>
+              <div style={{ maxHeight: isMobile ? 300 : 400, overflowY: 'auto', paddingRight: 4 }}>
                 <SortableContext items={order[key as Task['status']]} strategy={verticalListSortingStrategy}>
                   {order[key as Task['status']].map((taskId: string) => {
                     const task = tasks.find(t => t.id === taskId);
