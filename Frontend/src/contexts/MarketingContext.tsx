@@ -69,13 +69,13 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
         
         // Detect week advancement
         if (prevWeekRef.current !== null && newGoal.currentWeek > prevWeekRef.current) {
-          console.log(`🔓 Week advanced from ${prevWeekRef.current} to ${newGoal.currentWeek}`);
+          logger.info('Week advanced', { fromWeek: prevWeekRef.current, toWeek: newGoal.currentWeek });
           showWeekUnlocked(newGoal.currentWeek);
         }
         
         // Detect track completion
         if (newGoal.progress >= 100 && activeGoal && activeGoal.progress < 100) {
-          console.log('🎉 Track completed!');
+          logger.info('Track completed', { trackTitle: newGoal.title });
           showTrackCompleted(newGoal.title);
         }
         
@@ -87,11 +87,11 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
         const current = newGoal.modules.find(module => module.weekNumber === newGoal.currentWeek);
         setCurrentModule(current || null);
       } else {
-        console.error('❌ Failed to load marketing goal:', response);
+        logger.error('Failed to load marketing goal', { error: response.error });
         setError('Failed to load marketing goal');
       }
     } catch (err) {
-      console.error('❌ Marketing context error:', err);
+      logger.error('Marketing context error', err);
       setError('Error loading marketing data');
     } finally {
       setIsLoading(false);
@@ -126,7 +126,7 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
 
   const updatePhases = async (phases: any[]): Promise<boolean> => {
     if (!activeGoal) {
-      console.error('❌ No active goal to update phases for');
+      logger.warn('No active goal to update phases for');
       return false;
     }
 
@@ -137,12 +137,12 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
         updateActiveGoal(response.data);
         return true;
       } else {
-        console.error('❌ Failed to update phases:', response.error);
+        logger.error('Failed to update phases', { error: response.error, goalId: activeGoal.id });
         setError(response.error || 'Failed to update phases');
         return false;
       }
     } catch (error) {
-      console.error('❌ Error updating phases:', error);
+      logger.error('Error updating phases', error, { goalId: activeGoal.id });
       setError(error instanceof Error ? error.message : 'Failed to update phases');
       return false;
     }

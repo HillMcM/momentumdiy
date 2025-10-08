@@ -2,6 +2,7 @@ import * as express from 'express';
 import { AIService, ConversationContext, ChatMessage } from '../services/aiService';
 import { routeRateLimit } from '../middleware/rate';
 import { MarketingService } from '../services/marketingService';
+import { logger } from '../utils/logger';
 import { TaskService } from '../services/taskService';
 import { ApiResponse } from '../types';
 
@@ -81,7 +82,7 @@ router.post('/chat', routeRateLimit(30), async (req, res) => {
     return res.json(response);
 
   } catch (error) {
-    console.error('AI Chat Error:', error);
+    logger.error('AI chat error', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to generate AI response'
@@ -124,7 +125,7 @@ router.get('/context', async (_req, res) => {
     return res.json(response);
 
   } catch (error) {
-    console.error('AI Context Error:', error);
+    logger.error('AI context error', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to load user context'

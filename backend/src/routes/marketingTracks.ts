@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { MarketingTrackService } from '../services/marketingTrackService';
 import { supabase } from '../config/supabase';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.get('/definitions', async (_req, res) => {
     
     return res.json(result);
   } catch (error) {
-    console.error('Error in GET /api/admin/tracks:', error);
+    logger.error('Error getting track definitions', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -51,10 +52,10 @@ router.post('/definitions', async (req, res) => {
     if (!result.success) {
       return res.status(400).json(result);
     }
-
+    
     return res.status(201).json(result);
   } catch (error) {
-    console.error('Error in POST /api/admin/tracks:', error);
+    logger.error('Error creating track definition', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -74,7 +75,7 @@ router.get('/definitions/:id/modules', async (req, res) => {
     
     return res.json(result);
   } catch (error) {
-    console.error('Error in GET /api/admin/tracks/:id/modules:', error);
+    logger.error('Error getting track modules', error, { trackId: req.params.id });
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -109,7 +110,7 @@ router.post('/definitions/:id/modules', async (req, res) => {
 
     return res.status(201).json(result);
   } catch (error) {
-    console.error('Error in POST /api/admin/tracks/:id/modules:', error);
+    logger.error('Error creating track module', error, { trackId: req.params.id });
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -133,7 +134,7 @@ router.put('/modules/:id', async (req, res) => {
     if (error) throw error;
     return res.json({ success: true, data });
   } catch (error) {
-    console.error('Error updating track module:', error);
+    logger.error('Error updating track module', error, { moduleId: req.params.id });
     return res.status(500).json({ success: false, error: 'Failed to update track module' });
   }
 });
@@ -151,7 +152,7 @@ router.delete('/modules/:id', async (req, res) => {
     if (error) throw error;
     return res.json({ success: true, message: 'Module deleted successfully' });
   } catch (error) {
-    console.error('Error deleting track module:', error);
+    logger.error('Error deleting track module', error, { moduleId: req.params.id });
     return res.status(500).json({ success: false, error: 'Failed to delete track module' });
   }
 });
@@ -168,7 +169,7 @@ router.get('/modules/:id/tasks', async (req, res) => {
     
     return res.json(result);
   } catch (error) {
-    console.error('Error in GET /api/admin/tracks/modules/:id/tasks:', error);
+    logger.error('Error getting module tasks', error, { moduleId: req.params.id });
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -202,7 +203,7 @@ router.post('/modules/:id/tasks', async (req, res) => {
 
     return res.status(201).json(result);
   } catch (error) {
-    console.error('Error in POST /api/admin/tracks/modules/:id/tasks:', error);
+    logger.error('Error creating module task', error, { moduleId: req.params.id });
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -226,7 +227,7 @@ router.put('/tasks/:id', async (req, res) => {
     if (error) throw error;
     return res.json({ success: true, data });
   } catch (error) {
-    console.error('Error updating track task:', error);
+    logger.error('Error updating track task', error, { taskId: req.params.id });
     return res.status(500).json({ success: false, error: 'Failed to update track task' });
   }
 });
@@ -244,7 +245,7 @@ router.delete('/tasks/:id', async (req, res) => {
     if (error) throw error;
     return res.json({ success: true, message: 'Task deleted successfully' });
   } catch (error) {
-    console.error('Error deleting track task:', error);
+    logger.error('Error deleting track task', error, { taskId: req.params.id });
     return res.status(500).json({ success: false, error: 'Failed to delete track task' });
   }
 });
@@ -261,20 +262,20 @@ router.get('/goals', async (_req, res) => {
     if (error) throw error;
     return res.json({ success: true, data: data || [] });
   } catch (error) {
-    console.error('Error fetching published tracks:', error);
+    logger.error('Error fetching published tracks', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch published tracks' });
   }
 });
 
 // PUT /admin/tracks/definitions/:id - Update track definition
 router.put('/definitions/:id', async (req, res) => {
-  console.log('🚀 PUT /definitions/:id - Route hit!');
+  logger.debug('Update track definition route hit', { trackId: req.params.id });
   
   try {
     const { id } = req.params;
     const updates = req.body;
 
-    console.log('🔄 Update track definition request:', { id, updates });
+    logger.info('Updating track definition', { trackId: id });
 
     // Clean up industry_tags if provided
     if (updates.industry_tags && !Array.isArray(updates.industry_tags)) {
@@ -284,20 +285,18 @@ router.put('/definitions/:id', async (req, res) => {
     // Handle phases - convert array to JSON string for database storage
     if (updates.phases) {
       if (Array.isArray(updates.phases)) {
-        console.log('📝 Converting phases array to JSON string:', updates.phases);
+        logger.debug('Converting phases array to JSON string', { trackId: id });
         updates.phases = JSON.stringify(updates.phases);
-        console.log('✅ Successfully converted phases to string:', updates.phases);
       } else if (typeof updates.phases === 'string') {
         try {
-          console.log('📝 Validating phases JSON string:', updates.phases);
           JSON.parse(updates.phases); // Validate it's valid JSON
-          console.log('✅ Phases string is valid JSON');
+          logger.debug('Phases string is valid JSON', { trackId: id });
         } catch (parseError) {
-          console.error('❌ Error validating phases JSON:', parseError);
+          logger.error('Error validating phases JSON', parseError, { trackId: id });
           return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
         }
       } else {
-        console.error('❌ Invalid phases format:', typeof updates.phases, updates.phases);
+        logger.error('Invalid phases format', undefined, { trackId: id, phasesType: typeof updates.phases });
         return res.status(400).json({ success: false, error: 'Phases must be an array or JSON string' });
       }
     }
@@ -319,7 +318,7 @@ router.put('/definitions/:id', async (req, res) => {
       }
     });
     
-    console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
+    logger.debug('Final update data prepared', { trackId: id });
     
     // Use standard update without updated_at field
     const { data, error } = await supabase
@@ -330,7 +329,7 @@ router.put('/definitions/:id', async (req, res) => {
       .single();
 
     if (error) {
-      console.error('❌ Supabase error:', error);
+      logger.error('Supabase error updating track', error, { trackId: id });
       return res.status(500).json({ 
         success: false, 
         error: 'Database error',
@@ -338,10 +337,10 @@ router.put('/definitions/:id', async (req, res) => {
       });
     }
     
-    console.log('✅ Successfully updated track definition:', data);
+    logger.info('Successfully updated track definition', { trackId: id });
     return res.json({ success: true, data });
   } catch (error: any) {
-    console.error('❌ Error updating track definition:', error);
+    logger.error('Error updating track definition', error, { trackId: req.params.id });
     return res.status(500).json({ 
       success: false, 
       error: 'Failed to update track definition',

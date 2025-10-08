@@ -8,6 +8,7 @@ import { routeRateLimit } from '../middleware/rate';
 import { AIBrandingService } from '../services/aiBrandingService';
 import { MomentumService } from '../services/momentumService';
 import { supabase } from '../config/supabase';
+import { logger } from '../utils/logger';
 import { MarketingService } from '../services/marketingService';
 
 const router = Router();
@@ -53,7 +54,7 @@ router.post('/upload-logo', routeRateLimit(10), async (req: Request, res: Respon
       message: 'Logo uploaded successfully'
     });
   } catch (error) {
-    console.error('Logo upload error:', error);
+    logger.error('Logo upload error', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -83,7 +84,7 @@ router.post('/ai-color-suggestions', routeRateLimit(10), async (req: Request, re
       data: suggestions
     });
   } catch (error) {
-    console.error('AI color suggestion error:', error);
+    logger.error('AI color suggestion error', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to generate color suggestions'
@@ -111,7 +112,7 @@ router.post('/business-insights', routeRateLimit(10), async (req: Request, res: 
       insights
     });
   } catch (error) {
-    console.error('Business insights error:', error);
+    logger.error('Business insights error', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to generate business insights'
@@ -142,7 +143,7 @@ router.get('/momentum-score/:userId', routeRateLimit(30), async (req: Request, r
 
     return res.json(result);
   } catch (error) {
-    console.error('Momentum score error:', error);
+    logger.error('Momentum score error', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to calculate momentum score'
@@ -173,7 +174,7 @@ router.post('/weekly-note', routeRateLimit(20), async (req: Request, res: Respon
 
     return res.json(result);
   } catch (error) {
-    console.error('Weekly note save error:', error);
+    logger.error('Weekly note save error', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to save weekly note'
@@ -204,7 +205,7 @@ router.get('/weekly-notes/:userId', routeRateLimit(30), async (req: Request, res
 
     return res.json(result);
   } catch (error) {
-    console.error('Get weekly notes error:', error);
+    logger.error('Get weekly notes error', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch weekly notes'
@@ -257,7 +258,7 @@ router.post('/track-recommendations', routeRateLimit(10), async (req: Request, r
       recommendation
     });
   } catch (error) {
-    console.error('Track recommendation error:', error);
+    logger.error('Track recommendation error', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to generate track recommendation'
@@ -288,7 +289,7 @@ router.get('/progress-data/:userId', routeRateLimit(30), async (req: Request, re
 
     return res.json(result);
   } catch (error) {
-    console.error('Progress data error:', error);
+    logger.error('Progress data error', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch progress data'

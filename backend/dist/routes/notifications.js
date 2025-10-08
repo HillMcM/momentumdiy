@@ -4,6 +4,7 @@ const express_1 = require("express");
 const rate_1 = require("../middleware/rate");
 const notificationService_1 = require("../services/notificationService");
 const supabase_1 = require("../config/supabase");
+const logger_1 = require("../utils/logger");
 const router = (0, express_1.Router)();
 router.post('/send', (0, rate_1.routeRateLimit)(10), async (req, res) => {
     try {
@@ -86,7 +87,7 @@ router.post('/send', (0, rate_1.routeRateLimit)(10), async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error sending notification:', error);
+        logger_1.logger.error('Error sending notification', error);
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -150,7 +151,7 @@ router.post('/test', (0, rate_1.routeRateLimit)(5), async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error sending test notification:', error);
+        logger_1.logger.error('Error sending test notification', error);
         return res.status(500).json({
             success: false,
             error: 'Internal server error'

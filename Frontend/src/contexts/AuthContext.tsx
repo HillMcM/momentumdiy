@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useMemo, useState, useRef } from 'reac
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { useNotifications } from './NotificationContext';
+import { logger } from '../utils/logger';
 
 export interface AuthContextValue {
   user: User | null;
@@ -38,17 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // TEMPORARY: Force auth enabled to show beautiful auth page
   const FORCE_AUTH_ENABLED = true;
   
-  console.log('🔍 AuthContext - Environment check:');
-  console.log('VITE_DISABLE_AUTH raw value:', disableAuthValue);
-  console.log('VITE_DISABLE_AUTH type:', typeof disableAuthValue);
-  console.log('BYPASS_AUTH:', BYPASS_AUTH);
-  console.log('FORCE_AUTH_ENABLED:', FORCE_AUTH_ENABLED);
-  console.log('All env vars:', import.meta.env);
+  logger.debug('AuthContext environment check', {
+    disableAuthValue,
+    bypassAuth: BYPASS_AUTH,
+    forceAuthEnabled: FORCE_AUTH_ENABLED
+  });
   
   if (BYPASS_AUTH && !FORCE_AUTH_ENABLED) {
-    console.log('🔓 AuthContext: Auth bypass enabled for local development');
+    logger.warn('Auth bypass enabled for local development');
   } else {
-    console.log('🔐 AuthContext: Normal authentication enabled - proceeding with real auth');
+    logger.info('Normal authentication enabled');
   }
 
   useEffect(() => {
@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const ensureProfileExists = async (_signedInUser: User) => {
     // Temporarily disabled to prevent errors while deployment completes
     // Profile creation is handled by the backend automatically
-    console.log('Profile creation handled by backend automatically');
+    logger.debug('Profile creation handled by backend automatically');
   };
 
   const signInWithEmail = async (email: string) => {

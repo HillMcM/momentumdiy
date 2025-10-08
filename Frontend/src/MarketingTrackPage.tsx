@@ -56,10 +56,10 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
         // Note: We don't need to update the main task via API for marketing track tasks
         // since they only exist in the marketing_tasks table, not the main tasks table
         
-        console.log(`✅ Synced marketing task ${marketingTaskId} with task tracker task ${correspondingTask.id}`);
+        logger.info('Synced marketing task with task tracker', { marketingTaskId, taskTrackerId: correspondingTask.id });
       }
     } catch (error) {
-      console.error('Error syncing with task tracker:', error);
+      logger.error('Error syncing with task tracker', error, { marketingTaskId });
     }
   };
 
@@ -112,10 +112,11 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
           showTaskCompleted(taskToUpdate.title);
         }
       } else {
-        console.error('Failed to update task:', await response.text());
+        const errorText = await response.text();
+        logger.error('Failed to update task', { taskId, errorText });
       }
     } catch (error) {
-      console.error('Error updating task:', error);
+      logger.error('Error updating task', error, { taskId });
     }
     
     // Close modal
@@ -136,10 +137,10 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
       if (response.success) {
         setPublishedTracks(response.data || []);
       } else {
-        console.error('Failed to load published tracks:', response.error);
+        logger.error('Failed to load published tracks', { error: response.error });
       }
     } catch (error) {
-      console.error('Error loading published tracks:', error);
+      logger.error('Error loading published tracks', error);
     } finally {
       setLoadingTracks(false);
     }
@@ -156,11 +157,11 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
         // Hide track selection after successful activation
         setShowTrackSelection(false);
     } else {
-        console.error('Failed to activate track:', response.error);
+        logger.error('Failed to activate track', { trackDefinitionId, error: response.error });
         // You might want to show a user-friendly error message here
       }
     } catch (error) {
-      console.error('Error activating track:', error);
+      logger.error('Error activating track', error, { trackDefinitionId });
     } finally {
       setActivatingTrack(null);
     }
@@ -378,7 +379,7 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
 
             {/* Phase block - Dynamic based on current week */}
             {(() => {
-              console.log('🎯 Phase Debug:', {
+              logger.debug('Phase debug', {
                 currentWeek: activeGoal.currentWeek,
                 phases: activeGoal.phases,
                 currentPhase: activeGoal.currentPhase
@@ -575,9 +576,10 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                             
                             {/* Pro Tip */}
                             {(() => {
-                              console.log('🎯 MarketingTrackPage - Module data:', module);
-                              console.log('🎯 MarketingTrackPage - Pro tip value:', module.proTip);
-                              console.log('🎯 MarketingTrackPage - Pro tip exists:', !!module.proTip);
+                              logger.debug('MarketingTrackPage module data', { 
+                                moduleId: module.id, 
+                                hasProTip: !!module.proTip 
+                              });
                               return module.proTip && (
                                 <div className="bg-gradient-to-r from-[#EF8E81]/10 to-[#D4AF37]/10 rounded-xl p-6 border border-[#EF8E81]/20">
                                   <h5 className="text-lg font-semibold text-[#EF8E81] mb-3 flex items-center gap-2">

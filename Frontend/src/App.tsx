@@ -1422,6 +1422,9 @@ function App() {
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [showAdminAccess, setShowAdminAccess] = useState(false);
   
+  // Mobile detection
+  const isMobile = useIsMobile();
+  
   // Handle secret admin access
   const handleLogoClick = () => {
     setAdminClickCount(prev => prev + 1);

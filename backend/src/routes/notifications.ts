@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { routeRateLimit } from '../middleware/rate';
 import { NotificationService } from '../services/notificationService';
 import { supabase } from '../config/supabase';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -113,7 +114,7 @@ router.post('/send', routeRateLimit(10), async (req: Request, res: Response) => 
     });
 
   } catch (error) {
-    console.error('Error sending notification:', error);
+    logger.error('Error sending notification', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -194,7 +195,7 @@ router.post('/test', routeRateLimit(5), async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error('Error sending test notification:', error);
+    logger.error('Error sending test notification', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

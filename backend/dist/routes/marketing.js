@@ -7,6 +7,7 @@ const client_1 = require("@notionhq/client");
 const rate_1 = require("../middleware/rate");
 const validate_1 = require("../middleware/validate");
 const supabase_1 = require("../config/supabase");
+const logger_1 = require("../utils/logger");
 const router = (0, express_1.Router)();
 router.get('/goals', async (_req, res) => {
     try {
@@ -624,7 +625,7 @@ router.put('/goals/:id/phases', (0, rate_1.routeRateLimit)(10), (0, validate_1.v
         return res.json(result);
     }
     catch (error) {
-        console.error('Error updating phases:', error);
+        logger_1.logger.error('Error updating phases', error, { goalId: req.params['id'] });
         return res.status(500).json({
             success: false,
             error: 'Internal server error'

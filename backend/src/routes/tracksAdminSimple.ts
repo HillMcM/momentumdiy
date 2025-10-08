@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { supabase } from '../config/supabase';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get('/definitions', async (_req, res) => {
     
     return res.json({ success: true, data: data || [] });
   } catch (error) {
-    console.error('Error fetching track definitions:', error);
+    logger.error('Error fetching track definitions', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch track definitions' });
   }
 });
@@ -45,7 +46,7 @@ router.post('/definitions', async (req, res) => {
     if (error) throw error;
     return res.json({ success: true, data });
   } catch (error) {
-    console.error('Error creating track definition:', error);
+    logger.error('Error creating track definition', error);
     return res.status(500).json({ success: false, error: 'Failed to create track definition' });
   }
 });
@@ -64,7 +65,7 @@ router.get('/definitions/:trackId/modules', async (req, res) => {
     if (error) throw error;
     return res.json({ success: true, data: data || [] });
   } catch (error) {
-    console.error('Error fetching track modules:', error);
+    logger.error('Error fetching track modules', error, { trackId: req.params.trackId });
     return res.status(500).json({ success: false, error: 'Failed to fetch track modules' });
   }
 });
@@ -75,8 +76,7 @@ router.post('/definitions/:trackId/modules', async (req, res) => {
     const { trackId } = req.params;
     const { week_number, title, description, content, pro_tip } = req.body;
 
-    console.log('Creating module for track:', trackId);
-    console.log('Module data:', { week_number, title, description, content, pro_tip });
+    logger.info('Creating module for track', { trackId, weekNumber: week_number, title });
 
     if (!week_number || !title || !content) {
       return res.status(400).json({ success: false, error: 'Missing required fields: week_number, title, content' });
@@ -90,7 +90,7 @@ router.post('/definitions/:trackId/modules', async (req, res) => {
       .single();
 
     if (trackError || !trackDef) {
-      console.error('Track definition not found:', trackError);
+      logger.error('Track definition not found', trackError, { trackId });
       return res.status(404).json({ success: false, error: 'Track definition not found' });
     }
 
@@ -110,14 +110,15 @@ router.post('/definitions/:trackId/modules', async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Database error creating module:', error);
+      logger.error('Database error creating module', error, { trackId });
       throw error;
     }
 
-    console.log('Module created successfully:', data);
+    logger.info('Module created successfully', { moduleId: data.id, trackId });
     return res.json({ success: true, data });
   } catch (error) {
-    console.error('Error creating track module:', error);
+    const trackId = req.params.trackId;
+    logger.error('Error creating track module', error, { trackId });
     return res.status(500).json({ 
       success: false, 
       error: 'Failed to create track module',
@@ -147,7 +148,7 @@ router.put('/modules/:id', async (req, res) => {
     if (error) throw error;
     return res.json({ success: true, data });
   } catch (error) {
-    console.error('Error updating track module:', error);
+    logger.error('Error updating track module', error, { moduleId: req.params.id });
     return res.status(500).json({ success: false, error: 'Failed to update track module' });
   }
 });
@@ -165,7 +166,7 @@ router.delete('/modules/:id', async (req, res) => {
     if (error) throw error;
     return res.json({ success: true, message: 'Module deleted successfully' });
   } catch (error) {
-    console.error('Error deleting track module:', error);
+    logger.error('Error deleting track module', error, { moduleId: req.params.id });
     return res.status(500).json({ success: false, error: 'Failed to delete track module' });
   }
 });

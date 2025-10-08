@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { logger } from '../utils/logger';
 
 export interface Notification {
   id: string;
@@ -42,7 +43,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
-    console.log('Adding notification:', notification);
+    logger.debug('Adding notification', { type: notification.type, title: notification.title });
     const newNotification: Notification = {
       ...notification,
       id: Math.random().toString(36).substr(2, 9),
@@ -51,9 +52,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     };
 
     setNotifications(prev => {
-      console.log('Previous notifications:', prev.length);
+      logger.debug('Notifications updated', { previousCount: prev.length, newCount: prev.length + 1 });
       const updated = [newNotification, ...prev];
-      console.log('Updated notifications:', updated.length);
       return updated;
     });
 

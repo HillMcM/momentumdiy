@@ -4,6 +4,7 @@ const express_1 = require("express");
 const supabase_1 = require("../config/supabase");
 const rate_1 = require("../middleware/rate");
 const validate_1 = require("../middleware/validate");
+const logger_1 = require("../utils/logger");
 const router = (0, express_1.Router)();
 router.get('/', (0, rate_1.routeRateLimit)(30), async (req, res) => {
     try {
@@ -28,7 +29,7 @@ router.get('/', (0, rate_1.routeRateLimit)(30), async (req, res) => {
             .eq('id', user.id)
             .single();
         if (profileError) {
-            console.error('Error fetching email preferences:', profileError);
+            logger_1.logger.error('Error fetching email preferences', profileError, { userId: user.id });
             return res.status(500).json({
                 success: false,
                 error: 'Failed to fetch email preferences'
@@ -47,7 +48,7 @@ router.get('/', (0, rate_1.routeRateLimit)(30), async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error getting email preferences:', error);
+        logger_1.logger.error('Error getting email preferences', error);
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -100,7 +101,7 @@ router.put('/', (0, rate_1.routeRateLimit)(20), (0, validate_1.validate)((req) =
             .update({ email_preferences: updatedPreferences })
             .eq('id', user.id);
         if (updateError) {
-            console.error('Error updating email preferences:', updateError);
+            logger_1.logger.error('Error updating email preferences', updateError, { userId: user.id });
             return res.status(500).json({
                 success: false,
                 error: 'Failed to update email preferences'
@@ -113,7 +114,7 @@ router.put('/', (0, rate_1.routeRateLimit)(20), (0, validate_1.validate)((req) =
         });
     }
     catch (error) {
-        console.error('Error updating email preferences:', error);
+        logger_1.logger.error('Error updating email preferences', error);
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -148,7 +149,7 @@ router.post('/reset', (0, rate_1.routeRateLimit)(10), async (req, res) => {
             .update({ email_preferences: defaultPreferences })
             .eq('id', user.id);
         if (updateError) {
-            console.error('Error resetting email preferences:', updateError);
+            logger_1.logger.error('Error resetting email preferences', updateError, { userId: user.id });
             return res.status(500).json({
                 success: false,
                 error: 'Failed to reset email preferences'
@@ -161,7 +162,7 @@ router.post('/reset', (0, rate_1.routeRateLimit)(10), async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error resetting email preferences:', error);
+        logger_1.logger.error('Error resetting email preferences', error);
         return res.status(500).json({
             success: false,
             error: 'Internal server error'

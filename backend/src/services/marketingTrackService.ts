@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase';
+import { logger } from '../utils/logger';
 
 export interface TrackDefinition {
   id: string;
@@ -348,7 +349,7 @@ export class MarketingTrackService {
         }
       }
     } catch (error) {
-      console.error('Error initializing user module progress:', error);
+      logger.error('Error initializing user module progress', error, { userId, trackId });
     }
   }
 

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { routeRateLimit } from '../middleware/rate';
 import { EmailService } from '../services/emailService';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -48,7 +49,7 @@ router.post('/', routeRateLimit(5), async (req: Request, res: Response) => {
     });
 
     if (!emailResult.success) {
-      console.error('Failed to send feedback email:', emailResult.error);
+      logger.error('Failed to send feedback email', { error: emailResult.error, category });
       return res.status(500).json({
         success: false,
         error: 'Failed to send feedback email'
@@ -61,7 +62,7 @@ router.post('/', routeRateLimit(5), async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error('Error processing feedback:', error);
+    logger.error('Error processing feedback', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -90,7 +91,7 @@ router.post('/test', routeRateLimit(2), async (_req: Request, res: Response) => 
     });
 
   } catch (error) {
-    console.error('Error sending test email:', error);
+    logger.error('Error sending test email', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

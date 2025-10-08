@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AutomatedNotificationsService } from '../services/automatedNotificationsService';
 import { routeRateLimit } from '../middleware/rate';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -10,7 +11,7 @@ const router = Router();
  */
 router.post('/run-all', routeRateLimit(5), async (_req: Request, res: Response) => {
   try {
-    console.log('🚀 Manual trigger of all automated notifications');
+    logger.info('Manual trigger of all automated notifications');
     
     await AutomatedNotificationsService.runAllNotifications();
     
@@ -19,7 +20,7 @@ router.post('/run-all', routeRateLimit(5), async (_req: Request, res: Response) 
       message: 'All automated notifications have been processed'
     });
   } catch (error) {
-    console.error('❌ Error running automated notifications:', error);
+    logger.error('Error running automated notifications', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to run automated notifications'
@@ -33,7 +34,7 @@ router.post('/run-all', routeRateLimit(5), async (_req: Request, res: Response) 
  */
 router.post('/weekly-progress', routeRateLimit(10), async (_req: Request, res: Response) => {
   try {
-    console.log('📊 Manual trigger of weekly progress reports');
+    logger.info('Manual trigger of weekly progress reports');
     
     await AutomatedNotificationsService.sendWeeklyProgressReports();
     
@@ -42,7 +43,7 @@ router.post('/weekly-progress', routeRateLimit(10), async (_req: Request, res: R
       message: 'Weekly progress reports have been sent'
     });
   } catch (error) {
-    console.error('❌ Error sending weekly progress reports:', error);
+    logger.error('Error sending weekly progress reports', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to send weekly progress reports'
@@ -56,7 +57,7 @@ router.post('/weekly-progress', routeRateLimit(10), async (_req: Request, res: R
  */
 router.post('/trial-ending', routeRateLimit(10), async (_req: Request, res: Response) => {
   try {
-    console.log('⏰ Manual trigger of trial ending notifications');
+    logger.info('Manual trigger of trial ending notifications');
     
     await AutomatedNotificationsService.sendTrialEndingNotifications();
     
@@ -65,7 +66,7 @@ router.post('/trial-ending', routeRateLimit(10), async (_req: Request, res: Resp
       message: 'Trial ending notifications have been sent'
     });
   } catch (error) {
-    console.error('❌ Error sending trial ending notifications:', error);
+    logger.error('Error sending trial ending notifications', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to send trial ending notifications'
@@ -79,7 +80,7 @@ router.post('/trial-ending', routeRateLimit(10), async (_req: Request, res: Resp
  */
 router.post('/task-reminders', routeRateLimit(10), async (_req: Request, res: Response) => {
   try {
-    console.log('📋 Manual trigger of task reminder notifications');
+    logger.info('Manual trigger of task reminder notifications');
     
     await AutomatedNotificationsService.sendTaskReminders();
     
@@ -88,7 +89,7 @@ router.post('/task-reminders', routeRateLimit(10), async (_req: Request, res: Re
       message: 'Task reminder notifications have been sent'
     });
   } catch (error) {
-    console.error('❌ Error sending task reminder notifications:', error);
+    logger.error('Error sending task reminder notifications', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to send task reminder notifications'
@@ -102,7 +103,7 @@ router.post('/task-reminders', routeRateLimit(10), async (_req: Request, res: Re
  */
 router.post('/schedule', routeRateLimit(5), async (_req: Request, res: Response) => {
   try {
-    console.log('📅 Checking scheduled notifications');
+    logger.info('Checking scheduled notifications');
     
     await AutomatedNotificationsService.scheduleNotifications();
     
@@ -111,7 +112,7 @@ router.post('/schedule', routeRateLimit(5), async (_req: Request, res: Response)
       message: 'Scheduled notifications have been checked and processed'
     });
   } catch (error) {
-    console.error('❌ Error running scheduled notifications:', error);
+    logger.error('Error running scheduled notifications', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to run scheduled notifications'

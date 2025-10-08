@@ -2,6 +2,7 @@ import { supabase } from '../config/supabase';
 import { NotificationService, UserProfile, ProgressData } from './notificationService';
 import { MarketingService } from './marketingService';
 import { DatabaseTask, EmailPreferences } from '../types';
+import { logger } from '../utils/logger';
 
 export class AutomatedNotificationsService {
   /**
@@ -14,7 +15,7 @@ export class AutomatedNotificationsService {
         .select('*');
 
       if (error) {
-        console.error('Error fetching users:', error);
+        logger.error('Error fetching users for notifications', error);
         return [];
       }
 
@@ -35,7 +36,7 @@ export class AutomatedNotificationsService {
         }
       })) || [];
     } catch (error) {
-      console.error('Error in getAllUsers:', error);
+      logger.error('Error in getAllUsers', error);
       return [];
     }
   }
@@ -82,7 +83,7 @@ export class AutomatedNotificationsService {
         .eq('marketing_track->>goalId', activeGoal.id);
 
       if (tasksError || !tasksData) {
-        console.error('Error fetching tasks:', tasksError);
+        logger.error('Error fetching tasks for progress data', tasksError);
         return null;
       }
 
@@ -109,7 +110,7 @@ export class AutomatedNotificationsService {
         ...(daysSinceLastActivity !== undefined && { daysSinceLastActivity })
       };
     } catch (error) {
-      console.error('Error getting user progress data:', error);
+      logger.error('Error getting user progress data', error);
       return null;
     }
   }
@@ -118,7 +119,7 @@ export class AutomatedNotificationsService {
    * Send weekly progress reports to active users
    */
   static async sendWeeklyProgressReports(): Promise<void> {
-    console.log('📧 Starting weekly progress reports...');
+    logger.info('Starting weekly progress reports');
     
     try {
       const users = await this.getAllUsers();
@@ -127,31 +128,31 @@ export class AutomatedNotificationsService {
         user.onboarding_completed
       );
 
-      console.log(`📊 Found ${activeUsers.length} active users for weekly reports`);
+      logger.info('Found active users for weekly reports', { count: activeUsers.length });
 
       for (const user of activeUsers) {
         try {
           // Check if user wants to receive weekly progress emails
           if (!this.shouldSendEmail(user, 'weekly_progress')) {
-            console.log(`⏭️ Skipping weekly progress email for ${user.email} (preference disabled)`);
+            logger.debug('Skipping weekly progress email (preference disabled)', { userEmail: user.email });
             continue;
           }
 
           const progressData = await this.getUserProgressData(user.id);
           if (progressData) {
             await NotificationService.sendWeeklyProgressNotification(user, progressData);
-            console.log(`✅ Weekly progress report sent to ${user.email}`);
+            logger.info('Weekly progress report sent', { userEmail: user.email });
           } else {
-            console.log(`⚠️ No progress data found for ${user.email}`);
+            logger.warn('No progress data found for user', { userEmail: user.email });
           }
         } catch (error) {
-          console.error(`❌ Error sending weekly report to ${user.email}:`, error);
+          logger.error('Error sending weekly report', error, { userEmail: user.email });
         }
       }
 
-      console.log('✅ Weekly progress reports completed');
+      logger.info('Weekly progress reports completed');
     } catch (error) {
-      console.error('❌ Error in sendWeeklyProgressReports:', error);
+      logger.error('Error in sendWeeklyProgressReports', error);
     }
   }
 
@@ -159,7 +160,7 @@ export class AutomatedNotificationsService {
    * Send trial ending notifications
    */
   static async sendTrialEndingNotifications(): Promise<void> {
-    console.log('📧 Starting trial ending notifications...');
+    logger.info('Starting trial ending notifications');
     
     try {
       const users = await this.getAllUsers();
@@ -170,9 +171,9 @@ export class AutomatedNotificationsService {
       );
       
       await NotificationService.checkTrialEndingNotifications(usersForTrialEmails);
-      console.log('✅ Trial ending notifications completed');
+      logger.info('Trial ending notifications completed');
     } catch (error) {
-      console.error('❌ Error in sendTrialEndingNotifications:', error);
+      logger.error('Error in sendTrialEndingNotifications', error);
     }
   }
 
@@ -180,7 +181,7 @@ export class AutomatedNotificationsService {
    * Send task reminders for users who haven't been active
    */
   static async sendTaskReminders(): Promise<void> {
-    console.log('📧 Starting task reminder notifications...');
+    logger.info('Starting task reminder notifications');
     
     try {
       const users = await this.getAllUsers();
@@ -193,7 +194,7 @@ export class AutomatedNotificationsService {
         try {
           // Check if user wants to receive task reminder emails
           if (!this.shouldSendEmail(user, 'task_reminders')) {
-            console.log(`⏭️ Skipping task reminder email for ${user.email} (preference disabled)`);
+            logger.debug('Skipping task reminder email (preference disabled)', { userEmail: user.email });
             continue;
           }
 
@@ -209,16 +210,19 @@ export class AutomatedNotificationsService {
               user, 
               `${progressData.trackName} tasks`
             );
-            console.log(`✅ Task reminder sent to ${user.email} (${progressData.daysSinceLastActivity} days inactive)`);
+            logger.info('Task reminder sent', { 
+              userEmail: user.email, 
+              daysInactive: progressData.daysSinceLastActivity 
+            });
           }
         } catch (error) {
-          console.error(`❌ Error sending task reminder to ${user.email}:`, error);
+          logger.error('Error sending task reminder', error, { userEmail: user.email });
         }
       }
 
-      console.log('✅ Task reminder notifications completed');
+      logger.info('Task reminder notifications completed');
     } catch (error) {
-      console.error('❌ Error in sendTaskReminders:', error);
+      logger.error('Error in sendTaskReminders', error);
     }
   }
 
@@ -226,7 +230,7 @@ export class AutomatedNotificationsService {
    * Run all automated notifications
    */
   static async runAllNotifications(): Promise<void> {
-    console.log('🚀 Running all automated notifications...');
+    logger.info('Running all automated notifications');
     
     try {
       // Run all notification types
@@ -236,9 +240,9 @@ export class AutomatedNotificationsService {
         this.sendTaskReminders()
       ]);
       
-      console.log('✅ All automated notifications completed');
+      logger.info('All automated notifications completed');
     } catch (error) {
-      console.error('❌ Error running automated notifications:', error);
+      logger.error('Error running automated notifications', error);
     }
   }
 
@@ -250,7 +254,7 @@ export class AutomatedNotificationsService {
     const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
     const hour = now.getHours();
 
-    console.log(`📅 Scheduling notifications - Day: ${dayOfWeek}, Hour: ${hour}`);
+    logger.debug('Evaluating notification schedule', { dayOfWeek, hour });
 
     // Send weekly progress reports on Mondays at 9 AM
     if (dayOfWeek === 1 && hour === 9) {

@@ -37,6 +37,7 @@ const express = __importStar(require("express"));
 const aiService_1 = require("../services/aiService");
 const rate_1 = require("../middleware/rate");
 const marketingService_1 = require("../services/marketingService");
+const logger_1 = require("../utils/logger");
 const taskService_1 = require("../services/taskService");
 const router = express.Router();
 router.post('/chat', (0, rate_1.routeRateLimit)(30), async (req, res) => {
@@ -82,7 +83,7 @@ router.post('/chat', (0, rate_1.routeRateLimit)(30), async (req, res) => {
         return res.json(response);
     }
     catch (error) {
-        console.error('AI Chat Error:', error);
+        logger_1.logger.error('AI chat error', error);
         return res.status(500).json({
             success: false,
             error: 'Failed to generate AI response'
@@ -117,7 +118,7 @@ router.get('/context', async (_req, res) => {
         return res.json(response);
     }
     catch (error) {
-        console.error('AI Context Error:', error);
+        logger_1.logger.error('AI context error', error);
         return res.status(500).json({
             success: false,
             error: 'Failed to load user context'

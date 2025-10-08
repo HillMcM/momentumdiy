@@ -290,8 +290,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
   const isMobile = useIsMobile();
   const DEBUG = (import.meta as { env?: { DEV?: boolean } }).env?.DEV && (typeof localStorage !== 'undefined' && localStorage.getItem('debugLogs') === '1');
   if (DEBUG) {
-    console.log('TaskTrackerWidget render - tasks count:', tasks.length);
-    console.log('TaskTrackerWidget render - tasks:', tasks);
+    logger.debug('TaskTrackerWidget render', { tasksCount: tasks.length });
   }
   
   const [viewMode, setViewMode] = useState<'kanban' | 'deadline' | 'archived'>('kanban');
@@ -307,8 +306,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
   // Initialize order from tasks
   useEffect(() => {
     if (DEBUG) {
-      console.log('TaskTrackerWidget: tasks changed, updating order. Tasks count:', tasks.length);
-      console.log('TaskTrackerWidget: tasks:', tasks);
+      logger.debug('TaskTrackerWidget tasks changed', { tasksCount: tasks.length });
     }
     
     const newOrder: ColumnOrder = {
@@ -317,7 +315,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
       completed: tasks.filter(t => t.status === 'completed').map(t => t.id),
     };
     if (DEBUG) {
-      console.log('TaskTrackerWidget: new order:', newOrder);
+      logger.debug('TaskTrackerWidget new order', { orderCount: newOrder.length });
     }
     setOrder(newOrder);
   }, [tasks, DEBUG]);
@@ -329,7 +327,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
     if (!tasksChanged) return;
     
     if (DEBUG) {
-      console.log('TaskTrackerWidget: Updating project progress due to task changes');
+      logger.debug('TaskTrackerWidget updating project progress');
     }
     
     const updatedProjects = projects.map(project => {
@@ -547,7 +545,7 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
           }
         }
       } catch (err) {
-        if (DEBUG) console.warn('Failed to persist task status', err);
+        if (DEBUG) logger.warn('Failed to persist task status', err);
       }
     })();
   };

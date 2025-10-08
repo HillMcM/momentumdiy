@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiService, BACKEND_BASE_URL } from '../services/api';
 import { useAuth } from '../contexts/useAuth';
+import { logger } from '../utils/logger';
 
 interface EmailPreferences {
   weekly_progress: boolean;
@@ -37,11 +38,11 @@ export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
         if (response.success && response.data) {
           setPreferences(response.data);
         } else {
-          console.error('Failed to load email preferences:', response.error);
+          logger.error('Failed to load email preferences', { error: response.error });
           setError('Failed to load email preferences');
         }
       } catch (err) {
-        console.error('Error loading email preferences:', err);
+        logger.error('Error loading email preferences', err);
         setError('Error loading email preferences');
       } finally {
         setLoading(false);
@@ -80,7 +81,7 @@ export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
         setError(response.error || 'Failed to update email preferences');
       }
     } catch (err) {
-      console.error('Error saving email preferences:', err);
+      logger.error('Error saving email preferences', err);
       setError('Error saving email preferences');
     } finally {
       setSaving(false);
@@ -104,7 +105,7 @@ export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
         setError(response.error || 'Failed to reset email preferences');
       }
     } catch (err) {
-      console.error('Error resetting email preferences:', err);
+      logger.error('Error resetting email preferences', err);
       setError('Error resetting email preferences');
     } finally {
       setSaving(false);
@@ -135,7 +136,7 @@ export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
         setError(data.error || 'Failed to send test email');
       }
     } catch (err) {
-      console.error('Test email error:', err);
+      logger.error('Test email error', err);
       setError('Failed to send test email');
     } finally {
       setSendingTest(false);

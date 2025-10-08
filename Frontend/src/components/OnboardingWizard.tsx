@@ -4,6 +4,7 @@ import { apiService } from '../services/api';
 import { getPublishedTracks, activateTrack } from '../services/marketingService';
 import { useMarketing } from '../contexts/MarketingContext';
 import { BRANDING } from '../config/branding';
+import { logger } from '../utils/logger';
 
 // Types for onboarding data
 export interface OnboardingData {
@@ -70,17 +71,17 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
   const loadAvailableTracks = async () => {
     setLoadingTracks(true);
     try {
-      console.log('🔍 OnboardingWizard - Loading available tracks...');
+      logger.debug('Loading available tracks for onboarding');
       const response = await getPublishedTracks();
-      console.log('🔍 OnboardingWizard - Response:', response);
+      logger.debug('Published tracks response', { success: response.success, tracksCount: response.data?.length });
       if (response.success && response.data) {
-        console.log('🔍 OnboardingWizard - Setting tracks:', response.data);
+        logger.info('Tracks loaded for onboarding', { count: response.data.length });
         setAvailableTracks(response.data);
       } else {
-        console.log('❌ OnboardingWizard - No tracks data:', response);
+        logger.warn('No tracks data available', { response });
       }
     } catch (error) {
-      console.error('Error loading tracks:', error);
+      logger.error('Error loading tracks for onboarding', error);
     } finally {
       setLoadingTracks(false);
     }
@@ -199,29 +200,28 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
         check_in_day: onboardingData.checkInDay
       });
       
-      console.log('✅ Onboarding data saved to profile columns');
+      logger.info('Onboarding data saved to profile');
       
       // Activate the selected track
       if (onboardingData.selectedTrack) {
-        console.log('🎯 Activating selected track:', onboardingData.selectedTrack);
+        logger.info('Activating selected track', { trackId: onboardingData.selectedTrack });
         const trackResponse = await activateTrack(onboardingData.selectedTrack);
         
         if (trackResponse.success) {
-          console.log('✅ Track activated successfully');
+          logger.info('Track activated successfully', { trackId: onboardingData.selectedTrack });
         } else {
-          console.error('❌ Failed to activate track:', trackResponse.error);
+          logger.error('Failed to activate track', { trackId: onboardingData.selectedTrack, error: trackResponse.error });
         }
       }
       
       // Refresh marketing context to load the new track
-      console.log('🔄 Refreshing marketing data...');
+      logger.debug('Refreshing marketing data after onboarding');
       await refreshActiveGoal();
-      console.log('✅ Marketing data refreshed');
+      logger.debug('Marketing data refreshed');
       
       // Call the completion handler and close the wizard
-      console.log('🔧 Calling onComplete callback...');
+      logger.info('Onboarding completed successfully');
       onComplete(onboardingData);
-      console.log('✅ onComplete callback called');
       
       // Navigate to marketing track page to see the new track
       setTimeout(() => {
@@ -229,7 +229,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
       }, 500);
       
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      logger.error('Error completing onboarding', error);
       // Still complete onboarding even if API calls fail
       onComplete(onboardingData);
     } finally {
@@ -814,7 +814,6 @@ const TrackSetupStep: React.FC<{
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-[#FFF1E7] mb-4">Available Tracks:</h3>
-            {console.log('🔍 OnboardingWizard - Rendering tracks:', availableTracks.length, availableTracks)}
             {availableTracks.map((track) => (
               <label key={track.id} className="flex items-start space-x-3 cursor-pointer p-4 bg-[#2A2438] rounded-lg hover:bg-[#2A2438]/80 transition-colors">
                 <input

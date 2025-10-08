@@ -5,6 +5,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import * as dotenv from 'dotenv';
+import { logger } from '../utils/logger';
 
 dotenv.config();
 
@@ -56,7 +57,7 @@ Guidelines:
 
       throw new Error('Failed to parse AI response');
     } catch (error) {
-      console.error('AI color suggestion error:', error);
+      logger.error('AI color suggestion error', error);
       // Fallback to complementary colors
       return {
         secondary: '#D4AF37',
@@ -127,7 +128,7 @@ Keep messages encouraging, actionable, and specific to their profile.`;
 
       throw new Error('Failed to parse AI insights');
     } catch (error) {
-      console.error('AI insights generation error:', error);
+      logger.error('AI insights generation error', error);
       // Return fallback insights
       return [
         {
@@ -209,7 +210,7 @@ Recommend the BEST next track for them with a compelling reason why. Return as v
 
       throw new Error('Failed to parse track recommendation');
     } catch (error) {
-      console.error('Track recommendation error:', error);
+      logger.error('Track recommendation error', error);
       // Return first available track as fallback
       const firstTrack = userData.availableTracks[0];
       return {

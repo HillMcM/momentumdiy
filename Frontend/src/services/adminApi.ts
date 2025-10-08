@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 // Clean, simple API client for admin operations
 function getBackendUrl(): string {
   if (typeof window !== 'undefined') {
@@ -37,13 +39,12 @@ interface ApiResponse<T = any> {
 async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
     const url = `${API_BASE_URL}/api/admin/tracks${endpoint}`;
-    console.log('🌐 API Request:', url);
-    console.log('🌐 Request options:', options);
+    logger.debug('Admin API request', { url, method: options.method });
     
     // Get authentication token
     const { supabase } = await import('../lib/supabase');
     const { data: { session } } = await supabase.auth.getSession();
-    console.log('🔐 Session:', session ? 'Authenticated' : 'Not authenticated');
+    logger.debug('Admin API session check', { hasSession: !!session });
     
     const response = await fetch(url, {
       headers: {
