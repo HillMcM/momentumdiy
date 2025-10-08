@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Project } from './types';
+import { useIsMobile } from './hooks/useMediaQuery';
 
 interface TaskModalProps {
   open: boolean;
@@ -25,6 +26,7 @@ interface TaskModalProps {
 }
 
 export default function TaskModal({ open, onSave, onCancel, projects, marketingTrack }: TaskModalProps) {
+  const isMobile = useIsMobile();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [responsible, setResponsible] = useState('Hillary');
@@ -94,10 +96,17 @@ export default function TaskModal({ open, onSave, onCancel, projects, marketingT
   return (
     <div className="modal-overlay" style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+      background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: isMobile ? '1rem' : '0'
     }}>
       <div className="modal-content" style={{
-        background: '#22202F', color: '#FFF1E7', borderRadius: 12, padding: '2rem', minWidth: 400, maxWidth: 500,
+        background: '#22202F', 
+        color: '#FFF1E7', 
+        borderRadius: 12, 
+        padding: isMobile ? '1.5rem' : '2rem', 
+        width: isMobile ? 'calc(100vw - 2rem)' : 'auto',
+        minWidth: isMobile ? 'auto' : 400, 
+        maxWidth: isMobile ? 'calc(100vw - 2rem)' : 500,
         boxShadow: '0 8px 32px rgba(0,0,0,0.25)', position: 'relative'
       }}>
         <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>
