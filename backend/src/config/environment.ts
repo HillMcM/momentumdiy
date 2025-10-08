@@ -44,7 +44,8 @@ export function validateEnvironment(): EnvironmentConfig {
     'SUPABASE_SERVICE_ROLE_KEY',
     'STRIPE_SECRET_KEY',
     'STRIPE_PUBLISHABLE_KEY',
-    'ANTHROPIC_API_KEY'
+    'ANTHROPIC_API_KEY',
+    'RESEND_API_KEY'
   ];
   
   const missing = requiredVars.filter(varName => !process.env[varName]);
