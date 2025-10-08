@@ -234,6 +234,9 @@ class StripeService {
     }
     static async handlePaymentSuccess(invoice) {
         const customerId = invoice.customer;
+        const subscriptionId = invoice.subscription;
+        const invoiceId = invoice.id;
+        const amountPaid = invoice.amount_paid / 100;
         await supabase_1.supabase
             .from('profiles')
             .update({
@@ -242,6 +245,17 @@ class StripeService {
             updated_at: new Date().toISOString(),
         })
             .eq('stripe_customer_id', customerId);
+        const { data: profile } = await supabase_1.supabase
+            .from('profiles')
+            .select('id')
+            .eq('stripe_customer_id', customerId)
+            .single();
+        if (!profile) {
+            logger_1.logger.warn('No profile found for customer', { customerId });
+            return;
+        }
+        const userId = profile.id;
+        logger_1.logger.info('Payment success - affiliate tracking not yet implemented', { userId, subscriptionId, amountPaid, invoiceId });
     }
     static async handlePaymentFailure(invoice) {
         const customerId = invoice.customer;

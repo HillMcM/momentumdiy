@@ -10,6 +10,7 @@
     "export:notion": "tsx src/scripts/notion-export.ts",
     "test-supabase-connection": "tsx src/scripts/test-supabase-connection.ts",
     "automated-notifications": "tsx src/scripts/runAutomatedNotifications.ts",
+    "process-affiliate-payouts": "tsx src/scripts/processAffiliatePayouts.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix"
   },

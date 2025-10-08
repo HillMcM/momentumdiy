@@ -1,0 +1,85 @@
+#!/usr/bin/env node
+/**
+ * Monthly Affiliate Payout Processing Script
+ * 
+ * This script processes all pending affiliate payouts via Stripe Connect.
+ * Should be run monthly (e.g., 1st of each month) via Render cron job.
+ * 
+ * Usage:
+ *   npm run process-affiliate-payouts
+ *   or
+ *   node dist/scripts/processAffiliatePayouts.js
+ */
+
+import '../instrument'; // Initialize Sentry
+// import { StripeConnectService } from '../services/stripeConnectService';
+// import { AffiliateService } from '../services/affiliateService';
+import { logger } from '../utils/logger';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+async function processAffiliatePayouts() {
+  logger.info('Starting monthly affiliate payout processing');
+
+  try {
+    // First, expire old pending referrals (90+ days)
+    logger.info('Expiring old pending referrals...');
+    const expireResult = await AffiliateService.expireOldReferrals();
+    
+    if (expireResult.success) {
+      logger.info(`Expired ${expireResult.expired || 0} old referrals`);
+    } else {
+      logger.error('Failed to expire old referrals');
+    }
+
+    // Process all pending payouts
+    logger.info('Processing pending payouts...');
+    const result = await StripeConnectService.processAllPendingPayouts();
+
+    if (!result.success) {
+      logger.error('Payout processing failed', { errors: result.errors });
+      process.exit(1);
+    }
+
+    const { processed = 0, failed = 0, errors = [] } = result;
+
+    logger.info('Payout processing complete', {
+      processed,
+      failed,
+      totalAttempted: processed + failed,
+    });
+
+    if (errors.length > 0) {
+      logger.warn('Some payouts failed', { failedCount: failed, errors });
+    }
+
+    // Log summary
+    if (processed === 0 && failed === 0) {
+      logger.info('No pending payouts to process');
+    } else if (failed === 0) {
+      logger.info(`✅ All ${processed} payouts processed successfully`);
+    } else {
+      logger.warn(`⚠️ Processed ${processed} payouts, ${failed} failed`);
+    }
+
+    // Get current program stats for logging
+    const stats = await AffiliateService.getAdminStats();
+    if (stats.success) {
+      logger.info('Current program stats', stats.data);
+    }
+
+    process.exit(0);
+  } catch (error) {
+    logger.error('Fatal error processing payouts', error);
+    process.exit(1);
+  }
+}
+
+// Run if called directly
+if (require.main === module) {
+  processAffiliatePayouts();
+}
+
+export { processAffiliatePayouts };
