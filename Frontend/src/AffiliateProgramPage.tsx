@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/useAuth';
 import { API_URL } from './config/environment';
+import { supabase } from './lib/supabase';
 
 interface EligibilityResponse {
   success: boolean;
@@ -29,10 +30,15 @@ export default function AffiliateProgramPage() {
 
     setChecking(true);
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Not authenticated');
+        return;
+      }
+
       const response = await fetch(`${API_URL}/api/affiliate/eligibility`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${session.access_token}`,
         },
       });
 
@@ -55,11 +61,16 @@ export default function AffiliateProgramPage() {
     setError(null);
 
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Not authenticated');
+        return;
+      }
+
       const response = await fetch(`${API_URL}/api/affiliate/opt-in`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
       });

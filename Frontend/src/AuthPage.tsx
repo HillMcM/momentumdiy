@@ -58,11 +58,16 @@ export default function AuthPage() {
     if (!referralCode) return;
 
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        console.error('No session token available for referral linking');
+        return;
+      }
+
       await fetch(`${API_URL}/api/affiliate/link-referral`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ referralCode }),
