@@ -1,15 +1,32 @@
+import { useNavigate } from 'react-router-dom';
+
 export default function TermsPage() {
+  const navigate = useNavigate();
+
   return (
-    <div style={{ 
-      maxWidth: '900px', 
-      margin: '0 auto', 
-      padding: '2rem',
-      color: '#FFF1E7',
-      background: '#1B1628',
-      borderRadius: '12px',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      marginBottom: '2rem'
-    }}>
+    <>
+      {/* Mobile Back Button */}
+      <button
+        onClick={() => navigate('/app')}
+        className="fixed top-5 left-4 z-50 bg-[#EF8E81] text-white rounded-lg px-4 py-2 flex items-center gap-2 shadow-lg hover:bg-[#E67A6E] transition-colors md:hidden"
+        style={{ minHeight: '44px', minWidth: '44px' }}
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M15 10H5M5 10L10 15M5 10L10 5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <span className="font-semibold">Back</span>
+      </button>
+
+      <div style={{ 
+        maxWidth: '900px', 
+        margin: '0 auto', 
+        padding: '2rem',
+        color: '#FFF1E7',
+        background: '#1B1628',
+        borderRadius: '12px',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        marginBottom: '2rem'
+      }}>
       <h1 style={{ 
         fontSize: '2.5rem', 
         fontWeight: 700, 
@@ -587,6 +604,7 @@ export default function TermsPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
