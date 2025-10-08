@@ -13,7 +13,7 @@ interface AffiliateDashboardData {
     total_earnings: number;
     total_paid_out: number;
     pending_balance: number;
-    connect_onboarding_complete: boolean;
+    bank_account_added: boolean;
     stripe_connect_account_id: string | null;
   };
   referrals: Array<{
@@ -115,38 +115,14 @@ export default function AffiliateDashboardPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleConnectOnboarding = async () => {
+  const handleAddBankAccount = async () => {
     setConnectLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        setError('Not authenticated');
-        return;
-      }
-
-      const currentUrl = window.location.origin;
-      const response = await fetch(`${API_URL}/api/affiliate/connect/onboard`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          returnUrl: `${currentUrl}/app/affiliate/dashboard?onboarding=complete`,
-          refreshUrl: `${currentUrl}/app/affiliate/dashboard?onboarding=refresh`,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success && result.url) {
-        window.location.href = result.url;
-      } else {
-        alert('Failed to start onboarding: ' + (result.error || 'Unknown error'));
-      }
-    } catch (err) {
-      console.error('Error starting Connect onboarding:', err);
-      alert('Failed to start onboarding');
+      // For now, just show a message that bank account setup is coming soon
+      alert('Bank account setup will be available soon! For now, you can track your earnings and we\'ll contact you when payouts are ready.');
+    } catch (error) {
+      console.error('Error setting up bank account:', error);
+      setError('Failed to setup bank account');
     } finally {
       setConnectLoading(false);
     }
@@ -157,8 +133,8 @@ export default function AffiliateDashboardPage() {
       return;
     }
 
-    if (!data.affiliate.connect_onboarding_complete) {
-      alert('Please complete Stripe Connect onboarding first');
+    if (!data.affiliate.bank_account_added) {
+      alert('Please add your bank account information first');
       return;
     }
 
@@ -296,21 +272,21 @@ export default function AffiliateDashboardPage() {
         <div className="bg-[#2A243E] rounded-xl p-6 border border-[#3A344E] mb-8">
           <h2 className="text-xl font-bold text-white mb-4">Payouts</h2>
           
-          {!data.affiliate.connect_onboarding_complete ? (
+          {!data.affiliate.bank_account_added ? (
             <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4 mb-4">
               <div className="flex items-start gap-3">
                 <div className="text-2xl">⚠️</div>
                 <div>
-                  <div className="text-yellow-400 font-semibold mb-1">Complete Stripe Onboarding</div>
+                  <div className="text-yellow-400 font-semibold mb-1">Add Bank Account</div>
                   <p className="text-gray-400 text-sm mb-3">
-                    To receive payouts, you need to complete Stripe Connect onboarding. This lets us transfer funds directly to your bank account.
+                    To receive payouts, you need to add your bank account information. We'll transfer funds directly to your account.
                   </p>
                   <button
-                    onClick={handleConnectOnboarding}
+                    onClick={handleAddBankAccount}
                     disabled={connectLoading}
                     className="px-4 py-2 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors disabled:opacity-50"
                   >
-                    {connectLoading ? 'Loading...' : 'Complete Onboarding'}
+                    {connectLoading ? 'Loading...' : 'Add Bank Account'}
                   </button>
                 </div>
               </div>
@@ -332,7 +308,7 @@ export default function AffiliateDashboardPage() {
             </div>
             <button
               onClick={handleRequestPayout}
-              disabled={!data.stats.canRequestPayout || requestingPayout || !data.affiliate.connect_onboarding_complete}
+              disabled={!data.stats.canRequestPayout || requestingPayout || !data.affiliate.bank_account_added}
               className="px-6 py-3 bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {requestingPayout ? 'Processing...' : 'Request Payout'}
