@@ -3,6 +3,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { supabase } from './lib/supabase';
 import { apiService } from './services/api';
+import ReferralTracker from './components/ReferralTracker';
+import { API_URL } from './config/environment';
 
 export default function AuthPage() {
   const { signInWithPassword, signUpWithPassword, signInWithGoogle, user } = useAuth();
@@ -43,10 +45,36 @@ export default function AuthPage() {
     }
 
     if (user) {
-      // User is authenticated, redirect to app (onboarding will be handled there)
+      // User is authenticated, link referral if exists
+      linkReferralIfExists(user.id);
+      
+      // Redirect to app (onboarding will be handled there)
       navigate('/app', { replace: true });
     }
   }, [user, navigate, location.state]);
+
+  const linkReferralIfExists = async (userId: string) => {
+    const referralCode = localStorage.getItem('referral_code');
+    if (!referralCode) return;
+
+    try {
+      const token = localStorage.getItem('supabase.auth.token');
+      await fetch(`${API_URL}/api/affiliate/link-referral`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ referralCode }),
+        credentials: 'include',
+      });
+
+      // Clear the stored referral code after linking
+      localStorage.removeItem('referral_code');
+    } catch (err) {
+      console.error('Error linking referral:', err);
+    }
+  };
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,6 +137,9 @@ export default function AuthPage() {
         </div>
         
         <div className="max-w-md w-full space-y-8 relative z-10">
+          {/* Referral Tracker */}
+          <ReferralTracker />
+          
           <div className="text-center">
             <div className="relative">
               <img src="/assets/octopus_icon.png" alt="MomentumDIY" className="mx-auto h-16 w-16 drop-shadow-2xl" />

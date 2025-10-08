@@ -74,6 +74,9 @@ import VisualTracksAdminPage from './VisualTracksAdminPage';
 import FeedbackPage from './FeedbackPage';
 import TermsPage from './TermsPage';
 import SocialMediaGeneratorPage from './SocialMediaGeneratorPage';
+import AffiliateProgramPage from './AffiliateProgramPage';
+import AffiliateDashboardPage from './AffiliateDashboardPage';
+import AdminAffiliatePage from './AdminAffiliatePage';
 import SubscriptionGuard from './components/SubscriptionGuard';
 import PersonalizedDashboard from './components/PersonalizedDashboard';
 import OnboardingWizard from './components/OnboardingWizard';
@@ -479,6 +482,15 @@ function Sidebar({ hidden, onToggle, showProfileManager, mobileOpen }: { hidden:
             onClick={() => handleLinkClick('/app/social-generator')}
           >
             Social Media Generator
+          </Link>
+        </li>
+        <li>
+          <Link 
+            to="/app/affiliate/dashboard" 
+            className={isActive('/app/affiliate/dashboard') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/affiliate/dashboard')}
+          >
+            💰 Affiliate Program
           </Link>
         </li>
         {/* Non-core features are temporarily hidden
@@ -1375,6 +1387,13 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
             } />
             <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
             <Route path="social-generator" element={<SocialMediaGeneratorPage />} />
+            <Route path="affiliate/program" element={<AffiliateProgramPage />} />
+            <Route path="affiliate/dashboard" element={<AffiliateDashboardPage />} />
+            <Route path="admin/affiliate" element={
+              <AdminGuard>
+                <AdminAffiliatePage />
+              </AdminGuard>
+            } />
             <Route path="manage-subscription" element={<SubscriptionPage />} />
             <Route path="feedback" element={<FeedbackPage />} />
             <Route path="admin/marketing-tracks" element={
