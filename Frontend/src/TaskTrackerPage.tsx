@@ -1,5 +1,6 @@
 import type { Task, Project, MarketingGoal } from './types';
 import TaskTrackerWidget from './TaskTrackerWidget';
+import { useIsMobile } from './hooks/useMediaQuery';
 
 interface TaskTrackerPageProps {
   projects: Project[];
@@ -10,6 +11,7 @@ interface TaskTrackerPageProps {
 }
 
 export default function TaskTrackerPage({ projects, tasks, onTasksChange, onProjectsChange, marketingGoals }: TaskTrackerPageProps) {
+  const isMobile = useIsMobile();
   const activeGoal = marketingGoals.find(g => g.isActive);
   const visibleTasks = activeGoal 
     ? tasks.filter(t => {
@@ -33,7 +35,7 @@ export default function TaskTrackerPage({ projects, tasks, onTasksChange, onProj
 
   return (
     <div className="widget" style={{ 
-      padding: '2rem',
+      padding: isMobile ? '1rem' : '2rem',
       minHeight: '100vh',
       color: '#FFF1E7'
     }}>

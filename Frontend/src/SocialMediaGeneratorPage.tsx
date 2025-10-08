@@ -7,8 +7,8 @@ export default function SocialMediaGeneratorPage() {
   return (
     <div className="min-h-screen bg-[#0F0A1A] text-white">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-[#191628] to-[#65170C] py-16 px-6">
-        <div className="max-w-6xl mx-auto">
+      <div className="bg-gradient-to-br from-[#191628] to-[#65170C] py-16 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto px-2 sm:px-0">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-6xl font-extrabold mb-6">
               AI-Powered Social Media Generator
@@ -45,8 +45,8 @@ export default function SocialMediaGeneratorPage() {
       </div>
 
       {/* Features Section */}
-      <div className="py-16 px-6">
-        <div className="max-w-6xl mx-auto">
+      <div className="py-16 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto px-2 sm:px-0">
           <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
             <div>
               <h2 className="text-3xl font-bold mb-6">Powered by Gemini 2.5 Flash</h2>

@@ -11,6 +11,7 @@ import {
   defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
 import { useNotificationHelpers } from './hooks/useNotificationHelpers';
+import { useIsMobile } from './hooks/useMediaQuery';
 import {
   arrayMove,
   SortableContext,
@@ -286,6 +287,7 @@ interface TaskTrackerWidgetProps {
 
 export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onProjectsChange }: TaskTrackerWidgetProps) {
   const { showTaskCompleted, showProgressUpdate } = useNotificationHelpers();
+  const isMobile = useIsMobile();
   const DEBUG = (import.meta as { env?: { DEV?: boolean } }).env?.DEV && (typeof localStorage !== 'undefined' && localStorage.getItem('debugLogs') === '1');
   if (DEBUG) {
     console.log('TaskTrackerWidget render - tasks count:', tasks.length);
@@ -560,14 +562,60 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
   };
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-        <h1 style={{ margin: 0, fontSize: '1.5rem', color: '#FFF1E7' }}>Task Tracker</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: 2 }}>
-            <button onClick={() => setViewMode('kanban')} style={{ padding: '0.45rem 0.75rem', border: 'none', borderRadius: 8, background: viewMode==='kanban'?'#2a2740':'transparent', color: '#FFF1E7', cursor: 'pointer' }}>Kanban</button>
-            <button onClick={() => setViewMode('deadline')} style={{ padding: '0.45rem 0.75rem', border: 'none', borderRadius: 8, background: viewMode==='deadline'?'#2a2740':'transparent', color: '#FFF1E7', cursor: 'pointer' }}>Due Soon</button>
-            <button onClick={() => setViewMode('archived')} style={{ padding: '0.45rem 0.75rem', border: 'none', borderRadius: 8, background: viewMode==='archived'?'#2a2740':'transparent', color: '#FFF1E7', cursor: 'pointer' }}>Archived</button>
+    <div style={{ padding: isMobile ? '0.75rem' : '1rem' }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: 'space-between', 
+        alignItems: isMobile ? 'stretch' : 'center', 
+        marginBottom: '1.25rem',
+        gap: isMobile ? '1rem' : '0'
+      }}>
+        <h1 style={{ margin: 0, fontSize: isMobile ? '1.25rem' : '1.5rem', color: '#FFF1E7' }}>Task Tracker</h1>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'stretch' : 'center', 
+          gap: '0.5rem' 
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            background: 'rgba(255,255,255,0.06)', 
+            border: '1px solid rgba(255,255,255,0.12)', 
+            borderRadius: 10, 
+            padding: 2,
+            justifyContent: isMobile ? 'stretch' : 'flex-start'
+          }}>
+            <button onClick={() => setViewMode('kanban')} style={{ 
+              padding: isMobile ? '0.65rem' : '0.45rem 0.75rem', 
+              border: 'none', 
+              borderRadius: 8, 
+              background: viewMode==='kanban'?'#2a2740':'transparent', 
+              color: '#FFF1E7', 
+              cursor: 'pointer',
+              flex: isMobile ? '1' : 'none',
+              minHeight: '44px'
+            }}>Kanban</button>
+            <button onClick={() => setViewMode('deadline')} style={{ 
+              padding: isMobile ? '0.65rem' : '0.45rem 0.75rem', 
+              border: 'none', 
+              borderRadius: 8, 
+              background: viewMode==='deadline'?'#2a2740':'transparent', 
+              color: '#FFF1E7', 
+              cursor: 'pointer',
+              flex: isMobile ? '1' : 'none',
+              minHeight: '44px'
+            }}>Due Soon</button>
+            <button onClick={() => setViewMode('archived')} style={{ 
+              padding: isMobile ? '0.65rem' : '0.45rem 0.75rem', 
+              border: 'none', 
+              borderRadius: 8, 
+              background: viewMode==='archived'?'#2a2740':'transparent', 
+              color: '#FFF1E7', 
+              cursor: 'pointer',
+              flex: isMobile ? '1' : 'none',
+              minHeight: '44px'
+            }}>Archived</button>
           </div>
           <button
             onClick={openCreateModal}
@@ -576,12 +624,14 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
               color: '#FFF1E7',
               border: 'none',
               borderRadius: '8px',
-              padding: '0.65rem 1rem',
+              padding: isMobile ? '0.75rem 1rem' : '0.65rem 1rem',
               cursor: 'pointer',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '0.5rem',
+              minHeight: '44px'
             }}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -601,7 +651,12 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: isMobile ? '1.5rem' : '1rem', 
+          alignItems: 'flex-start' 
+        }}>
           {columns.map(({ key }) => (
             <DroppableColumn key={key} columnKey={key}>
               <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 4 }}>
