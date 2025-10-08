@@ -374,37 +374,50 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
             </div>
 
             {/* Phase block - Dynamic based on current week */}
-            <div className="mt-8 pt-6 border-t border-[#2A243E]">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center"
-                    style={{ 
-                      backgroundColor: activeGoal.currentPhase?.color || '#EF8E81' 
-                    }}
-                  >
-                    <span className="text-white text-sm font-bold">
-                      {activeGoal.currentPhase?.id || '1'}
-                    </span>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">
-                      {activeGoal.currentPhase?.title || 'Phase 1: Spark Traffic'}
-                    </h2>
-                    <p className="text-gray-400 text-sm">
-                      {activeGoal.currentPhase?.description || 'Get people in the door immediately'}
-                    </p>
+            {(() => {
+              console.log('🎯 Phase Debug:', {
+                currentWeek: activeGoal.currentWeek,
+                phases: activeGoal.phases,
+                currentPhase: activeGoal.currentPhase
+              });
+              return activeGoal.currentPhase && (
+                <div className="mt-8 pt-6 border-t border-[#2A243E]">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{ 
+                          backgroundColor: activeGoal.currentPhase.color || '#EF8E81' 
+                        }}
+                      >
+                        <span className="text-white text-sm font-bold">
+                          {activeGoal.currentPhase.id || '1'}
+                        </span>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-white">
+                          {activeGoal.currentPhase.title}
+                        </h2>
+                        <p className="text-gray-400 text-sm">
+                          {activeGoal.currentPhase.description}
+                        </p>
+                        <p className="text-[#EF8E81]/60 text-xs mt-1">
+                          Weeks {activeGoal.currentPhase.startWeek} - {activeGoal.currentPhase.endWeek}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-              </div>
-
-            </div>
+              );
+            })()}
           </div>
 
-          {/* Weekly Modules */}
+          {/* Weekly Modules - Current week first, then others */}
           <div className="space-y-6">
-            {activeGoal.modules.map((module) => {
+            {/* Current Week - Prime Real Estate */}
+            {activeGoal.modules
+              .filter(module => module.weekNumber === activeGoal.currentWeek)
+              .map((module) => {
               const completedTasks = module.tasks.filter(task => task.isCompleted).length;
               const totalTasks = module.tasks.length;
               const moduleProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -612,6 +625,199 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                   </div>
                   )}
 
+                </div>
+              );
+            })}
+            
+            {/* Divider & Section Header for Past Weeks */}
+            {activeGoal.modules.some(m => m.weekNumber < activeGoal.currentWeek) && (
+              <div className="flex items-center gap-4 my-8">
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#2A243E] to-transparent"></div>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+                  Previous Weeks
+                </h3>
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#2A243E] to-transparent"></div>
+              </div>
+            )}
+            
+            {/* Past Weeks - Collapsed by default */}
+            {activeGoal.modules
+              .filter(module => module.weekNumber < activeGoal.currentWeek)
+              .sort((a, b) => b.weekNumber - a.weekNumber) // Reverse chronological
+              .map((module) => {
+              const completedTasks = module.tasks.filter(task => task.isCompleted).length;
+              const totalTasks = module.tasks.length;
+              const moduleProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+              const isCurrentWeek = false;
+              const isPastWeek = true;
+              const isUnlocked = module.isUnlocked || module.weekNumber <= activeGoal.currentWeek;
+              const isExpanded = expandedWeeks.has(module.weekNumber);
+
+              return (
+                <div 
+                  key={module.id}
+                  className="bg-[#1B1628] rounded-2xl border border-[#2A243E] transition-all duration-200"
+                >
+                  {/* Module Header - Collapsible button */}
+                  <button
+                    onClick={() => toggleWeekExpansion(module.weekNumber)}
+                    className="w-full p-6 pb-4 text-left transition-colors hover:bg-[#2A243E]/20 cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#2A243E]">
+                          <span className="text-white text-sm font-bold">{module.weekNumber}</span>
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-semibold text-white">{module.title}</h3>
+                          {module.description && (
+                            <p className="text-gray-400 text-sm">{module.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 rounded-full px-3 py-1 text-xs font-medium">
+                          ✓ Completed
+                        </div>
+                        <div className="text-sm text-gray-400 font-medium">
+                          {completedTasks}/{totalTasks} tasks
+                        </div>
+                        <svg 
+                          className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-300">Week Progress</span>
+                        <span className="text-sm font-medium text-[#EF8E81]">{Math.round(moduleProgress)}%</span>
+                      </div>
+                      <div className="w-full bg-[#2A243E] rounded-full h-1.5 overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] transition-all duration-300 ease-out"
+                          style={{ width: `${moduleProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="px-6 pb-6">
+                      {/* Module Content */}
+                      {isUnlocked && module.content && (
+                      <div className="max-w-none">
+                        <div className="text-sm text-gray-400">
+                          {renderContentPreview(module.content, 2)}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Tasks */}
+                    {isUnlocked && module.tasks.length > 0 && (
+                      <div className="pt-4 border-t border-[#2A243E] mt-6">
+                        <h4 className="text-sm font-medium text-gray-300 mb-3">Tasks for this week:</h4>
+                        <div className="space-y-3">
+                          {module.tasks.map((task) => (
+                            <div 
+                              key={task.id}
+                              className={`flex items-center gap-3 p-4 rounded-lg transition-colors ${
+                                task.isCompleted 
+                                  ? 'bg-green-500/10 border border-green-500/20' 
+                                  : 'bg-[#141127] border border-[#2A243E] hover:border-[#EF8E81]/30'
+                              }`}
+                            >
+                              <div 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleTaskToggle(task);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                {task.isCompleted ? (
+                                  <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                ) : (
+                                  <div className="w-6 h-6 rounded-full border-2 border-gray-500 hover:border-[#EF8E81] transition-colors" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <span className={`text-white font-medium ${
+                                  task.isCompleted ? 'line-through text-gray-400' : ''
+                                }`}>
+                                  {task.title}
+                                </span>
+                                {task.estimatedTime && (
+                                  <span className="text-gray-400 ml-2 text-sm">({task.estimatedTime})</span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  )}
+
+                </div>
+              );
+            })}
+            
+            {/* Divider & Section Header for Future Weeks */}
+            {activeGoal.modules.some(m => m.weekNumber > activeGoal.currentWeek) && (
+              <div className="flex items-center gap-4 my-8">
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#2A243E] to-transparent"></div>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                  Upcoming Weeks
+                </h3>
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#2A243E] to-transparent"></div>
+              </div>
+            )}
+            
+            {/* Future/Locked Weeks */}
+            {activeGoal.modules
+              .filter(module => module.weekNumber > activeGoal.currentWeek)
+              .map((module) => {
+              const totalTasks = module.tasks.length;
+
+              return (
+                <div 
+                  key={module.id}
+                  className="bg-[#1B1628] rounded-xl border border-[#2A243E] p-4 opacity-75"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">{module.weekNumber}</span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-300">{module.title}</h3>
+                        <p className="text-gray-500 text-sm">{totalTasks} tasks</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-gray-500 text-sm">Locked</span>
+                      </div>
+                      <div className="w-16 bg-gray-700 rounded-full h-1.5">
+                        <div className="w-0 h-full bg-gray-600 rounded-full" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })}
