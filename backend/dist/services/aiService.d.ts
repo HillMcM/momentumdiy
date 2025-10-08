@@ -1,7 +1,8 @@
+import type { MarketingGoal, Task } from '../types';
 export interface ConversationContext {
-    marketingGoals: any[];
-    currentTasks: any[];
-    activeTrack: any | null;
+    marketingGoals: MarketingGoal[];
+    currentTasks: Task[];
+    activeTrack: MarketingGoal | null;
     userBusinessType?: string;
     userIndustry?: string;
     userExperienceLevel?: string;

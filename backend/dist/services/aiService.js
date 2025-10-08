@@ -41,6 +41,7 @@ const sdk_1 = __importDefault(require("@anthropic-ai/sdk"));
 const dotenv = __importStar(require("dotenv"));
 const aiPromptTemplates_1 = require("./aiPromptTemplates");
 const environment_1 = require("../config/environment");
+const logger_1 = require("../utils/logger");
 dotenv.config();
 const anthropic = new sdk_1.default({
     apiKey: environment_1.ENV.anthropicApiKey,
@@ -61,7 +62,7 @@ class AIService {
             return response;
         }
         catch (error) {
-            console.error('AI Service Error:', error);
+            logger_1.logger.error('AI Service Error', error, { userMessage });
             return this.getFallbackResponse(error);
         }
     }
@@ -151,11 +152,11 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
         };
     }
     static async createSystemPrompt(context) {
-        console.warn('createSystemPrompt is deprecated. Use getSystemPrompt instead.');
+        logger_1.logger.warn('createSystemPrompt is deprecated, use getSystemPrompt instead');
         return this.getSystemPrompt(context);
     }
     static async getBusinessContext(context) {
-        console.warn('getBusinessContext is deprecated. Use getSystemPrompt instead.');
+        logger_1.logger.warn('getBusinessContext is deprecated, use getSystemPrompt instead');
         return this.getSystemPrompt(context);
     }
 }

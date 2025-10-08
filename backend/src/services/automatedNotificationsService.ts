@@ -1,16 +1,7 @@
 import { supabase } from '../config/supabase';
-import { NotificationService, UserProfile } from './notificationService';
+import { NotificationService, UserProfile, ProgressData } from './notificationService';
 import { MarketingService } from './marketingService';
 import { DatabaseTask, EmailPreferences } from '../types';
-
-export interface ProgressData {
-  completedTasks: number;
-  totalTasks: number;
-  weekNumber: number;
-  trackName: string;
-  lastActivityDate?: string;
-  daysSinceLastActivity?: number;
-}
 
 export class AutomatedNotificationsService {
   /**

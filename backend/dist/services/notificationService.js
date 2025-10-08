@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
 const emailService_1 = require("./emailService");
+const logger_1 = require("../utils/logger");
 class NotificationService {
     static async sendWelcomeNotification(user) {
         try {
@@ -10,10 +11,10 @@ class NotificationService {
                 email: user.email,
                 type: 'welcome'
             });
-            console.log(`📧 Welcome email sent to ${user.email}`);
+            logger_1.logger.info('Welcome email sent', { email: user.email });
         }
         catch (error) {
-            console.error('❌ Error sending welcome email:', error);
+            logger_1.logger.error('Error sending welcome email', error, { email: user.email });
         }
     }
     static async sendOnboardingCompleteNotification(user, onboardingData) {
@@ -24,10 +25,10 @@ class NotificationService {
                 type: 'onboarding_complete',
                 data: onboardingData
             });
-            console.log(`📧 Onboarding complete email sent to ${user.email}`);
+            logger_1.logger.info('Onboarding complete email sent', { email: user.email });
         }
         catch (error) {
-            console.error('❌ Error sending onboarding complete email:', error);
+            logger_1.logger.error('Error sending onboarding complete email', error, { email: user.email });
         }
     }
     static async sendTrialEndingNotification(user, daysLeft) {
@@ -38,10 +39,10 @@ class NotificationService {
                 type: 'trial_ending',
                 data: { daysLeft }
             });
-            console.log(`📧 Trial ending email sent to ${user.email} (${daysLeft} days left)`);
+            logger_1.logger.info('Trial ending email sent', { email: user.email, daysLeft });
         }
         catch (error) {
-            console.error('❌ Error sending trial ending email:', error);
+            logger_1.logger.error('Error sending trial ending email', error, { email: user.email, daysLeft });
         }
     }
     static async sendSubscriptionActiveNotification(user, plan) {
@@ -52,10 +53,10 @@ class NotificationService {
                 type: 'subscription_active',
                 data: { plan }
             });
-            console.log(`📧 Subscription active email sent to ${user.email}`);
+            logger_1.logger.info('Subscription active email sent', { email: user.email, plan });
         }
         catch (error) {
-            console.error('❌ Error sending subscription active email:', error);
+            logger_1.logger.error('Error sending subscription active email', error, { email: user.email, plan });
         }
     }
     static async sendSubscriptionCancelledNotification(user) {
@@ -65,10 +66,10 @@ class NotificationService {
                 email: user.email,
                 type: 'subscription_cancelled'
             });
-            console.log(`📧 Subscription cancelled email sent to ${user.email}`);
+            logger_1.logger.info('Subscription cancelled email sent', { email: user.email });
         }
         catch (error) {
-            console.error('❌ Error sending subscription cancelled email:', error);
+            logger_1.logger.error('Error sending subscription cancelled email', error, { email: user.email });
         }
     }
     static async sendWeeklyProgressNotification(user, progressData) {
@@ -79,10 +80,10 @@ class NotificationService {
                 type: 'weekly_progress',
                 data: progressData
             });
-            console.log(`📧 Weekly progress email sent to ${user.email}`);
+            logger_1.logger.info('Weekly progress email sent', { email: user.email });
         }
         catch (error) {
-            console.error('❌ Error sending weekly progress email:', error);
+            logger_1.logger.error('Error sending weekly progress email', error, { email: user.email });
         }
     }
     static async sendTaskReminderNotification(user, taskName) {
@@ -93,10 +94,10 @@ class NotificationService {
                 type: 'task_reminder',
                 data: { taskName }
             });
-            console.log(`📧 Task reminder email sent to ${user.email}`);
+            logger_1.logger.info('Task reminder email sent', { email: user.email, taskName });
         }
         catch (error) {
-            console.error('❌ Error sending task reminder email:', error);
+            logger_1.logger.error('Error sending task reminder email', error, { email: user.email, taskName });
         }
     }
     static async checkTrialEndingNotifications(users) {
@@ -125,7 +126,7 @@ class NotificationService {
         }
     }
     static async sendTaskReminders(_users) {
-        console.log('📧 Task reminder check would run here');
+        logger_1.logger.debug('Task reminder check would run here');
     }
 }
 exports.NotificationService = NotificationService;

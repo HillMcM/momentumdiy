@@ -62,7 +62,7 @@ router.post('/create-subscription', routeRateLimit(10), async (req, res) => {
       data: result
     });
   } catch (error) {
-    logger.error('Error creating subscription', error, { plan, interval });
+    logger.error('Error creating subscription', error);
     return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create subscription'
@@ -347,8 +347,8 @@ router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
       subscription: {
         id: subscription.id,
         status: subscription.status,
-        current_period_start: subscription.current_period_start,
-        current_period_end: subscription.current_period_end,
+        current_period_start: 'current_period_start' in subscription ? subscription.current_period_start : undefined,
+        current_period_end: 'current_period_end' in subscription ? subscription.current_period_end : undefined,
       },
     });
   } catch (error) {
@@ -437,7 +437,7 @@ router.post('/create-checkout-session', routeRateLimit(10), async (req, res) => 
       },
     });
   } catch (error) {
-    logger.error('Error creating checkout session', error, { plan, interval });
+    logger.error('Error creating checkout session', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to create checkout session'
@@ -486,10 +486,10 @@ router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
           ? (session.subscription as Stripe.Subscription).status 
           : 'active',
         current_period_start: typeof session.subscription === 'object' && session.subscription !== null && 'current_period_start' in session.subscription
-          ? (session.subscription as Stripe.Subscription).current_period_start
+          ? (session.subscription as unknown as { current_period_start: number }).current_period_start
           : undefined,
         current_period_end: typeof session.subscription === 'object' && session.subscription !== null && 'current_period_end' in session.subscription
-          ? (session.subscription as Stripe.Subscription).current_period_end
+          ? (session.subscription as unknown as { current_period_end: number }).current_period_end
           : undefined,
       },
     });

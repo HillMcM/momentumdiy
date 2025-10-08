@@ -1,11 +1,3 @@
-export interface ProgressData {
-    completedTasks: number;
-    totalTasks: number;
-    weekNumber: number;
-    trackName: string;
-    lastActivityDate?: string;
-    daysSinceLastActivity?: number;
-}
 export declare class AutomatedNotificationsService {
     private static getAllUsers;
     private static shouldSendEmail;
