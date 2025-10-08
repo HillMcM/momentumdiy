@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { apiService } from '../services/api';
+import { apiService, BACKEND_BASE_URL } from '../services/api';
+import { useAuth } from '../contexts/useAuth';
 
 interface EmailPreferences {
   weekly_progress: boolean;
@@ -13,6 +14,7 @@ interface EmailPreferencesProps {
 }
 
 export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
+  const { user } = useAuth();
   const [preferences, setPreferences] = useState<EmailPreferences>({
     weekly_progress: true,
     task_reminders: true,
@@ -21,6 +23,7 @@ export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -108,6 +111,37 @@ export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
     }
   };
 
+  // Send test email
+  const handleSendTestEmail = async () => {
+    if (!user?.email) return;
+
+    setSendingTest(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch(`${BACKEND_BASE_URL}/api/notifications/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setSuccess(`Test email sent to ${user.email}! Check your inbox.`);
+        setTimeout(() => setSuccess(null), 5000);
+      } else {
+        setError(data.error || 'Failed to send test email');
+      }
+    } catch (err) {
+      console.error('Test email error:', err);
+      setError('Failed to send test email');
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-6">
@@ -156,7 +190,10 @@ export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
         {/* Weekly Progress Reports */}
         <div className="flex items-center justify-between p-4 bg-[#23233a] rounded-lg">
           <div>
-            <h3 className="font-semibold text-white">Weekly Progress Reports</h3>
+            <h3 className="font-semibold text-white">
+              Weekly Progress Reports
+              <span className="ml-2 text-xs text-gray-500 font-normal">(Every Monday at 9 AM)</span>
+            </h3>
             <p className="text-sm text-gray-400">Get a weekly summary of your marketing progress and achievements</p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -173,7 +210,10 @@ export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
         {/* Task Reminders */}
         <div className="flex items-center justify-between p-4 bg-[#23233a] rounded-lg">
           <div>
-            <h3 className="font-semibold text-white">Task Reminders</h3>
+            <h3 className="font-semibold text-white">
+              Task Reminders
+              <span className="ml-2 text-xs text-gray-500 font-normal">(Wednesdays at 2 PM)</span>
+            </h3>
             <p className="text-sm text-gray-400">Receive gentle reminders when you haven't been active for a few days</p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -190,7 +230,10 @@ export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
         {/* Marketing Emails */}
         <div className="flex items-center justify-between p-4 bg-[#23233a] rounded-lg">
           <div>
-            <h3 className="font-semibold text-white">Marketing Tips & Updates</h3>
+            <h3 className="font-semibold text-white">
+              Marketing Tips & Updates
+              <span className="ml-2 text-xs text-gray-500 font-normal">(Monthly)</span>
+            </h3>
             <p className="text-sm text-gray-400">Get marketing tips, feature updates, and helpful resources</p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -232,6 +275,14 @@ export default function EmailPreferences({ onClose }: EmailPreferencesProps) {
           className="flex-1 bg-[#EF8E81] hover:bg-[#EF8E81]/90 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? 'Saving...' : 'Save Preferences'}
+        </button>
+        
+        <button
+          onClick={handleSendTestEmail}
+          disabled={sendingTest || !user}
+          className="px-4 py-3 border border-[#D4AF37] hover:bg-[#D4AF37]/10 text-[#D4AF37] font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {sendingTest ? '📧 Sending...' : '📧 Send Test Email'}
         </button>
         
         <button
