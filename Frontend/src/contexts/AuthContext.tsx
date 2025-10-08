@@ -34,7 +34,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check if auth is disabled for local development
   const disableAuthValue = import.meta.env.VITE_DISABLE_AUTH;
-  const BYPASS_AUTH = disableAuthValue === 'true' || disableAuthValue === 'TRUE';
+  const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production';
+  const BYPASS_AUTH = (disableAuthValue === 'true' || disableAuthValue === 'TRUE') && !isProduction;
   
   logger.debug('AuthContext environment check', {
     disableAuthValue,

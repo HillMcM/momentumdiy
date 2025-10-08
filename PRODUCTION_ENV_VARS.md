@@ -144,6 +144,9 @@ RESEND_API_KEY=re_your_resend_api_key_here
 ```bash
 ANTHROPIC_API_KEY=sk-ant-your_anthropic_api_key_here
 NOTION_API_KEY=your_notion_api_key_here
+
+# IMPORTANT: For production, ensure these are NOT set or set to 'false'
+VITE_DISABLE_AUTH=false  # Must be unset or false in production
 ```
 
 ### **Step 2: Frontend Environment Variables**
@@ -158,6 +161,9 @@ VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key-here
 VITE_STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_publishable_key_here
 VITE_GEMINI_API_KEY=your_gemini_api_key_here
+
+# IMPORTANT: Must be unset in production (leave empty)
+VITE_DISABLE_AUTH=  # Must be empty/unset in production
 ```
 
 #### **Branding Variables** (customize for your brand)
@@ -217,3 +223,10 @@ VITE_BRAND_LEGAL_NAME=Your Legal Company Name
 3. Ensure variables are marked as "secret" where required
 4. Restart your services after adding variables
 5. Check application logs for missing environment variable errors
+
+### **If auth bypass is still enabled in production:**
+1. **Remove** `VITE_DISABLE_AUTH` from Vercel environment variables completely
+2. **Do not set it to 'false'** - it must be completely unset
+3. **Redeploy** your frontend application
+4. **Clear browser cache** and hard refresh the page
+5. Check that `import.meta.env.PROD` is `true` in production

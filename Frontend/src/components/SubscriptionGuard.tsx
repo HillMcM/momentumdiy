@@ -15,8 +15,9 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
   const { subscription, loading } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
   
-  // Check if auth is disabled for local development
-  const isAuthDisabled = import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE';
+  // Check if auth is disabled for local development (never in production)
+  const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production';
+  const isAuthDisabled = (import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE') && !isProduction;
 
   // If auth is disabled, bypass all checks and show the app
   if (isAuthDisabled) {

@@ -39,6 +39,8 @@ import FeedbackPage from './FeedbackPage';
 import TermsPage from './TermsPage';
 import SubscriptionGuard from './components/SubscriptionGuard';
 import PersonalizedDashboard from './components/PersonalizedDashboard';
+import NotificationContainer from './components/NotificationContainer';
+import NotificationBell from './components/NotificationBell';
 import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
@@ -1511,7 +1513,7 @@ function App() {
   logger.debug('App.tsx - Environment variables', {
     VITE_DISABLE_AUTH: import.meta.env.VITE_DISABLE_AUTH,
     VITE_DISABLE_AUTH_type: typeof import.meta.env.VITE_DISABLE_AUTH,
-    authBypassEnabled: import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE'
+    authBypassEnabled: (import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE') && !import.meta.env.PROD
   });
   
   // Basic React debugging (development only)
@@ -1524,7 +1526,7 @@ function App() {
   // Production debugging
   if (window.location.hostname !== 'localhost') {
     logger.debug('Production environment detected', {
-      authDisabled: import.meta.env.VITE_DISABLE_AUTH === 'true'
+      authDisabled: (import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE') && !import.meta.env.PROD
     });
   }
   
