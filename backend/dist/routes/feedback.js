@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const rate_1 = require("../middleware/rate");
 const emailService_1 = require("../services/emailService");
+const logger_1 = require("../utils/logger");
 const router = (0, express_1.Router)();
 router.post('/', (0, rate_1.routeRateLimit)(5), async (req, res) => {
     try {
@@ -35,7 +36,7 @@ router.post('/', (0, rate_1.routeRateLimit)(5), async (req, res) => {
             category: category || 'general'
         });
         if (!emailResult.success) {
-            console.error('Failed to send feedback email:', emailResult.error);
+            logger_1.logger.error('Failed to send feedback email', { error: emailResult.error, category });
             return res.status(500).json({
                 success: false,
                 error: 'Failed to send feedback email'
@@ -47,7 +48,7 @@ router.post('/', (0, rate_1.routeRateLimit)(5), async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error processing feedback:', error);
+        logger_1.logger.error('Error processing feedback', error);
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
@@ -69,7 +70,7 @@ router.post('/test', (0, rate_1.routeRateLimit)(2), async (_req, res) => {
         });
     }
     catch (error) {
-        console.error('Error sending test email:', error);
+        logger_1.logger.error('Error sending test email', error);
         return res.status(500).json({
             success: false,
             error: 'Internal server error'

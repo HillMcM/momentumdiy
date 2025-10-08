@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const emailService_1 = require("../services/emailService");
 const billingService_1 = require("../services/billingService");
+const logger_1 = require("../utils/logger");
 const router = (0, express_1.Router)();
 let baselineMetrics = null;
 let contentPillars = [];
@@ -57,7 +58,7 @@ router.post('/email/test', async (_req, res) => {
         return res.status(result.success ? 200 : 500).json(result);
     }
     catch (error) {
-        console.error('Email test error:', error);
+        logger_1.logger.error('Email test error', error);
         return res.status(500).json({ success: false, error: 'Email test failed' });
     }
 });
@@ -79,7 +80,7 @@ router.post('/notifications/send', async (req, res) => {
         return res.status(result.success ? 200 : 500).json(result);
     }
     catch (error) {
-        console.error('Notification error:', error);
+        logger_1.logger.error('Notification test error', error, { userId: req.body.userId });
         return res.status(500).json({
             success: false,
             error: 'Failed to send notification'

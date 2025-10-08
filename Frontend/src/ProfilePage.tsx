@@ -10,6 +10,7 @@ import AIInsightsPanel from './components/AIInsightsPanel';
 import ProgressTimeline from './components/ProgressTimeline';
 import CompletionConfetti from './components/CompletionConfetti';
 import { BACKEND_BASE_URL } from './services/api';
+import { logger } from './utils/logger';
 import { calculateMomentumScore, getMomentumFactorsFromTrackData } from './utils/momentumCalculator';
 import { useIsMobile } from './hooks/useMediaQuery';
 
@@ -197,7 +198,7 @@ export default function ProfilePage() {
       // Show success message
       alert('Profile saved successfully!');
     } catch (error) {
-      console.error('Save error:', error);
+      logger.error('Error saving profile', error, { userId: user?.id });
       alert('Failed to save profile. Please try again.');
     } finally {
       setSaving(false);
@@ -231,7 +232,7 @@ export default function ProfilePage() {
         alert('AI color suggestions applied! Review and save if you like them.');
       }
     } catch (error) {
-      console.error('AI color error:', error);
+      logger.error('Error getting AI color suggestions', error);
       alert('Failed to get AI suggestions. Please try again.');
     } finally {
       setLoadingAIColors(false);
@@ -259,8 +260,10 @@ export default function ProfilePage() {
         setShowNoteInput(false);
       }
     } catch (error) {
-      console.error('Save note error:', error);
+      logger.error('Error saving note', error, { noteType: 'brand_notes' });
       alert('Failed to save note. Please try again.');
+    } finally {
+      setSavingNote(false);
     }
   };
 
@@ -790,7 +793,7 @@ export default function ProfilePage() {
                 <ProgressTimeline 
                   activeGoal={activeGoal}
                   onWeekClick={(week) => {
-                    console.log('Navigate to week:', week);
+                    logger.debug('Navigate to week', { week });
                     navigate('/app/marketing-track');
                   }}
                 />

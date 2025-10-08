@@ -3,6 +3,7 @@ import type { CalendarEvent, Task, Project, EventCategory } from './types';
 import { getCalendarEvents } from './utils';
 import CreateEventModal from './CreateEventModal';
 import { apiService } from './services/api';
+import { logger } from './utils/logger';
 
 interface CalendarWidgetProps {
   tasks: Task[];
@@ -43,7 +44,7 @@ export default function CalendarWidget({ tasks, projects, customEvents, onCustom
       const isToday = eventDate.toDateString() === now.toDateString();
       return isInWeek || isToday;
     } catch (error) {
-      console.error('Error parsing event date:', e.start, error);
+      logger.error('Error parsing event date', error, { eventStart: e.start });
       return false;
     }
   }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());

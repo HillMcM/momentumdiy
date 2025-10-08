@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { STRIPE_CONFIG } from './lib/stripe';
 import { apiService } from './services/api';
+import { logger } from './utils/logger';
 
 export default function CheckoutPage() {
   const { plan, interval } = useParams<{ plan: string; interval: string }>();
@@ -11,8 +12,8 @@ export default function CheckoutPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Debug logging
-  console.log('CheckoutPage rendered with:', { plan, interval });
-  console.log('STRIPE_CONFIG.products:', STRIPE_CONFIG.products);
+  logger.debug('CheckoutPage rendered', { plan, interval });
+  logger.debug('Stripe products config', { productsCount: Object.keys(STRIPE_CONFIG.products).length });
 
   // Validate plan and interval parameters
   const validPlans = ['monthly', 'annual', 'spark', 'growth', 'lead'];
@@ -20,7 +21,7 @@ export default function CheckoutPage() {
 
   // Get product information
   const product = plan && STRIPE_CONFIG.products[plan as keyof typeof STRIPE_CONFIG.products];
-  console.log('Product found:', product);
+  logger.debug('Product found', { plan, hasProduct: !!product });
 
   if (!plan || !interval || !validPlans.includes(plan) || !validIntervals.includes(interval)) {
     return (
@@ -49,8 +50,7 @@ export default function CheckoutPage() {
     setError('');
 
     try {
-      console.log('Creating checkout session with:', { plan, interval });
-      console.log('API_BASE_URL:', import.meta.env.VITE_API_BASE_URL || 'https://momentumdiy-backend.onrender.com/api');
+      logger.info('Creating checkout session', { plan, interval });
       
       const response = await apiService.createCheckoutSession({
         plan,
@@ -59,7 +59,7 @@ export default function CheckoutPage() {
         cancelUrl: `${window.location.origin}/pricing`
       });
 
-      console.log('Checkout session response:', response);
+      logger.debug('Checkout session created', { success: response.success });
 
       // Handle both old and new response formats temporarily
       let sessionUrl = null;
@@ -71,19 +71,19 @@ export default function CheckoutPage() {
         // Old format: {success: true, sessionId: "..."} - convert to session URL
         const sessionId = (response as any).sessionId;
         sessionUrl = `https://checkout.stripe.com/pay/${sessionId}`;
-        console.log('Converting sessionId to sessionUrl:', sessionUrl);
+        logger.debug('Converting sessionId to sessionUrl', { hasSessionUrl: !!sessionUrl });
       }
       
       if (sessionUrl) {
-        console.log('Redirecting to Stripe checkout:', sessionUrl);
+        logger.info('Redirecting to Stripe checkout', { plan, interval });
         // Redirect to Stripe Checkout
         window.location.href = sessionUrl;
       } else {
-        console.error('Invalid response format:', response);
+        logger.error('Invalid checkout response format', { response });
         setError(`Failed to create checkout session. Response: ${JSON.stringify(response)}`);
       }
     } catch (error) {
-      console.error('Checkout creation failed:', error);
+      logger.error('Checkout creation failed', error, { plan, interval });
       setError(`Failed to create checkout session: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -91,7 +91,7 @@ export default function CheckoutPage() {
   };
 
   if (!product) {
-    console.log('No product found for plan:', plan);
+    logger.warn('No product found for plan', { plan });
     return (
       <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
         <div className="bg-[#1B1628]/80 backdrop-blur-sm rounded-2xl border border-red-500/30 p-8 max-w-md">

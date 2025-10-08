@@ -1,17 +1,20 @@
 import type { MarketingGoal, ApiResponse, Task } from '../types';
 import { BACKEND_BASE_URL } from './api';
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 // Get published marketing tracks available for selection
 export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>> {
   const url = `${BACKEND_BASE_URL}/api/marketing/goals?t=${Date.now()}`;
-  console.log('🔍 Fetching published tracks from:', url);
+  logger.debug('Fetching published tracks', { url });
   
   try {
     // Get authentication token
     const { data: { session } } = await supabase.auth.getSession();
-    console.log('🔐 getPublishedTracks - Session data:', session ? 'Session exists' : 'No session');
-    console.log('🔐 getPublishedTracks - Access token exists:', !!session?.access_token);
+    logger.debug('getPublishedTracks session check', { 
+      hasSession: !!session, 
+      hasAccessToken: !!session?.access_token 
+    });
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -19,9 +22,9 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
     
     if (session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`;
-      console.log('🔐 getPublishedTracks - Authorization header set');
+      logger.debug('Authorization header set for published tracks');
     } else {
-      console.log('❌ getPublishedTracks - No access token available');
+      logger.warn('No access token available for published tracks');
     }
 
     const response = await fetch(url, {
@@ -29,11 +32,11 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
       headers,
     });
 
-    console.log('📡 Response status:', response.status);
+    logger.debug('Published tracks response', { status: response.status });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ HTTP error:', response.status, errorText);
+      logger.error('HTTP error fetching published tracks', { status: response.status, errorText });
       return {
         success: false,
         error: `HTTP ${response.status}: ${errorText}`,
@@ -42,10 +45,10 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
     }
 
     const result = await response.json();
-    console.log('📊 Published tracks response:', result);
+    logger.debug('Published tracks result', { success: result.success, count: result.data?.length });
 
     if (!result.success) {
-      console.error('❌ API error:', result.error);
+      logger.error('API error fetching published tracks', { error: result.error });
       return {
         success: false,
         error: result.error || 'Unknown API error',
@@ -61,7 +64,7 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
     };
 
   } catch (error) {
-    console.error('❌ Network error:', error);
+    logger.error('Network error fetching published tracks', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',
@@ -73,7 +76,7 @@ export async function getPublishedTracks(): Promise<ApiResponse<MarketingGoal[]>
 // Activate a marketing track for the user
 export async function activateTrack(trackDefinitionId: string): Promise<ApiResponse<MarketingGoal>> {
   const url = `${BACKEND_BASE_URL}/api/marketing/tracks/${trackDefinitionId}/activate`;
-  console.log('🔍 Activating track definition:', trackDefinitionId);
+  logger.info('Activating track definition', { trackDefinitionId });
   
   try {
     // Get authentication token
@@ -93,7 +96,7 @@ export async function activateTrack(trackDefinitionId: string): Promise<ApiRespo
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ HTTP error:', response.status, errorText);
+      logger.error('HTTP error activating track', { trackDefinitionId, status: response.status, errorText });
       return {
         success: false,
         error: `HTTP ${response.status}: ${errorText}`,
@@ -102,12 +105,12 @@ export async function activateTrack(trackDefinitionId: string): Promise<ApiRespo
     }
 
     const result = await response.json();
-    console.log('📊 Activate track response:', result);
+    logger.info('Track activated successfully', { trackDefinitionId, success: result.success });
 
     return result;
 
   } catch (error) {
-    console.error('❌ Network error:', error);
+    logger.error('Network error activating track', error, { trackDefinitionId });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',
@@ -120,7 +123,7 @@ export async function activateTrack(trackDefinitionId: string): Promise<ApiRespo
 export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
   // Always use real API - no mock data
   if (false) {
-    console.log('🔍 Using mock data for testing');
+    logger.debug('Using mock data for testing');
     
     const mockGoal: MarketingGoal = {
       id: 'mock-goal-id',
@@ -256,7 +259,7 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('HTTP error:', response.status, errorText);
+      logger.error('HTTP error fetching active goal', { status: response.status, errorText });
       return {
         success: false,
         error: `HTTP ${response.status}: ${errorText}`,
@@ -267,7 +270,7 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
     const result = await response.json();
 
     if (!result.success) {
-      console.error('API error:', result.error);
+      logger.error('API error fetching active goal', { error: result.error });
       return {
         success: false,
         error: result.error || 'Unknown API error',
@@ -456,12 +459,11 @@ export async function updateMarketingGoalPhases(goalId: string, phases: any[]): 
       body: JSON.stringify({ phases })
     });
 
-    console.log('📡 Response status:', response.status);
-    console.log('📡 Response ok:', response.ok);
+    logger.debug('Update phases response', { goalId, status: response.status, ok: response.ok });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ HTTP error:', response.status, errorText);
+      logger.error('HTTP error updating phases', { goalId, status: response.status, errorText });
       return {
         success: false,
         error: `HTTP ${response.status}: ${errorText}`,
@@ -470,10 +472,10 @@ export async function updateMarketingGoalPhases(goalId: string, phases: any[]): 
     }
 
     const result = await response.json();
-    console.log('📊 Update phases response:', result);
+    logger.debug('Update phases result', { goalId, success: result.success });
 
     if (!result.success) {
-      console.error('❌ API error:', result.error);
+      logger.error('API error updating phases', { goalId, error: result.error });
       return {
         success: false,
         error: result.error || 'Unknown API error',
@@ -495,7 +497,7 @@ export async function updateMarketingGoalPhases(goalId: string, phases: any[]): 
       })) || []
     } : null;
 
-    console.log('✅ Transformed updated goal data:', transformedData);
+    logger.info('Phases updated successfully', { goalId });
     return {
       success: true,
       data: transformedData,
@@ -503,7 +505,7 @@ export async function updateMarketingGoalPhases(goalId: string, phases: any[]): 
     };
 
   } catch (error) {
-    console.error('❌ Network error:', error);
+    logger.error('Network error updating phases', error, { goalId });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',
@@ -515,7 +517,7 @@ export async function updateMarketingGoalPhases(goalId: string, phases: any[]): 
 // Sync phases from track definition to marketing goal
 export async function syncPhasesFromTrackDefinition(goalId: string): Promise<ApiResponse<void>> {
   const url = `${BACKEND_BASE_URL}/api/marketing/goals/${goalId}/sync-phases`;
-  console.log('🔄 Syncing phases from track definition for goal:', goalId);
+  logger.info('Syncing phases from track definition', { goalId });
   
   try {
     const response = await fetch(url, {
@@ -527,7 +529,7 @@ export async function syncPhasesFromTrackDefinition(goalId: string): Promise<Api
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ HTTP error:', response.status, errorText);
+      logger.error('HTTP error syncing phases', { goalId, status: response.status, errorText });
       return {
         success: false,
         error: `HTTP ${response.status}: ${errorText}`
@@ -535,10 +537,10 @@ export async function syncPhasesFromTrackDefinition(goalId: string): Promise<Api
     }
 
     const result = await response.json();
-    console.log('📊 Sync phases response:', result);
+    logger.info('Phases synced successfully', { goalId, success: result.success });
     return result;
   } catch (error) {
-    console.error('❌ Network error:', error);
+    logger.error('Network error syncing phases', error, { goalId });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',

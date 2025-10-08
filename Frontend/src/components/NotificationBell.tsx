@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNotifications } from '../contexts/NotificationContext';
+import { logger } from '../utils/logger';
 
 const NotificationBell: React.FC = () => {
-  console.log('NotificationBell component rendering');
+  logger.debug('NotificationBell component rendering');
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
-  console.log('NotificationBell - notifications:', notifications.length, 'unread:', unreadCount);
+  logger.debug('NotificationBell state', { notificationsCount: notifications.length, unreadCount });
   const [isOpen, setIsOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -82,11 +83,12 @@ const NotificationBell: React.FC = () => {
     <div className="relative" ref={anchorRef}>
       <button
         onClick={() => {
-          console.log('Notification bell clicked, current state:', isOpen);
-          console.log('Notifications count:', notifications.length);
-          console.log('Unread count:', unreadCount);
+          logger.debug('Notification bell clicked', { 
+            currentState: isOpen, 
+            notificationsCount: notifications.length, 
+            unreadCount 
+          });
           setIsOpen(!isOpen);
-          console.log('Setting isOpen to:', !isOpen);
         }}
         className={"relative p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-full"}
         aria-expanded={isOpen}

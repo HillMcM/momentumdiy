@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from './services/api';
+import { logger } from './utils/logger';
 
 interface FeedbackFormData {
   name: string;

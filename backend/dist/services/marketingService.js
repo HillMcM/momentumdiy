@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MarketingService = void 0;
 const supabase_1 = require("../config/supabase");
+const logger_1 = require("../utils/logger");
 class MarketingService {
     static async getMarketingGoals() {
         try {
@@ -89,7 +90,11 @@ class MarketingService {
             const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
             const calculatedWeek = Math.min(Math.floor(daysSinceStart / 7) + 1, trackDef.duration_weeks);
             if (calculatedWeek > (profile.track_current_week || 1)) {
-                console.log(`📅 Week advanced from ${profile.track_current_week} to ${calculatedWeek}`);
+                logger_1.logger.info('Week advanced for user track', {
+                    userId: currentUserId,
+                    fromWeek: profile.track_current_week,
+                    toWeek: calculatedWeek
+                });
                 const weekStartDates = profile.track_week_start_dates || [];
                 weekStartDates.push(now.toISOString());
                 await supabase_1.supabase
@@ -104,7 +109,7 @@ class MarketingService {
             }
             const isCompleted = calculatedWeek >= trackDef.duration_weeks;
             if (isCompleted && !profile.track_completion_date) {
-                console.log('🎉 Track completed! Marking as complete...');
+                logger_1.logger.info('Track completed', { userId: currentUserId, trackId: trackDef.id });
                 await supabase_1.supabase
                     .from('profiles')
                     .update({
@@ -115,14 +120,14 @@ class MarketingService {
                     .eq('id', currentUserId);
             }
             let modules = [];
-            console.log('🔍 Loading modules for track:', trackDef.id);
+            logger_1.logger.debug('Loading modules for track', { trackId: trackDef.id });
             const { data: modulesData, error: modulesError } = await supabase_1.supabase
                 .from('marketing_modules')
                 .select('*')
                 .eq('track_id', trackDef.id)
                 .order('week_number', { ascending: true });
             if (modulesError) {
-                console.error('❌ Error loading modules:', modulesError);
+                logger_1.logger.error('Error loading modules for track', modulesError, { trackId: trackDef.id });
             }
             else if (modulesData && modulesData.length > 0) {
                 for (const moduleData of modulesData) {
@@ -130,11 +135,14 @@ class MarketingService {
                     moduleWithTasks.isUnlocked = moduleData.week_number <= calculatedWeek;
                     modules.push(moduleWithTasks);
                 }
-                console.log('📊 Loaded modules count:', modules.length);
-                console.log(`🔓 Unlocked modules: ${modules.filter(m => m.isUnlocked).length}/${modules.length}`);
+                logger_1.logger.debug('Loaded modules for track', {
+                    trackId: trackDef.id,
+                    totalModules: modules.length,
+                    unlockedModules: modules.filter(m => m.isUnlocked).length
+                });
             }
             else {
-                console.log('⚠️ No modules found for track');
+                logger_1.logger.warn('No modules found for track', { trackId: trackDef.id });
             }
             let phases = [];
             try {
@@ -148,14 +156,16 @@ class MarketingService {
                 }
             }
             catch (error) {
-                console.error('Error parsing phases:', error);
+                logger_1.logger.error('Error parsing phases for track', error, { trackId: trackDef.id });
                 phases = [];
             }
             const currentPhase = phases.find((phase) => calculatedWeek >= phase.startWeek && calculatedWeek <= phase.endWeek) || phases[0] || null;
-            console.log('📊 Phase calculation:', {
+            logger_1.logger.debug('Phase calculation for track', {
+                trackId: trackDef.id,
+                userId: currentUserId,
                 currentWeek: calculatedWeek,
                 phasesCount: phases.length,
-                currentPhase: currentPhase
+                currentPhaseName: currentPhase?.name
             });
             const goal = {
                 id: trackDef.id,
@@ -194,7 +204,7 @@ class MarketingService {
                     .update({ is_active: false })
                     .eq('is_active', true);
                 if (deactivateError) {
-                    console.error('Error deactivating existing goals:', deactivateError);
+                    logger_1.logger.error('Error deactivating existing goals', deactivateError);
                 }
             }
             const { data, error } = await supabase_1.supabase
@@ -550,7 +560,7 @@ class MarketingService {
                 .eq('track_id', trackDefinitionId)
                 .order('week_number', { ascending: true });
             if (modulesError) {
-                console.error('Error loading modules:', modulesError);
+                logger_1.logger.error('Error loading modules for goal', modulesError);
             }
             const modules = [];
             if (modulesData && modulesData.length > 0) {
@@ -667,7 +677,7 @@ class MarketingService {
             };
             if (goalData.marketing_track_definitions?.phases) {
                 updateData.phases = goalData.marketing_track_definitions.phases;
-                console.log('🔄 Copying phases from track definition to marketing goal:', updateData.phases);
+                logger_1.logger.debug('Copying phases from track definition', { goalId });
             }
             const { error: activateError } = await supabase_1.supabase
                 .from('marketing_goals')
@@ -721,7 +731,7 @@ class MarketingService {
                         error: updateError.message
                     };
                 }
-                console.log('✅ Synced phases from track definition to marketing goal:', goalData.marketing_track_definitions.phases);
+                logger_1.logger.info('Synced phases from track definition', { goalId });
             }
             return {
                 success: true,
@@ -776,14 +786,12 @@ class MarketingService {
                     error: error.message
                 };
             }
-            console.log('🔍 Backend - Raw modules from database:', data);
-            console.log('🔍 Backend - First module pro_tip:', data?.[0]?.pro_tip);
-            console.log('🔍 Backend - All module fields:', data?.[0] ? Object.keys(data[0]) : 'No modules');
+            logger_1.logger.debug('Raw modules from database', {
+                totalModules: data?.length || 0,
+                firstModuleHasProTip: !!data?.[0]?.pro_tip
+            });
             const modulesWithProTip = data?.filter(m => m.pro_tip && m.pro_tip.trim() !== '');
-            console.log('🔍 Backend - Modules with pro_tip:', modulesWithProTip?.length || 0);
-            if (modulesWithProTip && modulesWithProTip.length > 0) {
-                console.log('🔍 Backend - First module with pro_tip:', modulesWithProTip[0]);
-            }
+            logger_1.logger.debug('Modules with pro_tip count', { modulesWithProTip: modulesWithProTip?.length || 0 });
             const modules = await Promise.all(data.map(async (module) => {
                 return await this.mapDatabaseModuleToModule(module);
             }));
@@ -986,7 +994,7 @@ class MarketingService {
             }
         }
         catch (error) {
-            console.error('Error loading phases:', error);
+            logger_1.logger.error('Error loading phases for track', error);
             phases = [];
         }
         const currentPhase = phases.find((phase) => dbGoal.current_week >= phase.startWeek && dbGoal.current_week <= phase.endWeek) || phases[0] || { title: 'Phase 1: Spark Traffic', description: 'Get people in the door immediately' };
@@ -1015,7 +1023,7 @@ class MarketingService {
         const tasksResponse = await this.getMarketingTasks(dbModule.id);
         const tasks = tasksResponse.success ? tasksResponse.data || [] : [];
         if (dbModule.pro_tip) {
-            console.log(`🔍 Backend - Mapping pro_tip for module ${dbModule.id}:`, dbModule.pro_tip);
+            logger_1.logger.debug('Mapping pro_tip for module', { moduleId: dbModule.id, hasProTip: true });
         }
         return {
             id: dbModule.id,
@@ -1031,7 +1039,7 @@ class MarketingService {
     }
     static async updateMarketingGoalPhases(goalId, phases) {
         try {
-            console.log(`🔄 Updating phases for goal ${goalId}:`, phases);
+            logger_1.logger.info('Updating phases for goal', { goalId, phasesCount: phases.length });
             if (!Array.isArray(phases) || phases.length === 0) {
                 return {
                     success: false,
@@ -1059,7 +1067,7 @@ class MarketingService {
                 }
             }
             const phasesString = JSON.stringify(phases);
-            console.log(`📝 Converting phases to JSON string:`, phasesString);
+            logger_1.logger.debug('Converting phases to JSON string', { goalId });
             const { data, error } = await supabase_1.supabase
                 .from('marketing_goals')
                 .update({ phases: phasesString })
@@ -1067,7 +1075,7 @@ class MarketingService {
                 .select()
                 .single();
             if (error) {
-                console.error('❌ Error updating phases:', error);
+                logger_1.logger.error('Error updating phases for goal', error, { goalId });
                 return {
                     success: false,
                     error: error.message
@@ -1079,7 +1087,7 @@ class MarketingService {
                     error: 'Goal not found'
                 };
             }
-            console.log('✅ Successfully updated phases for goal:', goalId);
+            logger_1.logger.info('Successfully updated phases for goal', { goalId });
             const updatedGoal = await this.mapDatabaseGoalToGoal(data);
             return {
                 success: true,
@@ -1088,7 +1096,7 @@ class MarketingService {
             };
         }
         catch (error) {
-            console.error('❌ Error updating marketing goal phases:', error);
+            logger_1.logger.error('Error updating marketing goal phases', error, { goalId });
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Internal server error'

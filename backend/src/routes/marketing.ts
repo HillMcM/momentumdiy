@@ -6,6 +6,7 @@ import { CreateMarketingGoalRequest, UpdateMarketingGoalRequest } from '../types
 import { routeRateLimit } from '../middleware/rate';
 import { validate } from '../middleware/validate';
 import { supabase, supabaseAuth } from '../config/supabase';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -755,7 +756,7 @@ router.put('/goals/:id/phases', routeRateLimit(10), validate((req) => {
 
     return res.json(result);
   } catch (error) {
-    console.error('Error updating phases:', error);
+    logger.error('Error updating phases', error, { goalId: req.params['id'] });
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

@@ -27,6 +27,7 @@ import emailPreferencesRoutes from './routes/emailPreferences';
 import mainRoutes from './routes/index';
 import tracksAdminRoutes from './routes/marketingTracks';
 import testRoutes from './routes/testRoutes';
+import { logger } from './utils/logger';
 
 
 // Load environment variables
@@ -186,7 +187,7 @@ app.use('*', (req, res) => {
 // Sentry error handler must be registered after routes and before other error middleware
 Sentry.setupExpressErrorHandler(app);
 app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Global error handler:', error);
+  logger.error('Global error handler', error);
   
   res.status(500).json({
     success: false,
@@ -197,24 +198,25 @@ app.use((error: any, _req: express.Request, res: express.Response, _next: expres
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env['NODE_ENV'] || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-  console.log(`📚 API Documentation: http://localhost:${PORT}/`);
+  logger.info('Server started', {
+    port: PORT,
+    environment: process.env['NODE_ENV'] || 'development',
+    healthCheck: `http://localhost:${PORT}/health`
+  });
   
   if (process.env['NODE_ENV'] === 'development') {
-    console.log(`🎯 Supabase URL: ${process.env['SUPABASE_URL'] || 'http://127.0.0.1:54321'}`);
+    logger.debug('Development mode', { supabaseUrl: process.env['SUPABASE_URL'] || 'http://127.0.0.1:54321' });
   }
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  logger.info('SIGTERM received, shutting down gracefully');
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
+  logger.info('SIGINT received, shutting down gracefully');
   process.exit(0);
 });
 

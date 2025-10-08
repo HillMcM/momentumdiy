@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { EmailService } from '../services/emailService';
 import { BillingService } from '../services/billingService';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -67,7 +68,7 @@ router.post('/email/test', async (_req: Request, res: Response) => {
     const result = await EmailService.sendTestEmail();
     return res.status(result.success ? 200 : 500).json(result);
   } catch (error) {
-    console.error('Email test error:', error);
+    logger.error('Email test error', error);
     return res.status(500).json({ success: false, error: 'Email test failed' });
   }
 });
@@ -93,7 +94,7 @@ router.post('/notifications/send', async (req: Request, res: Response) => {
 
     return res.status(result.success ? 200 : 500).json(result);
   } catch (error) {
-    console.error('Notification error:', error);
+    logger.error('Notification test error', error, { userId: req.body.userId });
     return res.status(500).json({ 
       success: false, 
       error: 'Failed to send notification' 

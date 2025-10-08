@@ -8,6 +8,7 @@ import { getCalendarEvents } from './utils';
 import CreateEventModal from './CreateEventModal';
 import QuickEventModal from './QuickEventModal';
 import { apiService } from './services/api';
+import { logger } from './utils/logger';
 
 interface CalendarPageProps {
   tasks: Task[];
@@ -118,10 +119,10 @@ export default function CalendarPage({ tasks, projects, customEvents, onCustomEv
         if (response.success && response.data) {
           onCustomEventsChange([...customEvents, response.data]);
         } else {
-          console.error('Failed to create calendar event:', response.error);
+          logger.error('Failed to create calendar event', { error: response.error });
         }
       } catch (error) {
-        console.error('Error creating calendar event:', error);
+        logger.error('Error creating calendar event', error);
       }
       
       setCreatingEvent(null);

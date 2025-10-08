@@ -61,6 +61,7 @@ const emailPreferences_1 = __importDefault(require("./routes/emailPreferences"))
 const index_1 = __importDefault(require("./routes/index"));
 const marketingTracks_1 = __importDefault(require("./routes/marketingTracks"));
 const testRoutes_1 = __importDefault(require("./routes/testRoutes"));
+const logger_1 = require("./utils/logger");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env['PORT'] || 3001;
@@ -169,7 +170,7 @@ app.use('*', (req, res) => {
 });
 Sentry.setupExpressErrorHandler(app);
 app.use((error, _req, res, _next) => {
-    console.error('Global error handler:', error);
+    logger_1.logger.error('Global error handler', error);
     res.status(500).json({
         success: false,
         error: process.env['NODE_ENV'] === 'development' ? error.message : 'Internal server error',
@@ -177,20 +178,21 @@ app.use((error, _req, res, _next) => {
     });
 });
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📊 Environment: ${process.env['NODE_ENV'] || 'development'}`);
-    console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-    console.log(`📚 API Documentation: http://localhost:${PORT}/`);
+    logger_1.logger.info('Server started', {
+        port: PORT,
+        environment: process.env['NODE_ENV'] || 'development',
+        healthCheck: `http://localhost:${PORT}/health`
+    });
     if (process.env['NODE_ENV'] === 'development') {
-        console.log(`🎯 Supabase URL: ${process.env['SUPABASE_URL'] || 'http://127.0.0.1:54321'}`);
+        logger_1.logger.debug('Development mode', { supabaseUrl: process.env['SUPABASE_URL'] || 'http://127.0.0.1:54321' });
     }
 });
 process.on('SIGTERM', () => {
-    console.log('SIGTERM received, shutting down gracefully');
+    logger_1.logger.info('SIGTERM received, shutting down gracefully');
     process.exit(0);
 });
 process.on('SIGINT', () => {
-    console.log('SIGINT received, shutting down gracefully');
+    logger_1.logger.info('SIGINT received, shutting down gracefully');
     process.exit(0);
 });
 exports.default = app;
