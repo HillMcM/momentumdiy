@@ -1251,9 +1251,12 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
         <Header onLogoClick={onLogoClick} />
         <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
           <Sidebar hidden={sidebarHidden} onToggle={toggleSidebar} />
-          <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
-            <SidebarToggle onClick={toggleSidebar} />
-          </div>
+          {/* Only show sidebar toggle on mobile during loading */}
+          {isMobile && (
+            <div style={{ position: 'fixed', top: 80, left: 12, zIndex: 110 }}>
+              <SidebarToggle onClick={toggleSidebar} />
+            </div>
+          )}
           <main className="main-content">
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
               <div>Loading...</div>
