@@ -122,6 +122,18 @@ export default function FeedbackPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0F0A1A] via-[#1B1628] to-[#0F0A1A] py-12">
+      {/* Mobile Back Button */}
+      <button
+        onClick={() => navigate('/app')}
+        className="fixed top-5 left-4 z-50 bg-[#EF8E81] text-white rounded-lg px-4 py-2 flex items-center gap-2 shadow-lg hover:bg-[#E67A6E] transition-colors md:hidden"
+        style={{ minHeight: '44px', minWidth: '44px' }}
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M15 10H5M5 10L10 15M5 10L10 5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <span className="font-semibold">Back</span>
+      </button>
+
       <div className="max-w-4xl mx-auto px-4">
         <div className="space-y-8">
           {/* Header */}

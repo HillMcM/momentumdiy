@@ -3,6 +3,7 @@ import type { MarketingGoal, MarketingModule } from './types';
 import { useNavigate } from 'react-router-dom';
 import { useMarketing } from './contexts/MarketingContext';
 import { renderMarketingContent } from './utils/contentRenderer';
+import { useIsMobile } from './hooks/useMediaQuery';
 
 interface MarketingTrackModalProps {
   isOpen: boolean;
@@ -184,6 +185,7 @@ export default function MarketingTrackWidget() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { activeGoal } = useMarketing();
+  const isMobile = useIsMobile();
 
   const currentModule = useMemo(() => {
     if (!activeGoal) return null;
@@ -377,8 +379,8 @@ export default function MarketingTrackWidget() {
             </h5>
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: 'repeat(3, 1fr)', 
-              gap: '0.5rem' 
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
+              gap: isMobile ? '0.75rem' : '0.5rem' 
             }}>
               {currentModule.tasks.slice(0, 3).map(task => (
                 <div
