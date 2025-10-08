@@ -9,6 +9,7 @@ import SocialProfileManager from './SocialProfileManager';
 import ProfilePage from './ProfilePage';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useWindowFocus } from './hooks/useWindowFocus';
+import { useIsMobile } from './hooks/useMediaQuery';
 import type { Project, Task, MarketingGoal } from './types';
 import OctopusLogo from './assets/octopus_icon.png';
 // import SidebarToggleIcon from './assets/sidebar_toggle.svg';
@@ -225,6 +226,7 @@ import CreateEventModal from './CreateEventModal';
 function Header({ onLogoClick }: { onLogoClick?: () => void }) {
   const { user, signOut } = useAuth();
   const { subscription } = useSubscription();
+  const isMobile = useIsMobile();
   
   const getSubscriptionStatus = () => {
     if (!subscription) return null;
@@ -251,7 +253,9 @@ function Header({ onLogoClick }: { onLogoClick?: () => void }) {
         />
         <span className="header-app-name">MomentumDIY</span>
       </div>
-      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+      {/* Hide buttons on mobile - they'll be in the sidebar */}
+      {!isMobile && (
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
         {subscription && (
           <div style={{ 
             background: subscription.hasAccess ? '#10b981' : '#ef4444', 
@@ -324,7 +328,8 @@ function Header({ onLogoClick }: { onLogoClick?: () => void }) {
             🚀 Development Mode
           </span>
         )}
-      </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -351,7 +356,9 @@ function SidebarToggle({ onClick, className }: { onClick: () => void; className?
 
 function Sidebar({ hidden, onToggle, showProfileManager, mobileOpen }: { hidden: boolean; onToggle: () => void; showProfileManager?: boolean; mobileOpen?: boolean }) {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const { subscription } = useSubscription();
+  const isMobile = useIsMobile();
   const deriveNameFromUser = (u: { user_metadata?: { full_name?: string; name?: string }; email?: string } | null) => {
     if (!u) return 'Business Name';
     const metaName = (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || '';
@@ -481,6 +488,68 @@ function Sidebar({ hidden, onToggle, showProfileManager, mobileOpen }: { hidden:
         */}
       </ul>
       <div className="sidebar-footer">
+        {/* Mobile-only: Subscription status, Upgrade, and Sign Out */}
+        {isMobile && (
+          <div style={{ padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: '0.5rem' }}>
+            {subscription && (
+              <div style={{ 
+                background: subscription.hasAccess ? '#10b981' : '#ef4444', 
+                color: '#FFF', 
+                padding: '0.5rem 1rem', 
+                borderRadius: '8px', 
+                fontSize: '0.85rem', 
+                fontWeight: '600',
+                textAlign: 'center',
+                marginBottom: '0.75rem'
+              }}>
+                {subscription.subscription_status === 'trial' 
+                  ? subscription.daysRemaining ? `${subscription.daysRemaining} days left` : 'Trial'
+                  : subscription.subscription_status === 'active' ? 'Active' 
+                  : 'Expired'
+                }
+              </div>
+            )}
+            <Link 
+              to="/pricing"
+              style={{ 
+                display: 'block',
+                background: '#EF8E81', 
+                color: '#FFF', 
+                border: 'none', 
+                borderRadius: '8px', 
+                padding: '0.75rem 1rem', 
+                fontSize: '0.95rem', 
+                fontWeight: '600', 
+                textAlign: 'center',
+                marginBottom: '0.5rem',
+                textDecoration: 'none',
+                minHeight: '44px'
+              }}
+            >
+              ⭐ Upgrade
+            </Link>
+            {user && (
+              <button 
+                onClick={() => signOut()}
+                style={{ 
+                  width: '100%',
+                  background: '#6b7280', 
+                  color: '#FFF', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  padding: '0.75rem 1rem', 
+                  fontSize: '0.95rem', 
+                  fontWeight: '600', 
+                  cursor: 'pointer',
+                  minHeight: '44px'
+                }}
+              >
+                🚪 Sign Out
+              </button>
+            )}
+          </div>
+        )}
+        
         <Link 
           to="/app/manage-subscription" 
           className={isActive('/app/manage-subscription') ? 'active' : ''}

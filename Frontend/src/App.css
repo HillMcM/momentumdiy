@@ -690,7 +690,7 @@
 .assistant-quick-prompts button:hover { background: rgba(239,142,129,0.2); }
 
 .assistant-panel-footer { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid rgba(239,142,129,0.15); background: rgba(255,241,231,0.04); }
-.assistant-panel-footer textarea { flex: 1; min-height: 40px; max-height: 100px; resize: none; border-radius: 8px; background: rgba(255,241,231,0.06); color: #FFF1E7; border: 1px solid rgba(239,142,129,0.25); padding: 8px; }
+.assistant-panel-footer textarea { flex: 1; min-height: 60px; max-height: 150px; resize: none; border-radius: 8px; background: rgba(255,241,231,0.06); color: #FFF1E7; border: 1px solid rgba(239,142,129,0.25); padding: 8px; }
 .assistant-panel-footer textarea:focus { outline: none; border-color: #EF8E81; }
 .assistant-send { background: #EF8E81; color: #FFF1E7; border: none; border-radius: 8px; padding: 8px 12px; font-weight: 600; cursor: pointer; }
 .assistant-send:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -1056,6 +1056,32 @@
   /* Header adjustments */
   .main-header {
     padding: 1rem !important;
+  }
+
+  /* Floating Assistant - Smaller circular button on mobile */
+  .assistant-fab {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    font-size: 0 !important;
+    padding: 0 !important;
+    bottom: 20px !important;
+    right: 16px !important;
+  }
+
+  .assistant-fab::before {
+    content: "💬";
+    font-size: 24px;
+    display: block;
+  }
+
+  /* Floating Assistant Panel - Full width on mobile */
+  .assistant-panel {
+    width: calc(100vw - 32px) !important;
+    max-width: calc(100vw - 32px) !important;
+    right: 16px !important;
+    bottom: 90px !important;
+    max-height: 60vh !important;
   }
 }
 
