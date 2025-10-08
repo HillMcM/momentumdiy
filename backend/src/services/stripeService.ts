@@ -1,6 +1,7 @@
 import { stripe, STRIPE_CONFIG } from '../config/stripe';
 import { supabase } from '../config/supabase';
 import { logger } from '../utils/logger';
+// import { AffiliateService } from './affiliateService';
 
 export interface SubscriptionData {
   userId: string;
@@ -309,7 +310,11 @@ export class StripeService {
 
   private static async handlePaymentSuccess(invoice: any) {
     const customerId = invoice.customer;
+    const subscriptionId = invoice.subscription;
+    const invoiceId = invoice.id;
+    const amountPaid = invoice.amount_paid / 100; // Convert from cents to dollars
 
+    // Update profile with payment info
     await supabase
       .from('profiles')
       .update({
@@ -318,6 +323,23 @@ export class StripeService {
         updated_at: new Date().toISOString(),
       })
       .eq('stripe_customer_id', customerId);
+
+    // Get user ID from customer
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('stripe_customer_id', customerId)
+      .single();
+
+    if (!profile) {
+      logger.warn('No profile found for customer', { customerId });
+      return;
+    }
+
+    const userId = profile.id;
+
+            // TODO: Implement affiliate commission tracking when services are ready
+            logger.info('Payment success - affiliate tracking not yet implemented', { userId, subscriptionId, amountPaid, invoiceId });
   }
 
   private static async handlePaymentFailure(invoice: any) {
