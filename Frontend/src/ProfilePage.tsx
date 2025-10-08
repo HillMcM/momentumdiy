@@ -422,43 +422,106 @@ export default function ProfilePage() {
           </Section>
           
           <Section title="Brand Colors & Fonts">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            {/* Color Pickers - Stack on mobile for better accessibility */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+              gap: isMobile ? '1rem' : '0.75rem' 
+            }}>
               <div>
-                <label style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.25rem', display: 'block' }}>
+                <label style={{ 
+                  fontSize: '0.85rem', 
+                  opacity: 0.9, 
+                  marginBottom: '0.5rem', 
+                  display: 'block',
+                  fontWeight: 600 
+                }}>
                   Primary Color
                 </label>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '0.5rem', 
+                  alignItems: 'center',
+                  flexDirection: isMobile ? 'column' : 'row'
+                }}>
                   <input 
                     type="color" 
                     value={profile.brand_primary_color || '#EF8E81'} 
                     onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), brand_primary_color: e.target.value }))}
-                    style={{ width: '60px', height: '40px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer' }}
+                    style={{ 
+                      width: isMobile ? '100%' : '60px', 
+                      height: '44px', 
+                      borderRadius: 8, 
+                      border: '1px solid rgba(255,255,255,0.12)', 
+                      cursor: 'pointer' 
+                    }}
                   />
                   <input 
                     type="text"
                     value={profile.brand_primary_color || '#EF8E81'}
                     onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), brand_primary_color: e.target.value }))}
-                    style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#FFF1E7', fontFamily: 'monospace' }}
+                    style={{ 
+                      flex: 1, 
+                      width: isMobile ? '100%' : 'auto',
+                      padding: '0.65rem 0.75rem', 
+                      borderRadius: 8, 
+                      background: 'rgba(255,255,255,0.06)', 
+                      border: '1px solid rgba(255,255,255,0.12)', 
+                      color: '#FFF1E7', 
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      minHeight: '44px'
+                    }}
+                    placeholder="#EF8E81"
                   />
                 </div>
               </div>
               
               <div>
-                <label style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.25rem', display: 'block' }}>
+                <label style={{ 
+                  fontSize: '0.85rem', 
+                  opacity: 0.9, 
+                  marginBottom: '0.5rem', 
+                  display: 'block',
+                  fontWeight: 600 
+                }}>
                   Secondary Color
                 </label>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '0.5rem', 
+                  alignItems: 'center',
+                  flexDirection: isMobile ? 'column' : 'row'
+                }}>
                   <input 
                     type="color" 
                     value={profile.brand_secondary_color || '#D4AF37'} 
                     onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), brand_secondary_color: e.target.value }))}
-                    style={{ width: '60px', height: '40px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer' }}
+                    style={{ 
+                      width: isMobile ? '100%' : '60px', 
+                      height: '44px', 
+                      borderRadius: 8, 
+                      border: '1px solid rgba(255,255,255,0.12)', 
+                      cursor: 'pointer' 
+                    }}
                   />
                   <input 
                     type="text"
                     value={profile.brand_secondary_color || '#D4AF37'}
                     onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), brand_secondary_color: e.target.value }))}
-                    style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#FFF1E7', fontFamily: 'monospace' }}
+                    style={{ 
+                      flex: 1, 
+                      width: isMobile ? '100%' : 'auto',
+                      padding: '0.65rem 0.75rem', 
+                      borderRadius: 8, 
+                      background: 'rgba(255,255,255,0.06)', 
+                      border: '1px solid rgba(255,255,255,0.12)', 
+                      color: '#FFF1E7', 
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      minHeight: '44px'
+                    }}
+                    placeholder="#D4AF37"
                   />
                 </div>
               </div>
@@ -470,15 +533,16 @@ export default function ProfilePage() {
               style={{
                 width: '100%',
                 marginTop: '1rem',
-                padding: '0.75rem',
+                padding: '0.85rem',
                 borderRadius: 8,
                 border: '1px solid rgba(212, 175, 55, 0.3)',
                 background: loadingAIColors ? 'rgba(255,255,255,0.05)' : 'rgba(212, 175, 55, 0.1)',
                 color: '#D4AF37',
                 cursor: loadingAIColors || !profile.brand_primary_color ? 'not-allowed' : 'pointer',
                 fontWeight: 600,
-                fontSize: '0.9rem',
-                transition: 'all 0.2s'
+                fontSize: '0.95rem',
+                transition: 'all 0.2s',
+                minHeight: '44px'
               }}
             >
               {loadingAIColors ? '🔄 Generating...' : '✨ Get AI Color Suggestions'}
