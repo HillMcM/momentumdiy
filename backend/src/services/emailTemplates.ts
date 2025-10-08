@@ -8,6 +8,8 @@
  * - Type-safe template data interfaces
  */
 
+import { BRANDING } from '../config/branding';
+
 // ============================================================================
 // TYPES AND INTERFACES
 // ============================================================================
@@ -129,7 +131,7 @@ export class EmailTemplateComponents {
   static createHeader(title: string, subtitle: string): string {
     return `
       <div style="background: linear-gradient(135deg, ${EmailStyles.colors.primary}, ${EmailStyles.colors.secondary}); padding: ${EmailStyles.spacing.large}; border-radius: ${EmailStyles.layout.borderRadius}; margin-bottom: ${EmailStyles.spacing.medium}; text-align: center;">
-        <img src="https://momentumdiy.com/assets/octopus_icon.png" alt="MomentumDIY" style="width: 60px; height: 60px; margin-bottom: 15px;">
+        <img src="${BRANDING.logoUrl}" alt="${BRANDING.name}" style="width: 60px; height: 60px; margin-bottom: 15px;">
         <h1 style="color: ${EmailStyles.colors.white}; margin: 0; font-size: ${EmailStyles.typography.headingSize};">${title}</h1>
         <p style="color: ${EmailStyles.colors.white}; margin: ${EmailStyles.spacing.small} 0 0 0; font-size: ${EmailStyles.typography.subheadingSize};">${subtitle}</p>
       </div>
@@ -204,8 +206,8 @@ export class EmailTemplateComponents {
     return `
       <div style="font-size: ${EmailStyles.typography.smallSize}; color: ${EmailStyles.colors.gray}; border-top: 1px solid #eee; padding-top: 15px; text-align: center; margin-top: ${EmailStyles.spacing.medium};">
         <p><strong>Please do not reply to this email address, it is not attached to an inbox.</strong></p>
-        <p>For questions please email <a href="mailto:info@hillaryedenmcmullen.com" style="color: ${EmailStyles.colors.primary};">info@hillaryedenmcmullen.com</a></p>
-        <p>© 2024 MomentumDIY. All rights reserved.</p>
+        <p>For questions please email <a href="mailto:${BRANDING.supportEmail}" style="color: ${EmailStyles.colors.primary};">${BRANDING.supportEmail}</a></p>
+        <p>© ${new Date().getFullYear()} ${BRANDING.legalName}. All rights reserved.</p>
       </div>
     `;
   }
@@ -221,7 +223,7 @@ export class EmailTemplateFactory {
    */
   static createWelcomeTemplate(data: WelcomeTemplateData): string {
     const header = EmailTemplateComponents.createHeader(
-      'Welcome to MomentumDIY!',
+      `Welcome to ${BRANDING.name}!`,
       'Your marketing success journey starts now'
     );
 
@@ -229,7 +231,7 @@ export class EmailTemplateFactory {
       ${EmailTemplateComponents.createGreeting(data.name)}
       
       ${EmailTemplateComponents.createParagraph(
-        'Welcome to MomentumDIY! We\'re excited to help you grow your business with our proven marketing strategies.'
+        `Welcome to ${BRANDING.name}! We're excited to help you grow your business with our proven marketing strategies.`
       )}
       
       ${EmailTemplateComponents.createInfoBox(
@@ -248,7 +250,7 @@ export class EmailTemplateFactory {
     `;
 
     return EmailTemplateComponents.createDocument(
-      'Welcome to MomentumDIY',
+      `Welcome to ${BRANDING.name}`,
       header + EmailTemplateComponents.createContentContainer(content)
     );
   }
@@ -292,7 +294,7 @@ export class EmailTemplateFactory {
     `;
 
     return EmailTemplateComponents.createDocument(
-      'Onboarding Complete - MomentumDIY',
+      'Onboarding Complete - ${BRANDING.name}',
       header + EmailTemplateComponents.createContentContainer(content)
     );
   }
@@ -340,7 +342,7 @@ export class EmailTemplateFactory {
     `;
 
     return EmailTemplateComponents.createDocument(
-      'Trial Ending - MomentumDIY',
+      'Trial Ending - ${BRANDING.name}',
       header + EmailTemplateComponents.createContentContainer(content)
     );
   }
@@ -351,14 +353,14 @@ export class EmailTemplateFactory {
   static createSubscriptionActiveTemplate(data: SubscriptionActiveTemplateData): string {
     const header = EmailTemplateComponents.createHeader(
       '✅ Subscription Activated!',
-      'Welcome to MomentumDIY!'
+      'Welcome to ${BRANDING.name}!'
     );
 
     const content = `
       ${EmailTemplateComponents.createGreeting(data.name)}
       
       ${EmailTemplateComponents.createParagraph(
-        'Thank you for subscribing! Your account is now active and you have full access to all MomentumDIY features.'
+        'Thank you for subscribing! Your account is now active and you have full access to all ${BRANDING.name} features.'
       )}
       
       ${EmailTemplateComponents.createInfoBox(
@@ -379,7 +381,7 @@ export class EmailTemplateFactory {
     `;
 
     return EmailTemplateComponents.createDocument(
-      'Subscription Activated - MomentumDIY',
+      'Subscription Activated - ${BRANDING.name}',
       header + EmailTemplateComponents.createContentContainer(content)
     );
   }
@@ -427,7 +429,7 @@ export class EmailTemplateFactory {
     `;
 
     return EmailTemplateComponents.createDocument(
-      'Subscription Cancelled - MomentumDIY',
+      'Subscription Cancelled - ${BRANDING.name}',
       header + EmailTemplateComponents.createContentContainer(content)
     );
   }
@@ -480,7 +482,7 @@ export class EmailTemplateFactory {
     `;
 
     return EmailTemplateComponents.createDocument(
-      'Weekly Progress Report - MomentumDIY',
+      'Weekly Progress Report - ${BRANDING.name}',
       header + EmailTemplateComponents.createContentContainer(content)
     );
   }
@@ -517,7 +519,7 @@ export class EmailTemplateFactory {
     `;
 
     return EmailTemplateComponents.createDocument(
-      'Task Reminder - MomentumDIY',
+      'Task Reminder - ${BRANDING.name}',
       header + EmailTemplateComponents.createContentContainer(content)
     );
   }
@@ -528,7 +530,7 @@ export class EmailTemplateFactory {
   static createFeedbackTemplate(data: FeedbackTemplateData): string {
     const header = EmailTemplateComponents.createHeader(
       'New Feedback Received',
-      'Customer feedback from MomentumDIY'
+      'Customer feedback from ${BRANDING.name}'
     );
 
     const content = `
@@ -560,7 +562,7 @@ export class EmailTemplateFactory {
     `;
 
     return EmailTemplateComponents.createDocument(
-      'New Feedback - MomentumDIY',
+      'New Feedback - ${BRANDING.name}',
       header + EmailTemplateComponents.createContentContainer(content)
     );
   }

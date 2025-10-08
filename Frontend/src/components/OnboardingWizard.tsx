@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import { getPublishedTracks, activateTrack } from '../services/marketingService';
 import { useMarketing } from '../contexts/MarketingContext';
+import { BRANDING } from '../config/branding';
 
 // Types for onboarding data
 export interface OnboardingData {
@@ -101,7 +102,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
     switch (phase) {
       case 'business-setup':
         switch (currentStep) {
-          case 0: return 'Welcome to MomentumDIY!';
+          case 0: return `Welcome to ${BRANDING.name}!`;
           case 1: return 'Tell us about your business';
           case 2: return 'What are your goals?';
           case 3: return 'Current marketing status';
@@ -375,7 +376,7 @@ const BusinessSetupStep: React.FC<{
             <span className="text-4xl">🎉</span>
           </div>
           <h2 className="text-3xl font-bold text-[#FFF1E7] mb-4">
-            Welcome to MomentumDIY!
+            Welcome to {BRANDING.name}!
           </h2>
           <p className="text-lg text-[#FFF1E7]/80 mb-6 max-w-2xl mx-auto">
             We're excited to help you build a marketing strategy that actually works. 

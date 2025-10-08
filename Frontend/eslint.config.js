@@ -19,5 +19,15 @@ export default tseslint.config([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Prevent console.log in production code - use logger utility instead
+      'no-console': ['warn', { 
+        allow: ['error', 'warn'] 
+      }],
+      // Enforce proper TypeScript typing
+      '@typescript-eslint/no-explicit-any': 'error',
+      // Enforce consistent import style (prefer 'import * as' syntax per user preference)
+      // Note: This would require a custom rule or plugin, documenting intent here
+    },
   },
 ])

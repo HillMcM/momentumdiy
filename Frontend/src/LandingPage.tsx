@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
+import { BRANDING } from './config/branding';
 
 export default function LandingPage() {
-  console.log('🎯 LandingPage component rendering - this is the React version!');
+  const isDevelopment = import.meta.env.DEV;
   
   return (
     <div className="landing-root">
       <header className="landing-header">
-        <div className="landing-brand">MomentumDIY</div>
+        <div className="landing-brand">{BRANDING.name}</div>
         <nav className="landing-nav">
           <Link to="/pricing">Pricing</Link>
           <Link to="/auth">Sign in</Link>
@@ -53,7 +54,9 @@ export default function LandingPage() {
         </div>
         <div className="landing-cta" style={{marginTop: '1rem'}}>
           <Link to="/auth" className="cta-btn">Start Free Trial</Link>
-          <Link to="/app" className="cta-btn" style={{ marginLeft: '1rem', background: '#10b981' }}>🚀 Go to App (Dev)</Link>
+          {isDevelopment && (
+            <Link to="/app" className="cta-btn" style={{ marginLeft: '1rem', background: '#10b981' }}>🚀 Go to App (Dev)</Link>
+          )}
         </div>
       </section>
 

@@ -21,8 +21,11 @@ import {
   TaskReminderTemplateData,
   FeedbackTemplateData
 } from './emailTemplates';
+import { BRANDING } from '../config/branding';
+import { ENV } from '../config/environment';
+import { logger } from '../utils/logger';
 
-const resend = new Resend(process.env['RESEND_API_KEY'] || 're_HAwFtwhA_E1nrZGWHUWiA5E3Pbd4kHN2M');
+const resend = new Resend(ENV.resendApiKey);
 
 // ============================================================================
 // LEGACY INTERFACES (for backward compatibility)
@@ -72,17 +75,17 @@ export class EmailService {
       const emailContent = EmailTemplateFactory.createFeedbackTemplate(templateData);
       
       const result = await resend.emails.send({
-        from: 'MomentumDIY <hello@momentumdiy.com>',
-        to: 'info@hillaryedenmcmullen.com',
+        from: `${BRANDING.name} <${BRANDING.email}>`,
+        to: BRANDING.supportEmail,
         subject: `New Feedback: ${data.subject}`,
         html: emailContent,
       });
 
-      console.log('📧 Feedback email sent successfully:', result);
+      logger.info('Feedback email sent successfully', { result });
       return { success: true };
 
     } catch (error) {
-      console.error('❌ Error sending feedback email:', error);
+      logger.error('Error sending feedback email', error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error' 
@@ -104,17 +107,17 @@ export class EmailService {
       const emailContent = EmailTemplateFactory.createWelcomeTemplate(templateData);
       
       const result = await resend.emails.send({
-        from: 'MomentumDIY <hello@momentumdiy.com>',
+        from: `${BRANDING.name} <${BRANDING.email}>`,
         to: data.email,
-        subject: 'Welcome to MomentumDIY - Let\'s Grow Your Business!',
+        subject: `Welcome to ${BRANDING.name} - Let's Grow Your Business!`,
         html: emailContent,
       });
 
-      console.log('📧 Welcome email sent successfully:', result);
+      logger.info('Welcome email sent successfully', { result });
       return { success: true };
 
     } catch (error) {
-      console.error('❌ Error sending welcome email:', error);
+      logger.error('Error sending welcome email', error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error' 
@@ -136,17 +139,17 @@ export class EmailService {
       const emailContent = EmailTemplateFactory.createWelcomeTemplate(testData);
       
       const result = await resend.emails.send({
-        from: 'MomentumDIY <hello@momentumdiy.com>',
-        to: 'info@hillaryedenmcmullen.com',
-        subject: 'Test Email - MomentumDIY Template System',
+        from: `${BRANDING.name} <${BRANDING.email}>`,
+        to: BRANDING.supportEmail,
+        subject: `Test Email - ${BRANDING.name} Template System`,
         html: emailContent,
       });
 
-      console.log('📧 Test email sent successfully:', result);
+      logger.info('Test email sent successfully', { result });
       return { success: true };
 
     } catch (error) {
-      console.error('❌ Error sending test email:', error);
+      logger.error('Error sending test email', error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error' 
@@ -252,17 +255,17 @@ export class EmailService {
       }
 
       const result = await resend.emails.send({
-        from: 'MomentumDIY <hello@momentumdiy.com>',
+        from: `${BRANDING.name} <${BRANDING.email}>`,
         to: email,
         subject: subject,
         html: emailContent,
       });
 
-      console.log(`📧 ${type} notification sent successfully:`, result);
+      logger.info(`${type} notification sent successfully`, { result });
       return { success: true };
 
     } catch (error) {
-      console.error(`❌ Error sending ${data.type} notification:`, error);
+      logger.error(`Error sending ${data.type} notification`, error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error' 
