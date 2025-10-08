@@ -80,7 +80,7 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
       setError(msg);
     } else {
       // For now, just log success messages
-      console.log('Success:', msg);
+      // Debug logging removed for production
     }
     setTimeout(() => {
       setError(null);

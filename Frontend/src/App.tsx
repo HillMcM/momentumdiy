@@ -1,13 +1,17 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import './App.css';
+// Core components (always loaded)
 import TaskTrackerWidget from './TaskTrackerWidget';
 import TaskTrackerPage from './TaskTrackerPage';
 import MarketingTrackWidget from './MarketingTrackWidget';
 import MarketingTrackPage from './MarketingTrackPage';
-import { LocalFootTrafficTrack, SocialMediaStrategyTrack } from './marketing-tracks';
-import SocialProfileManager from './SocialProfileManager';
 import ProfilePage from './ProfilePage';
-import { useState, useEffect, useRef, useCallback } from 'react';
+
+// Lazy-loaded components for code splitting
+const LocalFootTrafficTrack = lazy(() => import('./marketing-tracks/LocalFootTrafficTrack').then(module => ({ default: module.LocalFootTrafficTrack })));
+const SocialMediaStrategyTrack = lazy(() => import('./marketing-tracks/SocialMediaStrategyTrack').then(module => ({ default: module.SocialMediaStrategyTrack })));
+const SocialProfileManager = lazy(() => import('./SocialProfileManager'));
+import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { useWindowFocus } from './hooks/useWindowFocus';
 import { useIsMobile } from './hooks/useMediaQuery';
 import type { Project, Task, MarketingGoal } from './types';
@@ -15,12 +19,26 @@ import OctopusLogo from './assets/octopus_icon.png';
 import { logger } from './utils/logger';
 // import SidebarToggleIcon from './assets/sidebar_toggle.svg';
 import { apiService } from './services/api';
-import AIMarketingAssistant from './AIMarketingAssistant';
-import FloatingAssistant from './FloatingAssistant';
-import AdminGuard from './components/AdminGuard';
+// Lazy-loaded heavy components for code splitting
+const AIMarketingAssistant = lazy(() => import('./AIMarketingAssistant'));
+const FloatingAssistant = lazy(() => import('./FloatingAssistant'));
+const SocialMediaGeneratorPage = lazy(() => import('./SocialMediaGeneratorPage'));
+const AffiliateProgramPage = lazy(() => import('./AffiliateProgramPage'));
+const AffiliateDashboardPage = lazy(() => import('./AffiliateDashboardPage'));
+const AdminAffiliatePage = lazy(() => import('./AdminAffiliatePage'));
+const AdminGuard = lazy(() => import('./components/AdminGuard'));
+const VisualTracksAdminPage = lazy(() => import('./VisualTracksAdminPage'));
+const TracksAdminPage = lazy(() => import('./TracksAdminPage'));
 
+// Core pages (always loaded)
 import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
+import SubscriptionPage from './SubscriptionPage';
+import PricingPage from './PricingPage';
+import FeedbackPage from './FeedbackPage';
+import TermsPage from './TermsPage';
+import SubscriptionGuard from './components/SubscriptionGuard';
+import PersonalizedDashboard from './components/PersonalizedDashboard';
 import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
@@ -34,14 +52,70 @@ import { convertMarketingTasksToTasks, getActiveGoal } from './services/marketin
 // Admin Access Modal Component
 function AdminAccessModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const navigate = useNavigate();
-  
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   if (!isOpen) return null;
+
+  // Focus management for accessibility
+  useEffect(() => {
+    if (isOpen) {
+      // Store the currently focused element
+      previousFocusRef.current = document.activeElement as HTMLElement;
+
+      // Focus the modal after a short delay to ensure it's rendered
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.focus();
+        }
+      }, 100);
+    } else {
+      // Return focus to the previously focused element when modal closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+    }
+
+    return () => {
+      // Cleanup focus when component unmounts
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [isOpen]);
+
+  // Keyboard event handling for accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
   
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8 max-w-md mx-4">
-        <h3 className="text-xl font-bold text-white mb-4">🔐 Admin Access</h3>
-        <p className="text-gray-300 mb-6">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-access-modal-title"
+      aria-describedby="admin-access-modal-description"
+    >
+      <div
+        ref={modalRef}
+        className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8 max-w-md mx-4"
+        role="document"
+        tabIndex={-1}
+      >
+        <h3 id="admin-access-modal-title" className="text-xl font-bold text-white mb-4">🔐 Admin Access</h3>
+        <p id="admin-access-modal-description" className="text-gray-300 mb-6">
           You've discovered the secret admin access! This is for development and content management only.
         </p>
         <div className="flex gap-3">
@@ -67,21 +141,7 @@ function AdminAccessModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 }
 import CheckoutPage from './CheckoutPage';
 import CheckoutSuccessPage from './CheckoutSuccessPage';
-import SubscriptionPage from './SubscriptionPage';
-import PricingPage from './PricingPage';
-import TracksAdminPage from './TracksAdminPage';
-import VisualTracksAdminPage from './VisualTracksAdminPage';
-import FeedbackPage from './FeedbackPage';
-import TermsPage from './TermsPage';
-import SocialMediaGeneratorPage from './SocialMediaGeneratorPage';
-import AffiliateProgramPage from './AffiliateProgramPage';
-import AffiliateDashboardPage from './AffiliateDashboardPage';
-import AdminAffiliatePage from './AdminAffiliatePage';
-import SubscriptionGuard from './components/SubscriptionGuard';
-import PersonalizedDashboard from './components/PersonalizedDashboard';
-import OnboardingWizard from './components/OnboardingWizard';
-import NotificationContainer from './components/NotificationContainer';
-import NotificationBell from './components/NotificationBell';
+// Lazy-loaded components already defined above
 
 
 // Component to handle task synchronization between marketing track and task tracker
@@ -402,7 +462,7 @@ function Sidebar({ hidden, onToggle, showProfileManager, mobileOpen }: { hidden:
   };
 
   const handleLinkClick = (path: string) => {
-    logger.debug('Navigating to', { path });
+    // Debug logging removed for production
   };
 
   return (
@@ -859,7 +919,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     // Set new timeout
     const timeoutId = setTimeout(async () => {
       try {
-        logger.debug('Creating task after debounce', { title: taskData.title });
+        // Debug logging removed for production
         const response = await apiService.createTask(taskData);
         if (!response.success) {
           logger.error('Failed to create task', new Error(response.error), { title: taskData.title });
@@ -876,11 +936,11 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   }, []);
 
   const handleTasksChange = useCallback(async (updatedTasks: Task[]) => {
-    logger.debug('handleTasksChange called', { taskCount: updatedTasks.length });
+    // Debug logging removed for production
     // Treat ids that contain "-w" as placeholders that must be created first
     const isPlaceholderId = (id: string) => id.includes('-w');
     const newTasks = updatedTasks.filter(t => !tasks.find(existing => existing.id === t.id) || isPlaceholderId(t.id));
-    logger.debug('New tasks detected', { count: newTasks.length });
+    // Debug logging removed for production
     
     // Update local state immediately for UI responsiveness
     setTasks(dedupeTasks(updatedTasks));
@@ -889,7 +949,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     try {
       // Handle new tasks with debouncing
       for (const newTask of newTasks) {
-        logger.debug('Queueing new task for creation', { title: newTask.title });
+        // Debug logging removed for production
         const looksLikeUuid = typeof newTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(newTask.projectId);
         const payload: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string } = {
           title: newTask.title,
@@ -910,7 +970,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       for (const updatedTask of existingTasks) {
         const originalTask = tasks.find(t => t.id === updatedTask.id);
         if (originalTask && !isPlaceholderId(updatedTask.id) && JSON.stringify(originalTask) !== JSON.stringify(updatedTask)) {
-          logger.debug('Updating task', { title: updatedTask.title });
+          // Debug logging removed for production
           const looksLikeUuid = typeof updatedTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(updatedTask.projectId);
           const updatePayload: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string; timeSpent?: string; notifications?: boolean } = {
             title: updatedTask.title,
@@ -937,12 +997,12 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     // Check if we're adding new marketing track tasks (which means we're setting up a track)
     const hasNewMarketingTasks = newTasks.some(task => task.marketingTrack);
     if (hasNewMarketingTasks) {
-      logger.debug('Detected new marketing track tasks, skipping goal sync to preserve active state');
+      // Debug logging removed for production
       return;
     }
 
     // Sync marketing track tasks but preserve active goal states
-    logger.debug('Syncing marketing track tasks');
+    // Debug logging removed for production
     const updatedGoals = marketingGoals.map(goal => {
       const updatedModules = goal.modules.map(module => {
         const updatedModuleTasks = module.tasks.map(marketingTask => {
@@ -1351,28 +1411,34 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
             <Route path="profile" element={<ProfilePage />} />
             <Route path="marketing-track" element={<MarketingTrackPage tasks={tasks} onTasksChange={handleTasksChange} />} />
             <Route path="marketing-track/local-foot-traffic" element={
-              <LocalFootTrafficTrack 
-                marketingGoals={marketingGoals}
-                onMarketingGoalsChange={handleMarketingGoalsChange}
-                onProjectsChange={handleProjectsChange}
-                projects={projects}
-                tasks={tasks}
-              />
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                <LocalFootTrafficTrack
+                  marketingGoals={marketingGoals}
+                  onMarketingGoalsChange={handleMarketingGoalsChange}
+                  onProjectsChange={handleProjectsChange}
+                  projects={projects}
+                  tasks={tasks}
+                />
+              </Suspense>
             } />
             <Route path="marketing-track/social-media-strategy" element={
-              <SocialMediaStrategyTrack 
-                marketingGoals={marketingGoals}
-                onMarketingGoalsChange={handleMarketingGoalsChange}
-                onProjectsChange={handleProjectsChange}
-                projects={projects}
-                tasks={tasks}
-              />
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                <SocialMediaStrategyTrack
+                  marketingGoals={marketingGoals}
+                  onMarketingGoalsChange={handleMarketingGoalsChange}
+                  onProjectsChange={handleProjectsChange}
+                  projects={projects}
+                  tasks={tasks}
+                />
+              </Suspense>
             } />
             <Route
               path="profile-manager"
               element={
                 marketingGoals.some(g => g.title === 'Improve Social Media Strategy & Engagement' && g.currentWeek >= g.duration)
-                  ? <SocialProfileManager marketingGoals={marketingGoals} />
+                  ? <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                      <SocialProfileManager marketingGoals={marketingGoals} />
+                    </Suspense>
                   : <Navigate to="/app/marketing-track" replace />
               }
             />
@@ -1385,29 +1451,53 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
                 marketingGoals={marketingGoals}
               />
             } />
-            <Route path="ai-marketing-assistant" element={<AIMarketingAssistant />} />
-            <Route path="social-generator" element={<SocialMediaGeneratorPage />} />
-            <Route path="affiliate/program" element={<AffiliateProgramPage />} />
-            <Route path="affiliate/dashboard" element={<AffiliateDashboardPage />} />
+            <Route path="ai-marketing-assistant" element={
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                <AIMarketingAssistant />
+              </Suspense>
+            } />
+            <Route path="social-generator" element={
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                <SocialMediaGeneratorPage />
+              </Suspense>
+            } />
+            <Route path="affiliate/program" element={
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                <AffiliateProgramPage />
+              </Suspense>
+            } />
+            <Route path="affiliate/dashboard" element={
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                <AffiliateDashboardPage />
+              </Suspense>
+            } />
             <Route path="admin/affiliate" element={
-              <AdminGuard>
-                <AdminAffiliatePage />
-              </AdminGuard>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                <AdminGuard>
+                  <AdminAffiliatePage />
+                </AdminGuard>
+              </Suspense>
             } />
             <Route path="manage-subscription" element={<SubscriptionPage />} />
             <Route path="feedback" element={<FeedbackPage />} />
             <Route path="admin/marketing-tracks" element={
-              <AdminGuard>
-                <VisualTracksAdminPage />
-              </AdminGuard>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                <AdminGuard>
+                  <VisualTracksAdminPage />
+                </AdminGuard>
+              </Suspense>
             } />
             <Route path="admin/marketing-tracks-old" element={
-              <AdminGuard>
-                <TracksAdminPage />
-              </AdminGuard>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                <AdminGuard>
+                  <TracksAdminPage />
+                </AdminGuard>
+              </Suspense>
             } />
               </Routes>
-              <FloatingAssistant />
+              <Suspense fallback={null}>
+                <FloatingAssistant />
+              </Suspense>
             </PersonalizedDashboard>
           </MarketingProvider>
         </main>

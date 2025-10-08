@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useSubscription } from '../hooks/useSubscription';
 import { useAuth } from '../contexts/useAuth';
 import PaywallModal from './PaywallModal';
+import { logger } from '../utils/logger';
 
 interface SubscriptionGuardProps {
   children: React.ReactNode;
@@ -16,24 +17,20 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
   
   // Check if auth is disabled for local development
   const isAuthDisabled = import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE';
-  
-  // TEMPORARY: Force auth enabled to show beautiful auth page
-  const FORCE_AUTH_ENABLED = true;
 
   // If auth is disabled, bypass all checks and show the app
-  if (isAuthDisabled && !FORCE_AUTH_ENABLED) {
+  if (isAuthDisabled) {
     return <>{children}</>;
   }
 
   useEffect(() => {
     if (!loading && subscription) {
       // Show paywall if user doesn't have access
-      // Temporary bypass for admin email
-      if (!subscription.hasAccess && user?.email !== 'info@hillaryedenmcmullen.com') {
-        console.log('🔒 Subscription guard: User does not have access', { 
-          hasAccess: subscription.hasAccess, 
+      if (!subscription.hasAccess) {
+        logger.warn('Subscription guard: User does not have access', {
+          hasAccess: subscription.hasAccess,
           email: user?.email,
-          subscription_status: subscription.subscription_status 
+          subscription_status: subscription.subscription_status
         });
         setShowPaywall(true);
       }

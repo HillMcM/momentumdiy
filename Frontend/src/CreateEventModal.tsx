@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { CalendarEvent, EventCategory } from './types';
 
 interface CreateEventModalProps {
@@ -19,6 +19,9 @@ interface CreateEventModalProps {
 }
 
 export default function CreateEventModal({ open, startDate, projects, event, onSave, onCancel, onDelete }: CreateEventModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState('09:00');
@@ -93,6 +96,34 @@ export default function CreateEventModal({ open, startDate, projects, event, onS
     setIsValid(titleValid && timeValid);
   }, [title, startTime, endTime, isAllDay]);
 
+  // Focus management for accessibility
+  useEffect(() => {
+    if (open) {
+      // Store the currently focused element
+      previousFocusRef.current = document.activeElement as HTMLElement;
+
+      // Focus the modal after a short delay to ensure it's rendered
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.focus();
+        }
+      }, 100);
+    } else {
+      // Return focus to the previously focused element when modal closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+    }
+
+    return () => {
+      // Cleanup focus when component unmounts
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [open]);
+
   // Handle keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -147,17 +178,33 @@ export default function CreateEventModal({ open, startDate, projects, event, onS
   };
 
   return (
-    <div className="modal-overlay" style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
-    }}>
-      <div className="modal-content" style={{
-        background: '#22202F', color: '#FFF1E7', borderRadius: 12, padding: '2rem', minWidth: 400, maxWidth: 500,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.25)', position: 'relative'
-      }}>
-        <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>
+    <div
+      className="modal-overlay"
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-event-modal-title"
+      aria-describedby="create-event-modal-description"
+    >
+      <div
+        ref={modalRef}
+        className="modal-content"
+        style={{
+          background: '#22202F', color: '#FFF1E7', borderRadius: 12, padding: '2rem', minWidth: 400, maxWidth: 500,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25)', position: 'relative'
+        }}
+        role="document"
+        tabIndex={-1}
+      >
+        <h2 id="create-event-modal-title" style={{ marginTop: 0, marginBottom: '1rem' }}>
           {isEditing ? 'Edit Event' : 'Create New Event'}
         </h2>
+        <p id="create-event-modal-description" style={{ margin: 0, marginBottom: '1.5rem', color: 'rgba(255, 255, 255, 0.7)' }}>
+          {isEditing ? 'Update the event details below.' : 'Fill in the details below to create a new calendar event.'}
+        </p>
         
         <div style={{ 
           background: 'rgba(239, 142, 129, 0.1)', 

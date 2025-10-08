@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import { getPublishedTracks, activateTrack } from '../services/marketingService';
@@ -38,6 +38,8 @@ interface OnboardingWizardProps {
 
 const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete, onSkip }) => {
   const navigate = useNavigate();
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const { refreshActiveGoal } = useMarketing();
   const [currentStep, setCurrentStep] = useState(0);
   const [availableTracks, setAvailableTracks] = useState<any[]>([]);
@@ -67,6 +69,49 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
       loadAvailableTracks();
     }
   }, [isOpen]);
+
+  // Focus management for accessibility
+  useEffect(() => {
+    if (isOpen) {
+      // Store the currently focused element
+      previousFocusRef.current = document.activeElement as HTMLElement;
+
+      // Focus the modal after a short delay to ensure it's rendered
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.focus();
+        }
+      }, 100);
+    } else {
+      // Return focus to the previously focused element when modal closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+    }
+
+    return () => {
+      // Cleanup focus when component unmounts
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [isOpen]);
+
+  // Keyboard event handling for accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onSkip();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onSkip]);
 
   const loadAvailableTracks = async () => {
     setLoadingTracks(true);
@@ -271,14 +316,28 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-4 md:p-4">
-      <div className="bg-[#1B1628] border border-[#EF8E81]/30 rounded-2xl p-4 sm:p-6 md:p-8 max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-4 md:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboarding-modal-title"
+      aria-describedby="onboarding-modal-description"
+    >
+      <div
+        ref={modalRef}
+        className="bg-[#1B1628] border border-[#EF8E81]/30 rounded-2xl p-4 sm:p-6 md:p-8 max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
+        role="document"
+        tabIndex={-1}
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#FFF1E7] mb-2">
+            <h1 id="onboarding-modal-title" className="text-2xl font-bold text-[#FFF1E7] mb-2">
               {getStepTitle()}
             </h1>
+            <p id="onboarding-modal-description" className="text-[#FFF1E7]/70 mb-4">
+              Complete the onboarding process to set up your MomentumDIY account and get started with your marketing journey.
+            </p>
             <div className="flex items-center space-x-2">
               <div className="w-48 bg-[#2A2438] rounded-full h-2">
                 <div 

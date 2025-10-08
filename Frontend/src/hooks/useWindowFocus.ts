@@ -11,7 +11,7 @@ export function useWindowFocus() {
   // Debug: Track hook renders
   const renderCountRef = useRef(0);
   renderCountRef.current += 1;
-  console.log(`🪟 useWindowFocus render #${renderCountRef.current} - isFocused: ${isFocused}, hasBeenFocused: ${hasBeenFocused}`);
+  // Debug logging removed for production
 
   useEffect(() => {
     const handleFocus = () => {

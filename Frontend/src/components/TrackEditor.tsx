@@ -110,7 +110,7 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
     setError(null);
 
     try {
-      console.log('🔍 TrackEditor - Phases data:', phases);
+      // Debug logging removed for production
       
       const trackData = {
         ...formData,
@@ -118,7 +118,7 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
         phases: phases // Send phases as array, let adminApi handle JSON.stringify
       };
       
-      console.log('🔍 TrackEditor - Final track data being sent:', trackData);
+      // Debug logging removed for production
 
       let response;
       if (isCreating) {

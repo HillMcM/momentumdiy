@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { BrandPanel } from './BrandPanel';
 import { ImageGrid } from './ImageGrid';
 import { Header } from './Header';
@@ -16,11 +16,14 @@ interface SocialMediaGeneratorAppProps {
   initialText?: string;
 }
 
-const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({ 
-  isOpen, 
-  onClose, 
-  initialText = 'Your awesome post content goes here!' 
+const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({
+  isOpen,
+  onClose,
+  initialText = 'Your awesome post content goes here!'
 }) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   const [brandSettings, setBrandSettings] = useLocalStorage<BrandSettings>('brandSettings', {
     colors: ['#000000', '#FFFFFF', '#A9A9A9', '#808080'],
     logo: null,
@@ -54,6 +57,49 @@ const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({
     };
     loadPersistedImages();
   }, []);
+
+  // Focus management for accessibility
+  useEffect(() => {
+    if (isOpen) {
+      // Store the currently focused element
+      previousFocusRef.current = document.activeElement as HTMLElement;
+
+      // Focus the modal after a short delay to ensure it's rendered
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.focus();
+        }
+      }, 100);
+    } else {
+      // Return focus to the previously focused element when modal closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+    }
+
+    return () => {
+      // Cleanup focus when component unmounts
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [isOpen]);
+
+  // Keyboard event handling for accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const handleGenerate = useCallback(async () => {
     // Check usage limits before generating
@@ -159,11 +205,25 @@ const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-lg shadow-xl max-w-7xl w-full max-h-[95vh] overflow-hidden">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="social-generator-modal-title"
+      aria-describedby="social-generator-modal-description"
+    >
+      <div
+        ref={modalRef}
+        className="bg-gray-900 rounded-lg shadow-xl max-w-7xl w-full max-h-[95vh] overflow-hidden"
+        role="document"
+        tabIndex={-1}
+      >
         {/* Header with close button */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
-          <h2 className="text-2xl font-bold text-white">AI Social Media Generator</h2>
+          <h2 id="social-generator-modal-title" className="text-2xl font-bold text-white">AI Social Media Generator</h2>
+          <p id="social-generator-modal-description" className="sr-only">
+            Create professional social media graphics using AI. Customize your brand settings, select aspect ratios, and generate images for different platforms.
+          </p>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors"

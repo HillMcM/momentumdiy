@@ -27,8 +27,7 @@ export default function WeekAccordion({
   const [localExpanded, setLocalExpanded] = useState(isCurrentWeek);
   const { done, total } = countTasks(module);
   
-  // Debug logging
-  console.log(`🔓 Week ${module.weekNumber}: isUnlocked=${module.isUnlocked}, isLocked=${isLocked}, currentWeek=${currentWeek}`);
+  // Debug logging removed for production
 
   const context = useContext(MarketingTrackContext);
   const activeGoal = context?.activeGoal;
