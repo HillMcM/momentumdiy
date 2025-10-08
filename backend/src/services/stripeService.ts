@@ -1,5 +1,6 @@
 import { stripe, STRIPE_CONFIG } from '../config/stripe';
 import { supabase } from '../config/supabase';
+import { logger } from '../utils/logger';
 
 export interface SubscriptionData {
   userId: string;
@@ -64,7 +65,7 @@ export class StripeService {
 
       return customer.id;
     } catch (error) {
-      console.error('Error creating/retrieving Stripe customer:', error);
+      logger.error('Error creating/retrieving Stripe customer', error, { email, name });
       throw new Error('Failed to create customer');
     }
   }
@@ -134,7 +135,7 @@ export class StripeService {
         trialEnd: trialEnd.toISOString(),
       };
     } catch (error) {
-      console.error('Error creating subscription:', error);
+      logger.error('Error creating subscription', error, { userId, email, plan });
       throw new Error('Failed to create subscription');
     }
   }
@@ -185,7 +186,7 @@ export class StripeService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error canceling subscription:', error);
+      logger.error('Error canceling subscription', error, { userId });
       throw new Error('Failed to cancel subscription');
     }
   }
@@ -238,7 +239,7 @@ export class StripeService {
         plan: profile.subscription_plan,
       };
     } catch (error) {
-      console.error('Error getting subscription details:', error);
+      logger.error('Error getting subscription details', error, { userId });
       throw new Error('Failed to get subscription details');
     }
   }
@@ -263,10 +264,10 @@ export class StripeService {
           await this.handlePaymentFailure(event.data.object);
           break;
         default:
-          console.log(`Unhandled webhook event: ${event.type}`);
+          logger.debug(`Unhandled webhook event: ${event.type}`);
       }
     } catch (error) {
-      console.error('Error handling webhook:', error);
+      logger.error('Error handling webhook', error, { eventType: event.type });
       throw error;
     }
   }
@@ -322,6 +323,6 @@ export class StripeService {
     const customerId = invoice.customer;
 
     // Could implement payment failure handling (email notifications, etc.)
-    console.log(`Payment failed for customer ${customerId}`);
+    logger.warn('Payment failed for customer', { customerId });
   }
 }

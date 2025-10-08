@@ -15,6 +15,7 @@ import type {
   ApiResponse
 } from '../types';
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 // Prefer explicit env at build time; fall back to heuristics
 const fromEnv = (() => {
@@ -26,37 +27,36 @@ const fromEnv = (() => {
 
 function isLocalHost(hostname: string | undefined): boolean {
   if (!hostname) return false;
-  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '10.0.0.53';
+  return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
 // Get the appropriate backend URL based on environment
 function getBackendUrl(): string {
+  // Check for explicit environment variable first
+  const meta = import.meta as { env?: { VITE_API_BASE_URL?: string } };
+  if (meta.env?.VITE_API_BASE_URL) {
+    return meta.env.VITE_API_BASE_URL;
+  }
+  
   // Check if we're in production (Vercel)
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     
-    // Production domains
-    if (hostname === 'momentumdiy.vercel.app' || 
-        hostname === 'momentumdiy-git-main-hillmcm.vercel.app') {
-      return 'https://momentumdiy-backend.onrender.com';
-    }
-    
-    // Feature branch deployments - use production backend but show admin warning
-    if (hostname.includes('vercel.app')) {
-      return 'https://momentumdiy-backend.onrender.com';
-    }
-    
     // Local development
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '10.0.0.53') {
-      return 'http://localhost:3001'; // Local backend
+    if (isLocalHost(hostname)) {
+      return 'http://localhost:3001';
     }
   }
   
-  // Default to production backend
-  return 'https://momentumdiy-backend.onrender.com';
+  // Default to production backend from environment or fallback
+  const meta2 = import.meta as { env?: { VITE_BACKEND_URL?: string } };
+  return meta2.env?.VITE_BACKEND_URL || 'https://momentumdiy-backend.onrender.com';
 }
 
-const defaultProdBackend = 'https://momentumdiy-backend.onrender.com';
+const defaultProdBackend = (() => {
+  const meta = import.meta as { env?: { VITE_BACKEND_URL?: string } };
+  return meta.env?.VITE_BACKEND_URL || 'https://momentumdiy-backend.onrender.com';
+})();
 
 export const API_BASE_URL = fromEnv
   ? fromEnv.replace(/\/$/, '') + '/api'
@@ -103,16 +103,17 @@ class ApiService {
 
     const attempt = async (triesLeft: number): Promise<ApiResponse<T>> => {
       try {
-        console.log('API Request - Making request to:', url);
-        console.log('API Request - Request config:', config);
+        logger.debug('Making API request', { url, method: config.method });
         
         const response = await fetch(url, config);
-        console.log('API Request - Response status:', response.status);
-        console.log('API Request - Response headers:', Object.fromEntries(response.headers.entries()));
-        
         const contentType = response.headers.get('content-type') || '';
         const data = contentType.includes('application/json') ? await response.json() : await response.text();
-        console.log('API Request - Response data:', data);
+        
+        logger.debug('API response received', { 
+          url, 
+          status: response.status,
+          method: config.method 
+        });
 
         if (!response.ok) {
           // Backoff and retry on 429 Too Many Requests
@@ -124,18 +125,18 @@ class ApiService {
             return attempt(triesLeft - 1);
           }
           const message = (data as { error?: string })?.error || `HTTP error! status: ${response.status}`;
-          console.error('API Request - HTTP error:', message);
+          logger.error('API request failed', new Error(message), { url, status: response.status });
           throw new Error(message);
         }
 
-        console.log('API Request - Success, returning data:', data);
         return data as ApiResponse<T>;
       } catch (error) {
         if (retryOn429 && triesLeft > 0 && (error as { message?: string })?.message?.includes('Too many requests')) {
+          logger.warn('Rate limited, retrying', { url, triesLeft });
           await new Promise(res => setTimeout(res, 1000 * Math.pow(2, 3 - triesLeft)));
           return attempt(triesLeft - 1);
         }
-        console.error('API request failed:', error);
+        logger.error('API request failed', error, { url });
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -368,15 +369,13 @@ class ApiService {
 
   // Stripe API methods
   async createCheckoutSession(data: { plan: string; interval: string; successUrl: string; cancelUrl: string }): Promise<ApiResponse<{ sessionUrl: string }>> {
-    console.log('API Service - Creating checkout session with data:', data);
-    console.log('API Service - Using API_BASE_URL:', API_BASE_URL);
+    logger.info('Creating checkout session', { plan: data.plan, interval: data.interval });
     
     const result = await this.request<{ sessionUrl: string }>('/stripe/create-checkout-session', {
       method: 'POST',
       body: JSON.stringify(data),
     });
     
-    console.log('API Service - Checkout session result:', result);
     return result;
   }
 

@@ -1,4 +1,5 @@
 import type { Task } from '../types';
+import { supabase } from '../lib/supabase';
 
 export interface TrackConfig {
   slug: string;
@@ -9,6 +10,28 @@ export interface TrackConfig {
   generateTasks: (module: any, goal: any) => Task[];
 }
 
+/**
+ * Get the current user's name for task assignment
+ * Falls back to 'You' if user data is not available
+ */
+async function getCurrentUserName(): Promise<string> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return 'You';
+    
+    // Try to get user profile with full name
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single();
+    
+    return profile?.full_name || user.email?.split('@')[0] || 'You';
+  } catch {
+    return 'You';
+  }
+}
+
 // Local Foot Traffic Track Configuration
 const localFootTrafficConfig: TrackConfig = {
   slug: 'local-foot-traffic',
@@ -17,6 +40,7 @@ const localFootTrafficConfig: TrackConfig = {
   buttonText: 'Start Local Foot Traffic Track',
   journeyName: 'Local Foot Traffic',
   generateTasks: (module: any, goal: any) => {
+    // Note: responsible field is set to empty string - will be filled by user selection in UI
     const weekNumber = module.weekNumber;
     const moduleId = module.id;
     
@@ -27,7 +51,7 @@ const localFootTrafficConfig: TrackConfig = {
             id: `${moduleId}-w1-online`,
             title: 'Online Presence Audit',
             description: 'Review and assess your current online presence across all platforms',
-            responsible: 'Hillary',
+            responsible: '',
             deadline: null,
             project: goal.title,
             timeSpent: '',
@@ -40,7 +64,7 @@ const localFootTrafficConfig: TrackConfig = {
             id: `${moduleId}-w1-baseline`,
             title: 'Baseline Metrics',
             description: 'Establish current performance metrics and benchmarks',
-            responsible: 'Hillary',
+            responsible: '',
             deadline: null,
             project: goal.title,
             timeSpent: '',
@@ -53,7 +77,7 @@ const localFootTrafficConfig: TrackConfig = {
             id: `${moduleId}-w1-photos`,
             title: 'Storefront & Signage Photos',
             description: 'Document current storefront appearance and signage',
-            responsible: 'Hillary',
+            responsible: '',
             deadline: null,
             project: goal.title,
             timeSpent: '',
@@ -69,7 +93,7 @@ const localFootTrafficConfig: TrackConfig = {
             id: `${moduleId}-w2-content`,
             title: 'Content Pillars',
             description: 'Define your core content themes and messaging',
-            responsible: 'Hillary',
+            responsible: '',
             deadline: null,
             project: goal.title,
             timeSpent: '',
@@ -82,7 +106,7 @@ const localFootTrafficConfig: TrackConfig = {
             id: `${moduleId}-w2-calendar`,
             title: 'Content Calendar',
             description: 'Create your posting schedule and content plan',
-            responsible: 'Hillary',
+            responsible: '',
             deadline: null,
             project: goal.title,
             timeSpent: '',
@@ -95,7 +119,7 @@ const localFootTrafficConfig: TrackConfig = {
             id: `${moduleId}-w2-templates`,
             title: 'Content Templates',
             description: 'Develop reusable templates for consistent posting',
-            responsible: 'Hillary',
+            responsible: '',
             deadline: null,
             project: goal.title,
             timeSpent: '',
@@ -157,7 +181,7 @@ const socialMediaConfig: TrackConfig = {
               id: `${module.id}-task-${index + 1}`,
               title: title.trim(),
               description: description.trim(),
-              responsible: 'Hillary',
+              responsible: '',
               deadline: null,
               project: goal.title,
               timeSpent: estimatedTime, // Store estimated time here temporarily
