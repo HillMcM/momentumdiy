@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/useAuth';
 import { API_URL } from './config/environment';
+import { supabase } from './lib/supabase';
 
 interface AffiliateDashboardData {
   affiliate: {
@@ -70,10 +71,15 @@ export default function AffiliateDashboardPage() {
 
   const loadDashboard = async () => {
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Not authenticated');
+        return;
+      }
+
       const response = await fetch(`${API_URL}/api/affiliate/dashboard`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${session.access_token}`,
         },
       });
 
@@ -107,12 +113,17 @@ export default function AffiliateDashboardPage() {
   const handleConnectOnboarding = async () => {
     setConnectLoading(true);
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Not authenticated');
+        return;
+      }
+
       const currentUrl = window.location.origin;
       const response = await fetch(`${API_URL}/api/affiliate/connect/onboard`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -148,11 +159,16 @@ export default function AffiliateDashboardPage() {
 
     setRequestingPayout(true);
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Not authenticated');
+        return;
+      }
+
       const response = await fetch(`${API_URL}/api/affiliate/payout/request`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
       });

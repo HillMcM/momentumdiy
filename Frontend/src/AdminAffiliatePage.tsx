@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from './config/environment';
 import AdminGuard from './components/AdminGuard';
+import { supabase } from './lib/supabase';
 
 interface AdminStats {
   totalAffiliates: number;
@@ -76,8 +77,13 @@ export default function AdminAffiliatePage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('supabase.auth.token');
-      const headers = { 'Authorization': `Bearer ${token}` };
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Not authenticated');
+        return;
+      }
+
+      const headers = { 'Authorization': `Bearer ${session.access_token}` };
 
       // Load all data in parallel
       const [statsRes, affiliatesRes, payoutsRes, revenueRes] = await Promise.all([
@@ -112,10 +118,15 @@ export default function AdminAffiliatePage() {
 
     setProcessing(true);
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Not authenticated');
+        return;
+      }
+
       const response = await fetch(`${API_URL}/api/affiliate/admin/process-payouts`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
       });
 
       const result = await response.json();
