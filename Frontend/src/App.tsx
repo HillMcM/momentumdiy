@@ -12,6 +12,7 @@ import { useWindowFocus } from './hooks/useWindowFocus';
 import { useIsMobile } from './hooks/useMediaQuery';
 import type { Project, Task, MarketingGoal } from './types';
 import OctopusLogo from './assets/octopus_icon.png';
+import { logger } from './utils/logger';
 // import SidebarToggleIcon from './assets/sidebar_toggle.svg';
 import { apiService } from './services/api';
 import AIMarketingAssistant from './AIMarketingAssistant';
@@ -201,7 +202,7 @@ function TaskSync({
             }
           }
         } catch (error) {
-          console.error('Failed to persist marketing task changes:', error);
+          logger.error('Failed to persist marketing task changes', error);
         }
       })();
     }
@@ -398,7 +399,7 @@ function Sidebar({ hidden, onToggle, showProfileManager, mobileOpen }: { hidden:
   };
 
   const handleLinkClick = (path: string) => {
-    console.log('Navigating to:', path);
+    logger.debug('Navigating to', { path });
   };
 
   return (
@@ -774,7 +775,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
         setMarketingGoals([]);
 
       } catch (error) {
-        console.error('❌ Unexpected error loading data:', error);
+        logger.error('Unexpected error loading data', error);
         // Set empty data on error
         setTasks([]);
         setMarketingGoals([]);
@@ -806,7 +807,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           
           setShowOnboarding(!hasCompletedOnboarding);
         } catch (error) {
-          console.error('Error checking onboarding status:', error);
+          logger.error('Error checking onboarding status', error);
           setShowOnboarding(false);
         }
       } else {
@@ -845,13 +846,13 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     // Set new timeout
     const timeoutId = setTimeout(async () => {
       try {
-        console.log('Creating task after debounce:', taskData.title);
+        logger.debug('Creating task after debounce', { title: taskData.title });
         const response = await apiService.createTask(taskData);
         if (!response.success) {
-          console.error('Failed to create task:', response.error);
+          logger.error('Failed to create task', new Error(response.error), { title: taskData.title });
         }
       } catch (error) {
-        console.error('Error creating task:', error);
+        logger.error('Error creating task', error, { title: taskData.title });
       } finally {
         // Remove from queue
         taskCreationQueue.current.delete(taskKey);
@@ -862,11 +863,11 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   }, []);
 
   const handleTasksChange = useCallback(async (updatedTasks: Task[]) => {
-    console.log('App: handleTasksChange called with', updatedTasks.length, 'tasks');
+    logger.debug('handleTasksChange called', { taskCount: updatedTasks.length });
     // Treat ids that contain "-w" as placeholders that must be created first
     const isPlaceholderId = (id: string) => id.includes('-w');
     const newTasks = updatedTasks.filter(t => !tasks.find(existing => existing.id === t.id) || isPlaceholderId(t.id));
-    console.log('App: New tasks:', newTasks);
+    logger.debug('New tasks detected', { count: newTasks.length });
     
     // Update local state immediately for UI responsiveness
     setTasks(dedupeTasks(updatedTasks));
@@ -875,7 +876,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     try {
       // Handle new tasks with debouncing
       for (const newTask of newTasks) {
-        console.log('Queueing new task for creation:', newTask.title);
+        logger.debug('Queueing new task for creation', { title: newTask.title });
         const looksLikeUuid = typeof newTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(newTask.projectId);
         const payload: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string } = {
           title: newTask.title,
@@ -896,7 +897,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       for (const updatedTask of existingTasks) {
         const originalTask = tasks.find(t => t.id === updatedTask.id);
         if (originalTask && !isPlaceholderId(updatedTask.id) && JSON.stringify(originalTask) !== JSON.stringify(updatedTask)) {
-          console.log('Updating task:', updatedTask.title);
+          logger.debug('Updating task', { title: updatedTask.title });
           const looksLikeUuid = typeof updatedTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(updatedTask.projectId);
           const updatePayload: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string; timeSpent?: string; notifications?: boolean } = {
             title: updatedTask.title,
@@ -912,23 +913,23 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           const response = await apiService.updateTask(updatedTask.id, updatePayload);
           
           if (!response.success) {
-            console.error('Failed to update task:', response.error);
+            logger.error('Failed to update task', new Error(response.error), { title: updatedTask.title });
           }
         }
       }
     } catch (error) {
-      console.error('Error persisting task changes:', error);
+      logger.error('Error persisting task changes', error);
     }
     
     // Check if we're adding new marketing track tasks (which means we're setting up a track)
     const hasNewMarketingTasks = newTasks.some(task => task.marketingTrack);
     if (hasNewMarketingTasks) {
-      console.log('App: Detected new marketing track tasks, skipping goal sync to preserve active state');
+      logger.debug('Detected new marketing track tasks, skipping goal sync to preserve active state');
       return;
     }
-    
+
     // Sync marketing track tasks but preserve active goal states
-    console.log('App: Syncing marketing track tasks');
+    logger.debug('Syncing marketing track tasks');
     const updatedGoals = marketingGoals.map(goal => {
       const updatedModules = goal.modules.map(module => {
         const updatedModuleTasks = module.tasks.map(marketingTask => {
@@ -970,8 +971,10 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   }, [tasks, marketingGoals, setTasks, setMarketingGoals, debouncedCreateTask]);
 
   const handleProjectsChange = useCallback(async (updatedProjects: Project[]) => {
-    console.log('App: handleProjectsChange called with', updatedProjects.length, 'projects');
-    console.log('App: Projects:', updatedProjects.map(p => ({ id: p.id, name: p.name, status: p.status })));
+    logger.debug('handleProjectsChange called', { 
+      projectCount: updatedProjects.length,
+      projects: updatedProjects.map(p => ({ id: p.id, name: p.name, status: p.status }))
+    });
     
     // Update local state immediately for UI responsiveness
     setProjects(updatedProjects);
@@ -983,7 +986,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       
       // Handle new projects
       for (const newProject of newProjects) {
-        console.log('Creating new project:', newProject.name);
+        logger.debug('Creating new project', { name: newProject.name });
         // Create in database
         try {
           const response = await apiService.createProject({
@@ -994,12 +997,12 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           });
           
           if (response.success && response.data) {
-            console.log('Project created successfully:', response.data);
+            logger.info('Project created successfully', { projectId: response.data?.id });
           } else {
-            console.error('Failed to create project:', response.error);
+            logger.error('Failed to create project', new Error(response.error), { name: newProject.name });
           }
         } catch (error) {
-          console.error('Error creating project:', error);
+          logger.error('Error creating project', error, { name: newProject.name });
         }
       }
       
@@ -1008,7 +1011,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       for (const updatedProject of existingProjects) {
         const originalProject = projects.find(p => p.id === updatedProject.id);
         if (originalProject && JSON.stringify(originalProject) !== JSON.stringify(updatedProject)) {
-          console.log('Updating project:', updatedProject.name);
+          logger.debug('Updating project', { name: updatedProject.name });
           const response = await apiService.updateProject(updatedProject.id, {
             name: updatedProject.name,
             description: updatedProject.description || '',
@@ -1017,30 +1020,35 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           });
           
           if (!response.success) {
-            console.error('Failed to update project:', response.error);
+            logger.error('Failed to update project', new Error(response.error), { id: updatedProject.id });
           }
         }
       }
       
       // Handle deleted projects
       for (const deletedProject of deletedProjects) {
-        console.log('Deleting project:', deletedProject.name);
+        logger.debug('Deleting project', { name: deletedProject.name });
         const response = await apiService.deleteProject(deletedProject.id);
         
         if (!response.success) {
-          console.error('Failed to delete project:', response.error);
+          logger.error('Failed to delete project', new Error(response.error), { id: deletedProject.id });
         }
       }
     } catch (error) {
-      console.error('Error persisting project changes:', error);
+      logger.error('Error persisting project changes', error);
     }
   }, [projects, setProjects]);
 
   const handleMarketingGoalsChange = useCallback(async (updatedGoals: MarketingGoal[]) => {
-    console.log('App: handleMarketingGoalsChange called with', updatedGoals.length, 'goals');
-    console.log('App: Updated goals details:');
-    updatedGoals.forEach((g, index) => {
-      console.log(`  Goal ${index + 1}:`, { id: g.id, title: g.title, isActive: g.isActive, currentWeek: g.currentWeek });
+    logger.debug('handleMarketingGoalsChange called', {
+      goalCount: updatedGoals.length,
+      goals: updatedGoals.map((g, index) => ({
+        index: index + 1,
+        id: g.id,
+        title: g.title,
+        isActive: g.isActive,
+        currentWeek: g.currentWeek
+      }))
     });
     
     // Update local state immediately for UI responsiveness
@@ -1052,7 +1060,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       
       // Handle new goals
       for (const newGoal of newGoals) {
-        console.log('Creating new marketing goal:', newGoal.title);
+        logger.debug('Creating new marketing goal', { title: newGoal.title });
         const response = await apiService.createMarketingGoal({
           title: newGoal.title,
           description: newGoal.description || '',
@@ -1061,7 +1069,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
         });
         
         if (!response.success) {
-          console.error('Failed to create marketing goal:', response.error);
+          logger.error('Failed to create marketing goal', new Error(response.error), { title: newGoal.title });
         }
       }
       
@@ -1075,7 +1083,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           originalGoal.progress !== existingGoal.progress ||
           JSON.stringify(originalGoal.modules.map(m => m.tasks)) !== JSON.stringify(existingGoal.modules.map(m => m.tasks))
         )) {
-          console.log('Updating marketing goal:', existingGoal.title);
+          logger.debug('Updating marketing goal', { title: existingGoal.title });
           const nextWeek = Math.max(existingGoal.currentWeek, originalGoal.currentWeek);
           const response = await apiService.updateMarketingGoal(existingGoal.id, {
             isActive: existingGoal.isActive,
@@ -1084,65 +1092,65 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           });
           
           if (!response.success) {
-            console.error('Failed to update marketing goal:', response.error);
+            logger.error('Failed to update marketing goal', new Error(response.error), { id: existingGoal.id });
           }
         }
       }
     } catch (error) {
-      console.error('Error persisting marketing goals:', error);
+      logger.error('Error persisting marketing goals', error);
     }
   }, [marketingGoals, setMarketingGoals]);
 
-  const handleOnboardingComplete = useCallback(async (onboardingData: any) => {
-    console.log('🎉 Onboarding completed:', onboardingData);
-    console.log('🔧 About to close onboarding wizard...');
+  const handleOnboardingComplete = useCallback(async (onboardingData: Record<string, unknown>) => {
+    logger.info('Onboarding completed', { onboardingData });
+    logger.debug('About to close onboarding wizard');
 
     try {
       // The OnboardingWizard component already handles track activation
       // We just need to refresh the marketing data to show the activated track
-      console.log('🔄 Refreshing marketing data after onboarding...');
+      logger.debug('Refreshing marketing data after onboarding');
       
       // Skip refreshing marketing goals here - the track activation already handles this
-      console.log('🔄 Skipping marketing goals refresh - track activation already handled this');
+      logger.debug('Skipping marketing goals refresh - track activation already handled');
 
       // Force reload marketing data after onboarding to show the activated track
       try {
-        console.log('🔄 Force refreshing marketing data after onboarding...');
+        logger.debug('Force refreshing marketing data after onboarding');
         const activeGoalResponse = await getActiveGoal();
         if (activeGoalResponse.success && activeGoalResponse.data) {
           const marketingGoalsArray = [activeGoalResponse.data];
           setMarketingGoals(marketingGoalsArray);
-          console.log('✅ Active goal refreshed after onboarding:', activeGoalResponse.data.title);
+          logger.info('Active goal refreshed after onboarding', { title: activeGoalResponse.data.title });
         } else {
-          console.log('⚠️ No active goal found after onboarding');
+          logger.warn('No active goal found after onboarding');
         }
       } catch (error) {
-        console.error('❌ Error refreshing marketing data after onboarding:', error);
+        logger.error('Error refreshing marketing data after onboarding', error);
       }
 
-      console.log('✅ Onboarding setup complete - track activated and data refreshed');
+      logger.info('Onboarding setup complete - track activated and data refreshed');
 
       // Send onboarding complete notification (temporarily disabled to prevent errors)
       try {
-        console.log('📧 Onboarding complete notification temporarily disabled');
+        logger.debug('Onboarding complete notification temporarily disabled');
         // const notificationResponse = await apiService.sendNotification({
         //   type: 'onboarding_complete',
         //   data: onboardingData
         // });
         // if (notificationResponse.success) {
-        //   console.log('📧 Onboarding complete notification sent');
+        //   logger.info('Onboarding complete notification sent');
         // }
       } catch (error) {
-        console.error('❌ Error sending onboarding notification:', error);
+        logger.error('Error sending onboarding notification', error);
       }
 
       // Close the onboarding modal
-      console.log('🔧 Setting showOnboarding to false...');
+      logger.debug('Setting showOnboarding to false');
       setShowOnboarding(false);
-      console.log('✅ Onboarding wizard should now be closed');
+      logger.debug('Onboarding wizard should now be closed');
 
     } catch (error) {
-      console.error('❌ Error setting up onboarding:', error);
+      logger.error('Error setting up onboarding', error);
     }
   }, [marketingGoals, projects, handleMarketingGoalsChange, handleProjectsChange]);
 
@@ -1179,9 +1187,15 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
   // Monitor marketing goals state changes
   useEffect(() => {
-    console.log('App: marketingGoals state changed to:', marketingGoals.length, 'goals');
-    marketingGoals.forEach((g, index) => {
-      console.log(`  Goal ${index + 1}:`, { id: g.id, title: g.title, isActive: g.isActive, currentWeek: g.currentWeek });
+    logger.debug('marketingGoals state changed', {
+      goalCount: marketingGoals.length,
+      goals: marketingGoals.map((g, index) => ({
+        index: index + 1,
+        id: g.id,
+        title: g.title,
+        isActive: g.isActive,
+        currentWeek: g.currentWeek
+      }))
     });
   }, [marketingGoals]);
 
@@ -1218,21 +1232,21 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     });
 
     if (changed) {
-      console.log('App: Auto-synced dashboard tasks with marketing track');
+      logger.debug('Auto-synced dashboard tasks with marketing track');
       handleTasksChange(updatedTasks);
     }
   }, [marketingGoals, tasks, projects, handleTasksChange]);
 
   // Function to sync marketing task changes with regular tasks
   const handleMarketingTaskStatusChange = useCallback((taskId: string, isCompleted: boolean) => {
-    console.log(`Marketing task ${taskId} status changed to ${isCompleted ? 'completed' : 'incomplete'}`);
+    logger.debug('Marketing task status changed', { taskId, status: isCompleted ? 'completed' : 'incomplete' });
     
     // Find the corresponding regular task and update its status
     const regularTask = tasks.find(t => t.marketingTrack?.marketingTaskId === taskId);
     if (regularTask) {
       const newStatus: 'todo' | 'in-progress' | 'completed' = isCompleted ? 'completed' : 'todo';
       if (regularTask.status !== newStatus) {
-        console.log(`Updating regular task ${regularTask.id} status to ${newStatus}`);
+        logger.debug('Updating regular task status', { taskId: regularTask.id, newStatus });
         const updatedTasks = tasks.map(t => 
           t.id === regularTask.id ? { ...t, status: newStatus } : t
         );
@@ -1243,7 +1257,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
 
 
-  console.log('App component about to render JSX...');
+  logger.debug('App component about to render JSX');
 
   if (isLoading) {
     return (
@@ -1383,25 +1397,25 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 }
 
 function App() {
-  // Debug environment variables
-  console.log('🔍 App.tsx - Environment variables:');
-  console.log('VITE_DISABLE_AUTH:', import.meta.env.VITE_DISABLE_AUTH);
-  console.log('VITE_DISABLE_AUTH type:', typeof import.meta.env.VITE_DISABLE_AUTH);
-  console.log('VITE_DISABLE_AUTH === "true":', import.meta.env.VITE_DISABLE_AUTH === 'true');
-  console.log('VITE_DISABLE_AUTH === "TRUE":', import.meta.env.VITE_DISABLE_AUTH === 'TRUE');
-  console.log('Auth bypass should work:', import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE');
-  console.log('All env vars:', import.meta.env);
+  // Debug environment variables (development only)
+  logger.debug('App.tsx - Environment variables', {
+    VITE_DISABLE_AUTH: import.meta.env.VITE_DISABLE_AUTH,
+    VITE_DISABLE_AUTH_type: typeof import.meta.env.VITE_DISABLE_AUTH,
+    authBypassEnabled: import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE'
+  });
   
-  // Basic React debugging
-  console.log('🚀 App component is rendering!');
-  console.log('🔍 Current URL:', window.location.href);
-  console.log('🔍 Current pathname:', window.location.pathname);
+  // Basic React debugging (development only)
+  logger.debug('App component is rendering', {
+    url: window.location.href,
+    pathname: window.location.pathname,
+    hostname: window.location.hostname
+  });
   
   // Production debugging
   if (window.location.hostname !== 'localhost') {
-    console.log('🌐 Production environment detected');
-    console.log('🔍 Auth disabled:', import.meta.env.VITE_DISABLE_AUTH === 'true');
-    console.log('🚀 Force deployment - Auth bypass should be working now!');
+    logger.debug('Production environment detected', {
+      authDisabled: import.meta.env.VITE_DISABLE_AUTH === 'true'
+    });
   }
   
   // Secret admin access state

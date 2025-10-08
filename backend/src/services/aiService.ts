@@ -13,6 +13,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import * as dotenv from 'dotenv';
 import { PromptAssembler } from './aiPromptTemplates';
 import { ENV } from '../config/environment';
+import { logger } from '../utils/logger';
+import type { MarketingGoal, Task } from '../types';
 
 dotenv.config();
 
@@ -25,9 +27,9 @@ const anthropic = new Anthropic({
 // ============================================================================
 
 export interface ConversationContext {
-  marketingGoals: any[];
-  currentTasks: any[];
-  activeTrack: any | null;
+  marketingGoals: MarketingGoal[];
+  currentTasks: Task[];
+  activeTrack: MarketingGoal | null;
   userBusinessType?: string;
   userIndustry?: string;
   userExperienceLevel?: string;
@@ -82,7 +84,7 @@ export class AIService {
       
       return response;
     } catch (error) {
-      console.error('AI Service Error:', error);
+      logger.error('AI Service Error', error, { userMessage });
       return this.getFallbackResponse(error);
     }
   }
@@ -167,7 +169,7 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
   /**
    * Get fallback response when AI fails
    */
-  private static getFallbackResponse(error: any): string {
+  private static getFallbackResponse(error: unknown): string {
     if (error instanceof Error && error.message.includes('API key')) {
       return 'I apologize, but I\'m having trouble connecting to my AI service right now. Please try again in a moment, or contact support if the issue persists.';
     }
@@ -232,7 +234,7 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
    * @deprecated Use generateResponse instead
    */
   static async createSystemPrompt(context: ConversationContext): Promise<string> {
-    console.warn('createSystemPrompt is deprecated. Use getSystemPrompt instead.');
+    logger.warn('createSystemPrompt is deprecated, use getSystemPrompt instead');
     return this.getSystemPrompt(context);
   }
 
@@ -241,7 +243,7 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
    * @deprecated Use generateResponse instead
    */
   static async getBusinessContext(context: ConversationContext): Promise<string> {
-    console.warn('getBusinessContext is deprecated. Use getSystemPrompt instead.');
+    logger.warn('getBusinessContext is deprecated, use getSystemPrompt instead');
     return this.getSystemPrompt(context);
   }
 }
