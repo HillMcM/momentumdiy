@@ -2,6 +2,7 @@ import * as express from 'express';
 import { StripeService, SubscriptionData } from '../services/stripeService';
 import { supabase, supabasePublic } from '../config/supabase';
 import { routeRateLimit } from '../middleware/rate';
+import { logger } from '../utils/logger';
 import Stripe from 'stripe';
 
 const router = express.Router();
@@ -61,7 +62,7 @@ router.post('/create-subscription', routeRateLimit(10), async (req, res) => {
       data: result
     });
   } catch (error) {
-    console.error('Error creating subscription:', error);
+    logger.error('Error creating subscription', error, { plan, interval });
     return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create subscription'
@@ -100,7 +101,7 @@ router.get('/subscription', routeRateLimit(30), async (req, res) => {
       data: subscriptionDetails
     });
   } catch (error) {
-    console.error('Error getting subscription:', error);
+    logger.error('Error getting subscription', error);
     return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get subscription'
@@ -139,7 +140,7 @@ router.post('/cancel-subscription', routeRateLimit(10), async (req, res) => {
       message: 'Subscription canceled successfully'
     });
   } catch (error) {
-    console.error('Error canceling subscription:', error);
+    logger.error('Error canceling subscription', error);
     return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to cancel subscription'
@@ -198,7 +199,7 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
       .maybeSingle();
 
     if (profileError) {
-      console.error('Error fetching profile:', profileError);
+      logger.error('Error fetching profile', profileError, { userId: user.id });
       return res.status(500).json({
         success: false,
         error: 'Failed to fetch profile'
@@ -227,8 +228,7 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
         .single();
 
       if (createError) {
-        console.error('Error creating profile:', createError);
-        console.error('User data:', { id: user.id, email: user.email });
+        logger.error('Error creating profile', createError, { userId: user.id, email: user.email });
         return res.status(500).json({
           success: false,
           error: `Failed to create profile: ${createError.message}`
@@ -268,7 +268,7 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
       data: finalProfile
     });
   } catch (error) {
-    console.error('Error getting profile:', error);
+    logger.error('Error getting profile', error);
     return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get profile'
@@ -287,16 +287,17 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const stripe = require('stripe')(process.env['STRIPE_SECRET_KEY']);
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-  } catch (err: any) {
-    console.log(`Webhook signature verification failed.`, err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    logger.warn('Webhook signature verification failed', { error: errorMessage });
+    return res.status(400).send(`Webhook Error: ${errorMessage}`);
   }
 
   try {
     await StripeService.handleWebhook(event);
     return res.json({ received: true });
   } catch (error) {
-    console.error('Error handling webhook:', error);
+    logger.error('Error handling webhook', error, { eventType: event?.type });
     return res.status(500).json({ error: 'Webhook handler failed' });
   }
 });
@@ -346,12 +347,12 @@ router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
       subscription: {
         id: subscription.id,
         status: subscription.status,
-        current_period_start: (subscription as any).current_period_start,
-        current_period_end: (subscription as any).current_period_end,
+        current_period_start: subscription.current_period_start,
+        current_period_end: subscription.current_period_end,
       },
     });
   } catch (error) {
-    console.error('Error verifying payment:', error);
+    logger.error('Error verifying payment', error, { sessionId: req.body.sessionId });
     return res.status(500).json({
       success: false,
       error: 'Failed to verify payment'
@@ -436,7 +437,7 @@ router.post('/create-checkout-session', routeRateLimit(10), async (req, res) => 
       },
     });
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    logger.error('Error creating checkout session', error, { plan, interval });
     return res.status(500).json({
       success: false,
       error: 'Failed to create checkout session'
@@ -481,13 +482,19 @@ router.post('/verify-payment', routeRateLimit(10), async (req, res) => {
       },
       subscription: {
         id: session.subscription,
-        status: (session.subscription as any)?.status || 'active',
-        current_period_start: (session.subscription as any)?.current_period_start,
-        current_period_end: (session.subscription as any)?.current_period_end,
+        status: typeof session.subscription === 'object' && session.subscription !== null && 'status' in session.subscription 
+          ? (session.subscription as Stripe.Subscription).status 
+          : 'active',
+        current_period_start: typeof session.subscription === 'object' && session.subscription !== null && 'current_period_start' in session.subscription
+          ? (session.subscription as Stripe.Subscription).current_period_start
+          : undefined,
+        current_period_end: typeof session.subscription === 'object' && session.subscription !== null && 'current_period_end' in session.subscription
+          ? (session.subscription as Stripe.Subscription).current_period_end
+          : undefined,
       },
     });
   } catch (error) {
-    console.error('Error verifying payment:', error);
+    logger.error('Error verifying payment', error, { sessionId: req.body.sessionId });
     return res.status(500).json({
       success: false,
       error: 'Failed to verify payment'
@@ -533,7 +540,7 @@ router.put('/profile', routeRateLimit(10), async (req, res) => {
       .single();
 
     if (updateError) {
-      console.error('Error updating profile:', updateError);
+      logger.error('Error updating profile', updateError, { userId: user.id });
       return res.status(500).json({
         success: false,
         error: 'Failed to update profile'
@@ -545,7 +552,7 @@ router.put('/profile', routeRateLimit(10), async (req, res) => {
       data: updatedProfile
     });
   } catch (error) {
-    console.error('Error in profile update:', error);
+    logger.error('Error in profile update', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

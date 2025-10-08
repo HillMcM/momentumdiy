@@ -1,5 +1,6 @@
 import { EmailService } from './emailService';
 import { EmailPreferences } from '../types';
+import { logger } from '../utils/logger';
 
 export interface UserProfile {
   id: string;
@@ -13,6 +14,22 @@ export interface UserProfile {
   email_preferences?: EmailPreferences;
 }
 
+export interface OnboardingData {
+  businessName?: string;
+  businessType?: string;
+  industry?: string;
+  selectedTrack?: string;
+  [key: string]: unknown;
+}
+
+export interface ProgressData {
+  completedTasks: number;
+  totalTasks: number;
+  weekNumber: number;
+  trackName: string;
+  [key: string]: unknown;
+}
+
 export class NotificationService {
   /**
    * Send welcome email when user signs up
@@ -24,16 +41,16 @@ export class NotificationService {
         email: user.email,
         type: 'welcome'
       });
-      console.log(`📧 Welcome email sent to ${user.email}`);
+      logger.info('Welcome email sent', { email: user.email });
     } catch (error) {
-      console.error('❌ Error sending welcome email:', error);
+      logger.error('Error sending welcome email', error, { email: user.email });
     }
   }
 
   /**
    * Send onboarding complete email
    */
-  static async sendOnboardingCompleteNotification(user: UserProfile, onboardingData: any): Promise<void> {
+  static async sendOnboardingCompleteNotification(user: UserProfile, onboardingData: OnboardingData): Promise<void> {
     try {
       await EmailService.sendNotificationEmail({
         name: user.name,
@@ -41,9 +58,9 @@ export class NotificationService {
         type: 'onboarding_complete',
         data: onboardingData
       });
-      console.log(`📧 Onboarding complete email sent to ${user.email}`);
+      logger.info('Onboarding complete email sent', { email: user.email });
     } catch (error) {
-      console.error('❌ Error sending onboarding complete email:', error);
+      logger.error('Error sending onboarding complete email', error, { email: user.email });
     }
   }
 
@@ -58,9 +75,9 @@ export class NotificationService {
         type: 'trial_ending',
         data: { daysLeft }
       });
-      console.log(`📧 Trial ending email sent to ${user.email} (${daysLeft} days left)`);
+      logger.info('Trial ending email sent', { email: user.email, daysLeft });
     } catch (error) {
-      console.error('❌ Error sending trial ending email:', error);
+      logger.error('Error sending trial ending email', error, { email: user.email, daysLeft });
     }
   }
 
@@ -75,9 +92,9 @@ export class NotificationService {
         type: 'subscription_active',
         data: { plan }
       });
-      console.log(`📧 Subscription active email sent to ${user.email}`);
+      logger.info('Subscription active email sent', { email: user.email, plan });
     } catch (error) {
-      console.error('❌ Error sending subscription active email:', error);
+      logger.error('Error sending subscription active email', error, { email: user.email, plan });
     }
   }
 
@@ -91,16 +108,16 @@ export class NotificationService {
         email: user.email,
         type: 'subscription_cancelled'
       });
-      console.log(`📧 Subscription cancelled email sent to ${user.email}`);
+      logger.info('Subscription cancelled email sent', { email: user.email });
     } catch (error) {
-      console.error('❌ Error sending subscription cancelled email:', error);
+      logger.error('Error sending subscription cancelled email', error, { email: user.email });
     }
   }
 
   /**
    * Send weekly progress report
    */
-  static async sendWeeklyProgressNotification(user: UserProfile, progressData: any): Promise<void> {
+  static async sendWeeklyProgressNotification(user: UserProfile, progressData: ProgressData): Promise<void> {
     try {
       await EmailService.sendNotificationEmail({
         name: user.name,
@@ -108,9 +125,9 @@ export class NotificationService {
         type: 'weekly_progress',
         data: progressData
       });
-      console.log(`📧 Weekly progress email sent to ${user.email}`);
+      logger.info('Weekly progress email sent', { email: user.email });
     } catch (error) {
-      console.error('❌ Error sending weekly progress email:', error);
+      logger.error('Error sending weekly progress email', error, { email: user.email });
     }
   }
 
@@ -125,9 +142,9 @@ export class NotificationService {
         type: 'task_reminder',
         data: { taskName }
       });
-      console.log(`📧 Task reminder email sent to ${user.email}`);
+      logger.info('Task reminder email sent', { email: user.email, taskName });
     } catch (error) {
-      console.error('❌ Error sending task reminder email:', error);
+      logger.error('Error sending task reminder email', error, { email: user.email, taskName });
     }
   }
 
@@ -178,6 +195,6 @@ export class NotificationService {
   static async sendTaskReminders(_users: UserProfile[]): Promise<void> {
     // This would check for users with overdue tasks
     // For now, this is a placeholder
-    console.log('📧 Task reminder check would run here');
+    logger.debug('Task reminder check would run here');
   }
 }
