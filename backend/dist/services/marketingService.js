@@ -136,6 +136,27 @@ class MarketingService {
             else {
                 console.log('⚠️ No modules found for track');
             }
+            let phases = [];
+            try {
+                if (trackDef.phases) {
+                    if (typeof trackDef.phases === 'string') {
+                        phases = JSON.parse(trackDef.phases);
+                    }
+                    else if (Array.isArray(trackDef.phases)) {
+                        phases = trackDef.phases;
+                    }
+                }
+            }
+            catch (error) {
+                console.error('Error parsing phases:', error);
+                phases = [];
+            }
+            const currentPhase = phases.find((phase) => calculatedWeek >= phase.startWeek && calculatedWeek <= phase.endWeek) || phases[0] || null;
+            console.log('📊 Phase calculation:', {
+                currentWeek: calculatedWeek,
+                phasesCount: phases.length,
+                currentPhase: currentPhase
+            });
             const goal = {
                 id: trackDef.id,
                 title: trackDef.title,
@@ -149,7 +170,8 @@ class MarketingService {
                 weekStartDates: profile.track_week_start_dates || [],
                 lastWeekAdvancement: profile.track_last_week_advancement,
                 trackDefinitionId: trackDef.id,
-                phases: trackDef.phases || [],
+                phases: phases,
+                currentPhase: currentPhase,
                 modules: modules
             };
             return {
