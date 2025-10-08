@@ -122,10 +122,10 @@ export default function AffiliateProgramPage() {
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-white mb-6">
+          <h1 className="text-5xl font-bold text-white mb-6 text-center">
             Earn with <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#EF8E81] to-[#D4AF37]">MomentumDIY</span>
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto text-center">
             Share MomentumDIY with your network and earn 20% recurring commissions for 12 months on every referral.
           </p>
         </div>
@@ -311,7 +311,7 @@ export default function AffiliateProgramPage() {
 
         {/* Terms */}
         <div className="mt-12 text-center text-sm text-gray-500">
-          <p>
+          <p className="text-center">
             By joining the affiliate program, you agree to our{' '}
             <a href="/terms" className="text-[#EF8E81] hover:underline">Terms of Service</a>{' '}
             and <span className="text-gray-400">Affiliate Program Terms</span>.
