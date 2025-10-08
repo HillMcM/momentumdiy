@@ -41,6 +41,7 @@ import SubscriptionGuard from './components/SubscriptionGuard';
 import PersonalizedDashboard from './components/PersonalizedDashboard';
 import NotificationContainer from './components/NotificationContainer';
 import NotificationBell from './components/NotificationBell';
+import OnboardingWizard from './components/OnboardingWizard';
 import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
