@@ -11,6 +11,7 @@ export interface OnboardingData {
   businessType: string;
   industry: string;
   businessStage: string;
+  location: string; // NEW: City, State
   primaryGoal: string;
   biggestChallenge: string[];
   currentActivities: string[];
@@ -45,6 +46,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
     businessType: '',
     industry: '',
     businessStage: '',
+    location: '', // NEW
     primaryGoal: '',
     biggestChallenge: [],
     currentActivities: [],
@@ -138,16 +140,56 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
     setIsSubmitting(true);
     
     try {
-      // Save onboarding data to individual profile columns (not JSONB)
+      // Map business type to category for Business Profile
+      const businessCategoryMap: Record<string, string> = {
+        'retail-business': 'Retail',
+        'e-commerce': 'E-commerce',
+        'service-business': 'Service',
+        'professional-services': 'Professional Services',
+        'consultant-freelancer': 'Consulting',
+        'personal-services': 'Personal Services',
+        'trade-craft': 'Trade/Craft',
+        'manufacturing': 'Manufacturing',
+        'nonprofit': 'Nonprofit',
+        'agency': 'Agency',
+        'franchise': 'Franchise',
+        'cooperative': 'Cooperative',
+        'partnership': 'Partnership',
+        'corporation': 'Corporation'
+      };
+
+      // Derive marketing channels from current activities
+      const channelMap: Record<string, string> = {
+        'social-media-posting': 'Social Media',
+        'email-marketing': 'Email',
+        'content-creation': 'Content Marketing',
+        'website-blog': 'SEO',
+        'paid-ads': 'Paid Advertising',
+        'networking-events': 'Networking',
+        'local-partnerships': 'Partnerships'
+      };
+      const marketingChannels = onboardingData.currentActivities
+        .map(activity => channelMap[activity])
+        .filter(Boolean);
+
+      // Generate business bio from collected data
+      const businessBio = `${onboardingData.businessName} is a ${onboardingData.businessStage} ${onboardingData.businessType} in the ${onboardingData.industry} industry, focused on ${onboardingData.primaryGoal.replace(/-/g, ' ')}.`;
+
+      // Save onboarding data to individual profile columns + enhanced Business Profile fields
       await apiService.updateProfile({
         onboarding_completed: true,
         business_name: onboardingData.businessName,
         business_type: onboardingData.businessType,
+        business_category: businessCategoryMap[onboardingData.businessType] || onboardingData.businessType,
         industry: onboardingData.industry,
         business_stage: onboardingData.businessStage,
+        location: onboardingData.location,
+        business_bio: businessBio,
         primary_goal: onboardingData.primaryGoal,
+        primary_marketing_goal: onboardingData.primaryGoal.replace(/-/g, ' '),
         biggest_challenge: onboardingData.biggestChallenge,
         current_activities: onboardingData.currentActivities,
+        marketing_channels: marketingChannels,
         time_available: onboardingData.timeAvailable,
         quiz_answers: onboardingData.quizAnswers,
         selected_track: onboardingData.selectedTrack,
@@ -205,7 +247,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
       case 'business-setup':
         switch (currentStep) {
           case 0: return true; // Welcome step
-          case 1: return onboardingData.businessName && onboardingData.businessType && onboardingData.industry && onboardingData.businessStage;
+          case 1: return onboardingData.businessName && onboardingData.businessType && onboardingData.industry && onboardingData.location && onboardingData.businessStage;
           case 2: return onboardingData.primaryGoal && onboardingData.biggestChallenge.length > 0;
           case 3: return onboardingData.currentActivities.length > 0 && onboardingData.timeAvailable;
           default: return false;
@@ -435,6 +477,22 @@ const BusinessSetupStep: React.FC<{
                 <option value="manufacturing">Manufacturing</option>
                 <option value="other">Other</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-[#FFF1E7] font-medium mb-2">
+                Business Location *
+              </label>
+              <input
+                type="text"
+                value={data.location}
+                onChange={(e) => onUpdate({ location: e.target.value })}
+                className="w-full px-4 py-3 bg-[#2A2438] border border-[#EF8E81]/30 rounded-lg text-[#FFF1E7] focus:border-[#EF8E81] focus:outline-none"
+                placeholder="e.g., Boston, MA or Online Only"
+              />
+              <p className="text-[#FFF1E7]/60 text-sm mt-1">
+                Where do you primarily operate? (City, State or "Online")
+              </p>
             </div>
 
             <div>
