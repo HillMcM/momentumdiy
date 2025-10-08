@@ -349,7 +349,7 @@ function SidebarToggle({ onClick, className }: { onClick: () => void; className?
   );
 }
 
-function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; onToggle: () => void; showProfileManager?: boolean }) {
+function Sidebar({ hidden, onToggle, showProfileManager, mobileOpen }: { hidden: boolean; onToggle: () => void; showProfileManager?: boolean; mobileOpen?: boolean }) {
   const location = useLocation();
   const { user } = useAuth();
   const deriveNameFromUser = (u: { user_metadata?: { full_name?: string; name?: string }; email?: string } | null) => {
@@ -395,7 +395,7 @@ function Sidebar({ hidden, onToggle, showProfileManager }: { hidden: boolean; on
   };
 
   return (
-    <nav className={`sidebar${hidden ? ' hidden' : ''}`}>
+    <nav className={`sidebar${hidden ? ' hidden' : ''}${mobileOpen ? ' mobile-open' : ''}`}>
       {!hidden && (
         <div style={{ position: 'absolute', top: 8, right: 8 }}>
           <SidebarToggle onClick={onToggle} />
@@ -640,6 +640,9 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     return saved ? JSON.parse(saved) : false;
   });
 
+  // Mobile sidebar state (separate from desktop toggle)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   // Function to toggle sidebar and persist state
   const toggleSidebar = useCallback(() => {
     setSidebarHidden(prev => {
@@ -648,6 +651,16 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       return newState;
     });
   }, []);
+
+  // Mobile sidebar toggle
+  const toggleMobileSidebar = useCallback(() => {
+    setMobileSidebarOpen(prev => !prev);
+  }, []);
+
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [location.pathname]);
 
   // Comment out non-core state for now
   // const [assets, setAssets] = useState<Asset[]>([]);
@@ -1186,11 +1199,32 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     <>
       <Header onLogoClick={onLogoClick} />
       <NotificationContainer />
+      
+      {/* Mobile Hamburger Menu */}
+      <button 
+        className="mobile-menu-button"
+        onClick={toggleMobileSidebar}
+        aria-label="Toggle menu"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      {/* Mobile Sidebar Overlay */}
+      <div 
+        className={`sidebar-overlay${mobileSidebarOpen ? ' visible' : ''}`}
+        onClick={toggleMobileSidebar}
+      />
+
       <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
         <Sidebar
           hidden={sidebarHidden}
           onToggle={toggleSidebar}
           showProfileManager={Boolean(marketingGoals.find(g => g.title === 'Improve Social Media Strategy & Engagement' && g.currentWeek >= g.duration))}
+          mobileOpen={mobileSidebarOpen}
         />
         {/* Attach opener only when collapsed */}
         {sidebarHidden && (

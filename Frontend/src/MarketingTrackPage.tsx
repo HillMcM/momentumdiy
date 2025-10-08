@@ -8,6 +8,7 @@ import MarkdownRenderer from './components/MarkdownRenderer';
 import { getPublishedTracks, activateTrack, updateMarketingGoalPhases } from './services/marketingService';
 import { renderContentPreview, renderMarketingContent } from './utils/contentRenderer';
 import { BACKEND_BASE_URL } from './services/api';
+import { useIsMobile } from './hooks/useMediaQuery';
 // Updated: 2025-09-24 - Phase update functionality added
 
 interface MarketingTrackPageProps {
@@ -22,6 +23,7 @@ interface MarketingTrackPageProps {
 export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTrackPageProps) {
   const { activeGoal, isLoading, refreshMarketingData, updateActiveGoal, updatePhases } = useMarketing();
   const { showTaskCompleted } = useNotificationHelpers();
+  const isMobile = useIsMobile();
   const [selectedTask, setSelectedTask] = useState<MarketingTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [publishedTracks, setPublishedTracks] = useState<MarketingGoal[]>([]);
@@ -198,7 +200,7 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
+      <div className={`min-h-screen bg-transparent text-white ${isMobile ? 'p-4' : 'p-6'}`} style={{ background: 'transparent !important' }}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81] mb-4"></div>
@@ -211,7 +213,7 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
 
   if (!activeGoal || showTrackSelection) {
   return (
-    <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
+    <div className={`min-h-screen bg-transparent text-white ${isMobile ? 'p-4' : 'p-6'}`} style={{ background: 'transparent !important' }}>
       <div className="max-w-6xl mx-auto">
         <div className="text-center py-12">
             <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8">
@@ -308,11 +310,11 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
   // Render the marketing track using the same UI as production
   return (
     <MarketingTrackProvider activeGoal={activeGoal}>
-      <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
+      <div className={`min-h-screen bg-transparent text-white ${isMobile ? 'p-4' : 'p-6'}`} style={{ background: 'transparent !important' }}>
         <div className="max-w-6xl mx-auto">
           
           {/* Header */}
-          <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] p-8 mb-8">
+          <div className={`bg-[#1B1628] rounded-2xl border border-[#2A243E] ${isMobile ? 'p-4' : 'p-8'} mb-8`}>
             <div className="flex items-start justify-between mb-6">
               <div>
                 <h1 className="text-3xl font-bold text-white mb-2">{activeGoal.title}</h1>
@@ -472,9 +474,10 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                   {/* Module Header - Collapsible button for past weeks */}
                   <button
                     onClick={() => !isCurrentWeek && toggleWeekExpansion(module.weekNumber)}
-                    className={`w-full p-6 pb-4 text-left transition-colors ${
+                    className={`w-full ${isMobile ? 'p-4 pb-3' : 'p-6 pb-4'} text-left transition-colors ${
                       !isCurrentWeek ? 'hover:bg-[#2A243E]/20 cursor-pointer' : 'cursor-default'
                     } ${isCurrentWeek ? 'bg-gradient-to-r from-[#EF8E81]/10 to-transparent' : ''}`}
+                    style={{ minHeight: isMobile ? '60px' : 'auto' }}
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">

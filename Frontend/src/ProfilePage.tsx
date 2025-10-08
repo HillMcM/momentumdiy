@@ -11,6 +11,7 @@ import ProgressTimeline from './components/ProgressTimeline';
 import CompletionConfetti from './components/CompletionConfetti';
 import { BACKEND_BASE_URL } from './services/api';
 import { calculateMomentumScore, getMomentumFactorsFromTrackData } from './utils/momentumCalculator';
+import { useIsMobile } from './hooks/useMediaQuery';
 
 type SkillLevels = {
   social?: number;
@@ -88,6 +89,7 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const { activeGoal } = useMarketing();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [tab, setTab] = useState<'account' | 'business' | 'tracks' | 'favorites' | 'notifications'>('account');
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -312,7 +314,12 @@ export default function ProfilePage() {
   );
 
   return (
-    <div style={{ padding: '2rem', color: '#FFF1E7', maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ 
+      padding: isMobile ? '1rem' : '2rem', 
+      color: '#FFF1E7', 
+      maxWidth: '1200px', 
+      margin: '0 auto' 
+    }}>
       {/* Profile Header */}
       <ProfileHeader 
         profile={profile}
@@ -323,26 +330,38 @@ export default function ProfilePage() {
       <CompletionConfetti isComplete={activeGoal?.progress >= 100} />
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+      <div style={{ 
+        display: 'flex', 
+        gap: '0.5rem', 
+        marginBottom: '1.5rem', 
+        flexWrap: isMobile ? 'nowrap' : 'wrap',
+        overflowX: isMobile ? 'auto' : 'visible',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none'
+      }}>
         {tabs.map(t => (
           <button 
             key={t.key} 
             onClick={() => setTab(t.key)} 
             style={{ 
-              padding: '0.75rem 1.25rem', 
+              padding: isMobile ? '0.75rem 1rem' : '0.75rem 1.25rem', 
               borderRadius: 10, 
               border: tab === t.key ? '2px solid #EF8E81' : '1px solid rgba(255,255,255,0.12)', 
               background: tab === t.key ? 'rgba(239, 142, 129, 0.15)' : 'rgba(255,255,255,0.02)', 
               color: tab === t.key ? '#EF8E81' : '#FFF1E7', 
               cursor: 'pointer',
               fontWeight: tab === t.key ? 600 : 400,
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
+              whiteSpace: 'nowrap',
+              fontSize: isMobile ? '0.85rem' : '1rem',
+              minHeight: '44px'
             }}
           >
             {t.label}
           </button>
         ))}
-        <span style={{ marginLeft: 'auto' }} />
+        {!isMobile && <span style={{ marginLeft: 'auto' }} />}
         <button 
           onClick={save} 
           disabled={saving} 
@@ -355,7 +374,11 @@ export default function ProfilePage() {
             cursor: saving ? 'not-allowed' : 'pointer',
             fontWeight: 600,
             boxShadow: saving ? 'none' : '0 2px 8px rgba(239, 142, 129, 0.3)',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            whiteSpace: 'nowrap',
+            width: isMobile ? '100%' : 'auto',
+            minHeight: '44px',
+            marginTop: isMobile ? '0.5rem' : '0'
           }}
         >
           {saving ? 'Saving…' : '💾 Save Changes'}
@@ -364,7 +387,11 @@ export default function ProfilePage() {
 
       {/* TAB 1: ACCOUNT SETTINGS */}
       {tab === 'account' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+          gap: isMobile ? '1rem' : '1.5rem' 
+        }}>
           <Section title="Profile & Branding">
             <ImageUploader
               label="Brand Logo / Avatar"
@@ -486,8 +513,12 @@ export default function ProfilePage() {
 
       {/* TAB 2: BUSINESS PROFILE */}
       {tab === 'business' && (
-        <div style={{ display: 'grid', gap: '1.5rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gap: isMobile ? '1rem' : '1.5rem' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+            gap: isMobile ? '1rem' : '1.5rem' 
+          }}>
             <Section title="Business Details">
               <Input 
                 label="Business Name" 
@@ -657,7 +688,12 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Stats Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
+                  gap: '1rem', 
+                  marginBottom: '1.5rem' 
+                }}>
                   <div style={{ background: 'rgba(239, 142, 129, 0.1)', border: '1px solid rgba(239, 142, 129, 0.3)', borderRadius: 10, padding: '1rem', textAlign: 'center' }}>
                     <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Current Week</div>
                     <div style={{ fontSize: '2rem', fontWeight: 700, color: '#EF8E81' }}>
@@ -854,7 +890,11 @@ export default function ProfilePage() {
           {/* Quick Actions */}
           {activeGoal && (
             <Section title="Quick Actions">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
+                gap: '1rem' 
+              }}>
                 <button
                   onClick={() => navigate('/app/marketing-track')}
                   style={{

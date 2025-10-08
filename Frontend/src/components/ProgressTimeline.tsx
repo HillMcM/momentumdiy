@@ -1,4 +1,5 @@
 import type { MarketingGoal } from '../types';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface ProgressTimelineProps {
   activeGoal: MarketingGoal;
@@ -8,11 +9,12 @@ interface ProgressTimelineProps {
 export default function ProgressTimeline({ activeGoal, onWeekClick }: ProgressTimelineProps) {
   const totalWeeks = activeGoal.duration || 12;
   const currentWeek = activeGoal.currentWeek || 1;
+  const isMobile = useIsMobile();
 
   return (
     <div style={{ marginBottom: '2rem' }}>
       <h4 style={{ 
-        fontSize: '1rem', 
+        fontSize: isMobile ? '0.9rem' : '1rem', 
         fontWeight: 600, 
         color: '#FFF1E7', 
         marginBottom: '1rem' 
@@ -23,7 +25,9 @@ export default function ProgressTimeline({ activeGoal, onWeekClick }: ProgressTi
       {/* Timeline Container */}
       <div style={{ 
         position: 'relative',
-        padding: '1rem 0'
+        padding: '1rem 0',
+        overflowX: isMobile ? 'auto' : 'visible',
+        WebkitOverflowScrolling: 'touch'
       }}>
         {/* Progress Line */}
         <div style={{
@@ -55,7 +59,8 @@ export default function ProgressTimeline({ activeGoal, onWeekClick }: ProgressTi
           gridTemplateColumns: `repeat(${totalWeeks}, 1fr)`,
           gap: '0.25rem',
           position: 'relative',
-          zIndex: 1
+          zIndex: 1,
+          minWidth: isMobile ? `${totalWeeks * 60}px` : 'auto'
         }}>
           {Array.from({ length: totalWeeks }, (_, i) => {
             const weekNum = i + 1;

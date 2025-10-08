@@ -1,5 +1,6 @@
 import { useMarketing } from '../contexts/MarketingContext';
 import { getMomentumBadge } from '../utils/momentumCalculator';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface ProfileHeaderProps {
   profile: {
@@ -15,6 +16,7 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderProps) {
   const { activeGoal } = useMarketing();
+  const isMobile = useIsMobile();
   
   const momentumBadge = getMomentumBadge(profile.momentum_score || 0);
   const displayName = profile.business_name || profile.full_name || 'User';
@@ -25,15 +27,21 @@ export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderPro
       background: 'linear-gradient(135deg, #1B1628 0%, #2A243E 100%)',
       border: '1px solid rgba(239, 142, 129, 0.2)',
       borderRadius: '16px',
-      padding: '1.5rem',
+      padding: isMobile ? '1rem' : '1.5rem',
       marginBottom: '2rem',
       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'stretch' : 'center', 
+        gap: isMobile ? '1rem' : '1.5rem', 
+        flexWrap: 'wrap' 
+      }}>
         {/* Avatar/Logo */}
         <div style={{
-          width: '80px',
-          height: '80px',
+          width: isMobile ? '60px' : '80px',
+          height: isMobile ? '60px' : '80px',
           borderRadius: '50%',
           overflow: 'hidden',
           border: '3px solid #EF8E81',
@@ -105,9 +113,10 @@ export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderPro
           background: `${momentumBadge.color}20`,
           border: `2px solid ${momentumBadge.color}`,
           borderRadius: '12px',
-          padding: '0.75rem 1.25rem',
+          padding: isMobile ? '0.75rem' : '0.75rem 1.25rem',
           textAlign: 'center',
-          minWidth: '140px'
+          minWidth: isMobile ? '100%' : '140px',
+          flex: isMobile ? '1' : 'none'
         }}>
           <div style={{ 
             fontSize: '0.75rem', 
@@ -147,7 +156,9 @@ export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderPro
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.2s',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              width: isMobile ? '100%' : 'auto',
+              minHeight: '44px'
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.background = '#EF8E81';
