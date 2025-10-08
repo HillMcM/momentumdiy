@@ -1,18 +1,16 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
-import { createServer } from '../../src/index';
+import app from '../../src/index';
 
 describe('Tasks API Routes', () => {
   let server: any;
 
   beforeAll(async () => {
-    server = createServer();
+    server = app;
   });
 
   afterAll(async () => {
-    if (server) {
-      await server.close();
-    }
+    // Express app doesn't need cleanup in tests
   });
 
   describe('GET /api/tasks', () => {

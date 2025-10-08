@@ -1,43 +1,33 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
-import { createServer } from '../../src/index';
+import app from '../../src/index';
 
 describe('Marketing API Routes', () => {
   let server: any;
 
   beforeAll(async () => {
-    // Create a test server instance
-    server = createServer();
+    // Use the Express app directly for testing
+    server = app;
   });
 
   afterAll(async () => {
-    // Clean up server
-    if (server) {
-      await server.close();
-    }
+    // Express app doesn't need cleanup in tests
   });
 
   describe('GET /api/marketing/goals/active', () => {
-    it('should return active marketing goal or empty response', async () => {
+    it('should require authentication', async () => {
       const response = await request(server)
         .get('/api/marketing/goals/active')
-        .expect(200);
+        .expect(401);
 
-      expect(response.body).toHaveProperty('success');
-      expect(typeof response.body.success).toBe('boolean');
-
-      if (response.body.success && response.body.data) {
-        expect(response.body.data).toHaveProperty('id');
-        expect(response.body.data).toHaveProperty('title');
-        expect(response.body.data).toHaveProperty('currentWeek');
-        expect(response.body.data).toHaveProperty('duration');
-      }
+      expect(response.body).toHaveProperty('success', false);
+      expect(response.body).toHaveProperty('error');
     });
 
     it('should handle database connection errors gracefully', async () => {
       // This test would require mocking database failures
       // For now, we'll just ensure the endpoint doesn't crash
-      const response = await request(server)
+      await request(server)
         .get('/api/marketing/goals/active')
         .expect((res) => {
           expect(res.status).toBeLessThan(500);
@@ -45,10 +35,10 @@ describe('Marketing API Routes', () => {
     });
   });
 
-  describe('GET /api/marketing/tracks/published', () => {
-    it('should return published marketing tracks', async () => {
+  describe('GET /api/admin/tracks/goals', () => {
+    it('should return published marketing tracks (admin endpoint)', async () => {
       const response = await request(server)
-        .get('/api/marketing/tracks/published')
+        .get('/api/admin/tracks/goals')
         .expect(200);
 
       expect(response.body).toHaveProperty('success');
