@@ -60,7 +60,7 @@ router.post('/chat', (0, rate_1.routeRateLimit)(30), async (req, res) => {
         }
         const marketingGoals = marketingGoalsResponse.data || [];
         const tasks = tasksResponse.data || [];
-        const activeTrack = marketingGoals.find(goal => goal.isActive);
+        const activeTrack = marketingGoals.find(goal => goal.isActive) || null;
         const context = {
             marketingGoals,
             currentTasks: tasks.filter(task => task.status === 'todo'),
@@ -103,7 +103,7 @@ router.get('/context', async (_req, res) => {
         }
         const marketingGoals = marketingGoalsResponse.data || [];
         const tasks = tasksResponse.data || [];
-        const activeTrack = marketingGoals.find(goal => goal.isActive);
+        const activeTrack = marketingGoals.find(goal => goal.isActive) || null;
         const context = {
             marketingGoals,
             currentTasks: tasks.filter(task => task.status === 'todo'),

@@ -48,7 +48,7 @@ router.post('/chat', routeRateLimit(30), async (req, res) => {
 
     const marketingGoals = marketingGoalsResponse.data || [];
     const tasks = tasksResponse.data || [];
-    const activeTrack = marketingGoals.find(goal => goal.isActive);
+    const activeTrack = marketingGoals.find(goal => goal.isActive) || null;
 
     // Create conversation context with business intelligence
     const context: ConversationContext = {
@@ -107,7 +107,7 @@ router.get('/context', async (_req, res) => {
 
     const marketingGoals = marketingGoalsResponse.data || [];
     const tasks = tasksResponse.data || [];
-    const activeTrack = marketingGoals.find(goal => goal.isActive);
+    const activeTrack = marketingGoals.find(goal => goal.isActive) || null;
 
     const context: ConversationContext = {
       marketingGoals,

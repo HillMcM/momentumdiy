@@ -27,6 +27,8 @@ export interface ProgressData {
   totalTasks: number;
   weekNumber: number;
   trackName: string;
+  lastActivityDate?: string;
+  daysSinceLastActivity?: number;
   [key: string]: unknown;
 }
 
