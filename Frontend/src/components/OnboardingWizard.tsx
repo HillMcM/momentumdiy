@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import { getPublishedTracks, activateTrack } from '../services/marketingService';
+import { useMarketing } from '../contexts/MarketingContext';
 
 // Types for onboarding data
 export interface OnboardingData {
@@ -32,9 +34,12 @@ interface OnboardingWizardProps {
 }
 
 const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete, onSkip }) => {
+  const navigate = useNavigate();
+  const { refreshActiveGoal } = useMarketing();
   const [currentStep, setCurrentStep] = useState(0);
   const [availableTracks, setAvailableTracks] = useState<any[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     businessName: '',
     businessType: '',
@@ -130,6 +135,8 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
   };
 
   const handleComplete = async () => {
+    setIsSubmitting(true);
+    
     try {
       // Save onboarding data to individual profile columns (not JSONB)
       await apiService.updateProfile({
@@ -163,15 +170,27 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
         }
       }
       
+      // Refresh marketing context to load the new track
+      console.log('🔄 Refreshing marketing data...');
+      await refreshActiveGoal();
+      console.log('✅ Marketing data refreshed');
+      
       // Call the completion handler and close the wizard
       console.log('🔧 Calling onComplete callback...');
       onComplete(onboardingData);
       console.log('✅ onComplete callback called');
       
+      // Navigate to marketing track page to see the new track
+      setTimeout(() => {
+        navigate('/app/marketing-track');
+      }, 500);
+      
     } catch (error) {
       console.error('Error completing onboarding:', error);
       // Still complete onboarding even if API calls fail
       onComplete(onboardingData);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -278,10 +297,21 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
           
             <button
               onClick={handleNext}
-              disabled={!canProceed()}
-              className="px-8 py-3 rounded-lg bg-[#EF8E81] text-white font-semibold hover:bg-[#E67E6B] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              disabled={!canProceed() || isSubmitting}
+              className="px-8 py-3 rounded-lg bg-[#EF8E81] text-white font-semibold hover:bg-[#E67E6B] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
-              {currentStep === totalSteps - 1 ? 'Complete Setup' : 'Next'}
+              {isSubmitting && (
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
+              {isSubmitting 
+                ? 'Setting up your track...' 
+                : currentStep === totalSteps - 1 
+                  ? 'Complete Setup' 
+                  : 'Next'
+              }
             </button>
         </div>
       </div>

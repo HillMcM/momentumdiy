@@ -129,16 +129,18 @@ export default function UniversalTrackTemplate({
         console.error('Failed to update progress:', progressResponse.error);
       }
 
-      // Show notification
-      const taskToUpdate = updatedModule.tasks?.find(task => task.id === taskId);
-      if (taskToUpdate) {
-        showTaskCompleted(taskToUpdate.title);
-      }
+      // Show notification only when completing (not uncompleting)
+      if (isCompleted) {
+        const taskToUpdate = updatedModule.tasks?.find(task => task.id === taskId);
+        if (taskToUpdate) {
+          showTaskCompleted(taskToUpdate.title);
+        }
 
-      // Check if module is completed
-      const allTasksCompleted = updatedModule.tasks?.every((task: any) => task.isCompleted) || false;
-      if (allTasksCompleted && !updatedModule.isCompleted) {
-        showModuleCompleted(updatedModule.title, updatedModule.weekNumber);
+        // Check if module is completed
+        const allTasksCompleted = updatedModule.tasks?.every((task: any) => task.isCompleted) || false;
+        if (allTasksCompleted && !updatedModule.isCompleted) {
+          showModuleCompleted(updatedModule.title, updatedModule.weekNumber);
+        }
       }
 
     } catch (error) {

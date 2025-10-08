@@ -170,6 +170,31 @@ export const useNotificationHelpers = () => {
     });
   };
 
+  const showWeekUnlocked = (weekNumber: number, onClick?: () => void) => {
+    addNotification({
+      type: 'success',
+      title: '🔓 New Week Unlocked!',
+      message: `Week ${weekNumber} is now available! Ready to continue your marketing journey?`,
+      action: onClick ? {
+        label: 'View Week',
+        onClick,
+      } : undefined,
+    });
+  };
+
+  const showTrackCompleted = (trackName: string, onClick?: () => void) => {
+    addNotification({
+      type: 'success',
+      title: '🎉 Track Completed!',
+      message: `Amazing! You've completed the ${trackName} track! Your dedication has paid off. Ready to choose your next journey?`,
+      persistent: true,
+      action: onClick ? {
+        label: 'Choose Next Track',
+        onClick,
+      } : undefined,
+    });
+  };
+
   return {
     showSuccess,
     showError,
@@ -184,5 +209,7 @@ export const useNotificationHelpers = () => {
     showMarketingTrackProgress,
     showStreakAchievement,
     showMilestoneReached,
+    showWeekUnlocked,
+    showTrackCompleted,
   };
 };

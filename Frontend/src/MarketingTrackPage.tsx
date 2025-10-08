@@ -102,8 +102,10 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
         // Sync with task tracker
         await syncWithTaskTracker(taskToUpdate.id, !taskToUpdate.isCompleted);
         
-        // Show notification
-        showTaskCompleted(taskToUpdate.title);
+        // Show notification only when completing (not uncompleting)
+        if (!taskToUpdate.isCompleted) {
+          showTaskCompleted(taskToUpdate.title);
+        }
       } else {
         console.error('Failed to update task:', await response.text());
       }
