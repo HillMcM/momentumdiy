@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useMarketing } from './contexts/MarketingContext';
 import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 import { MarketingTrackProvider } from './contexts/MarketingTrackContext';
@@ -28,6 +28,8 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [activatingTrack, setActivatingTrack] = useState<string | null>(null);
   const [showTrackSelection, setShowTrackSelection] = useState(false); // Only show selection when no active goal
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
+  const currentWeekRef = useRef<HTMLDivElement>(null);
 
   // Sync marketing task completion with task tracker
   const syncWithTaskTracker = async (marketingTaskId: string, isCompleted: boolean) => {
@@ -167,6 +169,31 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
       loadPublishedTracks();
     }
   }, [isLoading, activeGoal]);
+
+  // Initialize current week as expanded and scroll to it
+  useEffect(() => {
+    if (activeGoal) {
+      // Always expand current week
+      setExpandedWeeks(new Set([activeGoal.currentWeek]));
+      
+      // Scroll to current week after a brief delay
+      setTimeout(() => {
+        currentWeekRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    }
+  }, [activeGoal?.currentWeek]);
+  
+  const toggleWeekExpansion = (weekNumber: number) => {
+    setExpandedWeeks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(weekNumber)) {
+        newSet.delete(weekNumber);
+      } else {
+        newSet.add(weekNumber);
+      }
+      return newSet;
+    });
+  };
 
 
   if (isLoading) {
@@ -382,7 +409,9 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
               const totalTasks = module.tasks.length;
               const moduleProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
               const isCurrentWeek = module.weekNumber === activeGoal.currentWeek;
+              const isPastWeek = module.weekNumber < activeGoal.currentWeek && module.isUnlocked;
               const isUnlocked = module.isUnlocked || module.weekNumber <= activeGoal.currentWeek;
+              const isExpanded = expandedWeeks.has(module.weekNumber);
 
               // Condensed view for locked weeks
               if (!isUnlocked) {
@@ -420,14 +449,20 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
               return (
                 <div 
                   key={module.id}
+                  ref={isCurrentWeek ? currentWeekRef : null}
                   className={`bg-[#1B1628] rounded-2xl border transition-all duration-200 ${
                     isCurrentWeek 
-                      ? 'border-[#EF8E81] shadow-lg shadow-[#EF8E81]/10' 
+                      ? 'ring-2 ring-[#EF8E81] border-[#EF8E81] shadow-lg shadow-[#EF8E81]/20' 
                       : 'border-[#2A243E]'
                   }`}
                 >
-                  {/* Module Header */}
-                  <div className="p-6 pb-4">
+                  {/* Module Header - Collapsible button for past weeks */}
+                  <button
+                    onClick={() => !isCurrentWeek && toggleWeekExpansion(module.weekNumber)}
+                    className={`w-full p-6 pb-4 text-left transition-colors ${
+                      !isCurrentWeek ? 'hover:bg-[#2A243E]/20 cursor-pointer' : 'cursor-default'
+                    } ${isCurrentWeek ? 'bg-gradient-to-r from-[#EF8E81]/10 to-transparent' : ''}`}
+                  >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -446,13 +481,35 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                           )}
                         </div>
                       </div>
-                      <div className="text-sm text-gray-400">
-                        {completedTasks}/{totalTasks} tasks
+                      <div className="flex items-center gap-3">
+                        {isCurrentWeek && (
+                          <div className="bg-[#EF8E81] text-white border border-[#EF8E81] rounded-full px-4 py-1.5 text-sm font-bold shadow-md animate-pulse">
+                            ✨ Current Week
+                          </div>
+                        )}
+                        {isPastWeek && (
+                          <div className="bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 rounded-full px-3 py-1 text-xs font-medium">
+                            ✓ Completed
+                          </div>
+                        )}
+                        <div className="text-sm text-gray-400 font-medium">
+                          {completedTasks}/{totalTasks} tasks
+                        </div>
+                        {!isCurrentWeek && (
+                          <svg 
+                            className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        )}
                       </div>
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="space-y-2 mb-4">
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-gray-300">Week Progress</span>
                         <span className="text-sm font-medium text-[#EF8E81]">{Math.round(moduleProgress)}%</span>
@@ -464,9 +521,13 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                         />
                       </div>
                     </div>
+                  </button>
 
-                    {/* Module Content - Full display for current week */}
-                    {isUnlocked && module.content && (
+                  {/* Expanded Content - only show if week is expanded or is current week */}
+                  {(isExpanded || isCurrentWeek) && (
+                    <div className="px-6 pb-6">
+                      {/* Module Content - Full display for current week */}
+                      {isUnlocked && module.content && (
                       <div className="max-w-none">
                         {isCurrentWeek ? (
                           <div className="space-y-6">
@@ -498,12 +559,10 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                         )}
                       </div>
                     )}
-                  </div>
-
-                  {/* Tasks */}
-                  {isUnlocked && module.tasks.length > 0 && (
-                    <div className="px-6 pb-6">
-                      <div className="pt-4 border-t border-[#2A243E]">
+                    
+                    {/* Tasks */}
+                    {isUnlocked && module.tasks.length > 0 && (
+                      <div className="pt-4 border-t border-[#2A243E] mt-6">
                         <h4 className="text-sm font-medium text-gray-300 mb-3">Tasks for this week:</h4>
                         <div className="space-y-3">
                           {module.tasks.map((task) => (
@@ -549,7 +608,8 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                           ))}
                         </div>
                       </div>
-                    </div>
+                    )}
+                  </div>
                   )}
 
                 </div>

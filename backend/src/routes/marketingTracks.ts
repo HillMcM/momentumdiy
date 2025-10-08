@@ -266,4 +266,88 @@ router.get('/goals', async (_req, res) => {
   }
 });
 
+// PUT /admin/tracks/definitions/:id - Update track definition
+router.put('/definitions/:id', async (req, res) => {
+  console.log('🚀 PUT /definitions/:id - Route hit!');
+  
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    console.log('🔄 Update track definition request:', { id, updates });
+
+    // Clean up industry_tags if provided
+    if (updates.industry_tags && !Array.isArray(updates.industry_tags)) {
+      updates.industry_tags = [updates.industry_tags].filter(Boolean);
+    }
+
+    // Handle phases - convert array to JSON string for database storage
+    if (updates.phases) {
+      if (Array.isArray(updates.phases)) {
+        console.log('📝 Converting phases array to JSON string:', updates.phases);
+        updates.phases = JSON.stringify(updates.phases);
+        console.log('✅ Successfully converted phases to string:', updates.phases);
+      } else if (typeof updates.phases === 'string') {
+        try {
+          console.log('📝 Validating phases JSON string:', updates.phases);
+          JSON.parse(updates.phases); // Validate it's valid JSON
+          console.log('✅ Phases string is valid JSON');
+        } catch (parseError) {
+          console.error('❌ Error validating phases JSON:', parseError);
+          return res.status(400).json({ success: false, error: 'Invalid phases JSON format' });
+        }
+      } else {
+        console.error('❌ Invalid phases format:', typeof updates.phases, updates.phases);
+        return res.status(400).json({ success: false, error: 'Phases must be an array or JSON string' });
+      }
+    }
+
+    // Prepare update data with only safe fields
+    const updateData = {
+      title: updates.title,
+      description: updates.description,
+      slug: updates.slug,
+      industry_tags: updates.industry_tags,
+      duration_weeks: updates.duration_weeks,
+      phases: updates.phases
+    };
+    
+    // Remove any undefined fields
+    Object.keys(updateData).forEach(key => {
+      if ((updateData as any)[key] === undefined) {
+        delete (updateData as any)[key];
+      }
+    });
+    
+    console.log('📊 Final update data:', JSON.stringify(updateData, null, 2));
+    
+    // Use standard update without updated_at field
+    const { data, error } = await supabase
+      .from('marketing_tracks')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Supabase error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database error',
+        details: error.message 
+      });
+    }
+    
+    console.log('✅ Successfully updated track definition:', data);
+    return res.json({ success: true, data });
+  } catch (error: any) {
+    console.error('❌ Error updating track definition:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to update track definition',
+      details: error.message || 'Unknown error'
+    });
+  }
+});
+
 export default router;
