@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { EventCategory } from './types';
 
 interface QuickEventModalProps {
@@ -16,6 +16,9 @@ interface QuickEventModalProps {
 }
 
 export default function QuickEventModal({ open, startDate, projects, onSave, onCancel }: QuickEventModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState(60); // default 1 hour
@@ -55,6 +58,49 @@ export default function QuickEventModal({ open, startDate, projects, onSave, onC
     const durationValid = duration > 0;
     setIsValid(titleValid && durationValid);
   }, [title, duration]);
+
+  // Focus management for accessibility
+  useEffect(() => {
+    if (open) {
+      // Store the currently focused element
+      previousFocusRef.current = document.activeElement as HTMLElement;
+
+      // Focus the modal after a short delay to ensure it's rendered
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.focus();
+        }
+      }, 100);
+    } else {
+      // Return focus to the previously focused element when modal closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+    }
+
+    return () => {
+      // Cleanup focus when component unmounts
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [open]);
+
+  // Keyboard event handling for accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!open) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCancel();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onCancel]);
 
   const handleSave = useCallback(() => {
     if (isValid) {
@@ -125,15 +171,31 @@ export default function QuickEventModal({ open, startDate, projects, onSave, onC
   ];
 
   return (
-    <div className="modal-overlay" style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
-    }}>
-      <div className="modal-content" style={{
-        background: '#22202F', color: '#FFF1E7', borderRadius: 12, padding: '2rem', minWidth: 400, maxWidth: 500,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.25)', position: 'relative'
-      }}>
-        <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>Quick Event</h2>
+    <div
+      className="modal-overlay"
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="quick-event-modal-title"
+      aria-describedby="quick-event-modal-description"
+    >
+      <div
+        ref={modalRef}
+        className="modal-content"
+        style={{
+          background: '#22202F', color: '#FFF1E7', borderRadius: 12, padding: '2rem', minWidth: 400, maxWidth: 500,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25)', position: 'relative'
+        }}
+        role="document"
+        tabIndex={-1}
+      >
+        <h2 id="quick-event-modal-title" style={{ marginTop: 0, marginBottom: '1rem' }}>Quick Event</h2>
+        <p id="quick-event-modal-description" style={{ margin: 0, marginBottom: '1.5rem', color: 'rgba(255, 255, 255, 0.7)' }}>
+          Create a new calendar event. Fill in the details below to schedule an event with title, description, duration, and category.
+        </p>
         
         <div style={{ 
           background: 'rgba(239, 142, 129, 0.1)', 

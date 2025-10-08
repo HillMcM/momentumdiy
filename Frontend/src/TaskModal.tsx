@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Project } from './types';
 import { useIsMobile } from './hooks/useMediaQuery';
 
@@ -27,6 +27,9 @@ interface TaskModalProps {
 
 export default function TaskModal({ open, onSave, onCancel, projects, marketingTrack }: TaskModalProps) {
   const isMobile = useIsMobile();
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [responsible, setResponsible] = useState('Hillary');
@@ -50,6 +53,49 @@ export default function TaskModal({ open, onSave, onCancel, projects, marketingT
     const titleValid = title.trim().length > 0;
     setIsValid(titleValid);
   }, [title]);
+
+  // Focus management for accessibility
+  useEffect(() => {
+    if (open) {
+      // Store the currently focused element
+      previousFocusRef.current = document.activeElement as HTMLElement;
+
+      // Focus the modal after a short delay to ensure it's rendered
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.focus();
+        }
+      }, 100);
+    } else {
+      // Return focus to the previously focused element when modal closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+    }
+
+    return () => {
+      // Cleanup focus when component unmounts
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [open]);
+
+  // Keyboard event handling for accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!open) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCancel();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onCancel]);
 
   const handleSave = useCallback(() => {
     if (isValid) {
@@ -94,24 +140,40 @@ export default function TaskModal({ open, onSave, onCancel, projects, marketingT
   };
 
   return (
-    <div className="modal-overlay" style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: isMobile ? '1rem' : '0'
-    }}>
-      <div className="modal-content" style={{
-        background: '#22202F', 
-        color: '#FFF1E7', 
-        borderRadius: 12, 
-        padding: isMobile ? '1.5rem' : '2rem', 
-        width: isMobile ? 'calc(100vw - 2rem)' : 'auto',
-        minWidth: isMobile ? 'auto' : 400, 
-        maxWidth: isMobile ? 'calc(100vw - 2rem)' : 500,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.25)', position: 'relative'
-      }}>
-        <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>
+    <div
+      className="modal-overlay"
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: isMobile ? '1rem' : '0'
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="task-modal-title"
+      aria-describedby="task-modal-description"
+    >
+      <div
+        ref={modalRef}
+        className="modal-content"
+        style={{
+          background: '#22202F',
+          color: '#FFF1E7',
+          borderRadius: 12,
+          padding: isMobile ? '1.5rem' : '2rem',
+          width: isMobile ? 'calc(100vw - 2rem)' : 'auto',
+          minWidth: isMobile ? 'auto' : 400,
+          maxWidth: isMobile ? 'calc(100vw - 2rem)' : 500,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25)', position: 'relative'
+        }}
+        role="document"
+        tabIndex={-1}
+      >
+        <h2 id="task-modal-title" style={{ marginTop: 0, marginBottom: '1rem' }}>
           Create New Task
         </h2>
+        <p id="task-modal-description" style={{ margin: 0, marginBottom: '1.5rem', color: 'rgba(255, 255, 255, 0.7)' }}>
+          Fill in the details below to create a new task. Use the form fields to specify the task title, description, project, and deadline.
+        </p>
         
         {marketingTrack && (
           <div style={{ 

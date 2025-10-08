@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface PaywallModalProps {
@@ -10,9 +10,54 @@ interface PaywallModalProps {
 
 export default function PaywallModal({ isOpen, onClose, trialEndDate, daysRemaining }: PaywallModalProps) {
   const navigate = useNavigate();
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
+
+  // Focus management for accessibility
+  useEffect(() => {
+    if (isOpen) {
+      // Store the currently focused element
+      previousFocusRef.current = document.activeElement as HTMLElement;
+
+      // Focus the modal after a short delay to ensure it's rendered
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.focus();
+        }
+      }, 100);
+    } else {
+      // Return focus to the previously focused element when modal closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+    }
+
+    return () => {
+      // Cleanup focus when component unmounts
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [isOpen]);
+
+  // Keyboard event handling for accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const handleSubscribe = async (plan: string, interval: string) => {
     setIsLoading(true);
@@ -34,8 +79,19 @@ export default function PaywallModal({ isOpen, onClose, trialEndDate, daysRemain
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1B1628] border border-[#EF8E81]/30 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="paywall-modal-title"
+      aria-describedby="paywall-modal-description"
+    >
+      <div
+        ref={modalRef}
+        className="bg-[#1B1628] border border-[#EF8E81]/30 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        role="document"
+        tabIndex={-1}
+      >
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-[#EF8E81]/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -43,7 +99,10 @@ export default function PaywallModal({ isOpen, onClose, trialEndDate, daysRemain
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-white mb-2">Your Free Trial Has Ended</h2>
+          <h2 id="paywall-modal-title" className="text-3xl font-bold text-white mb-2">Your Free Trial Has Ended</h2>
+          <p id="paywall-modal-description" className="text-gray-300">
+            Subscribe to MomentumDIY to continue using all features and access your marketing tracks.
+          </p>
           <p className="text-[#FFF1E7]/80 text-lg">
             {trialEndDate && `Your trial ended on ${formatDate(trialEndDate)}.`}
             {daysRemaining && daysRemaining > 0 && `You have ${daysRemaining} days left in your trial.`}

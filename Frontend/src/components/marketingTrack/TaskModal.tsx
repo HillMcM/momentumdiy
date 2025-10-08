@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import type { MarketingTask } from '../../types';
 import MarkdownRenderer from '../MarkdownRenderer';
 import { useIsMobile } from '../../hooks/useMediaQuery';
@@ -12,7 +12,9 @@ interface TaskModalProps {
 
 export default function TaskModal({ task, isOpen, onClose, onToggle }: TaskModalProps) {
   const isMobile = useIsMobile();
-  
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   if (!isOpen || !task) return null;
 
   const handleToggle = () => {
@@ -31,20 +33,70 @@ export default function TaskModal({ task, isOpen, onClose, onToggle }: TaskModal
     }
   };
 
+  // Focus management for accessibility
+  useEffect(() => {
+    if (isOpen) {
+      // Store the currently focused element
+      previousFocusRef.current = document.activeElement as HTMLElement;
+
+      // Focus the modal after a short delay to ensure it's rendered
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.focus();
+        }
+      }, 100);
+    } else {
+      // Return focus to the previously focused element when modal closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+    }
+
+    return () => {
+      // Cleanup focus when component unmounts
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [isOpen]);
+
+  // Keyboard event handling for accessibility (global escape handler)
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isOpen, onClose]);
+
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="marketing-task-modal-title"
+      aria-describedby="marketing-task-modal-description"
     >
-      <div 
+      <div
+        ref={modalRef}
         className="bg-[#1B1628] rounded-2xl border border-[#2A243E] w-full max-h-[90vh] overflow-y-auto"
         style={{ maxWidth: isMobile ? 'calc(100vw - 2rem)' : '448px' }}
+        role="document"
+        tabIndex={-1}
       >
         {/* Header */}
         <div className="p-6 border-b border-[#2A243E]">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-white">Task Details</h2>
+            <h2 id="marketing-task-modal-title" className="text-xl font-semibold text-white">Task Details</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors p-1"
@@ -73,6 +125,11 @@ export default function TaskModal({ task, isOpen, onClose, onToggle }: TaskModal
             </span>
           </div>
         </div>
+
+        {/* Description */}
+        <p id="marketing-task-modal-description" className="px-6 pb-4 text-gray-300 text-sm">
+          View and manage the details of this marketing task, including its description, completion status, and any associated information.
+        </p>
 
         {/* Content */}
         <div className="p-6 space-y-6">
