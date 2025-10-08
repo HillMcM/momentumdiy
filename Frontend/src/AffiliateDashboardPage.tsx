@@ -86,6 +86,11 @@ export default function AffiliateDashboardPage() {
       const result = await response.json();
 
       if (!result.success) {
+        if (result.error === 'Affiliate account not found') {
+          // Redirect to program page if user hasn't joined yet
+          navigate('/app/affiliate/program');
+          return;
+        }
         setError(result.error || 'Failed to load dashboard');
         return;
       }

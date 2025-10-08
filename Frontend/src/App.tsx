@@ -485,10 +485,10 @@ function Sidebar({ hidden, onToggle, showProfileManager, mobileOpen }: { hidden:
           </Link>
         </li>
         <li>
-          <Link 
-            to="/app/affiliate/dashboard" 
-            className={isActive('/app/affiliate/dashboard') ? 'active' : ''}
-            onClick={() => handleLinkClick('/app/affiliate/dashboard')}
+          <Link
+            to="/app/affiliate/program" 
+            className={isActive('/app/affiliate/program') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/affiliate/program')}
           >
             💰 Affiliate Program
           </Link>
