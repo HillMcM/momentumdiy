@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StripeService = void 0;
 const stripe_1 = require("../config/stripe");
 const supabase_1 = require("../config/supabase");
+const logger_1 = require("../utils/logger");
 class StripeService {
     static async createOrRetrieveCustomer(userId, email, name) {
         try {
@@ -34,13 +35,13 @@ class StripeService {
             return customer.id;
         }
         catch (error) {
-            console.error('Error creating/retrieving Stripe customer:', error);
+            logger_1.logger.error('Error creating/retrieving Stripe customer', error, { email, name });
             throw new Error('Failed to create customer');
         }
     }
     static async createSubscription(subscriptionData) {
+        const { userId, email, name, plan, interval } = subscriptionData;
         try {
-            const { userId, email, name, plan, interval } = subscriptionData;
             const customerId = await this.createOrRetrieveCustomer(userId, email, name);
             const planPrices = stripe_1.STRIPE_CONFIG.prices[plan];
             if (!planPrices) {
@@ -89,7 +90,7 @@ class StripeService {
             };
         }
         catch (error) {
-            console.error('Error creating subscription:', error);
+            logger_1.logger.error('Error creating subscription', error, { userId, email, plan });
             throw new Error('Failed to create subscription');
         }
     }
@@ -128,7 +129,7 @@ class StripeService {
             return { success: true };
         }
         catch (error) {
-            console.error('Error canceling subscription:', error);
+            logger_1.logger.error('Error canceling subscription', error, { userId });
             throw new Error('Failed to cancel subscription');
         }
     }
@@ -173,7 +174,7 @@ class StripeService {
             };
         }
         catch (error) {
-            console.error('Error getting subscription details:', error);
+            logger_1.logger.error('Error getting subscription details', error, { userId });
             throw new Error('Failed to get subscription details');
         }
     }
@@ -194,11 +195,11 @@ class StripeService {
                     await this.handlePaymentFailure(event.data.object);
                     break;
                 default:
-                    console.log(`Unhandled webhook event: ${event.type}`);
+                    logger_1.logger.debug(`Unhandled webhook event: ${event.type}`);
             }
         }
         catch (error) {
-            console.error('Error handling webhook:', error);
+            logger_1.logger.error('Error handling webhook', error, { eventType: event.type });
             throw error;
         }
     }
@@ -244,7 +245,7 @@ class StripeService {
     }
     static async handlePaymentFailure(invoice) {
         const customerId = invoice.customer;
-        console.log(`Payment failed for customer ${customerId}`);
+        logger_1.logger.warn('Payment failed for customer', { customerId });
     }
 }
 exports.StripeService = StripeService;

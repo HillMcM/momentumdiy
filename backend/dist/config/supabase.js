@@ -6,16 +6,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.supabaseAuth = exports.supabasePublic = exports.supabase = void 0;
 const supabase_js_1 = require("@supabase/supabase-js");
 const dotenv_1 = __importDefault(require("dotenv"));
+const environment_1 = require("./environment");
 dotenv_1.default.config();
-const supabaseUrl = process.env['SUPABASE_URL'] || 'http://127.0.0.1:54321';
-const supabaseServiceKey = process.env['SUPABASE_SERVICE_ROLE_KEY'] || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
+const supabaseUrl = environment_1.ENV.supabaseUrl;
+const supabaseServiceKey = environment_1.ENV.supabaseServiceRoleKey;
 exports.supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseServiceKey, {
     auth: {
         autoRefreshToken: false,
         persistSession: false
     }
 });
-const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+const supabaseAnonKey = environment_1.ENV.supabaseAnonKey;
 exports.supabasePublic = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey);
 exports.supabaseAuth = (0, supabase_js_1.createClient)(supabaseUrl, supabaseServiceKey, {
     auth: {

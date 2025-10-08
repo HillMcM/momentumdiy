@@ -13,7 +13,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import * as dotenv from 'dotenv';
 import { PromptAssembler } from './aiPromptTemplates';
 import { ENV } from '../config/environment';
-import { AI_ASSISTANT } from '../config/branding';
 
 dotenv.config();
 

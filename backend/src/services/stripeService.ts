@@ -74,8 +74,9 @@ export class StripeService {
    * Create a subscription with trial
    */
   static async createSubscription(subscriptionData: SubscriptionData) {
+    const { userId, email, name, plan, interval } = subscriptionData;
+    
     try {
-      const { userId, email, name, plan, interval } = subscriptionData;
 
       // Get or create customer
       const customerId = await this.createOrRetrieveCustomer(userId, email, name);

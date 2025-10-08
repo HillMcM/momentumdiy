@@ -41,7 +41,7 @@ class Logger {
       category: 'info',
       message,
       level: 'info',
-      data: context
+      data: context || {}
     });
   }
 
@@ -50,10 +50,10 @@ class Logger {
    */
   warn(message: string, context?: LogContext): void {
     console.warn(message, context || '');
-    Sentry.captureMessage(message, {
-      level: 'warning',
-      extra: context
-    });
+    Sentry.captureMessage(message, 'warning');
+    if (context) {
+      Sentry.setContext('warning_context', context);
+    }
   }
 
   /**
@@ -63,14 +63,15 @@ class Logger {
     console.error(message, error, context || '');
     
     if (error instanceof Error) {
-      Sentry.captureException(error, {
-        extra: { message, ...context }
-      });
+      Sentry.captureException(error);
+      if (context || message) {
+        Sentry.setContext('error_context', { message, ...context });
+      }
     } else {
-      Sentry.captureMessage(message, {
-        level: 'error',
-        extra: { error, ...context }
-      });
+      Sentry.captureMessage(message, 'error');
+      if (context) {
+        Sentry.setContext('error_context', { error, ...context });
+      }
     }
   }
 

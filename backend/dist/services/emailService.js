@@ -3,7 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailService = void 0;
 const resend_1 = require("resend");
 const emailTemplates_1 = require("./emailTemplates");
-const resend = new resend_1.Resend(process.env['RESEND_API_KEY'] || 're_HAwFtwhA_E1nrZGWHUWiA5E3Pbd4kHN2M');
+const branding_1 = require("../config/branding");
+const environment_1 = require("../config/environment");
+const logger_1 = require("../utils/logger");
+const resend = new resend_1.Resend(environment_1.ENV.resendApiKey);
 class EmailService {
     static async sendFeedbackEmail(data) {
         try {
@@ -17,16 +20,16 @@ class EmailService {
             };
             const emailContent = emailTemplates_1.EmailTemplateFactory.createFeedbackTemplate(templateData);
             const result = await resend.emails.send({
-                from: 'MomentumDIY <hello@momentumdiy.com>',
-                to: 'info@hillaryedenmcmullen.com',
+                from: `${branding_1.BRANDING.name} <${branding_1.BRANDING.email}>`,
+                to: branding_1.BRANDING.supportEmail,
                 subject: `New Feedback: ${data.subject}`,
                 html: emailContent,
             });
-            console.log('📧 Feedback email sent successfully:', result);
+            logger_1.logger.info('Feedback email sent successfully', { result });
             return { success: true };
         }
         catch (error) {
-            console.error('❌ Error sending feedback email:', error);
+            logger_1.logger.error('Error sending feedback email', error);
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Unknown error'
@@ -41,16 +44,16 @@ class EmailService {
             };
             const emailContent = emailTemplates_1.EmailTemplateFactory.createWelcomeTemplate(templateData);
             const result = await resend.emails.send({
-                from: 'MomentumDIY <hello@momentumdiy.com>',
+                from: `${branding_1.BRANDING.name} <${branding_1.BRANDING.email}>`,
                 to: data.email,
-                subject: 'Welcome to MomentumDIY - Let\'s Grow Your Business!',
+                subject: `Welcome to ${branding_1.BRANDING.name} - Let's Grow Your Business!`,
                 html: emailContent,
             });
-            console.log('📧 Welcome email sent successfully:', result);
+            logger_1.logger.info('Welcome email sent successfully', { result });
             return { success: true };
         }
         catch (error) {
-            console.error('❌ Error sending welcome email:', error);
+            logger_1.logger.error('Error sending welcome email', error);
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Unknown error'
@@ -65,16 +68,16 @@ class EmailService {
             };
             const emailContent = emailTemplates_1.EmailTemplateFactory.createWelcomeTemplate(testData);
             const result = await resend.emails.send({
-                from: 'MomentumDIY <hello@momentumdiy.com>',
-                to: 'info@hillaryedenmcmullen.com',
-                subject: 'Test Email - MomentumDIY Template System',
+                from: `${branding_1.BRANDING.name} <${branding_1.BRANDING.email}>`,
+                to: branding_1.BRANDING.supportEmail,
+                subject: `Test Email - ${branding_1.BRANDING.name} Template System`,
                 html: emailContent,
             });
-            console.log('📧 Test email sent successfully:', result);
+            logger_1.logger.info('Test email sent successfully', { result });
             return { success: true };
         }
         catch (error) {
-            console.error('❌ Error sending test email:', error);
+            logger_1.logger.error('Error sending test email', error);
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Unknown error'
@@ -165,16 +168,16 @@ class EmailService {
                     throw new Error(`Unknown notification type: ${type}`);
             }
             const result = await resend.emails.send({
-                from: 'MomentumDIY <hello@momentumdiy.com>',
+                from: `${branding_1.BRANDING.name} <${branding_1.BRANDING.email}>`,
                 to: email,
                 subject: subject,
                 html: emailContent,
             });
-            console.log(`📧 ${type} notification sent successfully:`, result);
+            logger_1.logger.info(`${type} notification sent successfully`, { result });
             return { success: true };
         }
         catch (error) {
-            console.error(`❌ Error sending ${data.type} notification:`, error);
+            logger_1.logger.error(`Error sending ${data.type} notification`, error);
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Unknown error'

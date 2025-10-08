@@ -40,9 +40,10 @@ exports.AIService = exports.AIConfig = void 0;
 const sdk_1 = __importDefault(require("@anthropic-ai/sdk"));
 const dotenv = __importStar(require("dotenv"));
 const aiPromptTemplates_1 = require("./aiPromptTemplates");
+const environment_1 = require("../config/environment");
 dotenv.config();
 const anthropic = new sdk_1.default({
-    apiKey: process.env['antropic_api_key'] || '',
+    apiKey: environment_1.ENV.anthropicApiKey,
 });
 class AIConfig {
 }
