@@ -31,6 +31,7 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
   const [activatingTrack, setActivatingTrack] = useState<string | null>(null);
   const [showTrackSelection, setShowTrackSelection] = useState(false); // Only show selection when no active goal
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
+  const [lessonCollapsed, setLessonCollapsed] = useState(isMobile); // Collapse lesson on mobile by default
   const currentWeekRef = useRef<HTMLDivElement>(null);
 
   // Sync marketing task completion with task tracker
@@ -547,10 +548,29 @@ export default function MarketingTrackPage({ tasks, onTasksChange }: MarketingTr
                       <div className="max-w-none">
                         {isCurrentWeek ? (
                           <div className="space-y-6">
-                            {/* Weekly Lesson */}
-                            <div className="bg-[#141127] rounded-xl p-6 border border-[#2A243E]">
-                              <h4 className="text-lg font-semibold text-white mb-4">Weekly Lesson</h4>
-                              <MarkdownRenderer content={module.content} />
+                            {/* Weekly Lesson - Collapsible on mobile */}
+                            <div className="bg-[#141127] rounded-xl border border-[#2A243E]">
+                              <button
+                                onClick={() => isMobile && setLessonCollapsed(!lessonCollapsed)}
+                                className={`w-full p-6 text-left ${isMobile ? 'flex items-center justify-between' : ''}`}
+                              >
+                                <h4 className="text-lg font-semibold text-white">Weekly Lesson</h4>
+                                {isMobile && (
+                                  <svg 
+                                    className={`w-5 h-5 text-white transition-transform ${lessonCollapsed ? '' : 'rotate-180'}`}
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                )}
+                              </button>
+                              {(!isMobile || !lessonCollapsed) && (
+                                <div className="px-6 pb-6">
+                                  <MarkdownRenderer content={module.content} />
+                                </div>
+                              )}
                             </div>
                             
                             {/* Pro Tip */}

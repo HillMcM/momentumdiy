@@ -1,6 +1,7 @@
 import React from 'react';
 import type { MarketingTask } from '../../types';
 import MarkdownRenderer from '../MarkdownRenderer';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
 interface TaskModalProps {
   task: MarketingTask | null;
@@ -10,6 +11,8 @@ interface TaskModalProps {
 }
 
 export default function TaskModal({ task, isOpen, onClose, onToggle }: TaskModalProps) {
+  const isMobile = useIsMobile();
+  
   if (!isOpen || !task) return null;
 
   const handleToggle = () => {
@@ -34,7 +37,10 @@ export default function TaskModal({ task, isOpen, onClose, onToggle }: TaskModal
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
     >
-      <div className="bg-[#1B1628] rounded-2xl border border-[#2A243E] max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div 
+        className="bg-[#1B1628] rounded-2xl border border-[#2A243E] w-full max-h-[90vh] overflow-y-auto"
+        style={{ maxWidth: isMobile ? 'calc(100vw - 2rem)' : '448px' }}
+      >
         {/* Header */}
         <div className="p-6 border-b border-[#2A243E]">
           <div className="flex items-center justify-between mb-4">
