@@ -19,11 +19,13 @@ export default function WeekAccordion({
   onTaskToggle,
   onTaskClick
 }: WeekAccordionProps) {
-  const [localExpanded, setLocalExpanded] = useState(module.weekNumber === currentWeek);
-  const { done, total } = countTasks(module);
-
   const isCurrentWeek = module.weekNumber === currentWeek;
+  const isPastWeek = module.weekNumber < currentWeek && module.isUnlocked;
   const isLocked = !module.isUnlocked;
+  
+  // Current week always expanded, past weeks collapsed by default
+  const [localExpanded, setLocalExpanded] = useState(isCurrentWeek);
+  const { done, total } = countTasks(module);
   
   // Debug logging
   console.log(`🔓 Week ${module.weekNumber}: isUnlocked=${module.isUnlocked}, isLocked=${isLocked}, currentWeek=${currentWeek}`);
@@ -50,13 +52,19 @@ export default function WeekAccordion({
   };
 
   return (
-    <div className={`${isLocked ? 'opacity-60' : ''}`}>
+    <div 
+      className={`${isLocked ? 'opacity-60' : ''} ${
+        isCurrentWeek ? 'ring-2 ring-[#EF8E81] shadow-lg shadow-[#EF8E81]/20' : ''
+      } rounded-lg overflow-hidden transition-all`}
+    >
       {/* Header */}
       <button
         onClick={handleToggle}
         onKeyDown={handleKeyDown}
-        className={`w-full text-left p-6 hover:bg-[#1B1628]/40 transition-colors focus:outline-none focus:ring-2 focus:ring-[#EF8E81] focus:ring-offset-2 focus:ring-offset-[#141127] ${
-          isLocked ? 'cursor-not-allowed' : 'cursor-pointer'
+        className={`w-full text-left p-6 transition-colors focus:outline-none focus:ring-2 focus:ring-[#EF8E81] focus:ring-offset-2 focus:ring-offset-[#141127] ${
+          isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-[#1B1628]/40'
+        } ${
+          isCurrentWeek ? 'bg-gradient-to-r from-[#EF8E81]/10 to-transparent' : ''
         }`}
         disabled={isLocked}
         aria-expanded={localExpanded}
@@ -90,12 +98,17 @@ export default function WeekAccordion({
 
           <div className="flex items-center gap-3">
             {isCurrentWeek && (
-              <div className="bg-orange-500/20 text-orange-300 border border-orange-500/30 rounded-full px-3 py-1 text-sm font-medium">
-                Current Week
+              <div className="bg-[#EF8E81] text-white border border-[#EF8E81] rounded-full px-4 py-1.5 text-sm font-bold shadow-md animate-pulse">
+                ✨ Current Week
               </div>
             )}
-            <span className="text-sm text-gray-400">
-              {done}/{total}
+            {isPastWeek && (
+              <div className="bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 rounded-full px-3 py-1 text-xs font-medium">
+                ✓ Completed
+              </div>
+            )}
+            <span className="text-sm text-gray-400 font-medium">
+              {done}/{total} tasks
             </span>
           </div>
         </div>

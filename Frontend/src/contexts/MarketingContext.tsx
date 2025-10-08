@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef, type ReactNode 
 import { getActiveGoal, updateMarketingGoalPhases } from '../services/marketingService';
 import type { MarketingGoal, MarketingModule } from '../types';
 import { useWindowFocus } from '../hooks/useWindowFocus';
+import { useNotificationHelpers } from '../hooks/useNotificationHelpers';
 
 interface MarketingContextType {
   activeGoal: MarketingGoal | null;
@@ -12,6 +13,7 @@ interface MarketingContextType {
   setCurrentModule: (module: MarketingModule | null) => void;
   setError: (error: string | null) => void;
   refreshMarketingData: () => Promise<void>;
+  refreshActiveGoal: () => Promise<void>;
   updateActiveGoal: (updatedGoal: MarketingGoal) => void;
   updatePhases: (phases: any[]) => Promise<boolean>;
   onTaskStatusChange?: (taskId: string, isCompleted: boolean) => void;
@@ -38,8 +40,10 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isFocused, hasBeenFocused } = useWindowFocus();
+  const { showWeekUnlocked, showTrackCompleted } = useNotificationHelpers();
   const lastRefreshRef = useRef<number>(0);
   const prevFocusedRef = useRef<boolean>(true);
+  const prevWeekRef = useRef<number | null>(null);
   const REFRESH_COOLDOWN = 10 * 60 * 1000; // 10 minutes cooldown between refreshes
 
   // Debug: Track MarketingProvider renders
@@ -61,9 +65,26 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
       const response = await getActiveGoal();
       
       if (response.success && response.data) {
-        setActiveGoal(response.data);
+        const newGoal = response.data;
+        
+        // Detect week advancement
+        if (prevWeekRef.current !== null && newGoal.currentWeek > prevWeekRef.current) {
+          console.log(`🔓 Week advanced from ${prevWeekRef.current} to ${newGoal.currentWeek}`);
+          showWeekUnlocked(newGoal.currentWeek);
+        }
+        
+        // Detect track completion
+        if (newGoal.progress >= 100 && activeGoal && activeGoal.progress < 100) {
+          console.log('🎉 Track completed!');
+          showTrackCompleted(newGoal.title);
+        }
+        
+        // Update state
+        prevWeekRef.current = newGoal.currentWeek;
+        setActiveGoal(newGoal);
+        
         // Set current module based on active goal
-        const current = response.data.modules.find(module => module.weekNumber === response.data?.currentWeek);
+        const current = newGoal.modules.find(module => module.weekNumber === newGoal.currentWeek);
         setCurrentModule(current || null);
       } else {
         console.error('❌ Failed to load marketing goal:', response);
@@ -137,6 +158,7 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
     setCurrentModule,
     setError,
     refreshMarketingData,
+    refreshActiveGoal: () => refreshMarketingData(true),
     updateActiveGoal,
     updatePhases,
     onTaskStatusChange
