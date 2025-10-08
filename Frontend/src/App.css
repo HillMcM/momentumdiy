@@ -1083,6 +1083,13 @@
     bottom: 90px !important;
     max-height: 60vh !important;
   }
+
+  /* Marketing Track Pills - Less round on mobile */
+  .rounded-full[class*="px-"] {
+    border-radius: 8px !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
 }
 
 /* Tablet-specific adjustments (769px - 1024px) */
