@@ -803,19 +803,177 @@ const TrackSetupStep: React.FC<{
   availableTracks: any[];
   loadingTracks: boolean;
 }> = ({ step, data, onUpdate, availableTracks, loadingTracks }) => {
-  // Calculate recommended track based on quiz answers
+  // Calculate recommended track based on quiz answers and user profile
   const calculateRecommendedTrack = () => {
-    const answers = data.quizAnswers;
-    
-    // Find the best matching track from available tracks
     if (availableTracks.length === 0) return null;
+    if (availableTracks.length === 1) return availableTracks[0];
     
-    // For now, recommend the first available track
-    // In the future, this could be more sophisticated matching based on quiz answers
-    return availableTracks[0];
+    // Score each track based on user's profile and answers
+    const scoredTracks = availableTracks.map(track => {
+      let score = 0;
+      const matchReasons: string[] = [];
+      
+      // 1. Match primary goal to track characteristics
+      const goalMatches: Record<string, string[]> = {
+        'increase-foot-traffic': ['local', 'foot', 'traffic', 'physical', 'store', 'location'],
+        'grow-social-media': ['social', 'media', 'instagram', 'facebook', 'content', 'followers'],
+        'generate-leads': ['leads', 'funnel', 'conversion', 'customers', 'sales'],
+        'build-awareness': ['brand', 'awareness', 'visibility', 'recognition', 'audience'],
+        'increase-sales': ['sales', 'revenue', 'conversion', 'customers', 'ecommerce']
+      };
+      
+      const goalKeywords = goalMatches[data.primaryGoal] || [];
+      const trackText = `${track.title} ${track.description} ${track.slug}`.toLowerCase();
+      
+      goalKeywords.forEach(keyword => {
+        if (trackText.includes(keyword)) {
+          score += 10;
+          matchReasons.push(`Matches your goal: ${data.primaryGoal.replace(/-/g, ' ')}`);
+        }
+      });
+      
+      // 2. Match quiz answer 1: Business location type
+      const locationAnswer = data.quizAnswers['quiz_1'];
+      if (locationAnswer === 'physical-only' && (trackText.includes('local') || trackText.includes('foot') || trackText.includes('physical'))) {
+        score += 15;
+        matchReasons.push('Perfect for physical location businesses');
+      } else if (locationAnswer === 'online-only' && (trackText.includes('social') || trackText.includes('online') || trackText.includes('digital'))) {
+        score += 15;
+        matchReasons.push('Optimized for online businesses');
+      } else if (locationAnswer === 'both') {
+        score += 5; // Any track could work
+      }
+      
+      // 3. Match quiz answer 2: Customer source
+      const customerSourceAnswer = data.quizAnswers['quiz_2'];
+      const sourceMatches: Record<string, string[]> = {
+        'walk-ins': ['local', 'foot', 'traffic', 'location', 'physical'],
+        'social-media': ['social', 'media', 'instagram', 'facebook', 'content'],
+        'google-search': ['seo', 'google', 'search', 'local', 'online'],
+        'referrals': ['referral', 'word-of-mouth', 'customers', 'community'],
+        'online-ads': ['ads', 'advertising', 'paid', 'digital', 'marketing']
+      };
+      
+      const sourceKeywords = sourceMatches[customerSourceAnswer] || [];
+      sourceKeywords.forEach(keyword => {
+        if (trackText.includes(keyword)) {
+          score += 8;
+          matchReasons.push('Aligns with how your customers find you');
+        }
+      });
+      
+      // 4. Match quiz answer 3: Marketing priority (highest weight)
+      const priorityAnswer = data.quizAnswers['quiz_3'];
+      const priorityMatches: Record<string, string[]> = {
+        'physical-traffic': ['local', 'foot', 'traffic', 'store', 'location', 'physical'],
+        'online-presence': ['social', 'media', 'online', 'digital', 'presence', 'followers'],
+        'leads-sales': ['leads', 'sales', 'conversion', 'customers', 'revenue'],
+        'brand-recognition': ['brand', 'awareness', 'recognition', 'visibility', 'audience']
+      };
+      
+      const priorityKeywords = priorityMatches[priorityAnswer] || [];
+      priorityKeywords.forEach(keyword => {
+        if (trackText.includes(keyword)) {
+          score += 20; // Highest weight for marketing priority
+          matchReasons.push('Directly addresses your top priority');
+        }
+      });
+      
+      // 5. Match industry tags
+      if (track.industry_tags && track.industry_tags.length > 0) {
+        const userIndustry = data.industry.toLowerCase();
+        const trackIndustries = track.industry_tags.map((tag: string) => tag.toLowerCase());
+        
+        if (trackIndustries.includes(userIndustry) || trackIndustries.some((tag: string) => userIndustry.includes(tag))) {
+          score += 12;
+          matchReasons.push(`Tailored for ${data.industry} industry`);
+        }
+      }
+      
+      // 6. Match business stage and time available
+      const businessStage = data.businessStage;
+      if ((businessStage === 'startup' || businessStage === 'early-stage') && track.duration_weeks <= 12) {
+        score += 5;
+        matchReasons.push('Right pace for your business stage');
+      }
+      
+      const timeAvailable = data.timeAvailable;
+      if (timeAvailable === '1-2-hours' && track.duration_weeks <= 8) {
+        score += 5;
+        matchReasons.push('Fits your available time commitment');
+      } else if (timeAvailable === '10-plus-hours' && track.duration_weeks >= 12) {
+        score += 5;
+        matchReasons.push('Makes use of your available time');
+      }
+      
+      // 7. Match biggest challenges
+      data.biggestChallenge.forEach(challenge => {
+        const challengeKeywords: Record<string, string[]> = {
+          'don\'t-know-where-to-start': ['beginner', 'start', 'basics', 'foundation', 'step-by-step'],
+          'lack-of-time': ['quick', 'efficient', 'time-saving', 'simple'],
+          'no-clear-strategy': ['strategy', 'plan', 'roadmap', 'structured'],
+          'inconsistent-posting': ['consistent', 'schedule', 'calendar', 'routine'],
+          'low-engagement': ['engagement', 'audience', 'community', 'interaction'],
+          'measuring-results': ['analytics', 'tracking', 'metrics', 'results'],
+          'creating-content': ['content', 'creation', 'ideas', 'templates'],
+          'understanding-audience': ['audience', 'targeting', 'customer', 'persona']
+        };
+        
+        const keywords = challengeKeywords[challenge] || [];
+        keywords.forEach(keyword => {
+          if (trackText.includes(keyword)) {
+            score += 6;
+            matchReasons.push(`Helps with: ${challenge.replace(/-/g, ' ')}`);
+          }
+        });
+      });
+      
+      return {
+        track,
+        score,
+        matchReasons: [...new Set(matchReasons)] // Remove duplicates
+      };
+    });
+    
+    // Sort by score (highest first) and return the top match
+    scoredTracks.sort((a, b) => b.score - a.score);
+    
+    logger.info('Track matching completed', {
+      topTrack: scoredTracks[0]?.track.title,
+      topScore: scoredTracks[0]?.score,
+      matchReasons: scoredTracks[0]?.matchReasons,
+      allScores: scoredTracks.map(st => ({ title: st.track.title, score: st.score }))
+    });
+    
+    // Store the match reasons in the recommended track object
+    const topMatch = scoredTracks[0];
+    if (topMatch) {
+      return {
+        ...topMatch.track,
+        matchReasons: topMatch.matchReasons,
+        matchScore: topMatch.score
+      };
+    }
+    
+    return null;
   };
 
   const recommendedTrack = calculateRecommendedTrack();
+
+  // Auto-select recommended track when it's calculated (but allow user to override)
+  React.useEffect(() => {
+    if (recommendedTrack && !data.selectedTrack && step === 0) {
+      onUpdate({ 
+        selectedTrack: recommendedTrack.id,
+        recommendedTrack: recommendedTrack.id 
+      });
+      logger.info('Auto-selected recommended track', { 
+        trackId: recommendedTrack.id, 
+        trackTitle: recommendedTrack.title,
+        matchScore: recommendedTrack.matchScore 
+      });
+    }
+  }, [recommendedTrack, data.selectedTrack, step]);
 
   switch (step) {
     case 0: // Track Selection
@@ -852,16 +1010,36 @@ const TrackSetupStep: React.FC<{
           {recommendedTrack && (
             <div className="bg-[#EF8E81]/10 border border-[#EF8E81]/30 rounded-xl p-6 mb-6">
               <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-[#EF8E81] rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-[#EF8E81] rounded-lg flex items-center justify-center flex-shrink-0">
                   <span className="text-2xl">🎯</span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-[#FFF1E7] mb-2">
-                    Recommended: {recommendedTrack.title}
-                  </h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-xl font-bold text-[#FFF1E7]">
+                      Recommended: {recommendedTrack.title}
+                    </h3>
+                    {recommendedTrack.matchScore && (
+                      <span className="px-2 py-1 bg-[#EF8E81] text-white text-xs font-semibold rounded-full">
+                        {recommendedTrack.matchScore > 50 ? 'Perfect Match' : 'Great Match'}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[#FFF1E7]/80 mb-3">
                     {recommendedTrack.description}
                   </p>
+                  {recommendedTrack.matchReasons && recommendedTrack.matchReasons.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-sm font-semibold text-[#FFF1E7] mb-2">Why this track is perfect for you:</p>
+                      <ul className="space-y-1">
+                        {recommendedTrack.matchReasons.slice(0, 4).map((reason: string, index: number) => (
+                          <li key={index} className="text-sm text-[#FFF1E7]/70 flex items-start">
+                            <span className="text-[#EF8E81] mr-2">✓</span>
+                            <span>{reason}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <div className="flex items-center space-x-4 text-sm text-[#FFF1E7]/70">
                     <span>⏱️ {recommendedTrack.duration_weeks} weeks</span>
                     <span>🎯 {recommendedTrack.industry_tags?.join(', ') || 'Marketing strategy'}</span>
