@@ -116,6 +116,19 @@ class ApiService {
         });
 
         if (!response.ok) {
+          // Handle authentication errors by redirecting to auth page
+          if (response.status === 401) {
+            logger.warn('Authentication failed - redirecting to auth page', { url });
+            // Clear the session
+            await supabase.auth.signOut();
+            // Redirect to auth page with a message
+            window.location.href = '/auth?session_expired=true';
+            return {
+              success: false,
+              error: 'Session expired. Please sign in again.'
+            } as ApiResponse<T>;
+          }
+          
           // Backoff and retry on 429 Too Many Requests
           if (retryOn429 && response.status === 429 && triesLeft > 0) {
             // Honor Retry-After if present (seconds), else exponential backoff

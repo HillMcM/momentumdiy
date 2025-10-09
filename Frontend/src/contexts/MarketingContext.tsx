@@ -3,6 +3,7 @@ import { getActiveGoal, updateMarketingGoalPhases } from '../services/marketingS
 import type { MarketingGoal, MarketingModule } from '../types';
 import { useWindowFocus } from '../hooks/useWindowFocus';
 import { useNotificationHelpers } from '../hooks/useNotificationHelpers';
+import { logger } from '../utils/logger';
 
 interface MarketingContextType {
   activeGoal: MarketingGoal | null;

@@ -23,6 +23,21 @@ export default function AuthPage() {
   const location = useLocation();
 
   React.useEffect(() => {
+    // Check for session expiration or sign out message
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionExpired = urlParams.get('session_expired');
+    const signedOut = urlParams.get('signed_out');
+    
+    if (sessionExpired === 'true') {
+      setStatus('Your session has expired. Please sign in again to continue.');
+      // Clean the URL
+      window.history.replaceState(null, '', '/auth');
+    } else if (signedOut === 'true') {
+      setStatus('You have been signed out. Please sign in to continue.');
+      // Clean the URL
+      window.history.replaceState(null, '', '/auth');
+    }
+
     // Handle token hash fragment (/#access_token=...&refresh_token=...)
     const hash = window.location.hash.replace('#', '');
     const params = new URLSearchParams(hash);

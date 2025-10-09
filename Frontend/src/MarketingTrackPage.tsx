@@ -9,6 +9,7 @@ import { getPublishedTracks, activateTrack, updateMarketingGoalPhases } from './
 import { renderContentPreview, renderMarketingContent } from './utils/contentRenderer';
 import { BACKEND_BASE_URL } from './services/api';
 import { useIsMobile } from './hooks/useMediaQuery';
+import { logger } from './utils/logger';
 // Updated: 2025-09-24 - Phase update functionality added
 
 interface MarketingTrackPageProps {
