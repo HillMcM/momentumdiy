@@ -129,6 +129,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       
+      // Handle sign out - redirect to auth page if not already there
+      if (event === 'SIGNED_OUT') {
+        logger.info('User signed out - redirecting to auth page');
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/auth' && currentPath !== '/pricing' && !currentPath.startsWith('/landing')) {
+          window.location.href = '/auth?signed_out=true';
+        }
+      }
+      
       if (newSession?.user) {
         void ensureProfileExists(newSession.user);
         

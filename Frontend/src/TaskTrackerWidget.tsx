@@ -26,6 +26,7 @@ import type { DragEndEvent, DragStartEvent, DragOverEvent } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities';
 import type { Task, Project, TaskStatus } from './types';
 import { apiService } from './services/api';
+import { logger } from './utils/logger';
 
 // Small confetti burst around a target element (used when checking a task)
 function burstConfettiAround(element: HTMLElement) {

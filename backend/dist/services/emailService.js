@@ -6,7 +6,15 @@ const emailTemplates_1 = require("./emailTemplates");
 const branding_1 = require("../config/branding");
 const environment_1 = require("../config/environment");
 const logger_1 = require("../utils/logger");
-const resend = new resend_1.Resend(environment_1.ENV.resendApiKey);
+let resend = null;
+try {
+    if (environment_1.ENV.resendApiKey && environment_1.ENV.resendApiKey !== 're_your_resend_api_key_here') {
+        resend = new resend_1.Resend(environment_1.ENV.resendApiKey);
+    }
+}
+catch (error) {
+    logger_1.logger.warn('Resend API key not configured or invalid, email features disabled');
+}
 class EmailService {
     static async sendFeedbackEmail(data) {
         try {
@@ -19,6 +27,10 @@ class EmailService {
                 category: data.category
             };
             const emailContent = emailTemplates_1.EmailTemplateFactory.createFeedbackTemplate(templateData);
+            if (!resend) {
+                logger_1.logger.warn('Email service not configured, skipping email send');
+                return { success: true };
+            }
             const result = await resend.emails.send({
                 from: `${branding_1.BRANDING.name} <${branding_1.BRANDING.email}>`,
                 to: branding_1.BRANDING.supportEmail,
@@ -43,6 +55,10 @@ class EmailService {
                 email: data.email
             };
             const emailContent = emailTemplates_1.EmailTemplateFactory.createWelcomeTemplate(templateData);
+            if (!resend) {
+                logger_1.logger.warn('Email service not configured, skipping email send');
+                return { success: true };
+            }
             const result = await resend.emails.send({
                 from: `${branding_1.BRANDING.name} <${branding_1.BRANDING.email}>`,
                 to: data.email,
@@ -67,6 +83,10 @@ class EmailService {
                 email: 'test@example.com'
             };
             const emailContent = emailTemplates_1.EmailTemplateFactory.createWelcomeTemplate(testData);
+            if (!resend) {
+                logger_1.logger.warn('Email service not configured, skipping email send');
+                return { success: true };
+            }
             const result = await resend.emails.send({
                 from: `${branding_1.BRANDING.name} <${branding_1.BRANDING.email}>`,
                 to: branding_1.BRANDING.supportEmail,
@@ -166,6 +186,10 @@ class EmailService {
                 }
                 default:
                     throw new Error(`Unknown notification type: ${type}`);
+            }
+            if (!resend) {
+                logger_1.logger.warn('Email service not configured, skipping email send');
+                return { success: true };
             }
             const result = await resend.emails.send({
                 from: `${branding_1.BRANDING.name} <${branding_1.BRANDING.email}>`,
