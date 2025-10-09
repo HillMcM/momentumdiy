@@ -104,13 +104,19 @@ export default function TracksAdminPage() {
 
   // Load tracks on mount
   useEffect(() => {
-    loadTracks();
+    const init = async () => {
+      await loadTracks();
+    };
+    init();
   }, []);
 
   // Load modules when track selected
   useEffect(() => {
     if (selectedTrack) {
-      loadModules(selectedTrack.id);
+      const init = async () => {
+        await loadModules(selectedTrack.id);
+      };
+      init();
       setSelectedModule(null);
       setTasks([]);
     }
@@ -119,7 +125,10 @@ export default function TracksAdminPage() {
   // Load tasks when module selected
   useEffect(() => {
     if (selectedModule) {
-      loadTasks(selectedModule.id);
+      const init = async () => {
+        await loadTasks(selectedModule.id);
+      };
+      init();
     }
   }, [selectedModule]);
 
