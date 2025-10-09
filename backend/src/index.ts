@@ -62,7 +62,23 @@ const corsOptions: cors.CorsOptions = {
 
     // If configured, allow explicit origins OR dev localhost OR Vercel feature branches
     if (configuredOrigins.length > 0) {
-      const allowed = configuredOrigins.includes(origin) || devOk || vercelFeatureOk;
+      // Check if origin matches any configured origin (with or without www)
+      const originWithoutWww = origin.replace(/^https?:\/\/www\./, 'https://');
+      const originWithWww = origin.replace(/^https:\/\/([^/]+)/, 'https://www.$1');
+      
+      const isConfiguredOrigin = configuredOrigins.some(configuredOrigin => {
+        const configuredWithoutWww = configuredOrigin.replace(/^https?:\/\/www\./, 'https://');
+        const configuredWithWww = configuredOrigin.replace(/^https:\/\/([^/]+)/, 'https://www.$1');
+        
+        // Match if either origin matches any variant of configured origin
+        return origin === configuredOrigin || 
+               originWithoutWww === configuredWithoutWww ||
+               originWithWww === configuredWithWww ||
+               origin === configuredWithoutWww ||
+               origin === configuredWithWww;
+      });
+      
+      const allowed = isConfiguredOrigin || devOk || vercelFeatureOk;
       return callback(allowed ? null : new Error('Not allowed by CORS'), allowed);
     }
 
