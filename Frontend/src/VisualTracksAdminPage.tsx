@@ -66,13 +66,19 @@ export default function VisualTracksAdminPage() {
 
   // Load data
   useEffect(() => {
-    loadTracks();
-    loadPublishedGoals();
+    const init = async () => {
+      await loadTracks();
+      await loadPublishedGoals();
+    };
+    init();
   }, []);
 
   useEffect(() => {
     if (selectedTrack) {
-      loadModules(selectedTrack.id);
+      const init = async () => {
+        await loadModules(selectedTrack.id);
+      };
+      init();
       setSelectedModule(null);
       setTasks([]);
     }
@@ -80,7 +86,10 @@ export default function VisualTracksAdminPage() {
 
   useEffect(() => {
     if (selectedModule) {
-      loadTasks(selectedModule.id);
+      const init = async () => {
+        await loadTasks(selectedModule.id);
+      };
+      init();
     }
   }, [selectedModule]);
 
