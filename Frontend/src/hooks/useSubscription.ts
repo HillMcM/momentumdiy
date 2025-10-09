@@ -79,7 +79,8 @@ export function useSubscription() {
       }
     };
 
-    fetchSubscription();
+    // Call async function properly
+    void fetchSubscription();
   }, [user?.id]); // Only depend on user.id, not lastUserId to avoid infinite loop
 
   return {
