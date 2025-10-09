@@ -4,7 +4,6 @@ import LessonCard from './LessonCard';
 import TaskList from './TaskList';
 import { countTasks } from '../../utils/date';
 import { MarketingTrackContext } from '../../contexts/MarketingTrackContext';
-import { getContentRendererByTitle } from '../content-renderers';
 
 interface WeekAccordionProps {
   module: MarketingModule;
@@ -30,11 +29,9 @@ export default function WeekAccordion({
   // Debug logging removed for production
 
   const context = useContext(MarketingTrackContext);
-  const activeGoal = context?.activeGoal;
   
-  // Get the appropriate content renderer for Pro Tips
-  const renderer = activeGoal ? getContentRendererByTitle(activeGoal.title) : null;
-  const proTip = renderer ? renderer.extractProTip(module.content) : null;
+  // Pro tips are now stored directly in the module.pro_tip field from the database
+  const proTip = module.pro_tip ? { title: 'Pro Tip', content: module.pro_tip } : null;
 
   const handleToggle = () => {
     if (isLocked) return;

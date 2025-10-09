@@ -145,7 +145,7 @@ router.post('/test', routeRateLimit(5), async (req: Request, res: Response) => {
       subscription_status: 'trial',
       trial_end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       onboarding_completed: true,
-      selected_track: 'local-foot-traffic',
+      selected_track: 'sample-marketing-track',
       last_activity: new Date().toISOString()
     };
 
@@ -157,7 +157,7 @@ router.post('/test', routeRateLimit(5), async (req: Request, res: Response) => {
         
       case 'onboarding_complete':
         await NotificationService.sendOnboardingCompleteNotification(testUserProfile, {
-          selectedTrack: 'local-foot-traffic'
+          selectedTrack: 'Sample Marketing Track'
         });
         break;
         
