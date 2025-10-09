@@ -349,4 +349,32 @@ router.put('/definitions/:id', async (req, res) => {
   }
 });
 
+// POST /api/admin/tracks/definitions/:id/publish - Publish a track definition
+router.post('/definitions/:id/publish', async (req, res) => {
+  logger.debug('Publish track route hit', { trackId: req.params.id });
+  
+  try {
+    const { id } = req.params;
+    
+    logger.info('Publishing track definition', { trackId: id });
+    
+    const result = await MarketingTrackService.publishTrackDefinition(id);
+    
+    if (!result.success) {
+      logger.error('Failed to publish track', undefined, { trackId: id, error: result.error });
+      return res.status(400).json(result);
+    }
+    
+    logger.info('Successfully published track', { trackId: id, result: result.data });
+    return res.json(result);
+  } catch (error: any) {
+    logger.error('Error publishing track definition', error, { trackId: req.params.id });
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to publish track definition',
+      details: error.message || 'Unknown error'
+    });
+  }
+});
+
 export default router;

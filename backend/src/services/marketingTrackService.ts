@@ -233,6 +233,69 @@ export class MarketingTrackService {
     }
   }
 
+  /**
+   * Publish a track definition to make it available to users
+   */
+  static async publishTrackDefinition(trackId: string): Promise<ApiResponse<{ 
+    trackId: string; 
+    modulesPublished: number; 
+    tasksPublished: number; 
+  }>> {
+    try {
+      // Update the track to set published = true
+      const { data: trackData, error: trackError } = await supabase
+        .from('marketing_tracks')
+        .update({ published: true })
+        .eq('id', trackId)
+        .select()
+        .single();
+
+      if (trackError) throw trackError;
+
+      // Count modules and tasks for this track
+      const { data: modules, error: modulesError } = await supabase
+        .from('marketing_modules')
+        .select('id')
+        .eq('goal_id', trackId);
+
+      if (modulesError) throw modulesError;
+
+      let tasksCount = 0;
+      if (modules && modules.length > 0) {
+        const moduleIds = modules.map(m => m.id);
+        const { data: tasks, error: tasksError } = await supabase
+          .from('marketing_tasks')
+          .select('id')
+          .in('module_id', moduleIds);
+
+        if (tasksError) throw tasksError;
+        tasksCount = tasks?.length || 0;
+      }
+
+      logger.info('Track published successfully', { 
+        trackId, 
+        modulesCount: modules?.length || 0, 
+        tasksCount 
+      });
+
+      return {
+        success: true,
+        data: {
+          trackId: trackData.id,
+          modulesPublished: modules?.length || 0,
+          tasksPublished: tasksCount
+        },
+        message: 'Track published successfully'
+      };
+    } catch (error) {
+      logger.error('Error publishing track', error, { trackId });
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
   // ===============
   // USER METHODS
   // ===============
