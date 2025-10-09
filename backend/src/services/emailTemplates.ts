@@ -22,7 +22,7 @@ export interface BaseTemplateData {
 export interface WelcomeTemplateData extends BaseTemplateData {}
 
 export interface OnboardingCompleteTemplateData extends BaseTemplateData {
-  selectedTrack?: 'local-foot-traffic' | 'social-media-strategy';
+  selectedTrack?: string; // Track title or slug from database
 }
 
 export interface TrialEndingTemplateData extends BaseTemplateData {
@@ -259,9 +259,8 @@ export class EmailTemplateFactory {
    * Generate onboarding complete email template
    */
   static createOnboardingCompleteTemplate(data: OnboardingCompleteTemplateData): string {
-    const trackName = data.selectedTrack === 'local-foot-traffic' 
-      ? 'Increase Local Foot Traffic' 
-      : 'Improve Social Media Strategy & Engagement';
+    // Use the track name provided from the database
+    const trackName = data.selectedTrack || 'Your Selected Marketing Track';
 
     const header = EmailTemplateComponents.createHeader(
       '🎉 Onboarding Complete!',

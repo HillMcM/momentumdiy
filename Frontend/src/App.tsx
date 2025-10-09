@@ -8,8 +8,6 @@ import MarketingTrackPage from './MarketingTrackPage';
 import ProfilePage from './ProfilePage';
 
 // Lazy-loaded components for code splitting
-const LocalFootTrafficTrack = lazy(() => import('./marketing-tracks/LocalFootTrafficTrack').then(module => ({ default: module.LocalFootTrafficTrack })));
-const SocialMediaStrategyTrack = lazy(() => import('./marketing-tracks/SocialMediaStrategyTrack').then(module => ({ default: module.SocialMediaStrategyTrack })));
 const SocialProfileManager = lazy(() => import('./SocialProfileManager'));
 import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { useWindowFocus } from './hooks/useWindowFocus';
@@ -1413,28 +1411,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
             } />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="marketing-track" element={<MarketingTrackPage tasks={tasks} onTasksChange={handleTasksChange} />} />
-            <Route path="marketing-track/local-foot-traffic" element={
-              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
-                <LocalFootTrafficTrack
-                  marketingGoals={marketingGoals}
-                  onMarketingGoalsChange={handleMarketingGoalsChange}
-                  onProjectsChange={handleProjectsChange}
-                  projects={projects}
-                  tasks={tasks}
-                />
-              </Suspense>
-            } />
-            <Route path="marketing-track/social-media-strategy" element={
-              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
-                <SocialMediaStrategyTrack
-                  marketingGoals={marketingGoals}
-                  onMarketingGoalsChange={handleMarketingGoalsChange}
-                  onProjectsChange={handleProjectsChange}
-                  projects={projects}
-                  tasks={tasks}
-                />
-              </Suspense>
-            } />
             <Route
               path="profile-manager"
               element={

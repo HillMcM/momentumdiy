@@ -207,7 +207,7 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
             value={formData.slug}
             onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
             className="w-full px-3 py-2 rounded bg-[#141127] border border-[#2A243E] text-white"
-            placeholder="social-media-strategy"
+            placeholder="your-track-slug"
           />
         </div>
         <div>
