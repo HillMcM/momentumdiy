@@ -31,12 +31,30 @@ export default function AssetLibrary() {
 
       if (error) {
         logger.error('Error loading categories', error);
+        // Use default categories if database table doesn't exist yet
+        setCategories([
+          { id: 'logos', name: 'Logos', icon: '🎨', color: '#EF8E81' },
+          { id: 'photos', name: 'Photos', icon: '📸', color: '#4ECDC4' },
+          { id: 'documents', name: 'Documents', icon: '📄', color: '#45B7D1' },
+          { id: 'videos', name: 'Videos', icon: '🎥', color: '#96CEB4' },
+          { id: 'templates', name: 'Templates', icon: '📋', color: '#FFEAA7' },
+          { id: 'other', name: 'Other', icon: '📁', color: '#95A5A6' }
+        ]);
         return;
       }
 
       setCategories(data || []);
     } catch (error) {
       logger.error('Error in loadCategories', error);
+      // Fallback to default categories
+      setCategories([
+        { id: 'logos', name: 'Logos', icon: '🎨', color: '#EF8E81' },
+        { id: 'photos', name: 'Photos', icon: '📸', color: '#4ECDC4' },
+        { id: 'documents', name: 'Documents', icon: '📄', color: '#45B7D1' },
+        { id: 'videos', name: 'Videos', icon: '🎥', color: '#96CEB4' },
+        { id: 'templates', name: 'Templates', icon: '📋', color: '#FFEAA7' },
+        { id: 'other', name: 'Other', icon: '📁', color: '#95A5A6' }
+      ]);
     }
   };
 
