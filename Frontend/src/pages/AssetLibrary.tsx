@@ -168,8 +168,8 @@ export default function AssetLibrary() {
   const filteredAssets = assets.filter(asset => {
     const matchesCategory = selectedCategory === 'all' || asset.category === selectedCategory;
     const matchesSearch = !searchQuery || 
-      asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      asset.description.toLowerCase().includes(searchQuery.toLowerCase());
+      (asset.name && asset.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (asset.description && asset.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
@@ -178,12 +178,14 @@ export default function AssetLibrary() {
   };
 
   const formatFileSize = (bytes: number) => {
+    if (!bytes || bytes === 0) return '0 B';
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const getFileIcon = (fileType: string) => {
+    if (!fileType) return '📁';
     if (fileType.startsWith('image/')) return '🖼️';
     if (fileType.startsWith('video/')) return '🎥';
     if (fileType.includes('pdf')) return '📄';
@@ -389,7 +391,7 @@ function AssetCard({
   onPreview: () => void;
   onDelete: () => void;
 }) {
-  const isImage = asset.fileType.startsWith('image/');
+  const isImage = asset.fileType && asset.fileType.startsWith('image/');
 
   return (
     <div className="bg-[#1A1625] rounded-lg border border-[#2A2438] overflow-hidden group hover:border-[#EF8E81] transition-all">
@@ -698,7 +700,7 @@ function PreviewModal({
   onClose: () => void;
   formatSize: (size: number) => string;
 }) {
-  const isImage = asset.fileType.startsWith('image/');
+  const isImage = asset.fileType && asset.fileType.startsWith('image/');
 
   return (
     <div
