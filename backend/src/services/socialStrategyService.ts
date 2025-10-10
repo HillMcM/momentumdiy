@@ -2,7 +2,7 @@ import * as supabase from '../config/supabase';
 import type { ApiResponse } from '../types';
 import { randomUUID } from 'crypto';
 
-interface SocialMediaStrategy {
+interface DbSocialMediaStrategy {
   id: string;
   user_id: string;
   track_id: string;
@@ -17,6 +17,63 @@ interface SocialMediaStrategy {
   collaborators: any[];
   created_at: string;
   updated_at: string;
+}
+
+interface SocialMediaStrategy {
+  id: string;
+  userId: string;
+  trackId: string;
+  contentPillars: any[];
+  brandVoice: any;
+  visualStyle: any;
+  postingSchedule: any;
+  baselineMetrics: any;
+  currentMetrics: any;
+  weeklySnapshots: any[];
+  notes?: string;
+  collaborators: any[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Convert database snake_case to frontend camelCase
+function dbToFrontend(db: DbSocialMediaStrategy): SocialMediaStrategy {
+  const result: any = {
+    id: db.id,
+    userId: db.user_id,
+    trackId: db.track_id,
+    contentPillars: db.content_pillars || [],
+    brandVoice: db.brand_voice || {},
+    visualStyle: db.visual_style || {},
+    postingSchedule: db.posting_schedule || {},
+    baselineMetrics: db.baseline_metrics || {},
+    currentMetrics: db.current_metrics || {},
+    weeklySnapshots: db.weekly_snapshots || [],
+    collaborators: db.collaborators || [],
+    createdAt: db.created_at,
+    updatedAt: db.updated_at
+  };
+  
+  if (db.notes) result.notes = db.notes;
+  
+  return result as SocialMediaStrategy;
+}
+
+// Convert frontend camelCase to database snake_case
+function frontendToDb(strategy: Partial<SocialMediaStrategy>): Partial<DbSocialMediaStrategy> {
+  const db: any = {};
+  
+  if (strategy.contentPillars !== undefined) db.content_pillars = strategy.contentPillars;
+  if (strategy.brandVoice !== undefined) db.brand_voice = strategy.brandVoice;
+  if (strategy.visualStyle !== undefined) db.visual_style = strategy.visualStyle;
+  if (strategy.postingSchedule !== undefined) db.posting_schedule = strategy.postingSchedule;
+  if (strategy.baselineMetrics !== undefined) db.baseline_metrics = strategy.baselineMetrics;
+  if (strategy.currentMetrics !== undefined) db.current_metrics = strategy.currentMetrics;
+  if (strategy.weeklySnapshots !== undefined) db.weekly_snapshots = strategy.weeklySnapshots;
+  if (strategy.notes !== undefined) db.notes = strategy.notes;
+  if (strategy.collaborators !== undefined) db.collaborators = strategy.collaborators;
+  
+  return db;
 }
 
 interface ShareLinkOptions {
@@ -117,7 +174,7 @@ export class SocialStrategyService {
       if (existing) {
         return {
           success: true,
-          data: existing as SocialMediaStrategy
+          data: dbToFrontend(existing as DbSocialMediaStrategy)
         };
       }
 
@@ -150,7 +207,7 @@ export class SocialStrategyService {
 
       return {
         success: true,
-        data: newStrategy as SocialMediaStrategy
+        data: dbToFrontend(newStrategy as DbSocialMediaStrategy)
       };
     } catch (error) {
       return {
@@ -190,11 +247,14 @@ export class SocialStrategyService {
         };
       }
 
+      // Convert camelCase to snake_case for database
+      const dbUpdates = frontendToDb(updates);
+
       // Update the specific strategy
       const { data: updated, error: updateError } = await supabase.default
         .from('social_media_strategies')
         .update({
-          ...updates,
+          ...dbUpdates,
           updated_at: new Date().toISOString()
         })
         .eq('id', existingStrategy.id)
@@ -210,7 +270,7 @@ export class SocialStrategyService {
 
       return {
         success: true,
-        data: updated as SocialMediaStrategy
+        data: dbToFrontend(updated as DbSocialMediaStrategy)
       };
     } catch (error) {
       return {
@@ -372,7 +432,7 @@ export class SocialStrategyService {
       return {
         success: true,
         data: {
-          strategy: strategy as SocialMediaStrategy,
+          strategy: dbToFrontend(strategy as DbSocialMediaStrategy),
           ownerName: profile?.business_name || profile?.full_name || 'Business'
         }
       };
