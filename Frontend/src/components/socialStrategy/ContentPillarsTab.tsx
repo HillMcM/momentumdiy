@@ -20,32 +20,35 @@ const PRESET_COLORS = [
 
 export default function ContentPillarsTab({ pillars, onChange }: ContentPillarsTabProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // Ensure pillars is always an array
+  const safePillars = pillars || [];
 
   const addPillar = () => {
-    if (pillars.length >= 4) return;
+    if (safePillars.length >= 4) return;
     
     const newPillar: ContentPillar = {
       id: crypto.randomUUID(),
       name: '',
       description: '',
-      colorTag: PRESET_COLORS[pillars.length % PRESET_COLORS.length],
+      colorTag: PRESET_COLORS[safePillars.length % PRESET_COLORS.length],
       exampleIdeas: ['']
     };
     
-    onChange([...pillars, newPillar]);
+    onChange([...safePillars, newPillar]);
     setEditingId(newPillar.id);
   };
 
   const updatePillar = (id: string, updates: Partial<ContentPillar>) => {
-    onChange(pillars.map(p => p.id === id ? { ...p, ...updates } : p));
+    onChange(safePillars.map(p => p.id === id ? { ...p, ...updates } : p));
   };
 
   const deletePillar = (id: string) => {
-    onChange(pillars.filter(p => p.id !== id));
+    onChange(safePillars.filter(p => p.id !== id));
   };
 
   const addExampleIdea = (pillarId: string) => {
-    const pillar = pillars.find(p => p.id === pillarId);
+    const pillar = safePillars.find(p => p.id === pillarId);
     if (!pillar) return;
     
     updatePillar(pillarId, {
@@ -54,7 +57,7 @@ export default function ContentPillarsTab({ pillars, onChange }: ContentPillarsT
   };
 
   const updateExampleIdea = (pillarId: string, index: number, value: string) => {
-    const pillar = pillars.find(p => p.id === pillarId);
+    const pillar = safePillars.find(p => p.id === pillarId);
     if (!pillar) return;
     
     const newIdeas = [...pillar.exampleIdeas];
@@ -63,7 +66,7 @@ export default function ContentPillarsTab({ pillars, onChange }: ContentPillarsT
   };
 
   const removeExampleIdea = (pillarId: string, index: number) => {
-    const pillar = pillars.find(p => p.id === pillarId);
+    const pillar = safePillars.find(p => p.id === pillarId);
     if (!pillar || pillar.exampleIdeas.length <= 1) return;
     
     updatePillar(pillarId, {
@@ -81,7 +84,7 @@ export default function ContentPillarsTab({ pillars, onChange }: ContentPillarsT
       </div>
 
       <div className="space-y-4">
-        {pillars.map((pillar, index) => (
+        {safePillars.map((pillar, index) => (
           <div
             key={pillar.id}
             className="bg-[#1A1625]/50 rounded-lg p-6 border border-[#2A2438]"
@@ -181,7 +184,7 @@ export default function ContentPillarsTab({ pillars, onChange }: ContentPillarsT
         ))}
       </div>
 
-      {pillars.length < 4 && (
+      {safePillars.length < 4 && (
         <button
           onClick={addPillar}
           className="w-full bg-[#2A2438] hover:bg-[#3A3448] text-[#FFF1E7] py-4 rounded-lg border-2 border-dashed border-[#3A3448] hover:border-[#EF8E81] transition-all flex items-center justify-center"
@@ -189,11 +192,11 @@ export default function ContentPillarsTab({ pillars, onChange }: ContentPillarsT
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Add Content Pillar ({pillars.length}/4)
+          Add Content Pillar ({safePillars.length}/4)
         </button>
       )}
 
-      {pillars.length === 0 && (
+      {safePillars.length === 0 && (
         <div className="bg-[#2A2438]/30 border border-[#3A3448] rounded-lg p-8 text-center">
           <div className="text-[#FFF1E7]/40 mb-4">
             <svg className="w-16 h-16 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

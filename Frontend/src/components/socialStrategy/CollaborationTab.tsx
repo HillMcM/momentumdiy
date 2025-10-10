@@ -18,6 +18,9 @@ export default function CollaborationTab({ collaborators, onCollaboratorsChange,
   const [creatingLink, setCreatingLink] = useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
   const [showLinkForm, setShowLinkForm] = useState(false);
+  
+  // Ensure collaborators is always an array
+  const safeCollaborators = collaborators || [];
   const [newLink, setNewLink] = useState({
     recipientName: '',
     recipientEmail: '',
@@ -102,7 +105,7 @@ export default function CollaborationTab({ collaborators, onCollaboratorsChange,
     if (!newCollab.name || !newCollab.email) return;
     
     onCollaboratorsChange([
-      ...collaborators,
+      ...safeCollaborators,
       {
         name: newCollab.name,
         role: newCollab.role || 'Collaborator',
@@ -116,7 +119,7 @@ export default function CollaborationTab({ collaborators, onCollaboratorsChange,
   };
 
   const removeCollaborator = (email: string) => {
-    onCollaboratorsChange(collaborators.filter(c => c.email !== email));
+    onCollaboratorsChange(safeCollaborators.filter(c => c.email !== email));
   };
 
   const handleExportPDF = async () => {
@@ -155,7 +158,7 @@ export default function CollaborationTab({ collaborators, onCollaboratorsChange,
         </p>
 
         <div className="space-y-3 mb-4">
-          {collaborators.map((collab, index) => (
+          {safeCollaborators.map((collab, index) => (
             <div
               key={index}
               className="bg-[#1A1625]/50 rounded-lg p-4 border border-[#2A2438] flex items-center justify-between"

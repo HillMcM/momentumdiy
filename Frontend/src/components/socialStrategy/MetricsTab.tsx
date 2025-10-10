@@ -19,9 +19,14 @@ export default function MetricsTab({
   onCurrentChange,
   onAddSnapshot
 }: MetricsTabProps) {
+  // Ensure arrays and objects have defaults
+  const safeSnapshots = weeklySnapshots || [];
+  const safeBaseline = baselineMetrics || { followers: 0, avgLikes: 0, avgComments: 0, storyViews: 0, date: '' };
+  const safeCurrent = currentMetrics || { followers: 0, avgLikes: 0, avgComments: 0, storyViews: 0, date: '' };
+  
   const [showSnapshotForm, setShowSnapshotForm] = useState(false);
   const [newSnapshot, setNewSnapshot] = useState<Partial<WeeklySnapshot>>({
-    week: (weeklySnapshots.length || 0) + 1,
+    week: (safeSnapshots.length || 0) + 1,
     date: new Date().toISOString().split('T')[0],
     metrics: {
       followers: 0,
@@ -41,7 +46,7 @@ export default function MetricsTab({
     if (newSnapshot.week && newSnapshot.date && newSnapshot.metrics) {
       onAddSnapshot(newSnapshot as WeeklySnapshot);
       setNewSnapshot({
-        week: (weeklySnapshots.length || 0) + 2,
+        week: (safeSnapshots.length || 0) + 2,
         date: new Date().toISOString().split('T')[0],
         metrics: {
           followers: 0,
@@ -138,8 +143,8 @@ export default function MetricsTab({
           <label className="text-[#FFF1E7]/60 text-xs block mb-1">Baseline Date</label>
           <input
             type="date"
-            value={baselineMetrics.date || ''}
-            onChange={(e) => onBaselineChange({ ...baselineMetrics, date: e.target.value })}
+            value={safeBaseline.date || ''}
+            onChange={(e) => onBaselineChange({ ...safeBaseline, date: e.target.value })}
             className="w-full bg-[#1A1625] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
           />
         </div>
@@ -147,8 +152,8 @@ export default function MetricsTab({
           <label className="text-[#FFF1E7]/60 text-xs block mb-1">Last Updated</label>
           <input
             type="date"
-            value={currentMetrics.date || ''}
-            onChange={(e) => onCurrentChange({ ...currentMetrics, date: e.target.value })}
+            value={safeCurrent.date || ''}
+            onChange={(e) => onCurrentChange({ ...safeCurrent, date: e.target.value })}
             className="w-full bg-[#1A1625] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
           />
         </div>
@@ -158,31 +163,31 @@ export default function MetricsTab({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <MetricCard
           label="Followers"
-          baseline={baselineMetrics.followers || 0}
-          current={currentMetrics.followers || 0}
-          onBaselineChange={(val) => onBaselineChange({ ...baselineMetrics, followers: val })}
-          onCurrentChange={(val) => onCurrentChange({ ...currentMetrics, followers: val })}
+          baseline={safeBaseline.followers || 0}
+          current={safeCurrent.followers || 0}
+          onBaselineChange={(val) => onBaselineChange({ ...safeBaseline, followers: val })}
+          onCurrentChange={(val) => onCurrentChange({ ...safeCurrent, followers: val })}
         />
         <MetricCard
           label="Avg. Likes per Post"
-          baseline={baselineMetrics.avgLikes || 0}
-          current={currentMetrics.avgLikes || 0}
-          onBaselineChange={(val) => onBaselineChange({ ...baselineMetrics, avgLikes: val })}
-          onCurrentChange={(val) => onCurrentChange({ ...currentMetrics, avgLikes: val })}
+          baseline={safeBaseline.avgLikes || 0}
+          current={safeCurrent.avgLikes || 0}
+          onBaselineChange={(val) => onBaselineChange({ ...safeBaseline, avgLikes: val })}
+          onCurrentChange={(val) => onCurrentChange({ ...safeCurrent, avgLikes: val })}
         />
         <MetricCard
           label="Avg. Comments per Post"
-          baseline={baselineMetrics.avgComments || 0}
-          current={currentMetrics.avgComments || 0}
-          onBaselineChange={(val) => onBaselineChange({ ...baselineMetrics, avgComments: val })}
-          onCurrentChange={(val) => onCurrentChange({ ...currentMetrics, avgComments: val })}
+          baseline={safeBaseline.avgComments || 0}
+          current={safeCurrent.avgComments || 0}
+          onBaselineChange={(val) => onBaselineChange({ ...safeBaseline, avgComments: val })}
+          onCurrentChange={(val) => onCurrentChange({ ...safeCurrent, avgComments: val })}
         />
         <MetricCard
           label="Avg. Story Views"
-          baseline={baselineMetrics.storyViews || 0}
-          current={currentMetrics.storyViews || 0}
-          onBaselineChange={(val) => onBaselineChange({ ...baselineMetrics, storyViews: val })}
-          onCurrentChange={(val) => onCurrentChange({ ...currentMetrics, storyViews: val })}
+          baseline={safeBaseline.storyViews || 0}
+          current={safeCurrent.storyViews || 0}
+          onBaselineChange={(val) => onBaselineChange({ ...safeBaseline, storyViews: val })}
+          onCurrentChange={(val) => onCurrentChange({ ...safeCurrent, storyViews: val })}
         />
       </div>
 
@@ -290,9 +295,9 @@ export default function MetricsTab({
           </div>
         )}
 
-        {weeklySnapshots.length > 0 ? (
+        {safeSnapshots.length > 0 ? (
           <div className="space-y-2">
-            {weeklySnapshots.sort((a, b) => b.week - a.week).map((snapshot) => (
+            {safeSnapshots.sort((a, b) => b.week - a.week).map((snapshot) => (
               <div key={`${snapshot.week}-${snapshot.date}`} className="bg-[#1A1625]/50 rounded-lg p-4 border border-[#2A2438]">
                 <div className="flex items-center justify-between mb-3">
                   <div>
