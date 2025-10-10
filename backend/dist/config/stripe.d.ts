@@ -5,6 +5,10 @@ export declare const STRIPE_CONFIG: {
     readonly secretKey: string;
     readonly webhookSecret: string;
     readonly prices: {
+        readonly founder: {
+            readonly monthly: string;
+            readonly yearly: string;
+        };
         readonly monthly: {
             readonly monthly: string;
             readonly yearly: string;

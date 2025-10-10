@@ -22,6 +22,10 @@ exports.STRIPE_CONFIG = {
     secretKey: stripeSecretKey,
     webhookSecret: process.env['STRIPE_WEBHOOK_SECRET'] || '',
     prices: {
+        founder: {
+            monthly: process.env['STRIPE_PRICE_FOUNDER_MONTHLY'] || '',
+            yearly: process.env['STRIPE_PRICE_FOUNDER_YEARLY'] || '',
+        },
         monthly: {
             monthly: process.env['STRIPE_PRICE_MONTHLY'] || 'price_monthly',
             yearly: process.env['STRIPE_PRICE_MONTHLY'] || 'price_monthly',
