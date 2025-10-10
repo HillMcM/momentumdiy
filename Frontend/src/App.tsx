@@ -9,6 +9,8 @@ import ProfilePage from './ProfilePage';
 
 // Lazy-loaded components for code splitting
 const SocialProfileManager = lazy(() => import('./SocialProfileManager'));
+const SocialStrategyHub = lazy(() => import('./pages/SocialStrategyHub'));
+const SharedStrategyView = lazy(() => import('./pages/SharedStrategyView'));
 import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { useWindowFocus } from './hooks/useWindowFocus';
 import { useIsMobile } from './hooks/useMediaQuery';
@@ -419,7 +421,7 @@ function SidebarToggle({ onClick, className }: { onClick: () => void; className?
   );
 }
 
-function Sidebar({ hidden, onToggle, showProfileManager, mobileOpen }: { hidden: boolean; onToggle: () => void; showProfileManager?: boolean; mobileOpen?: boolean }) {
+function Sidebar({ hidden, onToggle, showProfileManager, showSocialStrategy, mobileOpen }: { hidden: boolean; onToggle: () => void; showProfileManager?: boolean; showSocialStrategy?: boolean; mobileOpen?: boolean }) {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { subscription } = useSubscription();
@@ -515,6 +517,17 @@ function Sidebar({ hidden, onToggle, showProfileManager, mobileOpen }: { hidden:
               onClick={() => handleLinkClick('/app/profile-manager')}
             >
               Social Profile Manager
+            </Link>
+          </li>
+        )}
+        {showSocialStrategy && (
+          <li>
+            <Link 
+              to="/app/social-strategy" 
+              className={isActive('/app/social-strategy') ? 'active' : ''}
+              onClick={() => handleLinkClick('/app/social-strategy')}
+            >
+              Social Strategy Hub
             </Link>
           </li>
         )}
@@ -773,6 +786,17 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
   
+  // Debug: Log marketing goals state for troubleshooting
+  useEffect(() => {
+    logger.debug('Marketing goals updated in ProtectedApp', {
+      count: marketingGoals.length,
+      goals: marketingGoals.map(g => ({
+        title: g.title,
+        isActive: g.isActive,
+        hasSocialInTitle: g.title?.toLowerCase().includes('social')
+      }))
+    });
+  }, [marketingGoals]);
 
   // Debug: Track if component is mounting vs re-rendering
   const mountTimeRef = useRef(Date.now());
@@ -1384,6 +1408,10 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           hidden={sidebarHidden}
           onToggle={toggleSidebar}
           showProfileManager={Boolean(marketingGoals.find(g => g.title === 'Improve Social Media Strategy & Engagement' && g.currentWeek >= g.duration))}
+          showSocialStrategy={Boolean(marketingGoals.find(g => {
+            const titleLower = g.title?.toLowerCase() || '';
+            return titleLower.includes('social media') || titleLower.includes('social');
+          }))}
           mobileOpen={mobileSidebarOpen}
         />
         {/* Attach opener only when collapsed */}
@@ -1417,6 +1445,19 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
                 marketingGoals.some(g => g.title === 'Improve Social Media Strategy & Engagement' && g.currentWeek >= g.duration)
                   ? <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
                       <SocialProfileManager marketingGoals={marketingGoals} />
+                    </Suspense>
+                  : <Navigate to="/app/marketing-track" replace />
+              }
+            />
+            <Route
+              path="social-strategy"
+              element={
+                marketingGoals.some(g => {
+                  const titleLower = g.title?.toLowerCase() || '';
+                  return titleLower.includes('social media') || titleLower.includes('social');
+                })
+                  ? <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                      <SocialStrategyHub />
                     </Suspense>
                   : <Navigate to="/app/marketing-track" replace />
               }
@@ -1552,6 +1593,13 @@ function App() {
         <Route path="/checkout/:plan/:interval" element={<CheckoutPage />} />
         <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
         <Route path="/feedback" element={<FeedbackPage />} />
+
+        {/* Shared Strategy View - Public */}
+        <Route path="/shared/strategy/:accessCode" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-[#0F0A1A]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+            <SharedStrategyView />
+          </Suspense>
+        } />
 
         {/* App - Protected with subscription guard */}
         <Route path="/app/*" element={

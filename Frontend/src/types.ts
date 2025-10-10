@@ -48,6 +48,11 @@ export interface MarketingTask {
   isCompleted: boolean;
   dueDate?: Date;
   taskId?: string; // Links to the corresponding Task in the main task tracker
+  actionLink?: {
+    url: string;
+    label: string;
+    tab?: string; // Optional tab to navigate to (e.g., 'pillars', 'voice', 'schedule')
+  };
 }
 
 export interface MarketingPhase {
@@ -275,4 +280,83 @@ export interface UpdateAssetRequest {
   url?: string;
   tags?: string[];
   isPublic?: boolean;
+}
+
+// Social Media Strategy Types
+export interface SocialMediaStrategy {
+  id: string;
+  userId: string;
+  trackId: string;
+  contentPillars: ContentPillar[];
+  brandVoice: BrandVoice;
+  visualStyle: VisualStyle;
+  postingSchedule: PostingSchedule;
+  baselineMetrics: SocialMetrics;
+  currentMetrics: SocialMetrics;
+  weeklySnapshots: WeeklySnapshot[];
+  notes?: string;
+  collaborators: Collaborator[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ContentPillar {
+  id: string;
+  name: string;
+  description: string;
+  colorTag: string;
+  exampleIdeas: string[];
+}
+
+export interface BrandVoice {
+  tone: string[];
+  adjectives: string[];
+  personalityNotes: string;
+  styleGuide: string;
+}
+
+export interface VisualStyle {
+  colors: string[];
+  fonts: { heading?: string; body?: string };
+  imageStyle: string;
+  designNotes: string;
+}
+
+export interface PostingSchedule {
+  frequency: number;
+  days: string[];
+  postTypes: Record<string, 'educate' | 'promote' | 'connect'>;
+}
+
+export interface SocialMetrics {
+  followers: number;
+  avgLikes: number;
+  avgComments: number;
+  storyViews: number;
+  date: string;
+}
+
+export interface WeeklySnapshot {
+  week: number;
+  date: string;
+  metrics: SocialMetrics;
+}
+
+export interface Collaborator {
+  name: string;
+  role: string;
+  email: string;
+  accessLevel: 'view';
+}
+
+export interface SocialStrategyShareLink {
+  id: string;
+  strategyId: string;
+  accessCode: string;
+  recipientName?: string;
+  recipientEmail?: string;
+  expiresAt?: Date;
+  isActive: boolean;
+  createdAt: Date;
+  lastAccessedAt?: Date;
 } 

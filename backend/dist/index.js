@@ -62,6 +62,7 @@ const affiliate_1 = __importDefault(require("./routes/affiliate"));
 const index_1 = __importDefault(require("./routes/index"));
 const marketingTracks_1 = __importDefault(require("./routes/marketingTracks"));
 const testRoutes_1 = __importDefault(require("./routes/testRoutes"));
+const socialStrategyRoutes_1 = __importDefault(require("./routes/socialStrategyRoutes"));
 const logger_1 = require("./utils/logger");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -152,6 +153,7 @@ app.use('/api/feedback', feedback_1.default);
 app.use('/api/notifications', notifications_1.default);
 app.use('/api/notifications/automated', automatedNotifications_1.default);
 app.use('/api/email-preferences', emailPreferences_1.default);
+app.use('/api/social-strategy', socialStrategyRoutes_1.default);
 app.get('/debug/sentry-test', () => {
     throw new Error('Sentry test error');
 });
