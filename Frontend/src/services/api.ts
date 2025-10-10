@@ -553,6 +553,10 @@ class ApiService {
   }
 
   // Social Media Strategy API methods
+  async hasSocialStrategyAccess(): Promise<ApiResponse<boolean>> {
+    return this.request<boolean>('/social-strategy/has-access');
+  }
+
   async getSocialStrategy(): Promise<ApiResponse<SocialMediaStrategy>> {
     return this.request<SocialMediaStrategy>('/social-strategy');
   }
