@@ -12,7 +12,9 @@ import type {
   UpdateMarketingGoalRequest,
   CreateCalendarEventRequest,
   UpdateCalendarEventRequest,
-  ApiResponse
+  ApiResponse,
+  SocialMediaStrategy,
+  SocialStrategyShareLink
 } from '../types';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
@@ -548,6 +550,50 @@ class ApiService {
     trial_emails: boolean;
   }>> {
     return this.request(`/email-preferences/reset`, { method: 'POST' });
+  }
+
+  // Social Media Strategy API methods
+  async getSocialStrategy(): Promise<ApiResponse<SocialMediaStrategy>> {
+    return this.request<SocialMediaStrategy>('/social-strategy');
+  }
+
+  async updateSocialStrategy(updates: Partial<SocialMediaStrategy>): Promise<ApiResponse<SocialMediaStrategy>> {
+    return this.request<SocialMediaStrategy>('/social-strategy', {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  }
+
+  async createShareLink(options?: {
+    recipientName?: string;
+    recipientEmail?: string;
+    expiresAt?: string;
+  }): Promise<ApiResponse<SocialStrategyShareLink>> {
+    return this.request<SocialStrategyShareLink>('/social-strategy/share', {
+      method: 'POST',
+      body: JSON.stringify(options || {}),
+    });
+  }
+
+  async getShareLinks(): Promise<ApiResponse<SocialStrategyShareLink[]>> {
+    return this.request<SocialStrategyShareLink[]>('/social-strategy/share');
+  }
+
+  async getSharedStrategy(accessCode: string): Promise<ApiResponse<{ strategy: SocialMediaStrategy; ownerName?: string }>> {
+    return this.request<{ strategy: SocialMediaStrategy; ownerName?: string }>(`/social-strategy/shared/${accessCode}`);
+  }
+
+  async deleteShareLink(linkId: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/social-strategy/share/${linkId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async toggleShareLink(linkId: string, isActive: boolean): Promise<ApiResponse<SocialStrategyShareLink>> {
+    return this.request<SocialStrategyShareLink>(`/social-strategy/share/${linkId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_active: isActive }),
+    });
   }
 
 }

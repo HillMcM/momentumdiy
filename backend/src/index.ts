@@ -28,6 +28,7 @@ import affiliateRoutes from './routes/affiliate';
 import mainRoutes from './routes/index';
 import tracksAdminRoutes from './routes/marketingTracks';
 import testRoutes from './routes/testRoutes';
+import socialStrategyRoutes from './routes/socialStrategyRoutes';
 import { logger } from './utils/logger';
 
 
@@ -162,6 +163,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/notifications/automated', automatedNotificationsRoutes);
 app.use('/api/email-preferences', emailPreferencesRoutes);
+app.use('/api/social-strategy', socialStrategyRoutes);
 
 
 // Sentry verification route: intentionally throws to test error capture
