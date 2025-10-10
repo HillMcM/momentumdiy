@@ -52,7 +52,19 @@ export default function SocialStrategyHub() {
       const result = await apiService.getSocialStrategy();
       
       if (result.success && result.data) {
-        setStrategy(result.data);
+        // Ensure all array fields have defaults
+        const normalizedStrategy: SocialMediaStrategy = {
+          ...result.data,
+          contentPillars: result.data.contentPillars || [],
+          brandVoice: result.data.brandVoice || { tone: [], adjectives: [], personalityNotes: '', styleGuide: '' },
+          visualStyle: result.data.visualStyle || { colors: [], fonts: {}, imageStyle: '', designNotes: '' },
+          postingSchedule: result.data.postingSchedule || { frequency: 3, days: [], postTypes: {} },
+          baselineMetrics: result.data.baselineMetrics || { followers: 0, avgLikes: 0, avgComments: 0, storyViews: 0, date: '' },
+          currentMetrics: result.data.currentMetrics || { followers: 0, avgLikes: 0, avgComments: 0, storyViews: 0, date: '' },
+          weeklySnapshots: result.data.weeklySnapshots || [],
+          collaborators: result.data.collaborators || []
+        };
+        setStrategy(normalizedStrategy);
       } else {
         logger.error('Failed to load strategy', { error: result.error });
       }
