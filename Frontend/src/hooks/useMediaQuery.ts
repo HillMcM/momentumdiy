@@ -35,6 +35,11 @@ export const useIsTablet = () => useMediaQuery('(min-width: 769px) and (max-widt
 export const useIsDesktop = () => useMediaQuery('(min-width: 1025px)');
 
 /**
+ * Compact view threshold (narrower screens need vertical layouts)
+ */
+export const useIsCompact = () => useMediaQuery('(max-width: 1100px)');
+
+/**
  * Orientation detection
  */
 export const useIsPortrait = () => useMediaQuery('(orientation: portrait)');

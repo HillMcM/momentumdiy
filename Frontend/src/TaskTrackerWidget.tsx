@@ -11,7 +11,7 @@ import {
   defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
 import { useNotificationHelpers } from './hooks/useNotificationHelpers';
-import { useIsMobile } from './hooks/useMediaQuery';
+import { useIsMobile, useIsCompact } from './hooks/useMediaQuery';
 import {
   arrayMove,
   SortableContext,
@@ -289,6 +289,7 @@ interface TaskTrackerWidgetProps {
 export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onProjectsChange }: TaskTrackerWidgetProps) {
   const { showTaskCompleted, showProgressUpdate } = useNotificationHelpers();
   const isMobile = useIsMobile();
+  const isCompact = useIsCompact(); // Use vertical layout at 1100px or less
   const DEBUG = (import.meta as { env?: { DEV?: boolean } }).env?.DEV && (typeof localStorage !== 'undefined' && localStorage.getItem('debugLogs') === '1');
   if (DEBUG) {
     logger.debug('TaskTrackerWidget render', { tasksCount: tasks.length });
@@ -652,8 +653,8 @@ export default function TaskTrackerWidget({ projects, tasks, onTasksChange, onPr
       >
         <div style={{ 
           display: 'flex', 
-          flexDirection: isMobile ? 'column' : 'row',
-          gap: isMobile ? '1.5rem' : '1rem', 
+          flexDirection: isCompact ? 'column' : 'row',
+          gap: isCompact ? '1.5rem' : '1rem', 
           alignItems: 'flex-start' 
         }}>
           {columns.map(({ key }) => (
