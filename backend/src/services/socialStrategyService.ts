@@ -39,39 +39,72 @@ interface SocialStrategyShareLink {
 
 export class SocialStrategyService {
   /**
-   * Get or create social media strategy for the current user
+   * Check if user has ever activated a social media track
    */
-  static async getSocialStrategy(): Promise<ApiResponse<SocialMediaStrategy>> {
+  static async hasEverActivatedSocialTrack(userId: string): Promise<ApiResponse<boolean>> {
     try {
-      const { data: { user }, error: userError } = await supabase.default.auth.getUser();
-      
-      if (userError || !user) {
+      if (!userId) {
         return {
           success: false,
-          error: 'User not authenticated'
+          error: 'User ID is required'
         };
       }
 
-      // Get user's active track
-      const { data: profile, error: profileError } = await supabase.default
+      // Check if user has any social media strategies (meaning they've activated a social track before)
+      const { data, error } = await supabase.default
+        .from('social_media_strategies')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      return {
+        success: true,
+        data: (data && data.length > 0) || false
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  /**
+   * Get or create social media strategy for the current user
+   */
+  static async getSocialStrategy(userId: string): Promise<ApiResponse<SocialMediaStrategy>> {
+    try {
+      if (!userId) {
+        return {
+          success: false,
+          error: 'User ID is required'
+        };
+      }
+
+      const user = { id: userId };
+
+      // Get user's active track (if any)
+      const { data: profile } = await supabase.default
         .from('profiles')
         .select('active_track_id')
         .eq('id', user.id)
         .single();
 
-      if (profileError || !profile?.active_track_id) {
-        return {
-          success: false,
-          error: 'No active track found'
-        };
-      }
-
-      // Check if strategy already exists
+      // Check if strategy already exists for this user
+      // If user has an active track, use that; otherwise use their most recent strategy
       const { data: existing, error: fetchError } = await supabase.default
         .from('social_media_strategies')
         .select('*')
         .eq('user_id', user.id)
-        .eq('track_id', profile.active_track_id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
@@ -88,12 +121,14 @@ export class SocialStrategyService {
         };
       }
 
-      // Create new strategy with defaults
+      // Create new strategy with defaults (use active track if available)
+      const trackId = profile?.active_track_id || null;
+      
       const { data: newStrategy, error: createError } = await supabase.default
         .from('social_media_strategies')
         .insert({
           user_id: user.id,
-          track_id: profile.active_track_id,
+          track_id: trackId,
           content_pillars: [],
           brand_voice: {},
           visual_style: {},
@@ -128,40 +163,41 @@ export class SocialStrategyService {
   /**
    * Update social media strategy
    */
-  static async updateSocialStrategy(updates: Partial<SocialMediaStrategy>): Promise<ApiResponse<SocialMediaStrategy>> {
+  static async updateSocialStrategy(userId: string, updates: Partial<SocialMediaStrategy>): Promise<ApiResponse<SocialMediaStrategy>> {
     try {
-      const { data: { user }, error: userError } = await supabase.default.auth.getUser();
-      
-      if (userError || !user) {
+      if (!userId) {
         return {
           success: false,
-          error: 'User not authenticated'
+          error: 'User ID is required'
         };
       }
 
-      // Get user's active track
-      const { data: profile, error: profileError } = await supabase.default
-        .from('profiles')
-        .select('active_track_id')
-        .eq('id', user.id)
-        .single();
+      const user = { id: userId };
 
-      if (profileError || !profile?.active_track_id) {
+      // Get the user's most recent strategy first
+      const { data: existingStrategy, error: fetchError } = await supabase.default
+        .from('social_media_strategies')
+        .select('id')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (fetchError || !existingStrategy) {
         return {
           success: false,
-          error: 'No active track found'
+          error: 'Strategy not found'
         };
       }
 
-      // Update the strategy
+      // Update the specific strategy
       const { data: updated, error: updateError } = await supabase.default
         .from('social_media_strategies')
         .update({
           ...updates,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.id)
-        .eq('track_id', profile.active_track_id)
+        .eq('id', existingStrategy.id)
         .select()
         .single();
 
@@ -187,19 +223,17 @@ export class SocialStrategyService {
   /**
    * Create a share link for a strategy
    */
-  static async createShareLink(options: ShareLinkOptions = {}): Promise<ApiResponse<SocialStrategyShareLink>> {
+  static async createShareLink(userId: string, options: ShareLinkOptions = {}): Promise<ApiResponse<SocialStrategyShareLink>> {
     try {
-      const { data: { user }, error: userError } = await supabase.default.auth.getUser();
-      
-      if (userError || !user) {
+      if (!userId) {
         return {
           success: false,
-          error: 'User not authenticated'
+          error: 'User ID is required'
         };
       }
 
       // Get user's strategy
-      const strategyResponse = await this.getSocialStrategy();
+      const strategyResponse = await this.getSocialStrategy(userId);
       if (!strategyResponse.success || !strategyResponse.data) {
         return {
           success: false,
@@ -246,19 +280,17 @@ export class SocialStrategyService {
   /**
    * Get all share links for current user's strategy
    */
-  static async getShareLinks(): Promise<ApiResponse<SocialStrategyShareLink[]>> {
+  static async getShareLinks(userId: string): Promise<ApiResponse<SocialStrategyShareLink[]>> {
     try {
-      const { data: { user }, error: userError } = await supabase.default.auth.getUser();
-      
-      if (userError || !user) {
+      if (!userId) {
         return {
           success: false,
-          error: 'User not authenticated'
+          error: 'User ID is required'
         };
       }
 
       // Get user's strategy
-      const strategyResponse = await this.getSocialStrategy();
+      const strategyResponse = await this.getSocialStrategy(userId);
       if (!strategyResponse.success || !strategyResponse.data) {
         return {
           success: true,
@@ -355,19 +387,17 @@ export class SocialStrategyService {
   /**
    * Delete (revoke) a share link
    */
-  static async deleteShareLink(linkId: string): Promise<ApiResponse<void>> {
+  static async deleteShareLink(userId: string, linkId: string): Promise<ApiResponse<void>> {
     try {
-      const { data: { user }, error: userError } = await supabase.default.auth.getUser();
-      
-      if (userError || !user) {
+      if (!userId) {
         return {
           success: false,
-          error: 'User not authenticated'
+          error: 'User ID is required'
         };
       }
 
       // Get user's strategy to verify ownership
-      const strategyResponse = await this.getSocialStrategy();
+      const strategyResponse = await this.getSocialStrategy(userId);
       if (!strategyResponse.success || !strategyResponse.data) {
         return {
           success: false,
@@ -403,19 +433,17 @@ export class SocialStrategyService {
   /**
    * Toggle share link active status
    */
-  static async toggleShareLink(linkId: string, isActive: boolean): Promise<ApiResponse<SocialStrategyShareLink>> {
+  static async toggleShareLink(userId: string, linkId: string, isActive: boolean): Promise<ApiResponse<SocialStrategyShareLink>> {
     try {
-      const { data: { user }, error: userError } = await supabase.default.auth.getUser();
-      
-      if (userError || !user) {
+      if (!userId) {
         return {
           success: false,
-          error: 'User not authenticated'
+          error: 'User ID is required'
         };
       }
 
       // Get user's strategy to verify ownership
-      const strategyResponse = await this.getSocialStrategy();
+      const strategyResponse = await this.getSocialStrategy(userId);
       if (!strategyResponse.success || !strategyResponse.data) {
         return {
           success: false,

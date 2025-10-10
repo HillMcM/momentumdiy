@@ -785,6 +785,25 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
+  const [hasSocialStrategyAccess, setHasSocialStrategyAccess] = useState(false);
+  
+  // Check if user has ever activated a social media track (for persistent hub access)
+  useEffect(() => {
+    const checkSocialAccess = async () => {
+      try {
+        const result = await apiService.hasSocialStrategyAccess();
+        if (result.success && result.data) {
+          setHasSocialStrategyAccess(true);
+        }
+      } catch (error) {
+        logger.error('Error checking social strategy access', error);
+      }
+    };
+    
+    if (user) {
+      checkSocialAccess();
+    }
+  }, [user]);
   
   // Debug: Log marketing goals state for troubleshooting
   useEffect(() => {
@@ -794,9 +813,10 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
         title: g.title,
         isActive: g.isActive,
         hasSocialInTitle: g.title?.toLowerCase().includes('social')
-      }))
+      })),
+      hasSocialStrategyAccess
     });
-  }, [marketingGoals]);
+  }, [marketingGoals, hasSocialStrategyAccess]);
 
   // Debug: Track if component is mounting vs re-rendering
   const mountTimeRef = useRef(Date.now());
@@ -1408,7 +1428,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           hidden={sidebarHidden}
           onToggle={toggleSidebar}
           showProfileManager={Boolean(marketingGoals.find(g => g.title === 'Improve Social Media Strategy & Engagement' && g.currentWeek >= g.duration))}
-          showSocialStrategy={Boolean(marketingGoals.find(g => {
+          showSocialStrategy={hasSocialStrategyAccess || Boolean(marketingGoals.find(g => {
             const titleLower = g.title?.toLowerCase() || '';
             return titleLower.includes('social media') || titleLower.includes('social');
           }))}
@@ -1452,7 +1472,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
             <Route
               path="social-strategy"
               element={
-                marketingGoals.some(g => {
+                hasSocialStrategyAccess || marketingGoals.some(g => {
                   const titleLower = g.title?.toLowerCase() || '';
                   return titleLower.includes('social media') || titleLower.includes('social');
                 })
