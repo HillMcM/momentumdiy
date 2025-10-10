@@ -76,13 +76,31 @@ function frontendToDb(strategy: Partial<SocialMediaStrategy>): Partial<DbSocialM
   return db;
 }
 
+// Convert database share link snake_case to frontend camelCase
+function dbToFrontendShareLink(db: DbSocialStrategyShareLink): SocialStrategyShareLink {
+  const result: any = {
+    id: db.id,
+    strategyId: db.strategy_id,
+    accessCode: db.access_code,
+    isActive: db.is_active,
+    createdAt: db.created_at
+  };
+  
+  if (db.recipient_name) result.recipientName = db.recipient_name;
+  if (db.recipient_email) result.recipientEmail = db.recipient_email;
+  if (db.expires_at) result.expiresAt = db.expires_at;
+  if (db.last_accessed_at) result.lastAccessedAt = db.last_accessed_at;
+  
+  return result as SocialStrategyShareLink;
+}
+
 interface ShareLinkOptions {
   recipientName?: string;
   recipientEmail?: string;
   expiresAt?: string;
 }
 
-interface SocialStrategyShareLink {
+interface DbSocialStrategyShareLink {
   id: string;
   strategy_id: string;
   access_code: string;
@@ -92,6 +110,18 @@ interface SocialStrategyShareLink {
   is_active: boolean;
   created_at: string;
   last_accessed_at?: string;
+}
+
+interface SocialStrategyShareLink {
+  id: string;
+  strategyId: string;
+  accessCode: string;
+  recipientName?: string;
+  recipientEmail?: string;
+  expiresAt?: string;
+  isActive: boolean;
+  createdAt: string;
+  lastAccessedAt?: string;
 }
 
 export class SocialStrategyService {
@@ -327,7 +357,7 @@ export class SocialStrategyService {
 
       return {
         success: true,
-        data: shareLink as SocialStrategyShareLink
+        data: dbToFrontendShareLink(shareLink as DbSocialStrategyShareLink)
       };
     } catch (error) {
       return {
@@ -374,7 +404,7 @@ export class SocialStrategyService {
 
       return {
         success: true,
-        data: shareLinks as SocialStrategyShareLink[]
+        data: shareLinks.map(link => dbToFrontendShareLink(link as DbSocialStrategyShareLink))
       };
     } catch (error) {
       return {
@@ -529,7 +559,7 @@ export class SocialStrategyService {
 
       return {
         success: true,
-        data: updated as SocialStrategyShareLink
+        data: dbToFrontendShareLink(updated as DbSocialStrategyShareLink)
       };
     } catch (error) {
       return {
