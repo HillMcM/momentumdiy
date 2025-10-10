@@ -600,6 +600,36 @@ class ApiService {
     });
   }
 
+  // Founder Pricing APIs
+  async getFounderAvailability(): Promise<ApiResponse<{
+    isFounder: boolean;
+    spotsRemaining: number;
+    totalSpots: number;
+    message?: string;
+  }>> {
+    return this.request('/founder/availability');
+  }
+
+  async getFounderStatus(): Promise<ApiResponse<{
+    isFounder: boolean;
+    founderNumber?: number;
+    spotsRemaining: number;
+    totalSpots: number;
+    message?: string;
+  }>> {
+    return this.request('/founder/status');
+  }
+
+  async claimFounderSpot(): Promise<ApiResponse<{
+    success: boolean;
+    founderNumber?: number;
+    message: string;
+  }>> {
+    return this.request('/founder/claim', {
+      method: 'POST',
+    });
+  }
+
 }
 
 export const apiService = new ApiService();

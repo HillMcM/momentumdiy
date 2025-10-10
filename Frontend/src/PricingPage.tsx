@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { apiService } from "./services/api";
+import { logger } from "./utils/logger";
 
-// MomentumDIY Pricing Page - Updated with Brand Colors
+// MomentumDIY Pricing Page - Updated with Brand Colors & Founder Pricing
 // - Single-file React component using Tailwind CSS
 // - Includes: hero, billing toggle, plan cards, trust band, testimonials, FAQ, final CTA
 // - Uses MomentumDIY brand colors: coral accent (#EF8E81) and dark purple/burgundy backgrounds
@@ -27,22 +29,86 @@ const Star = (props: React.SVGProps<SVGSVGElement>) => (
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false)
+  const [founderStatus, setFounderStatus] = useState<{
+    isFounder: boolean;
+    founderNumber?: number;
+    spotsRemaining: number;
+    isEligible: boolean;
+  } | null>(null)
+  const [loadingFounderStatus, setLoadingFounderStatus] = useState(true)
 
   // Pricing constants
   const DIY_MONTHLY = 14.99
-  const DIY_ANNUAL = 143.88 // charged yearly
-  const DIY_ANNUAL_EQ = useMemo(() => (DIY_ANNUAL / 12).toFixed(2), []) // 11.99
-  const DIY_SAVE_PCT = useMemo(() => Math.round((1 - DIY_ANNUAL / (DIY_MONTHLY * 12)) * 100), []) // ~20%
+  const DIY_ANNUAL = 149.99 // charged yearly
+  const DIY_ANNUAL_EQ = useMemo(() => (DIY_ANNUAL / 12).toFixed(2), []) // 12.50
+  const DIY_SAVE_PCT = useMemo(() => Math.round((1 - DIY_ANNUAL / (DIY_MONTHLY * 12)) * 100), []) // ~17%
+  
+  // Founder Pricing constants
+  const FOUNDER_MONTHLY = 9.99
+  const FOUNDER_ANNUAL = 99.00
+  const FOUNDER_ANNUAL_EQ = useMemo(() => (FOUNDER_ANNUAL / 12).toFixed(2), []) // 8.25
+  const FOUNDER_SAVE_PCT = useMemo(() => Math.round((1 - FOUNDER_ANNUAL / (FOUNDER_MONTHLY * 12)) * 100), []) // ~17%
+  
+  // Determine if founder pricing applies
+  const isFounderEligible = founderStatus?.isFounder || (founderStatus?.spotsRemaining ?? 0) > 0
+  
+  // Active pricing
+  const activeMonthly = isFounderEligible ? FOUNDER_MONTHLY : DIY_MONTHLY
+  const activeAnnual = isFounderEligible ? FOUNDER_ANNUAL : DIY_ANNUAL
+  const activeAnnualEq = isFounderEligible ? FOUNDER_ANNUAL_EQ : DIY_ANNUAL_EQ
+  const activeSavePct = isFounderEligible ? FOUNDER_SAVE_PCT : DIY_SAVE_PCT
+
+  // Load founder status
+  useEffect(() => {
+    const loadFounderStatus = async () => {
+      try {
+        // Try authenticated endpoint first
+        const statusResponse = await apiService.getFounderStatus();
+        if (statusResponse.success && statusResponse.data) {
+          setFounderStatus({
+            isFounder: statusResponse.data.isFounder,
+            founderNumber: statusResponse.data.founderNumber,
+            spotsRemaining: statusResponse.data.spotsRemaining,
+            isEligible: statusResponse.data.isFounder || statusResponse.data.spotsRemaining > 0
+          });
+        } else {
+          // Fall back to public availability
+          const availResponse = await apiService.getFounderAvailability();
+          if (availResponse.success && availResponse.data) {
+            setFounderStatus({
+              isFounder: false,
+              spotsRemaining: availResponse.data.spotsRemaining,
+              isEligible: availResponse.data.spotsRemaining > 0
+            });
+          }
+        }
+      } catch (error) {
+        logger.error('Error loading founder status', error);
+        // Default to regular pricing on error
+        setFounderStatus({
+          isFounder: false,
+          spotsRemaining: 0,
+          isEligible: false
+        });
+      } finally {
+        setLoadingFounderStatus(false);
+      }
+    };
+
+    loadFounderStatus();
+  }, []);
 
   const plans = [
     {
       key: "diy",
       name: "MomentumDIY",
-      badge: "Most Popular",
+      badge: isFounderEligible && founderStatus?.isFounder ? `Founder #${founderStatus.founderNumber}` : isFounderEligible ? "🏆 Founder Pricing" : "Most Popular",
       description: "Self-guided 12-week marketing track with weekly lessons & tasks.",
-      monthlyPrice: DIY_MONTHLY,
-      annualPrice: DIY_ANNUAL,
-      annualMonthlyEq: DIY_ANNUAL_EQ,
+      monthlyPrice: activeMonthly,
+      annualPrice: activeAnnual,
+      annualMonthlyEq: activeAnnualEq,
+      regularMonthlyPrice: DIY_MONTHLY,
+      regularAnnualPrice: DIY_ANNUAL,
       monthlyOnly: false,
       cta: annual ? "Start 30‑Day Free Trial" : "Start 30‑Day Free Trial",
       href: "/auth",
@@ -54,10 +120,15 @@ export default function PricingPage() {
         "Task tracker, templates & checklists",
         "Cancel anytime — your data stays yours",
         "30‑day free trial, no credit card required",
+        ...(isFounderEligible ? ["🎉 Founder pricing locked in for life"] : []),
       ],
       footnote: annual
-        ? `Billed $${DIY_ANNUAL.toFixed(2)} yearly (≈ $${DIY_ANNUAL_EQ}/mo). Save ${DIY_SAVE_PCT}% vs monthly.`
-        : "Billed monthly. Switch to annual anytime.",
+        ? isFounderEligible
+          ? `Billed $${activeAnnual.toFixed(2)} yearly (≈ $${activeAnnualEq}/mo). Save ${activeSavePct}% vs monthly. Founder pricing forever!`
+          : `Billed $${activeAnnual.toFixed(2)} yearly (≈ $${activeAnnualEq}/mo). Save ${activeSavePct}% vs monthly.`
+        : isFounderEligible
+          ? "Billed monthly. Founder pricing locked in for life!"
+          : "Billed monthly. Switch to annual anytime.",
     },
     {
       key: "spark",
@@ -155,6 +226,61 @@ export default function PricingPage() {
         </div>
       </header>
 
+      {/* Founder Deal Banner */}
+      {isFounderEligible && !loadingFounderStatus && (
+        <div className="mx-auto max-w-7xl px-6 pb-8 lg:px-8">
+          <div className="rounded-2xl border p-6 ring-1 backdrop-blur" style={{
+            background: 'linear-gradient(135deg, rgba(239, 142, 129, 0.15) 0%, rgba(239, 142, 129, 0.05) 100%)',
+            borderColor: 'rgba(239, 142, 129, 0.3)'
+          }}>
+            <div className="flex items-start justify-between flex-wrap gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">🏆</span>
+                  <h3 className="text-xl font-bold text-white">
+                    {founderStatus?.isFounder ? `You're Founder #${founderStatus.founderNumber}!` : 'Founder Pricing Available'}
+                  </h3>
+                </div>
+                <p className="text-sm" style={{ color: '#FFF1E7' }}>
+                  {founderStatus?.isFounder 
+                    ? 'Your lifetime pricing is locked in at $9.99/month or $99/year as long as you remain subscribed.'
+                    : 'Lock in lifetime pricing at $9.99/month or $99/year — available during our founding period only.'
+                  }
+                </p>
+                <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                  <span className="flex items-center gap-1.5">
+                    <Check className="h-4 w-4" style={{ color: '#EF8E81' }} />
+                    <span style={{ color: '#FFF1E7' }}>Save ${annual ? '50.99' : '5'}/{annual ? 'year' : 'month'}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Check className="h-4 w-4" style={{ color: '#EF8E81' }} />
+                    <span style={{ color: '#FFF1E7' }}>Price locked in forever</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Check className="h-4 w-4" style={{ color: '#EF8E81' }} />
+                    <span style={{ color: '#FFF1E7' }}>Still includes 30-day free trial</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <div className="text-right">
+                  <div className="text-sm" style={{ color: '#FFF1E7', opacity: 0.7 }}>Regular Price</div>
+                  <div className="text-xl line-through" style={{ color: '#FFF1E7', opacity: 0.6 }}>
+                    ${annual ? DIY_ANNUAL.toFixed(2) : DIY_MONTHLY.toFixed(2)}/{annual ? 'yr' : 'mo'}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-semibold" style={{ color: '#EF8E81' }}>Your Founder Price</div>
+                  <div className="text-3xl font-bold text-white">
+                    ${annual ? FOUNDER_ANNUAL.toFixed(2) : FOUNDER_MONTHLY.toFixed(2)}/{annual ? 'yr' : 'mo'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Plans */}
       <main className="relative">
         <div className="mx-auto max-w-7xl px-6 pb-16 lg:px-8">
@@ -186,29 +312,39 @@ className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur 
                 <p className="mt-1 text-sm" style={{ color: '#FFF1E7' }}>{p.description}</p>
 
                 {/* Price */}
-                <div className="mt-5 flex items-end gap-2">
+                <div className="mt-5">
                   {p.key === "diy" ? (
-                    annual ? (
-                      <>
-                        <span className="text-4xl font-bold tracking-tight text-white">${DIY_ANNUAL.toFixed(2)}</span>
-                        <span className="mb-2 text-sm" style={{ color: '#FFF1E7', opacity: 0.7 }}>/year</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-4xl font-bold tracking-tight text-white">${DIY_MONTHLY.toFixed(2)}</span>
-                        <span className="mb-2 text-sm" style={{ color: '#FFF1E7', opacity: 0.7 }}>/month</span>
-                      </>
-                    )
-                  ) : (
                     <>
+                      {/* Show strikethrough of regular price if founder pricing */}
+                      {isFounderEligible && !loadingFounderStatus && (
+                        <div className="flex items-baseline gap-2 mb-1">
+                          <span className="text-lg line-through" style={{ color: '#FFF1E7', opacity: 0.5 }}>
+                            ${annual ? p.regularAnnualPrice?.toFixed(2) : p.regularMonthlyPrice?.toFixed(2)}
+                          </span>
+                          <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: 'rgba(239, 142, 129, 0.2)', color: '#EF8E81' }}>
+                            Save ${annual ? (p.regularAnnualPrice! - p.annualPrice).toFixed(2) : (p.regularMonthlyPrice! - p.monthlyPrice).toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-end gap-2">
+                        <span className="text-4xl font-bold tracking-tight text-white">
+                          ${annual ? p.annualPrice.toFixed(2) : p.monthlyPrice.toFixed(2)}
+                        </span>
+                        <span className="mb-2 text-sm" style={{ color: '#FFF1E7', opacity: 0.7 }}>
+                          /{annual ? 'year' : 'month'}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-end gap-2">
                       <span className="text-4xl font-bold tracking-tight text-white">${p.monthlyPrice.toFixed(0)}</span>
                       <span className="mb-2 text-sm text-slate-400">/month</span>
-                    </>
+                    </div>
                   )}
                 </div>
 
                 {p.key === "diy" && annual && (
-                  <p className="mt-1 text-xs" style={{ color: '#EF8E81' }}>≈ ${DIY_ANNUAL_EQ}/mo • Save {DIY_SAVE_PCT}%</p>
+                  <p className="mt-1 text-xs" style={{ color: '#EF8E81' }}>≈ ${p.annualMonthlyEq}/mo • Save {activeSavePct}%</p>
                 )}
 
                 {/* CTA */}
@@ -295,7 +431,7 @@ className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur 
                   <span className="ml-4 transition group-open:rotate-180" style={{ color: '#FFF1E7', opacity: 0.7 }}>▾</span>
                 </summary>
                 <p className="mt-3 text-sm" style={{ color: '#FFF1E7' }}>
-                  Your core subscription price is locked in for life. If our public price changes later, yours won't.
+                  Your subscription price is locked in for life as long as you remain subscribed. Founder pricing ($9.99/month or $99/year) is permanent — if you cancel and return later, you'll still get your founder rate. Regular pricing is also locked at sign-up.
                 </p>
               </details>
               <details className="group p-6">
