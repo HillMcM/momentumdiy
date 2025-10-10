@@ -7,7 +7,8 @@
     { "source": "/pricing", "destination": "/app.html" },
     { "source": "/checkout/(.*)", "destination": "/app.html" },
     { "source": "/feedback", "destination": "/app.html" },
-    { "source": "/terms", "destination": "/app.html" }
+    { "source": "/terms", "destination": "/app.html" },
+    { "source": "/shared/strategy/(.*)", "destination": "/app.html" }
   ],
   "headers": [
     {
