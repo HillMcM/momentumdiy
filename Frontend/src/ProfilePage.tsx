@@ -91,6 +91,7 @@ export default function ProfilePage() {
   const { activeGoal } = useMarketing();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const isCompact = useIsCompact(); // Compact layout at 1100px or less
   const [tab, setTab] = useState<'account' | 'business' | 'tracks' | 'favorites' | 'notifications'>('account');
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -425,11 +426,11 @@ export default function ProfilePage() {
           </Section>
           
           <Section title="Brand Colors & Fonts">
-            {/* Color Pickers - Stack on mobile for better accessibility */}
+            {/* Color Pickers - Stack on compact screens for better accessibility */}
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
-              gap: isMobile ? '1rem' : '0.75rem' 
+              gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', 
+              gap: isCompact ? '1rem' : '0.75rem' 
             }}>
               <div>
                 <label style={{ 
@@ -445,14 +446,14 @@ export default function ProfilePage() {
                   display: 'flex', 
                   gap: '0.5rem', 
                   alignItems: 'center',
-                  flexDirection: isMobile ? 'column' : 'row'
+                  flexDirection: isCompact ? 'column' : 'row'
                 }}>
                   <input 
                     type="color" 
                     value={profile.brand_primary_color || '#EF8E81'} 
                     onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), brand_primary_color: e.target.value }))}
                     style={{ 
-                      width: isMobile ? '100%' : '60px', 
+                      width: isCompact ? '100%' : '60px', 
                       height: '44px', 
                       borderRadius: 8, 
                       border: '1px solid rgba(255,255,255,0.12)', 
@@ -465,7 +466,7 @@ export default function ProfilePage() {
                     onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), brand_primary_color: e.target.value }))}
                     style={{ 
                       flex: 1, 
-                      width: isMobile ? '100%' : 'auto',
+                      width: isCompact ? '100%' : 'auto',
                       padding: '0.65rem 0.75rem', 
                       borderRadius: 8, 
                       background: 'rgba(255,255,255,0.06)', 
@@ -494,14 +495,14 @@ export default function ProfilePage() {
                   display: 'flex', 
                   gap: '0.5rem', 
                   alignItems: 'center',
-                  flexDirection: isMobile ? 'column' : 'row'
+                  flexDirection: isCompact ? 'column' : 'row'
                 }}>
                   <input 
                     type="color" 
                     value={profile.brand_secondary_color || '#D4AF37'} 
                     onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), brand_secondary_color: e.target.value }))}
                     style={{ 
-                      width: isMobile ? '100%' : '60px', 
+                      width: isCompact ? '100%' : '60px', 
                       height: '44px', 
                       borderRadius: 8, 
                       border: '1px solid rgba(255,255,255,0.12)', 
@@ -514,7 +515,7 @@ export default function ProfilePage() {
                     onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), brand_secondary_color: e.target.value }))}
                     style={{ 
                       flex: 1, 
-                      width: isMobile ? '100%' : 'auto',
+                      width: isCompact ? '100%' : 'auto',
                       padding: '0.65rem 0.75rem', 
                       borderRadius: 8, 
                       background: 'rgba(255,255,255,0.06)', 

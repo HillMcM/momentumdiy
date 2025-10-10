@@ -412,7 +412,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 80px); /* Increased height - reduced top margin */
   display: flex;
   flex-direction: column;
 }
@@ -647,7 +647,7 @@
   right: 24px;
   bottom: 24px;
   width: min(420px, calc(100vw - 48px));
-  height: min(70vh, 640px);
+  height: min(80vh, 720px); /* Increased from 70vh/640px to 80vh/720px */
   background: #23233a;
   border: 1px solid rgba(239, 142, 129, 0.25);
   border-radius: 12px;

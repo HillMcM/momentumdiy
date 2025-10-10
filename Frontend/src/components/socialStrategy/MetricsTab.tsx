@@ -85,9 +85,14 @@ export default function MetricsTab({
           <div>
             <label className="text-[#FFF1E7]/60 text-xs block mb-1">Baseline</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={baseline || ''}
-              onChange={(e) => onBaselineChange(parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                onBaselineChange(parseInt(val) || 0);
+              }}
               className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
               placeholder="0"
             />
@@ -95,9 +100,14 @@ export default function MetricsTab({
           <div>
             <label className="text-[#FFF1E7]/60 text-xs block mb-1">Current</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={current || ''}
-              onChange={(e) => onCurrentChange(parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                onCurrentChange(parseInt(val) || 0);
+              }}
               className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
               placeholder="0"
             />
@@ -232,49 +242,73 @@ export default function MetricsTab({
               <div>
                 <label className="text-[#FFF1E7]/60 text-xs block mb-1">Followers</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={newSnapshot.metrics?.followers || ''}
-                  onChange={(e) => setNewSnapshot({
-                    ...newSnapshot,
-                    metrics: { ...newSnapshot.metrics!, followers: parseInt(e.target.value) || 0 }
-                  })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setNewSnapshot({
+                      ...newSnapshot,
+                      metrics: { ...newSnapshot.metrics!, followers: parseInt(val) || 0 }
+                    });
+                  }}
                   className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
+                  placeholder="0"
                 />
               </div>
               <div>
                 <label className="text-[#FFF1E7]/60 text-xs block mb-1">Avg Likes</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={newSnapshot.metrics?.avgLikes || ''}
-                  onChange={(e) => setNewSnapshot({
-                    ...newSnapshot,
-                    metrics: { ...newSnapshot.metrics!, avgLikes: parseInt(e.target.value) || 0 }
-                  })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setNewSnapshot({
+                      ...newSnapshot,
+                      metrics: { ...newSnapshot.metrics!, avgLikes: parseInt(val) || 0 }
+                    });
+                  }}
                   className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
+                  placeholder="0"
                 />
               </div>
               <div>
                 <label className="text-[#FFF1E7]/60 text-xs block mb-1">Avg Comments</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={newSnapshot.metrics?.avgComments || ''}
-                  onChange={(e) => setNewSnapshot({
-                    ...newSnapshot,
-                    metrics: { ...newSnapshot.metrics!, avgComments: parseInt(e.target.value) || 0 }
-                  })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setNewSnapshot({
+                      ...newSnapshot,
+                      metrics: { ...newSnapshot.metrics!, avgComments: parseInt(val) || 0 }
+                    });
+                  }}
                   className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
+                  placeholder="0"
                 />
               </div>
               <div>
                 <label className="text-[#FFF1E7]/60 text-xs block mb-1">Story Views</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={newSnapshot.metrics?.storyViews || ''}
-                  onChange={(e) => setNewSnapshot({
-                    ...newSnapshot,
-                    metrics: { ...newSnapshot.metrics!, storyViews: parseInt(e.target.value) || 0 }
-                  })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setNewSnapshot({
+                      ...newSnapshot,
+                      metrics: { ...newSnapshot.metrics!, storyViews: parseInt(val) || 0 }
+                    });
+                  }}
                   className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
+                  placeholder="0"
                 />
               </div>
             </div>
