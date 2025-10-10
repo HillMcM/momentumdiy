@@ -11,6 +11,7 @@ import ProfilePage from './ProfilePage';
 const SocialProfileManager = lazy(() => import('./SocialProfileManager'));
 const SocialStrategyHub = lazy(() => import('./pages/SocialStrategyHub'));
 const SharedStrategyView = lazy(() => import('./pages/SharedStrategyView'));
+const AssetLibrary = lazy(() => import('./pages/AssetLibrary'));
 import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { useWindowFocus } from './hooks/useWindowFocus';
 import { useIsMobile } from './hooks/useMediaQuery';
@@ -531,6 +532,15 @@ function Sidebar({ hidden, onToggle, showProfileManager, showSocialStrategy, mob
             </Link>
           </li>
         )}
+        <li>
+          <Link 
+            to="/app/assets" 
+            className={isActive('/app/assets') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/assets')}
+          >
+            Asset Library
+          </Link>
+        </li>
         <li>
           <Link 
             to="/app/task-tracker" 
@@ -1482,6 +1492,11 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
                   : <Navigate to="/app/marketing-track" replace />
               }
             />
+            <Route path="assets" element={
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                <AssetLibrary />
+              </Suspense>
+            } />
             <Route path="task-tracker" element={
               <TaskTrackerPage 
                 tasks={tasks}
