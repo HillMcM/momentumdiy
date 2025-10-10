@@ -73,9 +73,21 @@ export default function MetricsTab({
     onBaselineChange: (val: number) => void;
     onCurrentChange: (val: number) => void;
   }) => {
+    const [baselineInput, setBaselineInput] = React.useState(baseline?.toString() || '');
+    const [currentInput, setCurrentInput] = React.useState(current?.toString() || '');
+    
     const growth = calculateGrowth(baseline, current);
     const isPositive = growth > 0;
     const isNegative = growth < 0;
+
+    // Update local state when props change
+    React.useEffect(() => {
+      setBaselineInput(baseline?.toString() || '');
+    }, [baseline]);
+
+    React.useEffect(() => {
+      setCurrentInput(current?.toString() || '');
+    }, [current]);
 
     return (
       <div className="bg-[#1A1625]/50 rounded-lg p-6 border border-[#2A2438]">
@@ -88,10 +100,13 @@ export default function MetricsTab({
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              value={baseline || ''}
+              value={baselineInput}
               onChange={(e) => {
                 const val = e.target.value.replace(/[^0-9]/g, '');
-                onBaselineChange(parseInt(val) || 0);
+                setBaselineInput(val);
+              }}
+              onBlur={() => {
+                onBaselineChange(parseInt(baselineInput) || 0);
               }}
               className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
               placeholder="0"
@@ -103,10 +118,13 @@ export default function MetricsTab({
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              value={current || ''}
+              value={currentInput}
               onChange={(e) => {
                 const val = e.target.value.replace(/[^0-9]/g, '');
-                onCurrentChange(parseInt(val) || 0);
+                setCurrentInput(val);
+              }}
+              onBlur={() => {
+                onCurrentChange(parseInt(currentInput) || 0);
               }}
               className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
               placeholder="0"

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/useAuth';
 import { supabase } from './lib/supabase';
 import { useMarketing } from './contexts/MarketingContext';
+import { useIsCompact } from './hooks/useMediaQuery';
 import EmailPreferences from './components/EmailPreferences';
 import ProfileHeader from './components/ProfileHeader';
 import ImageUploader from './components/ImageUploader';
