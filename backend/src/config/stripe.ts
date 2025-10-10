@@ -21,6 +21,12 @@ export const STRIPE_CONFIG = {
   secretKey: stripeSecretKey,
   webhookSecret: process.env['STRIPE_WEBHOOK_SECRET'] || '',
   prices: {
+    // Founder Pricing (Lifetime Deal - First 250 Users)
+    founder: {
+      monthly: process.env['STRIPE_PRICE_FOUNDER_MONTHLY'] || '',
+      yearly: process.env['STRIPE_PRICE_FOUNDER_YEARLY'] || '',
+    },
+    // Regular Pricing
     monthly: {
       monthly: process.env['STRIPE_PRICE_MONTHLY'] || 'price_monthly',
       yearly: process.env['STRIPE_PRICE_MONTHLY'] || 'price_monthly', // Same price for now
