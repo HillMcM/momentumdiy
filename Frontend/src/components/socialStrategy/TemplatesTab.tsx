@@ -79,54 +79,66 @@ export default function TemplatesTab({ trackId }: TemplatesTabProps) {
         return;
       }
 
-      // Convert file to base64 data URL (avoids Storage bucket issues)
-      const reader = new FileReader();
+      // Upload file to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
       
-      reader.onload = async () => {
-        try {
-          const dataUrl = reader.result as string;
-          
-          // Create asset record with data URL
-          const { error: insertError } = await supabase
-            .from('assets')
-            .insert({
-              name: file.name,
-              description: `${category} template`,
-              category: 'template',
-              file_type: file.type,
-              file_size: file.size,
-              url: dataUrl, // Store as data URL instead of storage URL
-              tags: ['social-strategy-template', `template-${category}`, `track-${trackId}`],
-              is_public: false
-            });
-
-          if (insertError) {
-            logger.error('Error creating asset record', insertError);
-            alert(`Failed to save template: ${insertError.message}`);
-            return;
-          }
-
-          // Reload templates
-          await loadTemplates();
-        } catch (error) {
-          logger.error('Error saving template', error);
-          alert('Failed to save template');
-        } finally {
-          setUploading(false);
-        }
-      };
+      logger.info('Uploading file to storage', { fileName, size: file.size, type: file.type });
       
-      reader.onerror = () => {
-        logger.error('Error reading file');
-        alert('Failed to read file');
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from('assets')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        logger.error('Error uploading file to storage', uploadError);
+        alert(`Upload failed: ${uploadError.message}\n\nPlease ensure the 'assets' bucket exists in Supabase Storage with proper RLS policies.`);
         setUploading(false);
-      };
-      
-      // Read file as data URL
-      reader.readAsDataURL(file);
-      
+        return;
+      }
+
+      logger.info('File uploaded successfully', { path: uploadData.path });
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('assets')
+        .getPublicUrl(fileName);
+
+      logger.info('Got public URL', { publicUrl });
+
+      // Create asset record in database
+      const { error: insertError } = await supabase
+        .from('assets')
+        .insert({
+          name: file.name,
+          description: `${category} template`,
+          category: 'template',
+          file_type: file.type,
+          file_size: file.size,
+          url: publicUrl,
+          tags: ['social-strategy-template', `template-${category}`, `track-${trackId}`],
+          is_public: true
+        });
+
+      if (insertError) {
+        logger.error('Error creating asset record', insertError);
+        alert(`Failed to save template metadata: ${insertError.message}`);
+        
+        // Cleanup: delete the uploaded file
+        await supabase.storage.from('assets').remove([fileName]);
+        setUploading(false);
+        return;
+      }
+
+      logger.info('Asset record created successfully');
+
+      // Reload templates
+      await loadTemplates();
     } catch (error) {
       logger.error('Error in handleUpload', error);
+      alert('An unexpected error occurred during upload');
       setUploading(false);
     }
   };
