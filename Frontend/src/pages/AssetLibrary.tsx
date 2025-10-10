@@ -409,7 +409,10 @@ function AssetCard({
   onPreview: () => void;
   onDelete: () => void;
 }) {
-  const isImage = asset.fileType && asset.fileType.startsWith('image/');
+  // Check if it's an image - be flexible with the check
+  const isImage = (asset.fileType && asset.fileType.startsWith('image/')) ||
+                  (asset.url && (asset.url.includes('.png') || asset.url.includes('.jpg') || asset.url.includes('.jpeg') || asset.url.includes('.gif') || asset.url.includes('.webp'))) ||
+                  (asset.name && /\.(png|jpg|jpeg|gif|webp)$/i.test(asset.name));
 
   return (
     <div className="bg-[#1A1625] rounded-lg border border-[#2A2438] overflow-hidden group hover:border-[#EF8E81] transition-all">
@@ -718,7 +721,10 @@ function PreviewModal({
   onClose: () => void;
   formatSize: (size: number) => string;
 }) {
-  const isImage = asset.fileType && asset.fileType.startsWith('image/');
+  // Check if it's an image - be flexible with the check
+  const isImage = (asset.fileType && asset.fileType.startsWith('image/')) ||
+                  (asset.url && (asset.url.includes('.png') || asset.url.includes('.jpg') || asset.url.includes('.jpeg') || asset.url.includes('.gif') || asset.url.includes('.webp'))) ||
+                  (asset.name && /\.(png|jpg|jpeg|gif|webp)$/i.test(asset.name));
 
   return (
     <div
