@@ -68,6 +68,8 @@ export default function TemplatesTab({ trackId }: TemplatesTabProps) {
       
       if (!user) {
         logger.warn('No user found when uploading');
+        alert('Please log in to upload templates');
+        setUploading(false);
         return;
       }
 
@@ -81,6 +83,13 @@ export default function TemplatesTab({ trackId }: TemplatesTabProps) {
 
       if (uploadError) {
         logger.error('Error uploading file', uploadError);
+        
+        if (uploadError.message.includes('Bucket not found')) {
+          alert('Storage bucket not set up yet. Please create the "assets" bucket in Supabase Storage:\n\n1. Go to Supabase Dashboard\n2. Navigate to Storage\n3. Click "New Bucket"\n4. Name it "assets"\n5. Set to Public\n6. Save');
+        } else {
+          alert(`Upload failed: ${uploadError.message}`);
+        }
+        setUploading(false);
         return;
       }
 
