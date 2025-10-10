@@ -9,7 +9,7 @@ const router = Router();
  * GET /api/founder/availability
  * Check how many founder spots are available (public)
  */
-router.get('/availability', async (req: Request, res: Response) => {
+router.get('/availability', async (_req: Request, res: Response) => {
   try {
     const status = await FounderPricingService.getFounderAvailability();
     return res.json({ success: true, data: status });

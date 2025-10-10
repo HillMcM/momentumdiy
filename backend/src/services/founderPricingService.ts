@@ -61,14 +61,16 @@ export class FounderPricingService {
       // Get total availability
       const availability = await this.getFounderAvailability();
 
+      const message = profile?.is_founder 
+        ? `You're Founder #${profile.founder_number}!` 
+        : availability.message;
+
       return {
         isFounder: profile?.is_founder || false,
         founderNumber: profile?.founder_number || undefined,
         spotsRemaining: availability.spotsRemaining,
         totalSpots: this.TOTAL_FOUNDER_SPOTS,
-        message: profile?.is_founder 
-          ? `You're Founder #${profile.founder_number}!` 
-          : availability.message
+        ...(message && { message })
       };
     } catch (error) {
       logger.error('Error getting user founder status', error);
