@@ -244,3 +244,4 @@ After fixing, you should see:
 **Change cronjob URL from `...schedulehttp://` to `...schedule`, verify RESEND_API_KEY is set, test endpoint, re-enable cronjob. Done! 🎉**
 
 
+
