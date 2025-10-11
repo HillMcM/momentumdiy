@@ -5,14 +5,14 @@
 ### **Current Image Files:**
 
 1. **Hero Section Dashboard Preview**
-- **File**: `dashboard_feature.png` ✅
+- **File**: `marketing_track_feature_gif.gif` ✅
 - **Location**: Main hero section (right side)
-- **Description**: Overall dashboard/app overview screenshot
+- **Description**: Overall dashboard/app overview GIF
 
 2. **Marketing Track Interface**
-- **File**: `marketing_track_feature_video.mov` ✅
+- **File**: `dashboard_feature.png` ✅
 - **Location**: "Weekly plan tailored to your goals" feature card
-- **Description**: Video showing the marketing track dashboard with weekly tasks and progress
+- **Description**: Shows the marketing track dashboard with weekly tasks and progress
 
 3. **AI Marketing Assistant Interface**
 - **File**: `claude_ai_marketing_assistant_feature.png` ✅
