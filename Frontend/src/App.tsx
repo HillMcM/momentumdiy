@@ -47,7 +47,6 @@ import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
 import { useSubscription } from './hooks/useSubscription';
-import EnvTest from './EnvTest';
 
 import { supabase } from './lib/supabase';
 // Removed mock data imports - using real database data only
@@ -278,18 +277,6 @@ function TaskSync({
   return null; // This component doesn't render anything
 }
 
-// Comment out deactivated component imports to prevent build errors
-/*
-import ProjectTrackerWidget from './ProjectTrackerWidget';
-import ProjectTrackerPage from './ProjectTrackerPage';
-import AssetLibraryWidget from './AssetLibraryWidget';
-import AssetLibraryPage from './AssetLibraryPage';
-import CalendarWidget from './CalendarWidget';
-import CalendarPage from './CalendarPage';
-import TestPage from './TestPage';
-import SimpleTest from './SimpleTest';
-import CreateEventModal from './CreateEventModal';
-*/
 
 function Header({ onLogoClick }: { onLogoClick?: () => void }) {
   const { user, signOut } = useAuth();
@@ -1617,7 +1604,7 @@ function App() {
       <OnboardingProvider>
         <Routes>
         {/* Public */}
-        <Route path="/" element={<><LandingPage /><EnvTest /></>} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/terms" element={<TermsPage />} />
 
