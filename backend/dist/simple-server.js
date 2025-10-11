@@ -94,7 +94,7 @@ app.post('/api/ai/chat', async (req, res) => {
 
 Be helpful, encouraging, and practical in your responses.`;
         const response = await anthropic.messages.create({
-            model: 'claude-3-sonnet-20240229',
+            model: 'claude-sonnet-4-5-20250929',
             max_tokens: 2000,
             messages: [
                 {

@@ -49,29 +49,32 @@ const anthropic = new sdk_1.default({
 class AIConfig {
 }
 exports.AIConfig = AIConfig;
-AIConfig.MODEL = 'claude-3-sonnet-20240229';
-AIConfig.MAX_TOKENS = 2000;
+AIConfig.MODEL = 'claude-sonnet-4-5-20250929';
+AIConfig.MAX_TOKENS = 4000;
 AIConfig.TEMPERATURE = 0.7;
-AIConfig.MAX_HISTORY_LENGTH = 5;
+AIConfig.MAX_HISTORY_LENGTH = 10;
 class AIService {
-    static async generateResponse(userMessage, context, conversationHistory = []) {
+    static async generateResponse(userMessage, context, conversationHistory = [], userId) {
         try {
             const systemPrompt = aiPromptTemplates_1.PromptAssembler.assembleSystemPrompt(context);
-            const messages = this.prepareMessages(systemPrompt, userMessage, conversationHistory);
-            const response = await this.callAnthropicAPI(messages);
-            return response;
+            const { messages, systemPrompt: separatedSystemPrompt } = this.prepareMessages(systemPrompt, userMessage, conversationHistory);
+            const result = await this.callAnthropicAPI(messages, separatedSystemPrompt, userId);
+            return result;
         }
         catch (error) {
             logger_1.logger.error('AI Service Error', error, { userMessage });
-            return this.getFallbackResponse(error);
+            return {
+                response: this.getFallbackResponse(error),
+                usage: null
+            };
         }
     }
-    static async generateResponseWithStatus(userMessage, context, conversationHistory = []) {
+    static async generateResponseWithStatus(userMessage, context, conversationHistory = [], userId) {
         try {
-            const message = await this.generateResponse(userMessage, context, conversationHistory);
+            const result = await this.generateResponse(userMessage, context, conversationHistory, userId);
             return {
                 success: true,
-                message: message
+                message: result.response
             };
         }
         catch (error) {
@@ -83,36 +86,64 @@ class AIService {
         }
     }
     static prepareMessages(systemPrompt, userMessage, conversationHistory) {
-        const messages = [
-            {
-                role: 'user',
-                content: `${systemPrompt}
-
-User's message: ${userMessage}
-
-Please respond as Hillary, keeping in mind the user's current marketing track progress and business context.`
-            }
-        ];
+        const messages = [];
         const recentHistory = conversationHistory.slice(-AIConfig.MAX_HISTORY_LENGTH);
         if (recentHistory.length > 0) {
-            messages.unshift(...recentHistory.map(msg => ({
+            messages.push(...recentHistory.map(msg => ({
                 role: msg.role,
                 content: msg.content
             })));
         }
-        return messages;
+        messages.push({
+            role: 'user',
+            content: `${userMessage}
+
+Please respond as Hillary, keeping in mind the user's current marketing track progress and business context.`
+        });
+        return { messages, systemPrompt };
     }
-    static async callAnthropicAPI(messages) {
-        const response = await anthropic.messages.create({
+    static async callAnthropicAPI(messages, systemPrompt, userId) {
+        const requestParams = {
             model: AIConfig.MODEL,
             max_tokens: AIConfig.MAX_TOKENS,
             messages,
             temperature: AIConfig.TEMPERATURE,
-        });
+        };
+        if (systemPrompt) {
+            requestParams.system = [
+                {
+                    type: 'text',
+                    text: systemPrompt,
+                    cache_control: { type: 'ephemeral' }
+                }
+            ];
+        }
+        requestParams.tools = [
+            {
+                type: 'memory_20250818',
+                name: 'memory'
+            }
+        ];
+        requestParams.betas = ['context-management-2025-06-27'];
+        const response = await anthropic.messages.create(requestParams);
+        if (response.usage) {
+            const usage = response.usage;
+            logger_1.logger.info('AI usage stats', {
+                userId: userId || 'unknown',
+                model: AIConfig.MODEL,
+                input_tokens: usage.input_tokens || 0,
+                output_tokens: usage.output_tokens || 0,
+                cache_creation: usage.cache_creation_input_tokens || 0,
+                cache_hits: usage.cache_read_input_tokens || 0,
+            });
+        }
         if (response.content && response.content.length > 0) {
             const firstContent = response.content[0];
             if (firstContent && firstContent.type === 'text') {
-                return firstContent.text;
+                return {
+                    response: firstContent.text,
+                    usage: response.usage
+                };
             }
         }
         throw new Error('No valid response content received from AI');
@@ -140,7 +171,7 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
     }
     static validateConfiguration() {
         const errors = [];
-        if (!process.env['antropic_api_key']) {
+        if (!process.env['ANTHROPIC_API_KEY']) {
             errors.push('Anthropic API key is not configured');
         }
         if (!AIConfig.MODEL) {

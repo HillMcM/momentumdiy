@@ -40,7 +40,7 @@ Guidelines:
 - Consider color psychology and professional branding standards`;
 
       const response = await anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 500,
         messages: [{ role: 'user', content: prompt }]
       });
@@ -111,7 +111,7 @@ Provide exactly 3 insights as valid JSON array with no additional text:
 Keep messages encouraging, actionable, and specific to their profile.`;
 
       const response = await anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }]
       });
@@ -181,7 +181,7 @@ Recommend the BEST next track for them with a compelling reason why. Return as v
 }`;
 
       const response = await anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 600,
         messages: [{ role: 'user', content: prompt }]
       });
