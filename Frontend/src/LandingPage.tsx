@@ -1,15 +1,6 @@
 import { Link } from 'react-router-dom';
 import { BRANDING } from './config/branding';
 
-// Import images to ensure they're processed by Vite
-import marketingTrackGif from '/public/assets/marketing_track_feature_gif.gif';
-import dashboardFeature from '/public/assets/dashboard_feature.png';
-import aiAssistantFeature from '/public/assets/claude_ai_marketing_assistant_feature.png';
-import taskTrackerFeature from '/public/assets/task_tracker_feature.png';
-import assetFeature from '/public/assets/asset_feature.png';
-import socialGeneratorFeature from '/public/assets/gemini_social_media_generator_feature.png';
-import founderPhoto from '/public/assets/hillary_mcmullen_headshot.jpg';
-
 export default function LandingPage() {
   const isDevelopment = import.meta.env.DEV;
   
@@ -39,7 +30,7 @@ export default function LandingPage() {
             <div className="rounded-2xl bg-white/5 border border-white/10 p-3 shadow-soft backdrop-blur-[1px]">
               <div className="aspect-[4/3] w-full rounded-xl bg-white/5 grid place-items-center text-white/70">
                 <img 
-                  src={marketingTrackGif} 
+                  src="/assets/marketing_track_feature_gif.gif" 
                   alt="MomentumDIY Dashboard Preview" 
                   className="w-full h-full object-cover rounded-xl"
                   onError={(e) => {
@@ -61,7 +52,7 @@ export default function LandingPage() {
             <h3>Weekly plan tailored to your goals</h3>
             <p>Know exactly what to focus on each week to move the needle.</p>
             <img 
-              src={dashboardFeature} 
+              src="/assets/dashboard_feature.png" 
               alt="Marketing Track Interface" 
               className="w-full h-32 object-cover rounded-lg mt-4"
               onError={(e) => e.currentTarget.style.display = 'none'}
@@ -75,7 +66,7 @@ export default function LandingPage() {
             <h3>AI marketing assistant</h3>
             <p>Get answers and execution tips whenever you're stuck.</p>
             <img 
-              src={aiAssistantFeature} 
+              src="/assets/claude_ai_marketing_assistant_feature.png" 
               alt="AI Marketing Assistant Interface" 
               className="w-full h-32 object-cover rounded-lg mt-4"
               onError={(e) => e.currentTarget.style.display = 'none'}
@@ -85,7 +76,7 @@ export default function LandingPage() {
             <h3>Simple Kanban progress</h3>
             <p>See tasks, track wins, and keep momentum visible.</p>
             <img 
-              src={taskTrackerFeature} 
+              src="/assets/task_tracker_feature.png" 
               alt="Task Tracker Kanban Interface" 
               className="w-full h-32 object-cover rounded-lg mt-4"
               onError={(e) => e.currentTarget.style.display = 'none'}
@@ -95,7 +86,7 @@ export default function LandingPage() {
             <h3>Asset Library</h3>
             <p>Store and organize all your marketing assets in one place.</p>
             <img 
-              src={assetFeature} 
+              src="/assets/asset_feature.png" 
               alt="Asset Library Interface" 
               className="w-full h-32 object-cover rounded-lg mt-4"
               onError={(e) => e.currentTarget.style.display = 'none'}
@@ -105,7 +96,7 @@ export default function LandingPage() {
             <h3>AI Social Media Generator</h3>
             <p>Create stunning social media posts in seconds with AI.</p>
             <img 
-              src={socialGeneratorFeature} 
+              src="/assets/gemini_social_media_generator_feature.png" 
               alt="AI Social Media Generator Interface" 
               className="w-full h-32 object-cover rounded-lg mt-4"
               onError={(e) => e.currentTarget.style.display = 'none'}
@@ -125,7 +116,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 grid sm:grid-cols-[140px,1fr] gap-8 items-center">
           <div className="w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] rounded-full bg-white/10 border border-white/10 grid place-items-center text-white/60 overflow-hidden">
             <img 
-              src={founderPhoto} 
+              src="/assets/hillary_mcmullen_headshot.jpg" 
               alt="Hill McMillan, Founder" 
               className="w-full h-full object-cover"
               onError={(e) => {
