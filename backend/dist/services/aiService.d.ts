@@ -18,14 +18,17 @@ export interface AIResponse {
     error?: string;
 }
 export declare class AIConfig {
-    static readonly MODEL = "claude-3-sonnet-20240229";
-    static readonly MAX_TOKENS = 2000;
+    static readonly MODEL = "claude-sonnet-4-5-20250929";
+    static readonly MAX_TOKENS = 4000;
     static readonly TEMPERATURE = 0.7;
-    static readonly MAX_HISTORY_LENGTH = 5;
+    static readonly MAX_HISTORY_LENGTH = 10;
 }
 export declare class AIService {
-    static generateResponse(userMessage: string, context: ConversationContext, conversationHistory?: ChatMessage[]): Promise<string>;
-    static generateResponseWithStatus(userMessage: string, context: ConversationContext, conversationHistory?: ChatMessage[]): Promise<AIResponse>;
+    static generateResponse(userMessage: string, context: ConversationContext, conversationHistory?: ChatMessage[], userId?: string): Promise<{
+        response: string;
+        usage: any;
+    }>;
+    static generateResponseWithStatus(userMessage: string, context: ConversationContext, conversationHistory?: ChatMessage[], userId?: string): Promise<AIResponse>;
     private static prepareMessages;
     private static callAnthropicAPI;
     private static getFallbackResponse;

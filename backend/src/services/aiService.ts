@@ -52,10 +52,10 @@ export interface AIResponse {
 // ============================================================================
 
 export class AIConfig {
-  static readonly MODEL = 'claude-3-sonnet-20240229';
-  static readonly MAX_TOKENS = 2000;
+  static readonly MODEL = 'claude-sonnet-4-5-20250929';
+  static readonly MAX_TOKENS = 4000; // Generous limit for detailed, helpful responses
   static readonly TEMPERATURE = 0.7;
-  static readonly MAX_HISTORY_LENGTH = 5;
+  static readonly MAX_HISTORY_LENGTH = 10; // More context for better continuity
 }
 
 // ============================================================================
@@ -70,22 +70,30 @@ export class AIService {
   static async generateResponse(
     userMessage: string,
     context: ConversationContext,
-    conversationHistory: ChatMessage[] = []
-  ): Promise<string> {
+    conversationHistory: ChatMessage[] = [],
+    userId?: string
+  ): Promise<{ response: string; usage: any }> {
     try {
       // Build the system prompt using modular components
       const systemPrompt = PromptAssembler.assembleSystemPrompt(context);
       
-      // Prepare messages for the AI
-      const messages = this.prepareMessages(systemPrompt, userMessage, conversationHistory);
+      // Prepare messages for the AI (now returns system prompt separately for caching)
+      const { messages, systemPrompt: separatedSystemPrompt } = this.prepareMessages(
+        systemPrompt, 
+        userMessage, 
+        conversationHistory
+      );
       
-      // Generate response from AI
-      const response = await this.callAnthropicAPI(messages);
+      // Generate response from AI with Sonnet 4.5 features (caching, memory tool, etc.)
+      const result = await this.callAnthropicAPI(messages, separatedSystemPrompt, userId);
       
-      return response;
+      return result;
     } catch (error) {
       logger.error('AI Service Error', error, { userMessage });
-      return this.getFallbackResponse(error);
+      return {
+        response: this.getFallbackResponse(error),
+        usage: null
+      };
     }
   }
 
@@ -96,13 +104,14 @@ export class AIService {
   static async generateResponseWithStatus(
     userMessage: string,
     context: ConversationContext,
-    conversationHistory: ChatMessage[] = []
+    conversationHistory: ChatMessage[] = [],
+    userId?: string
   ): Promise<AIResponse> {
     try {
-      const message = await this.generateResponse(userMessage, context, conversationHistory);
+      const result = await this.generateResponse(userMessage, context, conversationHistory, userId);
       return {
         success: true,
-        message: message
+        message: result.response
       };
     } catch (error) {
       return {
@@ -115,51 +124,101 @@ export class AIService {
 
   /**
    * Prepare messages for the AI API call
+   * Now returns both messages and system prompt separately for caching
    */
   private static prepareMessages(
     systemPrompt: string,
     userMessage: string,
     conversationHistory: ChatMessage[]
-  ): Anthropic.Messages.MessageParam[] {
-    const messages: Anthropic.Messages.MessageParam[] = [
-      {
-        role: 'user',
-        content: `${systemPrompt}
-
-User's message: ${userMessage}
-
-Please respond as Hillary, keeping in mind the user's current marketing track progress and business context.`
-      }
-    ];
+  ): { messages: Anthropic.Messages.MessageParam[]; systemPrompt: string } {
+    // Separate system prompt for caching (90% cost reduction on cached content)
+    const messages: Anthropic.Messages.MessageParam[] = [];
 
     // Add conversation history for context (last 5 messages to stay within limits)
     const recentHistory = conversationHistory.slice(-AIConfig.MAX_HISTORY_LENGTH);
     if (recentHistory.length > 0) {
-      messages.unshift(...recentHistory.map(msg => ({
+      messages.push(...recentHistory.map(msg => ({
         role: msg.role as 'user' | 'assistant',
         content: msg.content
       })));
     }
 
-    return messages;
+    // Add current user message
+    messages.push({
+      role: 'user',
+      content: `${userMessage}
+
+Please respond as Hillary, keeping in mind the user's current marketing track progress and business context.`
+    });
+
+    return { messages, systemPrompt };
   }
 
   /**
-   * Call the Anthropic API
+   * Call the Anthropic API with prompt caching and usage tracking
+   * Sonnet 4.5 features: Caching, Memory tool support, Context editing
    */
-  private static async callAnthropicAPI(messages: Anthropic.Messages.MessageParam[]): Promise<string> {
-    const response = await anthropic.messages.create({
+  private static async callAnthropicAPI(
+    messages: Anthropic.Messages.MessageParam[],
+    systemPrompt?: string,
+    userId?: string
+  ): Promise<{ response: string; usage: any }> {
+    // Configure request with Sonnet 4.5 optimizations
+    const requestParams: any = {
       model: AIConfig.MODEL,
       max_tokens: AIConfig.MAX_TOKENS,
       messages,
       temperature: AIConfig.TEMPERATURE,
-    });
+    };
+
+    // Add system prompt with caching if provided
+    // This saves 90% on the system prompt cost after the first request
+    if (systemPrompt) {
+      requestParams.system = [
+        {
+          type: 'text',
+          text: systemPrompt,
+          cache_control: { type: 'ephemeral' }
+        }
+      ];
+    }
+
+    // Enable Memory tool (Beta) for Sonnet 4.5
+    // This allows Hillary to remember business context across sessions
+    requestParams.tools = [
+      {
+        type: 'memory_20250818',
+        name: 'memory'
+      }
+    ];
+
+    // Enable context management features (Beta)
+    // Helps with long conversation sessions
+    requestParams.betas = ['context-management-2025-06-27'];
+
+    const response = await anthropic.messages.create(requestParams);
+
+    // Log comprehensive usage stats
+    if (response.usage) {
+      const usage = response.usage as any;
+      logger.info('AI usage stats', {
+        userId: userId || 'unknown',
+        model: AIConfig.MODEL,
+        input_tokens: usage.input_tokens || 0,
+        output_tokens: usage.output_tokens || 0,
+        cache_creation: usage.cache_creation_input_tokens || 0,
+        cache_hits: usage.cache_read_input_tokens || 0,
+      });
+    }
 
     // Handle the response content properly
     if (response.content && response.content.length > 0) {
       const firstContent = response.content[0];
       if (firstContent && firstContent.type === 'text') {
-        return (firstContent as any).text;
+        return {
+          response: (firstContent as any).text,
+          usage: response.usage
+        };
       }
     }
     
@@ -211,7 +270,7 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
   static validateConfiguration(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    if (!process.env['antropic_api_key']) {
+    if (!process.env['ANTHROPIC_API_KEY']) {
       errors.push('Anthropic API key is not configured');
     }
 

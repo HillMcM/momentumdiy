@@ -5,6 +5,11 @@
  * and provides type-safe access to configuration values.
  */
 
+import * as dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
+
 export interface EnvironmentConfig {
   // Server
   port: number;
