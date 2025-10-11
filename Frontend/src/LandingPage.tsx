@@ -30,7 +30,7 @@ export default function LandingPage() {
             <div className="rounded-2xl bg-white/5 border border-white/10 p-3 shadow-soft backdrop-blur-[1px]">
               <div className="aspect-[4/3] w-full rounded-xl bg-white/5 grid place-items-center text-white/70">
                 <img 
-                  src="/assets/dashboard_feature.png" 
+                  src="/assets/marketing_track_feature_gif.gif" 
                   alt="MomentumDIY Dashboard Preview" 
                   className="w-full h-full object-cover rounded-xl"
                   onError={(e) => {
@@ -51,13 +51,10 @@ export default function LandingPage() {
           <div className="feature">
             <h3>Weekly plan tailored to your goals</h3>
             <p>Know exactly what to focus on each week to move the needle.</p>
-            <video 
-              src="/assets/marketing_track_feature_video.mov" 
+            <img 
+              src="/assets/dashboard_feature.png" 
+              alt="Marketing Track Interface" 
               className="w-full h-32 object-cover rounded-lg mt-4"
-              autoPlay
-              loop
-              muted
-              playsInline
               onError={(e) => e.currentTarget.style.display = 'none'}
             />
           </div>
