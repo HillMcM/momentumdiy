@@ -107,10 +107,20 @@ export default function FloatingAssistant() {
       // Collect user business context for personalized AI responses
       const businessContext = await getUserBusinessContext();
 
+      // Get auth token for the API call
+      const { data: { session } } = await supabase.auth.getSession();
+      const authHeaders: Record<string, string> = {};
+      if (session?.access_token) {
+        authHeaders['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
       const { API_BASE_URL } = await import('./services/api');
       const res = await fetch(`${API_BASE_URL}/ai/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
         body: JSON.stringify({
           message: userMsg.content,
           conversationHistory,
