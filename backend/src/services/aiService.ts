@@ -89,7 +89,11 @@ export class AIService {
       
       return result;
     } catch (error) {
-      logger.error('AI Service Error', error, { userMessage });
+      logger.error('AI Service Error', error, { 
+        userMessage,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined
+      });
       return {
         response: this.getFallbackResponse(error),
         usage: null
@@ -183,18 +187,18 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
       ];
     }
 
-    // Enable Memory tool (Beta) for Sonnet 4.5
-    // This allows Hillary to remember business context across sessions
-    requestParams.tools = [
-      {
-        type: 'memory_20250818',
-        name: 'memory'
-      }
-    ];
+    // NOTE: Beta features (memory tool, context management) temporarily disabled
+    // These can cause API failures if not properly configured
+    // Enable Memory tool (Beta) for Sonnet 4.5 - DISABLED
+    // requestParams.tools = [
+    //   {
+    //     type: 'memory_20250818',
+    //     name: 'memory'
+    //   }
+    // ];
 
-    // Enable context management features (Beta)
-    // Helps with long conversation sessions
-    requestParams.betas = ['context-management-2025-06-27'];
+    // Enable context management features (Beta) - DISABLED
+    // requestParams.betas = ['context-management-2025-06-27'];
 
     const response = await anthropic.messages.create(requestParams);
 
