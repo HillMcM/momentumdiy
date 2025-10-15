@@ -1,0 +1,194 @@
+{
+  "weeklyWorkflow": {
+    "monday": {
+      "task": "Market Research",
+      "agent": "Market Researcher",
+      "goal": "Identify trending topics and opportunities",
+      "output": "Research report with 3-5 content ideas"
+    },
+    "tuesday": {
+      "task": "Blog Post Creation",
+      "agent": "Copywriting Agent",
+      "goal": "Write comprehensive blog post on selected topic",
+      "output": "800-1200 word blog post saved as draft in Wix"
+    },
+    "wednesday": {
+      "task": "Social Content Creation",
+      "agent": "Social Content Agent",
+      "goal": "Repurpose blog into platform-specific posts",
+      "output": "4+ social posts (Facebook, Instagram, LinkedIn, X) ready for approval"
+    },
+    "thursdayToSunday": {
+      "task": "Social Posting",
+      "agent": "Social Posting Agent",
+      "goal": "Post approved content at optimal times",
+      "output": "Published posts across all platforms"
+    }
+  },
+  "contentThemes": {
+    "clarity": {
+      "description": "Marketing clarity beats marketing complexity",
+      "angles": [
+        "One goal vs many goals",
+        "Simple strategies that work",
+        "Cutting through the noise",
+        "Focus on what matters"
+      ]
+    },
+    "practical": {
+      "description": "Real-world tactics that actually work",
+      "angles": [
+        "Step-by-step how-tos",
+        "Quick wins",
+        "Time-efficient strategies",
+        "Budget-friendly approaches"
+      ]
+    },
+    "antiOverwhelm": {
+      "description": "Making marketing manageable",
+      "angles": [
+        "Doing less, better",
+        "One thing at a time",
+        "Fitting marketing into real life",
+        "Simplifying the process"
+      ]
+    },
+    "relatable": {
+      "description": "Speaking to real small business challenges",
+      "angles": [
+        "I've been there moments",
+        "Common frustrations",
+        "Real business stories",
+        "Honest conversations"
+      ]
+    }
+  },
+  "contentTypes": {
+    "blog": {
+      "length": "800-1200 words",
+      "structure": [
+        "Hook (relatable problem or question)",
+        "Personal story or example",
+        "Simple explanation",
+        "Actionable steps",
+        "Encouragement and next steps"
+      ],
+      "tone": "Conversational, educational, friendly",
+      "goal": "Educate and empower, not overwhelm"
+    },
+    "facebook": {
+      "length": "50-150 words",
+      "style": "Community-focused, personal, engaging",
+      "includes": "Question or conversation starter",
+      "hashtags": "2-3 relevant hashtags",
+      "goal": "Start conversations, build community"
+    },
+    "instagram": {
+      "length": "100-200 words",
+      "style": "Visual, inspirational, bite-sized tips",
+      "includes": "First line hooks, line breaks for readability",
+      "hashtags": "10-15 relevant hashtags",
+      "goal": "Inspire action, share value visually"
+    },
+    "linkedin": {
+      "length": "150-250 words",
+      "style": "Professional insights, thought leadership",
+      "includes": "Business perspective, practical advice",
+      "hashtags": "3-5 professional hashtags",
+      "goal": "Establish expertise, provide business value"
+    },
+    "x": {
+      "length": "100-280 characters",
+      "style": "Quick tips, trending topics, conversational",
+      "includes": "Clear takeaway, engaging hook",
+      "hashtags": "1-2 trending hashtags",
+      "goal": "Quick value, engagement, visibility"
+    }
+  },
+  "contentPillars": [
+    {
+      "name": "Marketing Clarity",
+      "percentage": "40%",
+      "topics": [
+        "Goal setting",
+        "Focus and prioritization",
+        "Simplifying marketing",
+        "One thing well"
+      ]
+    },
+    {
+      "name": "Practical Tactics",
+      "percentage": "30%",
+      "topics": [
+        "Social media tips",
+        "Email marketing",
+        "Local SEO",
+        "Content creation"
+      ]
+    },
+    {
+      "name": "Real Stories",
+      "percentage": "20%",
+      "topics": [
+        "Case studies",
+        "Behind the scenes",
+        "Lessons learned",
+        "Customer successes"
+      ]
+    },
+    {
+      "name": "Trends & Insights",
+      "percentage": "10%",
+      "topics": [
+        "Industry updates",
+        "Platform changes",
+        "Marketing trends",
+        "Research findings"
+      ]
+    }
+  ],
+  "callToActions": {
+    "soft": [
+      "What's working for your business?",
+      "Have you tried this?",
+      "Tell me about your experience",
+      "What would help you most?"
+    ],
+    "medium": [
+      "Want to learn more? Check out our guide",
+      "Ready to simplify your marketing?",
+      "Let's talk about your marketing goals",
+      "Need help with this? We've got you"
+    ],
+    "strong": [
+      "Start with one focused goal today",
+      "Sign up for our free marketing clarity guide",
+      "Book a clarity call",
+      "Join our community"
+    ]
+  },
+  "postingOptimization": {
+    "facebook": {
+      "bestDays": ["Tuesday", "Wednesday", "Thursday"],
+      "bestTimes": ["1:00 PM", "2:00 PM", "3:00 PM"],
+      "frequency": "3-5 times per week"
+    },
+    "instagram": {
+      "bestDays": ["Monday", "Tuesday", "Wednesday", "Thursday"],
+      "bestTimes": ["2:00 PM", "7:00 PM", "8:00 PM"],
+      "frequency": "5-7 times per week"
+    },
+    "linkedin": {
+      "bestDays": ["Tuesday", "Wednesday", "Thursday"],
+      "bestTimes": ["8:00 AM", "9:00 AM", "5:00 PM"],
+      "frequency": "2-3 times per week"
+    },
+    "x": {
+      "bestDays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "bestTimes": ["9:00 AM", "12:00 PM", "5:00 PM"],
+      "frequency": "3-5 times per day"
+    }
+  }
+}
+
+

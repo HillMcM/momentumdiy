@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Analytics Dashboard - MomentumDIY AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #191628 0%, #2a1f3d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ef8e81;
+        }
+
+        .header h1 {
+            color: #ef8e81;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: rgba(239, 142, 129, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: rgba(239, 142, 129, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-links a.active {
+            background: rgba(239, 142, 129, 0.3);
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(239, 142, 129, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+
+        .control-group input, .control-group select {
+            padding: 10px;
+            border: 1px solid rgba(239, 142, 129, 0.3);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input:focus, .control-group select:focus {
+            outline: none;
+            border-color: #ef8e81;
+        }
+
+        .btn {
+            background: rgba(239, 142, 129, 0.8);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #ef8e81;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(239, 142, 129, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .status h3 {
+            margin-bottom: 15px;
+            color: #ef8e81;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .status-item.configured {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+        }
+
+        .status-item.not-configured {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.4);
+        }
+
+        .status-item.error {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.4);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(239, 142, 129, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 142, 129, 0.2);
+        }
+
+        .card-header {
+            background: rgba(239, 142, 129, 0.1);
+            border-bottom: 1px solid rgba(239, 142, 129, 0.3);
+            color: #ef8e81;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 500;
+            color: #cccccc;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 1.1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #cccccc;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(239, 142, 129, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ef8e81;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #cccccc;
+        }
+
+        .blog-post {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(239, 142, 129, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .blog-post h4 {
+            margin-bottom: 8px;
+            color: #ef8e81;
+        }
+
+        .blog-post-meta {
+            font-size: 0.9rem;
+            color: #cccccc;
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-submission {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .contact-item {
+            background: rgba(33, 150, 243, 0.1);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .data-table th {
+            background: rgba(239, 142, 129, 0.1);
+            font-weight: 600;
+            color: #ef8e81;
+        }
+
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .realtime-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-bar"></i> Analytics Dashboard</h1>
+            <div class="nav-links">
+                <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="agents.html"><i class="fas fa-robot"></i> Agents</a>
+                <a href="content-management.html"><i class="fas fa-images"></i> Content</a>
+                <a href="analytics.html" class="active"><i class="fas fa-chart-bar"></i> Analytics</a>
+                <a href="agent-outputs.html"><i class="fas fa-check-circle"></i> Agent Outputs</a>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="startDate">Start Date</label>
+                <input type="date" id="startDate" value="">
+            </div>
+            <div class="control-group">
+                <label for="endDate">End Date</label>
+                <input type="date" id="endDate" value="">
+            </div>
+            <div class="control-group">
+                <label for="timeframe">Quick Select</label>
+                <select id="timeframe">
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d" selected>Last 30 Days</option>
+                    <option value="90d">Last 90 Days</option>
+                    <option value="1y">Last Year</option>
+                </select>
+            </div>
+            <button class="btn" onclick="loadAnalyticsData()">Load Analytics</button>
+        </div>
+
+        <div class="status">
+            <h3><i class="fas fa-cog"></i> API Status</h3>
+            <div class="status-grid" id="statusGrid">
+                <div class="loading">Loading status...</div>
+            </div>
+        </div>
+
+        <div class="dashboard" id="dashboard">
+            <div class="loading">Select a date range and click "Load Analytics" to view your business data</div>
+        </div>
+    </div>
+
+    <script>
+        // Set default dates
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+        
+        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+
+        // Load API status on page load
+        loadStatus();
+
+        async function loadStatus() {
+            try {
+                const response = await fetch('/api/analytics/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayStatus(data.data);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Error loading status:', error);
+                document.getElementById('statusGrid').innerHTML = `
+                    <div class="error">Failed to load API status: ${error.message}</div>
+                `;
+            }
+        }
+
+        function displayStatus(status) {
+            const statusGrid = document.getElementById('statusGrid');
+            statusGrid.innerHTML = '';
+
+            Object.entries(status).forEach(([service, info]) => {
+                const statusItem = document.createElement('div');
+                statusItem.className = `status-item ${info.configured ? (info.testable ? 'configured' : 'error') : 'not-configured'}`;
+                
+                let statusText = info.configured ? '✅ Configured' : '❌ Not Configured';
+                if (info.configured && !info.testable) {
+                    statusText = '⚠️ Error: ' + (info.error || 'Connection failed');
+                }
+                
+                statusItem.innerHTML = `
+                    <strong>${service.replace(/([A-Z])/g, ' $1').trim()}</strong><br>
+                    ${statusText}
+                `;
+                
+                statusGrid.appendChild(statusItem);
+            });
+        }
+
+        async function loadAnalyticsData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+
+            const dashboard = document.getElementById('dashboard');
+            dashboard.innerHTML = '<div class="loading">Loading analytics data...</div>';
+
+            try {
+                // Load all data sources in parallel
+                const [
+                    dashboardData,
+                    wixBlogAnalytics,
+                    wixForms,
+                    wixContacts,
+                    agentsData
+                ] = await Promise.allSettled([
+                    fetch(`/api/analytics/dashboard?startDate=${startDate}&endDate=${endDate}`).then(r => r.json()),
+                    fetch('/api/analytics/wix/blog-analytics').then(r => r.json()),
+                    fetch('/api/analytics/wix/forms').then(r => r.json()),
+                    fetch('/api/analytics/wix/contacts').then(r => r.json()),
+                    fetch('/api/agents').then(r => r.json())
+                ]);
+
+                const allData = {
+                    dashboard: dashboardData.status === 'fulfilled' ? dashboardData.value.data : {},
+                    wixBlogAnalytics: wixBlogAnalytics.status === 'fulfilled' ? wixBlogAnalytics.value.data : {},
+                    wixForms: wixForms.status === 'fulfilled' ? wixForms.value.data : {},
+                    wixContacts: wixContacts.status === 'fulfilled' ? wixContacts.value.data : {},
+                    agents: agentsData.status === 'fulfilled' ? agentsData.value.agents : []
+                };
+
+                displayAnalyticsDashboard(allData);
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                dashboard.innerHTML = `
+                    <div class="error">
+                        Failed to load analytics data: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function displayAnalyticsDashboard(data) {
+            const dashboard = document.getElementById('dashboard');
+            dashboard.innerHTML = '';
+
+            // Overview Stats Card
+            const overviewCard = createOverviewCard(data);
+            dashboard.appendChild(overviewCard);
+
+            // Google Analytics Card
+            if (data.dashboard.googleAnalytics && !data.dashboard.googleAnalytics.error) {
+                const gaCard = createAnalyticsCard('Google Analytics', data.dashboard.googleAnalytics);
+                dashboard.appendChild(gaCard);
+            }
+
+            // Google Search Console Card
+            if (data.dashboard.googleSearchConsole && !data.dashboard.googleSearchConsole.error) {
+                const gscCard = createSearchConsoleCard('Google Search Console', data.dashboard.googleSearchConsole);
+                dashboard.appendChild(gscCard);
+            }
+
+            // Wix Blog Analytics Card
+            if (data.wixBlogAnalytics && !data.wixBlogAnalytics.error) {
+                const wixBlogCard = createWixBlogCard('Wix Blog Analytics', data.wixBlogAnalytics);
+                dashboard.appendChild(wixBlogCard);
+            }
+
+            // Wix Business Data Card
+            if ((data.wixForms && !data.wixForms.error) || (data.wixContacts && !data.wixContacts.error)) {
+                const wixBusinessCard = createWixBusinessCard('Wix Business Data', data.wixForms, data.wixContacts);
+                dashboard.appendChild(wixBusinessCard);
+            }
+
+            // AI Agents Performance Card
+            if (data.agents && data.agents.length > 0) {
+                const agentsCard = createAgentsCard('AI Agents Performance', data.agents);
+                dashboard.appendChild(agentsCard);
+            }
+
+            // Real-time Analytics Card
+            if (data.dashboard.realtimeAnalytics && !data.dashboard.realtimeAnalytics.error) {
+                const realtimeCard = createRealtimeCard('Real-time Analytics', data.dashboard.realtimeAnalytics);
+                dashboard.appendChild(realtimeCard);
+            }
+
+            // Show errors if any
+            Object.entries(data.dashboard).forEach(([service, info]) => {
+                if (info && info.error) {
+                    const errorCard = document.createElement('div');
+                    errorCard.className = 'card';
+                    errorCard.innerHTML = `
+                        <div class="card-header">${service.replace(/([A-Z])/g, ' $1').trim()}</div>
+                        <div class="card-content">
+                            <div class="error">${info.error}</div>
+                        </div>
+                    `;
+                    dashboard.appendChild(errorCard);
+                }
+            });
+        }
+
+        function createOverviewCard(data) {
+            const card = document.createElement('div');
+            card.className = 'card full-width';
+            
+            let totalSessions = 0, totalUsers = 0, totalPageviews = 0, totalClicks = 0, totalImpressions = 0;
+            let blogPosts = 0, formSubmissions = 0, contacts = 0, agentTasks = 0;
+
+            // Calculate totals from available data
+            if (data.dashboard.googleAnalytics && !data.dashboard.googleAnalytics.error && data.dashboard.googleAnalytics.rows) {
+                totalSessions = data.dashboard.googleAnalytics.rows.reduce((sum, row) => 
+                    sum + parseInt(row.metricValues[0]?.value || 0), 0);
+                totalUsers = data.dashboard.googleAnalytics.rows.reduce((sum, row) => 
+                    sum + parseInt(row.metricValues[1]?.value || 0), 0);
+                totalPageviews = data.dashboard.googleAnalytics.rows.reduce((sum, row) => 
+                    sum + parseInt(row.metricValues[2]?.value || 0), 0);
+            }
+
+            if (data.dashboard.googleSearchConsole && !data.dashboard.googleSearchConsole.error && data.dashboard.googleSearchConsole.rows) {
+                totalClicks = data.dashboard.googleSearchConsole.rows.reduce((sum, row) => sum + row.clicks, 0);
+                totalImpressions = data.dashboard.googleSearchConsole.rows.reduce((sum, row) => sum + row.impressions, 0);
+            }
+
+            if (data.wixBlogAnalytics && data.wixBlogAnalytics.totalPosts) {
+                blogPosts = data.wixBlogAnalytics.totalPosts;
+            } else if (data.dashboard.wixBlogPosts && data.dashboard.wixBlogPosts.items) {
+                blogPosts = data.dashboard.wixBlogPosts.items.length;
+            }
+
+            if (data.wixForms && data.wixForms.submissions) {
+                formSubmissions = data.wixForms.submissions.length;
+            }
+
+            if (data.wixContacts && data.wixContacts['Contacts/Contacts']) {
+                contacts = data.wixContacts['Contacts/Contacts'].totalContacts || 0;
+            }
+
+            if (data.agents) {
+                agentTasks = data.agents.reduce((sum, agent) => sum + (agent.tasksCompleted || 0), 0);
+            }
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <i class="fas fa-chart-line"></i> Business Overview
+                    <span class="realtime-indicator"></span>
+                </div>
+                <div class="card-content">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">${totalSessions.toLocaleString()}</div>
+                            <div class="stat-label">Total Sessions</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${totalUsers.toLocaleString()}</div>
+                            <div class="stat-label">Unique Users</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${totalPageviews.toLocaleString()}</div>
+                            <div class="stat-label">Page Views</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${totalClicks.toLocaleString()}</div>
+                            <div class="stat-label">Search Clicks</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${totalImpressions.toLocaleString()}</div>
+                            <div class="stat-label">Search Impressions</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${blogPosts}</div>
+                            <div class="stat-label">Blog Posts</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${formSubmissions}</div>
+                            <div class="stat-label">Form Submissions</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${contacts}</div>
+                            <div class="stat-label">Contacts</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${agentTasks.toLocaleString()}</div>
+                            <div class="stat-label">AI Tasks Completed</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        function createAnalyticsCard(title, data) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            let content = `
+                <div class="card-header"><i class="fas fa-chart-area"></i> ${title}</div>
+                <div class="card-content">
+            `;
+            
+            if (data.rows && data.rows.length > 0) {
+                const totalSessions = data.rows.reduce((sum, row) => 
+                    sum + parseInt(row.metricValues[0]?.value || 0), 0);
+                const totalUsers = data.rows.reduce((sum, row) => 
+                    sum + parseInt(row.metricValues[1]?.value || 0), 0);
+                const totalPageviews = data.rows.reduce((sum, row) => 
+                    sum + parseInt(row.metricValues[2]?.value || 0), 0);
+                
+                const avgSessionDuration = totalSessions > 0 ? (totalPageviews / totalSessions * 60).toFixed(1) : 0;
+                const bounceRate = totalSessions > 0 ? ((totalSessions - totalUsers) / totalSessions * 100).toFixed(1) : 0;
+                
+                content += `
+                    <div class="metric">
+                        <span class="metric-label">Sessions</span>
+                        <span class="metric-value">${totalSessions.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Users</span>
+                        <span class="metric-value">${totalUsers.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Pageviews</span>
+                        <span class="metric-value">${totalPageviews.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Avg Session Duration</span>
+                        <span class="metric-value">${avgSessionDuration} min</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Bounce Rate</span>
+                        <span class="metric-value">${bounceRate}%</span>
+                    </div>
+                `;
+            } else {
+                content += '<div class="loading">No data available for this period</div>';
+            }
+            
+            content += '</div>';
+            card.innerHTML = content;
+            return card;
+        }
+
+        function createSearchConsoleCard(title, data) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            let content = `
+                <div class="card-header"><i class="fas fa-search"></i> ${title}</div>
+                <div class="card-content">
+            `;
+            
+            if (data.rows && data.rows.length > 0) {
+                const totalClicks = data.rows.reduce((sum, row) => sum + row.clicks, 0);
+                const totalImpressions = data.rows.reduce((sum, row) => sum + row.impressions, 0);
+                const avgPosition = data.rows.reduce((sum, row) => sum + row.position, 0) / data.rows.length;
+                const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions * 100).toFixed(2) : 0;
+                
+                content += `
+                    <div class="metric">
+                        <span class="metric-label">Total Clicks</span>
+                        <span class="metric-value">${totalClicks.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Impressions</span>
+                        <span class="metric-value">${totalImpressions.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Average Position</span>
+                        <span class="metric-value">${avgPosition.toFixed(1)}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Click-through Rate</span>
+                        <span class="metric-value">${avgCTR}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Keywords Tracked</span>
+                        <span class="metric-value">${data.rows.length}</span>
+                    </div>
+                `;
+                
+                // Show top keywords
+                const topKeywords = data.rows
+                    .filter(row => row.keys && row.keys[0])
+                    .sort((a, b) => b.clicks - a.clicks)
+                    .slice(0, 5);
+
+                if (topKeywords.length > 0) {
+                    content += `
+                        <h4 style="color: #ef8e81; margin-top: 20px; margin-bottom: 10px;">Top Keywords</h4>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Keyword</th>
+                                    <th>Clicks</th>
+                                    <th>Position</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${topKeywords.map(row => `
+                                    <tr>
+                                        <td>${row.keys[0]}</td>
+                                        <td>${row.clicks}</td>
+                                        <td>${row.position.toFixed(1)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+            } else {
+                content += '<div class="loading">No search data available for this period</div>';
+            }
+            
+            content += '</div>';
+            card.innerHTML = content;
+            return card;
+        }
+
+        function createWixBlogCard(title, data) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            let content = `
+                <div class="card-header"><i class="fas fa-blog"></i> ${title}</div>
+                <div class="card-content">
+            `;
+            
+            if (data && data.totalPosts > 0) {
+                const totalPosts = data.totalPosts;
+                const totalViews = data.totalViews || 0;
+                const totalLikes = data.totalLikes || 0;
+                const totalComments = data.totalComments || 0;
+                
+                content += `
+                    <div class="metric">
+                        <span class="metric-label">Total Posts</span>
+                        <span class="metric-value">${totalPosts}</span>
+                    </div>
+                `;
+                
+                // Show metrics - real data when available, info message when not
+                if (totalViews > 0 || totalLikes > 0 || totalComments > 0) {
+                    content += `
+                        <div class="metric">
+                            <span class="metric-label">Total Views</span>
+                            <span class="metric-value">${totalViews.toLocaleString()}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Total Likes</span>
+                            <span class="metric-value">${totalLikes.toLocaleString()}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Total Comments</span>
+                            <span class="metric-value">${totalComments.toLocaleString()}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Avg Views/Post</span>
+                            <span class="metric-value">${data.averageViews || 0}</span>
+                        </div>
+                    `;
+                } else {
+                    content += `
+                        <div style="background: rgba(34, 197, 94, 0.1); padding: 12px; border-radius: 6px; margin: 10px 0; border-left: 4px solid #22c55e;">
+                            <small style="color: #22c55e;"><i class="fas fa-check-circle"></i> Blog metrics system is now implemented! Real data will display as soon as your blog posts receive engagement.</small>
+                        </div>
+                    `;
+                }
+
+                // Show latest post
+                if (data.latestPost) {
+                    const hasMetrics = (data.latestPost.views > 0 || data.latestPost.likes > 0 || data.latestPost.comments > 0);
+                    
+                    content += `
+                        <h4 style="color: #ef8e81; margin-top: 20px; margin-bottom: 10px;">Latest Post</h4>
+                        <div class="blog-post">
+                            <h4>${data.latestPost.title || 'Untitled'}</h4>
+                            <div class="blog-post-meta">
+                                <span><i class="fas fa-calendar"></i> ${new Date(data.latestPost.publishedDate || Date.now()).toLocaleDateString()}</span>
+                                ${hasMetrics ? `
+                                    <span><i class="fas fa-eye"></i> ${data.latestPost.views || 0} views</span>
+                                    <span><i class="fas fa-heart"></i> ${data.latestPost.likes || 0} likes</span>
+                                    <span><i class="fas fa-comment"></i> ${data.latestPost.comments || 0} comments</span>
+                                ` : ''}
+                            </div>
+                            <p style="color: #ccc; margin-top: 8px; font-size: 0.9rem;">${data.latestPost.excerpt || ''}</p>
+                        </div>
+                    `;
+                }
+
+                // Show top performing posts if metrics are available
+                if (data.topPerformingPosts && data.topPerformingPosts.length > 0 && (totalViews > 0 || totalLikes > 0)) {
+                    content += `
+                        <h4 style="color: #ef8e81; margin-top: 20px; margin-bottom: 10px;">Top Performing Posts</h4>
+                    `;
+                    
+                    data.topPerformingPosts.forEach(post => {
+                        content += `
+                            <div class="blog-post">
+                                <h4>${post.title || 'Untitled'}</h4>
+                                <div class="blog-post-meta">
+                                    <span><i class="fas fa-calendar"></i> ${new Date(post.publishedDate || Date.now()).toLocaleDateString()}</span>
+                                    <span><i class="fas fa-eye"></i> ${post.views || 0} views</span>
+                                    <span><i class="fas fa-heart"></i> ${post.likes || 0} likes</span>
+                                    <span><i class="fas fa-comment"></i> ${post.comments || 0} comments</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else if (data.recentPosts && data.recentPosts.length > 1) {
+                    // Show recent posts if no top performers available
+                    content += `
+                        <h4 style="color: #ef8e81; margin-top: 20px; margin-bottom: 10px;">Recent Posts</h4>
+                    `;
+                    
+                    data.recentPosts.slice(1, 4).forEach(post => { // Skip first one since it's shown as "latest"
+                        const hasMetrics = (post.views > 0 || post.likes > 0 || post.comments > 0);
+                        
+                        content += `
+                            <div class="blog-post">
+                                <h4>${post.title || 'Untitled'}</h4>
+                                <div class="blog-post-meta">
+                                    <span><i class="fas fa-calendar"></i> ${new Date(post.publishedDate || Date.now()).toLocaleDateString()}</span>
+                                    ${hasMetrics ? `
+                                        <span><i class="fas fa-eye"></i> ${post.views || 0} views</span>
+                                        <span><i class="fas fa-heart"></i> ${post.likes || 0} likes</span>
+                                        <span><i class="fas fa-comment"></i> ${post.comments || 0} comments</span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } else {
+                content += '<div class="loading">No blog data available</div>';
+            }
+            
+            content += '</div>';
+            card.innerHTML = content;
+            return card;
+        }
+
+        function createWixBusinessCard(title, formsData, contactsData) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const formSubmissions = formsData && formsData.submissions ? formsData.submissions.length : 0;
+            const contacts = contactsData && contactsData['Contacts/Contacts'] ? contactsData['Contacts/Contacts'].totalContacts : 0;
+            
+            let content = `
+                <div class="card-header"><i class="fas fa-building"></i> ${title}</div>
+                <div class="card-content">
+                    <div class="metric">
+                        <span class="metric-label">Form Submissions</span>
+                        <span class="metric-value">${formSubmissions}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Contacts</span>
+                        <span class="metric-value">${contacts}</span>
+                    </div>
+            `;
+            
+            // Show recent form submissions
+            if (formsData && formsData.submissions && formsData.submissions.length > 0) {
+                content += `
+                    <h4 style="color: #ef8e81; margin-top: 20px; margin-bottom: 10px;">Recent Form Submissions</h4>
+                `;
+                formsData.submissions.slice(0, 3).forEach(submission => {
+                    content += `
+                        <div class="form-submission">
+                            <strong>${submission.formName || 'Contact Form'}</strong><br>
+                            <small><i class="fas fa-calendar"></i> ${new Date(submission.submissionDate || Date.now()).toLocaleDateString()}</small>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Show recent contacts
+            if (contactsData && contactsData['Contacts/Contacts'] && contactsData['Contacts/Contacts'].sampleContacts && contactsData['Contacts/Contacts'].sampleContacts.length > 0) {
+                content += `
+                    <h4 style="color: #ef8e81; margin-top: 20px; margin-bottom: 10px;">Recent Contacts</h4>
+                `;
+                contactsData['Contacts/Contacts'].sampleContacts.slice(0, 3).forEach(contact => {
+                    content += `
+                        <div class="contact-item">
+                            <strong>${contact.name || 'Contact'}</strong><br>
+                            <small><i class="fas fa-envelope"></i> ${contact.email || 'No email'} • ${new Date(contact.dateAdded || Date.now()).toLocaleDateString()}</small>
+                        </div>
+                    `;
+                });
+            }
+            
+            content += '</div>';
+            card.innerHTML = content;
+            return card;
+        }
+
+        function createAgentsCard(title, agents) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const totalTasks = agents.reduce((sum, agent) => sum + (agent.tasksCompleted || 0), 0);
+            const avgSuccessRate = agents.reduce((sum, agent) => sum + (agent.successRate || 0), 0) / agents.length;
+            const activeAgents = agents.filter(agent => agent.status === 'active').length;
+            
+            let content = `
+                <div class="card-header"><i class="fas fa-robot"></i> ${title}</div>
+                <div class="card-content">
+                    <div class="metric">
+                        <span class="metric-label">Total AI Tasks</span>
+                        <span class="metric-value">${totalTasks.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Average Success Rate</span>
+                        <span class="metric-value">${avgSuccessRate.toFixed(1)}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Active Agents</span>
+                        <span class="metric-value">${activeAgents} / ${agents.length}</span>
+                    </div>
+            `;
+            
+            // Show top performing agents
+            const topAgents = agents.sort((a, b) => (b.tasksCompleted || 0) - (a.tasksCompleted || 0)).slice(0, 3);
+            content += `
+                <h4 style="color: #ef8e81; margin-top: 20px; margin-bottom: 10px;">Top Performing Agents</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Tasks</th>
+                            <th>Success Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${topAgents.map(agent => `
+                            <tr>
+                                <td>${agent.name}</td>
+                                <td>${agent.tasksCompleted || 0}</td>
+                                <td>${agent.successRate || 0}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            content += '</div>';
+            card.innerHTML = content;
+            return card;
+        }
+
+        function createRealtimeCard(title, data) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            let content = `
+                <div class="card-header">
+                    <i class="fas fa-broadcast-tower"></i> ${title}
+                    <span class="realtime-indicator"></span>
+                </div>
+                <div class="card-content">
+            `;
+            
+            if (data.rows && data.rows.length > 0) {
+                const activeUsers = data.rows.reduce((sum, row) => 
+                    sum + parseInt(row.metricValues[0]?.value || 0), 0);
+                const pageViews = data.rows.reduce((sum, row) => 
+                    sum + parseInt(row.metricValues[1]?.value || 0), 0);
+                const events = data.rows.reduce((sum, row) => 
+                    sum + parseInt(row.metricValues[2]?.value || 0), 0);
+                
+                content += `
+                    <div class="metric">
+                        <span class="metric-label">Active Users</span>
+                        <span class="metric-value">${activeUsers.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Page Views (Now)</span>
+                        <span class="metric-value">${pageViews.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Events (Now)</span>
+                        <span class="metric-value">${events.toLocaleString()}</span>
+                    </div>
+                `;
+            } else {
+                content += '<div class="loading">No real-time data available</div>';
+            }
+            
+            content += '</div>';
+            card.innerHTML = content;
+            return card;
+        }
+
+        // Handle timeframe changes
+        document.getElementById('timeframe').addEventListener('change', function() {
+            const today = new Date();
+            let startDate = new Date();
+            
+            switch(this.value) {
+                case '7d':
+                    startDate.setDate(today.getDate() - 7);
+                    break;
+                case '30d':
+                    startDate.setDate(today.getDate() - 30);
+                    break;
+                case '90d':
+                    startDate.setDate(today.getDate() - 90);
+                    break;
+                case '1y':
+                    startDate.setFullYear(today.getFullYear() - 1);
+                    break;
+            }
+            
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>

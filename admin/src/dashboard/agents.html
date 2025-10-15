@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agents - MomentumDIY AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #191628 0%, #2a1f3d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ef8e81;
+        }
+
+        .header h1 {
+            color: #ef8e81;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: rgba(239, 142, 129, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: rgba(239, 142, 129, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-links a.active {
+            background: rgba(239, 142, 129, 0.3);
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .agent-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(239, 142, 129, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-5px);
+            border-color: #ef8e81;
+            box-shadow: 0 10px 30px rgba(239, 142, 129, 0.2);
+        }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .agent-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ef8e81, #f4a261);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 1.5rem;
+        }
+
+        .agent-info h3 {
+            color: #ef8e81;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .agent-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .status-idle {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .status-busy {
+            background: rgba(239, 142, 129, 0.2);
+            color: #ef8e81;
+        }
+
+        .agent-description {
+            color: #cccccc;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .agent-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ef8e81;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #cccccc;
+            margin-top: 5px;
+        }
+
+        .agent-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ef8e81, #f4a261);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 142, 129, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .agent-tasks {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .agent-tasks h4 {
+            color: #ef8e81;
+            margin-bottom: 10px;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-list li {
+            padding: 8px 0;
+            color: #cccccc;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .task-list li:last-child {
+            border-bottom: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #cccccc;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #ef8e81;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .agents-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .agent-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .agent-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #191628 0%, #2a1f3d 100%);
+            border: 1px solid #ef8e81;
+            border-radius: 12px;
+            padding: 0;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content.large {
+            max-width: 900px;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #ef8e81 0%, #ff6b6b 100%);
+            color: #191628;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .close {
+            color: #191628;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* Task Selection Modal */
+        .task-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .task-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #ef8e81;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            background: rgba(239, 142, 129, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .task-header h4 {
+            margin: 0;
+            color: #ef8e81;
+        }
+
+        .task-priority {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .priority-high {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .priority-medium {
+            background: #f39c12;
+            color: white;
+        }
+
+        .priority-low {
+            background: #27ae60;
+            color: white;
+        }
+
+        .task-details {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .task-details small {
+            color: #b8b8b8;
+        }
+
+        /* Execution Progress */
+        .execution-progress {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef8e81, #ff6b6b);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #ef8e81;
+            font-weight: 600;
+        }
+
+        .execution-log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-entry.success {
+            color: #27ae60;
+        }
+
+        .log-entry.error {
+            color: #e74c3c;
+        }
+
+        /* Agent Details Modal */
+        .agent-details-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .detail-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #ef8e81;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .detail-section h4 {
+            color: #ef8e81;
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+        }
+
+        .detail-item {
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-unknown {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .capabilities-list, .platforms-list, .data-sources-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .capability-tag, .platform-tag, .data-source-tag {
+            background: rgba(239, 142, 129, 0.2);
+            border: 1px solid #ef8e81;
+            color: #ef8e81;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .tasks-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .task-detail-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(239, 142, 129, 0.3);
+            border-radius: 6px;
+            padding: 15px;
+        }
+
+        .task-detail-item .task-header {
+            margin-bottom: 10px;
+        }
+
+        .task-detail-item h5 {
+            margin: 0;
+            color: #ef8e81;
+            font-size: 1rem;
+        }
+
+        .task-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .task-meta small {
+            color: #b8b8b8;
+        }
+
+        .phase-info {
+            color: #ef8e81;
+        }
+
+        /* Execution Results Styles */
+        .execution-results {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(239, 142, 129, 0.3);
+        }
+
+        .execution-results h4 {
+            color: #28a745;
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+        }
+
+        .execution-metadata {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .metadata-item {
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .result-section {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            border: 1px solid rgba(239, 142, 129, 0.2);
+        }
+
+        .result-section h5 {
+            color: #ef8e81;
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+        }
+
+        .content-preview {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ef8e81;
+            margin-bottom: 10px;
+        }
+
+        .content-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+
+        .content-preview-text {
+            color: #ddd;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #ef8e81;
+        }
+
+        .platforms-results {
+            display: grid;
+            gap: 10px;
+        }
+
+        .platform-result {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            border: 1px solid rgba(239, 142, 129, 0.2);
+        }
+
+        .platform-content {
+            margin-top: 5px;
+            color: #ddd;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .result-message {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            color: #fff;
+        }
+
+        .error-result {
+            padding: 15px;
+            background: rgba(220, 53, 69, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            color: #fff;
+        }
+
+        /* Enhanced Agent Metrics */
+        .agent-performance {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(239, 142, 129, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(239, 142, 129, 0.3);
+        }
+
+        .performance-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .perf-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(239, 142, 129, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ef8e81;
+            font-size: 1.2rem;
+        }
+
+        .perf-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .perf-number {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ef8e81;
+        }
+
+        .perf-label {
+            font-size: 0.8rem;
+            color: #b8b8b8;
+        }
+
+        /* Agent Specific Metrics */
+        .agent-specific-metrics {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(239, 142, 129, 0.2);
+        }
+
+        .agent-specific-metrics h4 {
+            color: #ef8e81;
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(239, 142, 129, 0.05);
+            border-radius: 6px;
+            border: 1px solid rgba(239, 142, 129, 0.15);
+        }
+
+        .metric-number {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ef8e81;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: #ccc;
+            font-weight: 500;
+        }
+
+        /* Enhanced Stats Grid */
+        .agent-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(239, 142, 129, 0.2);
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ef8e81;
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #ccc;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        @media (min-width: 768px) {
+            .agent-stats {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+            }
+            
+            .stat-item {
+                padding: 10px;
+                min-height: 65px;
+            }
+            
+            .stat-number {
+                font-size: 1.3rem;
+            }
+            
+            .stat-label {
+                font-size: 0.7rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .agent-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            .stat-item {
+                padding: 8px;
+                min-height: 60px;
+            }
+            
+            .stat-number {
+                font-size: 1.1rem;
+            }
+            
+            .stat-label {
+                font-size: 0.65rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-robot"></i> AI Agents</h1>
+            <div class="nav-links">
+                <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="agents.html" class="active"><i class="fas fa-robot"></i> Agents</a>
+                <a href="content-management.html"><i class="fas fa-images"></i> Content</a>
+                <a href="analytics.html"><i class="fas fa-chart-bar"></i> Analytics</a>
+                <a href="agent-outputs.html"><i class="fas fa-check-circle"></i> Agent Outputs</a>
+            </div>
+        </div>
+
+        <div class="agents-grid" id="agentsGrid">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading agents...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAgents();
+        });
+
+        async function loadAgents() {
+            try {
+                const response = await fetch(`${API_BASE}/agents`);
+                const data = await response.json();
+                
+                if (data.agents && Array.isArray(data.agents)) {
+                    renderAgents(data.agents);
+                } else {
+                    throw new Error('Invalid response format from server');
+                }
+            } catch (error) {
+                console.error('Error loading agents:', error);
+                document.getElementById('agentsGrid').innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error loading agents: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderAgents(agents) {
+            const grid = document.getElementById('agentsGrid');
+            
+            if (!agents || agents.length === 0) {
+                grid.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-robot"></i>
+                        <p>No agents found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = agents.map(agent => `
+                <div class="agent-card">
+                    <div class="agent-header">
+                        <div class="agent-icon">
+                            ${getAgentIcon(agent.id)}
+                        </div>
+                        <div class="agent-info">
+                            <h3>${agent.name}</h3>
+                            <span class="agent-status status-${agent.status}">${agent.status}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-description">
+                        ${agent.description}
+                    </div>
+                    
+                    <div class="agent-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">${agent.tasksCompleted || 0}</div>
+                            <div class="stat-label">Tasks Completed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${agent.successRate || 100}%</div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${agent.recentActivity || 0}</div>
+                            <div class="stat-label">Recent Activity (7d)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${agent.avgExecutionTime || 0}ms</div>
+                            <div class="stat-label">Avg Execution</div>
+                        </div>
+                    </div>
+                    
+                    ${agent.totalTokensUsed ? `
+                    <div class="agent-performance">
+                        <div class="performance-item">
+                            <div class="perf-icon"><i class="fas fa-coins"></i></div>
+                            <div class="perf-details">
+                                <div class="perf-number">${agent.totalTokensUsed.toLocaleString()}</div>
+                                <div class="perf-label">Tokens Used</div>
+                            </div>
+                        </div>
+                        <div class="performance-item">
+                            <div class="perf-icon"><i class="fas fa-dollar-sign"></i></div>
+                            <div class="perf-details">
+                                <div class="perf-number">$${(agent.totalCost || 0).toFixed(4)}</div>
+                                <div class="perf-label">Total Cost</div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    ${getAgentSpecificMetrics(agent)}
+                    
+                    <div class="agent-actions">
+                        <button class="btn btn-primary" onclick="executeAgentTask('${agent.id}')">
+                            <i class="fas fa-play"></i> Execute Task
+                        </button>
+                        <button class="btn btn-secondary" onclick="viewAgentDetails('${agent.id}')">
+                            <i class="fas fa-info-circle"></i> Details
+                        </button>
+                    </div>
+                    
+                    <div class="agent-tasks">
+                        <h4>Available Tasks:</h4>
+                        <ul class="task-list">
+                            ${agent.capabilities ? agent.capabilities.slice(0, 5).map(capability => `<li>${capability}</li>`).join('') : '<li>No tasks available</li>'}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getAgentIcon(agentId) {
+            const icons = {
+                'cmo-brain': '<i class="fas fa-brain"></i>',
+                'market-researcher': '<i class="fas fa-search"></i>',
+                'data-analyst': '<i class="fas fa-chart-line"></i>',
+                'copywriting-agent': '<i class="fas fa-pen-fancy"></i>',
+                'social-content-agent': '<i class="fas fa-share-alt"></i>',
+                'social-posting-agent': '<i class="fas fa-paper-plane"></i>',
+                'lead-sales-agent': '<i class="fas fa-bullhorn"></i>'
+            };
+            return icons[agentId] || '<i class="fas fa-robot"></i>';
+        }
+
+        function getAgentSpecificMetrics(agent) {
+            let metricsHTML = '';
+            
+            switch (agent.id) {
+                case 'cmo-brain':
+                    if (agent.strategiesCreated !== undefined) {
+                        metricsHTML = `
+                            <div class="agent-specific-metrics">
+                                <h4><i class="fas fa-brain"></i> Strategic Insights</h4>
+                                <div class="metrics-grid">
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.strategiesCreated || 0}</div>
+                                        <div class="metric-label">Strategies Created</div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.prioritiesGenerated || 0}</div>
+                                        <div class="metric-label">Priorities Generated</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'market-researcher':
+                    if (agent.researchTasksCompleted !== undefined) {
+                        metricsHTML = `
+                            <div class="agent-specific-metrics">
+                                <h4><i class="fas fa-search"></i> Research Performance</h4>
+                                <div class="metrics-grid">
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.researchTasksCompleted || 0}</div>
+                                        <div class="metric-label">Research Tasks</div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.opportunitiesFound || 0}</div>
+                                        <div class="metric-label">Opportunities Found</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'copywriting-agent':
+                    if (agent.blogPostsCreated !== undefined) {
+                        metricsHTML = `
+                            <div class="agent-specific-metrics">
+                                <h4><i class="fas fa-pen-fancy"></i> Content Creation</h4>
+                                <div class="metrics-grid">
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.blogPostsCreated || 0}</div>
+                                        <div class="metric-label">Blog Posts Created</div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.avgWordCount || 0}</div>
+                                        <div class="metric-label">Avg Word Count</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'social-content-agent':
+                    if (agent.campaignsCreated !== undefined) {
+                        metricsHTML = `
+                            <div class="agent-specific-metrics">
+                                <h4><i class="fas fa-share-alt"></i> Social Media Performance</h4>
+                                <div class="metrics-grid">
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.campaignsCreated || 0}</div>
+                                        <div class="metric-label">Campaigns Created</div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.postsGenerated || 0}</div>
+                                        <div class="metric-label">Posts Generated</div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.platformsSupported || 0}</div>
+                                        <div class="metric-label">Platforms</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'data-analyst':
+                    if (agent.analysesCompleted !== undefined) {
+                        metricsHTML = `
+                            <div class="agent-specific-metrics">
+                                <h4><i class="fas fa-chart-line"></i> Analytics Performance</h4>
+                                <div class="metrics-grid">
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.analysesCompleted || 0}</div>
+                                        <div class="metric-label">Analyses Completed</div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.dataSourcesIntegrated || 0}</div>
+                                        <div class="metric-label">Data Sources</div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-number">${agent.metricsTracked || 0}</div>
+                                        <div class="metric-label">Metrics Tracked</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                default:
+                    metricsHTML = '';
+            }
+            
+            return metricsHTML;
+        }
+
+        async function executeAgentTask(agentId) {
+            try {
+                // Get available tasks for this agent
+                const tasksResponse = await fetch(`${API_BASE}/agents/${agentId}/tasks`);
+                const tasksData = await tasksResponse.json();
+                
+                if (!tasksData.tasks || tasksData.tasks.length === 0) {
+                    alert('No tasks available for this agent');
+                    return;
+                }
+                
+                // Show task selection modal
+                showTaskSelectionModal(agentId, tasksData.tasks);
+            } catch (error) {
+                console.error('Error getting tasks:', error);
+                alert('Error loading tasks for this agent');
+            }
+        }
+
+        function showTaskSelectionModal(agentId, tasks) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Select Task to Execute</h3>
+                        <span class="close" onclick="closeModal(this)">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="task-list">
+                            ${tasks.map(task => `
+                                <div class="task-item" onclick="executeSelectedTask('${agentId}', '${task.id}')">
+                                    <div class="task-header">
+                                        <h4>${task.name}</h4>
+                                        <span class="task-priority priority-${task.priority}">${task.priority}</span>
+                                    </div>
+                                    <p>${task.description}</p>
+                                    <div class="task-details">
+                                        <small><strong>Required Input:</strong> ${task.requiredInput ? task.requiredInput.join(', ') : 'None'}</small>
+                                        <small><strong>Triggers:</strong> ${task.triggers ? task.triggers.join(', ') : 'None'}</small>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function executeSelectedTask(agentId, taskId) {
+            closeAllModals();
+            
+            // Show execution modal with progress
+            const executionModal = document.createElement('div');
+            executionModal.className = 'modal';
+            executionModal.id = 'executionModal';
+            executionModal.innerHTML = `
+                <div class="modal-content large">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-play"></i> Executing: ${taskId}</h3>
+                        <span class="close" onclick="closeModal(this)">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="execution-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <div class="progress-text" id="progressText">Initializing task execution...</div>
+                        </div>
+                        <div class="execution-log" id="executionLog"></div>
+                        <div class="execution-results" id="executionResults" style="display: none;">
+                            <h4><i class="fas fa-check-circle"></i> Execution Results</h4>
+                            <div id="resultsContent"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(executionModal);
+            
+            try {
+                // Get basic input for the task (can be enhanced with a form later)
+                const basicInput = getBasicTaskInput(taskId);
+                
+                // Execute task directly via POST API for immediate results
+                const response = await fetch(`${API_BASE}/agents/${agentId}/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        task: taskId,
+                        input: basicInput
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // Show progress simulation
+                simulateProgress();
+                
+                const result = await response.json();
+                showExecutionResults(result);
+                
+            } catch (error) {
+                console.error('Error executing task:', error);
+                document.getElementById('progressText').textContent = 'Execution failed';
+                document.getElementById('progressFill').style.backgroundColor = '#e74c3c';
+                document.getElementById('executionLog').innerHTML += `<div class="log-entry error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function getBasicTaskInput(taskId) {
+            // Provide basic input for different task types
+            const inputs = {
+                'create-blog-post': {
+                    topic: 'Small Business Marketing Success',
+                    targetAudience: 'Small business owners',
+                    length: 'medium',
+                    includeSEO: true,
+                    tone: 'professional',
+                    keywords: ['small business', 'marketing', 'growth']
+                },
+                'create-social-media-copy': {
+                    platform: 'facebook',
+                    topic: 'Business growth tips',
+                    format: 'post',
+                    tone: 'engaging',
+                    includeHashtags: true
+                },
+                'create-email-content': {
+                    type: 'newsletter',
+                    topic: 'Marketing insights',
+                    tone: 'professional',
+                    includePersonalization: true
+                },
+                'analyze_performance': {
+                    focusAreas: ['content marketing', 'social media engagement'],
+                    timeframe: 'current_quarter',
+                    includeRecommendations: true
+                },
+                'find_brand_opportunities': {
+                    businessType: 'small business',
+                    focusAreas: ['content marketing', 'social media'],
+                    includeCompetitorAnalysis: true
+                },
+                'create-multi-platform-campaign': {
+                    contentStrategy: 'engagement_boost',
+                    platforms: ['facebook', 'instagram', 'linkedin'],
+                    topic: 'Business growth strategies'
+                }
+            };
+            
+            return inputs[taskId] || {
+                topic: 'Test execution from dashboard',
+                targetAudience: 'Small business owners'
+            };
+        }
+
+        function simulateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const executionLog = document.getElementById('executionLog');
+            
+            let progress = 0;
+            const steps = [
+                'Initializing task...',
+                'Processing input...',
+                'Executing agent logic...',
+                'Generating results...',
+                'Finalizing output...'
+            ];
+            
+            const interval = setInterval(() => {
+                progress += 20;
+                progressFill.style.width = progress + '%';
+                
+                if (progress <= 100) {
+                    const stepIndex = Math.floor((progress - 1) / 20);
+                    if (steps[stepIndex]) {
+                        progressText.textContent = steps[stepIndex];
+                        executionLog.innerHTML += `<div class="log-entry">🔄 ${steps[stepIndex]}</div>`;
+                    }
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    progressText.textContent = 'Execution completed!';
+                    progressFill.style.backgroundColor = '#28a745';
+                }
+            }, 800);
+        }
+
+        function showExecutionResults(result) {
+            const resultsContainer = document.getElementById('executionResults');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (result.success || result.content) {
+                resultsContainer.style.display = 'block';
+                
+                let resultsHTML = '<div class="results-summary">';
+                
+                // Show execution metadata
+                if (result.execution) {
+                    resultsHTML += `
+                        <div class="execution-metadata">
+                            <div class="metadata-grid">
+                                <div class="metadata-item">
+                                    <strong>Duration:</strong> ${result.execution.duration}ms
+                                </div>
+                                <div class="metadata-item">
+                                    <strong>Tokens Used:</strong> ${result.execution.tokenUsage?.total || 'N/A'}
+                                </div>
+                                <div class="metadata-item">
+                                    <strong>Status:</strong> <span style="color: #28a745;">✅ Success</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Show content results based on type
+                if (result.content) {
+                    if (result.content.title) {
+                        resultsHTML += `
+                            <div class="result-section">
+                                <h5>📝 Generated Content</h5>
+                                <div class="content-preview">
+                                    <div class="content-title">${result.content.title}</div>
+                                    <div class="content-stats">
+                                        <span>📊 ${result.content.wordCount || 0} words</span>
+                                        <span>⏱️ ${result.content.readingTime || 'N/A'}</span>
+                                        <span>🎯 ${result.content.targetAudience || 'General'}</span>
+                                    </div>
+                                    <div class="content-preview-text">
+                                        ${result.content.content ? result.content.content.substring(0, 300) + '...' : 'Content generated successfully'}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else if (result.content.platforms) {
+                        resultsHTML += `
+                            <div class="result-section">
+                                <h5>📱 Social Media Campaign</h5>
+                                <div class="platforms-results">
+                                    ${Object.entries(result.content.platforms).map(([platform, data]) => `
+                                        <div class="platform-result">
+                                            <strong>${platform.toUpperCase()}:</strong>
+                                            <div class="platform-content">${data.content?.substring(0, 100) || 'Content generated'}...</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                // Show message
+                if (result.message) {
+                    resultsHTML += `
+                        <div class="result-message">
+                            <strong>Result:</strong> ${result.message}
+                        </div>
+                    `;
+                }
+                
+                resultsHTML += '</div>';
+                resultsContent.innerHTML = resultsHTML;
+                
+                // Refresh agent data after execution
+                setTimeout(() => {
+                    loadAgents();
+                }, 2000);
+                
+            } else {
+                resultsContent.innerHTML = `
+                    <div class="error-result">
+                        <strong>❌ Execution failed</strong>
+                        <div>${result.error || 'Unknown error occurred'}</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function viewAgentDetails(agentId) {
+            try {
+                // Get agent status and tasks
+                const [statusResponse, tasksResponse] = await Promise.all([
+                    fetch(`${API_BASE}/agents/${agentId}/status`),
+                    fetch(`${API_BASE}/agents/${agentId}/tasks`)
+                ]);
+                
+                const status = await statusResponse.json();
+                const tasks = await tasksResponse.json();
+                
+                // Get the agent info from the current agents list
+                const agents = await fetch(`${API_BASE}/agents`).then(r => r.json());
+                const agent = agents.agents.find(a => a.id === agentId);
+                
+                showAgentDetailsModal(agent, status, tasks.tasks || []);
+            } catch (error) {
+                console.error('Error fetching agent details:', error);
+                alert('Error fetching agent details');
+            }
+        }
+
+        function showAgentDetailsModal(agent, status, tasks) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content large">
+                    <div class="modal-header">
+                        <h3>${agent.name} - Detailed Information</h3>
+                        <span class="close" onclick="closeModal(this)">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="agent-details-grid">
+                            <div class="detail-section">
+                                <h4>📋 Basic Information</h4>
+                                <div class="detail-item">
+                                    <strong>Name:</strong> ${agent.name}
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Status:</strong> 
+                                    <span class="status-badge status-${status.status || 'unknown'}">${status.status || 'unknown'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Last Activity:</strong> ${new Date(agent.lastActivity).toLocaleString()}
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Description:</strong> ${agent.description}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>🛠️ Capabilities</h4>
+                                <div class="capabilities-list">
+                                    ${agent.capabilities ? agent.capabilities.map(cap => `<span class="capability-tag">${cap}</span>`).join('') : 'No capabilities listed'}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>📊 Available Tasks (${tasks.length})</h4>
+                                <div class="tasks-list">
+                                    ${tasks.map(task => `
+                                        <div class="task-detail-item">
+                                            <div class="task-header">
+                                                <h5>${task.name}</h5>
+                                                <span class="task-priority priority-${task.priority}">${task.priority}</span>
+                                            </div>
+                                            <p>${task.description}</p>
+                                            <div class="task-meta">
+                                                <small><strong>Required Input:</strong> ${task.requiredInput ? task.requiredInput.join(', ') : 'None'}</small>
+                                                <small><strong>Triggers:</strong> ${task.triggers ? task.triggers.join(', ') : 'None'}</small>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            ${agent.platforms ? `
+                            <div class="detail-section">
+                                <h4>🌐 Platforms</h4>
+                                <div class="platforms-list">
+                                    ${agent.platforms.map(platform => `<span class="platform-tag">${platform}</span>`).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            ${agent.dataSources ? `
+                            <div class="detail-section">
+                                <h4>📈 Data Sources</h4>
+                                <div class="data-sources-list">
+                                    ${agent.dataSources.map(source => `<span class="data-source-tag">${source}</span>`).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            ${agent.currentPhase ? `
+                            <div class="detail-section">
+                                <h4>🎯 Current Phase</h4>
+                                <div class="phase-info">
+                                    <strong>Phase:</strong> ${agent.currentPhase}
+                                    ${agent.launchDate ? `<br><strong>Launch Date:</strong> ${agent.launchDate}` : ''}
+                                    ${agent.pricing ? `<br><strong>Pricing:</strong> $${agent.pricing.monthly}/month` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function closeModal(closeButton) {
+            const modal = closeButton.closest('.modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function closeAllModals() {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => modal.remove());
+        }
+    </script>
+</body>
+</html> 

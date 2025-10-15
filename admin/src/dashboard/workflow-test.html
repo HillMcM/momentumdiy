@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Workflow Test - v1.0.1</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=1.0.1" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        .icon { font-size: 24px; margin-right: 10px; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        #log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1><i class="fas fa-cogs icon"></i>Workflow Execution Test</h1>
+    
+    <div class="test-section">
+        <h2>API Base URL Test</h2>
+        <p>Current API Base: <span id="apiBase">Loading...</span></p>
+        <button class="btn-primary" onclick="testAPIConnection()">
+            <i class="fas fa-network-wired"></i> Test API Connection
+        </button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Workflow Execution Test</h2>
+        <button class="btn-success" onclick="testWorkflowExecution()">
+            <i class="fas fa-play"></i> Test Workflow Execution
+        </button>
+        <button class="btn-warning" onclick="testWorkflowProgress()">
+            <i class="fas fa-chart-line"></i> Test Workflow Progress
+        </button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Resource Management Test</h2>
+        <button class="btn-primary" onclick="testResourceUsage()">
+            <i class="fas fa-chart-pie"></i> Check Resource Usage
+        </button>
+        <button class="btn-warning" onclick="testResourceReset()">
+            <i class="fas fa-sync-alt"></i> Reset Resources
+        </button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Function Accessibility Test</h2>
+        <button class="btn-primary" onclick="testFunctionAccess()">
+            <i class="fas fa-code"></i> Test Functions
+        </button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Navigation</h2>
+        <p><a href="index.html">← Back to Main Dashboard</a></p>
+        <p><a href="test.html">→ Go to General Test Page</a></p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Debug Log</h2>
+        <div id="log"></div>
+        <button class="btn-danger" onclick="clearLog()">
+            <i class="fas fa-trash"></i> Clear Log
+        </button>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        const HEALTH_ENDPOINT = '/health';
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue';
+            logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        // Test API connection
+        async function testAPIConnection() {
+            log('🔍 Testing API connection...');
+            try {
+                const response = await fetch(HEALTH_ENDPOINT);
+                const data = await response.json();
+                log(`✅ API connection successful: ${data.status}`, 'success');
+                document.getElementById('apiBase').textContent = API_BASE;
+            } catch (error) {
+                log(`❌ API connection failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test workflow execution
+        async function testWorkflowExecution() {
+            log('🚀 Testing workflow execution...');
+            try {
+                log('📡 Making POST request to workflow endpoint...');
+                const response = await fetch(`${API_BASE}/dashboard/workflow/execute-daily`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                log(`📡 Response status: ${response.status}`);
+                const result = await response.json();
+                log(`📄 Response data: ${JSON.stringify(result)}`, 'success');
+                
+                if (result.success) {
+                    log('✅ Workflow started successfully!', 'success');
+                } else {
+                    log(`❌ Workflow start failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error in workflow execution: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test resource reset
+        async function testResourceReset() {
+            log('🔄 Testing resource reset...');
+            try {
+                const response = await fetch(`${API_BASE}/dashboard/resources/reset`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log(`📡 Reset response status: ${response.status}`);
+                const result = await response.json();
+                log(`📄 Reset response: ${JSON.stringify(result)}`, 'success');
+                
+                if (result.message) {
+                    log('✅ Resources reset successfully!', 'success');
+                } else {
+                    log(`❌ Resource reset failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error resetting resources: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test resource usage
+        async function testResourceUsage() {
+            log('📊 Testing resource usage...');
+            try {
+                const response = await fetch(`${API_BASE}/dashboard/resources/usage`);
+                const data = await response.json();
+                log(`📄 Current usage: ${JSON.stringify(data)}`, 'info');
+                
+                const message = `
+Current Resource Usage:
+• OpenAI: $${(data.openaiCost || 0).toFixed(4)}
+• News API: ${data.newsApiCalls || 0} calls
+• SERP API: ${data.serpApiCalls || 0} calls
+• Total Cost: $${(data.totalCost || 0).toFixed(4)}
+                `.trim();
+                
+                log(message, 'info');
+            } catch (error) {
+                log(`❌ Error getting resource usage: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test workflow progress endpoint
+        async function testWorkflowProgress() {
+            log('📊 Testing workflow progress endpoint...');
+            try {
+                const response = await fetch(`${API_BASE}/dashboard/workflow/progress`);
+                log(`📡 Progress endpoint status: ${response.status}`);
+                
+                if (response.status === 200) {
+                    log('✅ Workflow progress endpoint accessible', 'success');
+                } else {
+                    log(`❌ Workflow progress endpoint error: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error testing progress endpoint: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test function accessibility
+        function testFunctionAccess() {
+            log('🔍 Testing function accessibility...');
+            
+            // Test if we can define and call functions
+            try {
+                const testFunction = () => 'test';
+                const result = testFunction();
+                log('✅ Function definition and execution works', 'success');
+                
+                // Test async functions
+                const testAsyncFunction = async () => 'async test';
+                testAsyncFunction().then(result => {
+                    log('✅ Async function execution works', 'success');
+                });
+                
+            } catch (error) {
+                log(`❌ Function test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('📄 Page loaded, initializing tests...');
+            document.getElementById('apiBase').textContent = API_BASE;
+            testAPIConnection();
+        });
+    </script>
+</body>
+</html>

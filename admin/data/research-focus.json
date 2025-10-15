@@ -1,0 +1,97 @@
+{
+  "primaryTopics": [
+    "Marketing clarity for small businesses",
+    "Quarterly goal setting strategies",
+    "Local business marketing tactics",
+    "Anti-overwhelm marketing approaches",
+    "Time-efficient marketing for busy owners",
+    "Social media for local businesses",
+    "Google Business Profile optimization",
+    "Email marketing for small businesses",
+    "Marketing focus and prioritization"
+  ],
+  "researchCategories": {
+    "trends": {
+      "description": "Current marketing trends relevant to small local businesses",
+      "sources": ["News API", "SERP API", "Industry blogs"],
+      "focus": [
+        "Local SEO trends",
+        "Social media algorithm changes",
+        "Small business marketing statistics",
+        "Customer behavior shifts",
+        "Platform updates (Facebook, Instagram, Google)"
+      ]
+    },
+    "painPoints": {
+      "description": "Common challenges faced by small business owners",
+      "sources": ["Forums", "Social media", "Industry reports"],
+      "focus": [
+        "Marketing overwhelm",
+        "Time constraints",
+        "Budget limitations",
+        "Tool confusion",
+        "Strategy paralysis"
+      ]
+    },
+    "tactics": {
+      "description": "Practical marketing tactics that work for local businesses",
+      "sources": ["Case studies", "Industry research", "Success stories"],
+      "focus": [
+        "Facebook organic reach strategies",
+        "Instagram engagement tactics",
+        "Google Business Profile optimization",
+        "Email marketing for local customers",
+        "Community building approaches"
+      ]
+    },
+    "tools": {
+      "description": "Marketing tools suitable for small businesses",
+      "sources": ["Product reviews", "Comparison sites", "User feedback"],
+      "focus": [
+        "Affordable marketing platforms",
+        "Easy-to-use social schedulers",
+        "Email marketing solutions",
+        "Analytics tools for non-marketers",
+        "Integration capabilities"
+      ]
+    }
+  },
+  "targetIndustries": [
+    "Cafes and coffee shops",
+    "Salons and spas",
+    "Home service providers",
+    "Retail shops",
+    "Personal trainers and fitness",
+    "Restaurants and food businesses",
+    "Pet services",
+    "Professional services (local focus)"
+  ],
+  "researchGoals": [
+    "Identify trending topics relevant to target audience",
+    "Discover common marketing challenges",
+    "Find practical solutions that actually work",
+    "Spot gaps in existing marketing advice",
+    "Uncover opportunities for content creation"
+  ],
+  "contentOpportunities": [
+    "How-to guides for specific tactics",
+    "Myth-busting common marketing advice",
+    "Case studies from real local businesses",
+    "Quick wins and easy implementations",
+    "Platform-specific strategies",
+    "Goal-setting frameworks",
+    "Time management for marketing",
+    "Budget-friendly marketing ideas"
+  ],
+  "avoidTopics": [
+    "Enterprise marketing strategies",
+    "Complex B2B tactics",
+    "Corporate branding exercises",
+    "Marketing automation for large teams",
+    "Advanced technical SEO",
+    "Expensive advertising strategies",
+    "LinkedIn marketing (unless specifically relevant to local services)"
+  ]
+}
+
+

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Test - v1.0.1</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=1.0.1" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .icon { font-size: 24px; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <h1><i class="fas fa-check-circle icon"></i>Dashboard Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Font Awesome Test</h2>
+        <p><i class="fas fa-brain"></i> Brain Icon</p>
+        <p><i class="fas fa-robot"></i> Robot Icon</p>
+        <p><i class="fas fa-chart-bar"></i> Chart Icon</p>
+        <p class="success">✅ Font Awesome is working if you can see the icons above</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>API Endpoint Tests</h2>
+        <div id="api-results">Testing API endpoints...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Navigation</h2>
+        <p><a href="index.html">← Back to Main Dashboard</a></p>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        
+        async function testAPIEndpoints() {
+            const endpoints = [
+                { name: 'Social Posting Agent', url: '/api/agents/social-posting-agent/execution-history' },
+                { name: 'Lead Sales Agent', url: '/api/agents/lead-sales-agent/execution-history' },
+                { name: 'Workflow Progress', url: '/api/dashboard/workflow/progress' },
+                { name: 'Health Check', url: '/health' }
+            ];
+            
+            const resultsDiv = document.getElementById('api-results');
+            let results = '';
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint.url);
+                    const status = response.status;
+                    const statusText = response.statusText;
+                    
+                    if (status === 200) {
+                        results += `<p class="success">✅ ${endpoint.name}: ${status} ${statusText}</p>`;
+                    } else {
+                        results += `<p class="error">❌ ${endpoint.name}: ${status} ${statusText}</p>`;
+                    }
+                } catch (error) {
+                    results += `<p class="error">❌ ${endpoint.name}: Error - ${error.message}</p>`;
+                }
+            }
+            
+            resultsDiv.innerHTML = results;
+        }
+        
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', testAPIEndpoints);
+    </script>
+</body>
+</html>

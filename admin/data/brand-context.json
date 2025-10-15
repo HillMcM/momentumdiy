@@ -1,0 +1,80 @@
+{
+  "founder": {
+    "name": "Hillary Eden McMullen",
+    "brand": "Your neighborhood marketer",
+    "voice": "Casual, educational, friendly, approachable - like chatting with a friend over coffee",
+    "expertise": "A decade of small business marketing experience",
+    "approach": "Practical, real-world advice based on what actually works for real businesses"
+  },
+  "business": {
+    "name": "MomentumDIY",
+    "tagline": "Marketing made human. Big results, small biz ready.",
+    "mission": "Help small business owners gain extreme clarity on what to focus their marketing on",
+    "philosophy": "Do one thing well instead of trying to do everything",
+    "whatWeDo": [
+      "Help pick ONE quarterly marketing goal (not 10 things at once)",
+      "Weekly step-by-step guides (what, how, why, expected outcomes)",
+      "Kanban task tracker for marketing",
+      "Email campaign creation",
+      "Meta Business Suite integration",
+      "24/7 AI marketing assistant"
+    ]
+  },
+  "targetAudience": {
+    "who": "Small business owners overwhelmed by marketing options",
+    "types": [
+      "Cafes and coffee shops",
+      "Home services (plumbers, electricians, cleaners, landscapers)",
+      "Personal services (salons, spas, trainers, massage therapists)",
+      "Brick-and-mortar shops (boutiques, pet stores, bookstores)"
+    ],
+    "painPoints": [
+      "I know I should be marketing... I just never know what to do",
+      "Every expert says something different",
+      "I start things but never finish",
+      "Marketing tools are built for marketers with teams",
+      "I'm trying to do everything and achieving nothing"
+    ],
+    "platforms": ["Facebook", "Instagram", "Google Business Profile", "X"],
+    "notOn": "LinkedIn (B2B focus doesn't match local businesses)"
+  },
+  "voiceGuidelines": {
+    "do": [
+      "Use simple, everyday language",
+      "Write like you're talking to a friend",
+      "Be encouraging without being preachy",
+      "Share real examples and personal experience",
+      "Focus on clarity over complexity",
+      "Keep sentences short and readable"
+    ],
+    "dont": [
+      "Use big words or jargon",
+      "Sound formal or corporate",
+      "Use marketing buzzwords",
+      "Be pushy or salesy",
+      "Assume they have time or a team",
+      "Overwhelm with too many options"
+    ],
+    "vocabulary": {
+      "instead_of_utilize": "use",
+      "instead_of_commence": "start",
+      "instead_of_implement": "set up or do",
+      "instead_of_optimize": "improve or make better",
+      "instead_of_leverage": "use",
+      "instead_of_synergy": "working together"
+    }
+  },
+  "visualIdentity": {
+    "colors": {
+      "primary": "#191628",
+      "accent": "#ef8e81",
+      "secondary": "#fff1e7",
+      "white": "#ffffff",
+      "black": "#000000"
+    },
+    "mascot": "Coral octopus with yellow eyes - friendly, capable, representing doing many things while staying focused",
+    "style": "Clean, graphic, minimalist, professional but approachable"
+  }
+}
+
+

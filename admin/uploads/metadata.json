@@ -1,0 +1,24 @@
+{
+  "content_1753311922404_oyp68y5ke": {
+    "id": "content_1753311922404_oyp68y5ke",
+    "originalName": "test-brand-image.jpg",
+    "fileName": "content_1753311922404_oyp68y5ke.jpg",
+    "filePath": "/Users/hillmcm/n8n-business-automation/uploads/images/content_1753311922404_oyp68y5ke.jpg",
+    "contentType": "images",
+    "mimeType": "image/jpeg",
+    "size": 50,
+    "uploadedAt": "2025-07-23T23:05:22.405Z",
+    "tags": [
+      "test",
+      "marketing",
+      "brand"
+    ],
+    "description": "Test brand image for content management",
+    "category": "test-assets",
+    "brandRelevance": "high",
+    "usageCount": 0,
+    "lastUsed": null,
+    "platform": "all",
+    "campaign": null
+  }
+}

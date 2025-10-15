@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Chart.js Test - v1.0.1</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=1.0.1" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .icon { font-size: 24px; margin-right: 10px; }
+        canvas {
+            max-width: 100%;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1><i class="fas fa-chart-bar icon"></i>Chart.js Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Font Awesome Test</h2>
+        <p><i class="fas fa-chart-line"></i> Chart Line Icon</p>
+        <p><i class="fas fa-chart-pie"></i> Chart Pie Icon</p>
+        <p class="success">✅ Font Awesome is working if you can see the icons above</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Chart.js Test</h2>
+        <div id="chart-status">Testing Chart.js...</div>
+        <canvas id="testChart" width="400" height="200"></canvas>
+    </div>
+    
+    <div class="test-section">
+        <h2>Navigation</h2>
+        <p><a href="index.html">← Back to Main Dashboard</a></p>
+        <p><a href="analytics.html">→ Go to Analytics Dashboard</a></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Test Chart.js functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusDiv = document.getElementById('chart-status');
+            
+            try {
+                // Check if Chart.js is loaded
+                if (typeof Chart !== 'undefined') {
+                    statusDiv.innerHTML = '<p class="success">✅ Chart.js loaded successfully!</p>';
+                    
+                    // Create a simple test chart
+                    const ctx = document.getElementById('testChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                            datasets: [{
+                                label: 'Test Data',
+                                data: [12, 19, 3, 5, 2],
+                                borderColor: '#ef8e81',
+                                backgroundColor: 'rgba(239, 142, 129, 0.1)',
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Chart.js Test Chart'
+                                }
+                            }
+                        }
+                    });
+                    
+                    statusDiv.innerHTML += '<p class="success">✅ Test chart created successfully!</p>';
+                } else {
+                    statusDiv.innerHTML = '<p class="error">❌ Chart.js not loaded</p>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<p class="error">❌ Error loading Chart.js: ' + error.message + '</p>';
+            }
+        });
+    </script>
+</body>
+</html>
