@@ -90,7 +90,7 @@ class CopywritingAgent extends BaseAgent {
       blogPost: {
         structure: ['hook', 'introduction', 'mainContent', 'tips', 'conclusion', 'cta'],
         seoElements: ['title', 'metaDescription', 'keywords', 'headings'],
-        length: { short: 500, medium: 1000, long: 2000 }
+        length: { short: 800, medium: 1500, long: 2000 }
       },
       socialMedia: {
         platforms: ['instagram', 'facebook', 'pinterest', 'tiktok'],
@@ -470,8 +470,8 @@ class CopywritingAgent extends BaseAgent {
 
   // Build comprehensive AI prompt with market research data
   buildAIPoweredBlogPostPrompt(topic, targetAudience, length, includeSEO, tone, keywords, researchData, cmoPriorities, marketResearchInsights) {
-    const wordCounts = { short: 800, medium: 1500, long: 2500 };
-    const targetWordCount = wordCounts[length] || 1500;
+    const wordCounts = { short: 1200, medium: 1500, long: 2000 };
+    const targetWordCount = wordCounts[length] || 2000;
 
     // Extract rich market research insights from the comprehensive database
     let researchInsights = '';
@@ -840,11 +840,11 @@ Generate the complete blog post following the BLOG POST RECIPE structure now:`;
   createBlogPostWithRecipe(topic, targetAudience, length, includeSEO, tone, keywords, includeOriginalResearch, researchData) {
     // Calculate word count based on length
     const wordCounts = {
-      short: 800,
+      short: 1200,
       medium: 1500,
-      long: 2500
+      long: 2000
     };
-    const targetWordCount = wordCounts[length] || 1500;
+    const targetWordCount = wordCounts[length] || 2000;
 
     // Generate title (under 59 characters as per recipe)
     const title = this.generateBlogTitle(topic, keywords);

@@ -66,7 +66,7 @@ const AGENT_DEFINITIONS = {
     job: 'Create high-quality blog posts, emails, and marketing copy in Hillary\'s friendly, casual voice',
     
     purpose: [
-      'Write comprehensive blog posts (800-1200 words)',
+      'Write comprehensive blog posts (1200-2000 words)',
       'Create email campaigns and sequences',
       'Generate landing page copy',
       'Produce educational content',
@@ -104,7 +104,7 @@ const AGENT_DEFINITIONS = {
     output: {
       type: 'Written content',
       includes: [
-        'Blog post (800-1200 words) OR',
+        'Blog post (1200-2000 words) OR',
         'Email content OR',
         'Landing page copy',
         'SEO-optimized title and meta description',

@@ -3229,7 +3229,7 @@ class AgentCoordinator {
       const result = await copywriter.execute('create-blog-post', {
         topic: topTopic.title || topTopic,
         research: research,
-        length: 'long', // 800-1200 words
+        length: 'long', // 1200-2000 words - comprehensive, valuable content
         includeResearch: true
       });
       
