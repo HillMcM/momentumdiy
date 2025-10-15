@@ -476,6 +476,14 @@ router.get('/business-intelligence', async (req, res) => {
     ]);
 
     // Calculate business intelligence metrics
+    // Generate business intelligence with async functions
+    const [keyInsights, predictions, competitiveAnalysis, actionableRecommendations] = await Promise.all([
+      generateKeyInsights(analyticsData.value, searchData.value, blogPosts.value),
+      generatePredictions(analyticsData.value, searchData.value),
+      generateCompetitiveAnalysis(),
+      generateActionableRecommendations()
+    ]);
+    
     const businessIntelligence = {
       performanceScores: {
         traffic: calculateTrafficScore(analyticsData.value),
@@ -484,10 +492,10 @@ router.get('/business-intelligence', async (req, res) => {
         engagement: calculateEngagementScore(analyticsData.value),
         conversion: calculateConversionScore(formsData.value, contactsData.value)
       },
-      keyInsights: generateKeyInsights(analyticsData.value, searchData.value, blogPosts.value),
-      predictions: generatePredictions(analyticsData.value, searchData.value),
-      competitiveAnalysis: generateCompetitiveAnalysis(),
-      actionableRecommendations: generateActionableRecommendations()
+      keyInsights,
+      predictions,
+      competitiveAnalysis,
+      actionableRecommendations
     };
 
     const enhancedData = {
@@ -560,46 +568,292 @@ function calculateConversionScore(formsData, contactsData) {
   return Math.min(100, Math.max(30, totalConversions * 5 + 50));
 }
 
-function generateKeyInsights(analyticsData, searchData, blogData) {
-  const insights = [
-    'AI automation has increased content production efficiency by 45%',
-    'Organic search traffic showing consistent upward trend',
-    'Content engagement rates improved with AI-generated posts',
-    'Lead generation velocity increased through automated workflows',
-    'Market positioning strengthened in target demographics'
-  ];
+async function generateKeyInsights(analyticsData, searchData, blogData) {
+  const supabase = require('../database/supabase-client');
+  const insights = [];
   
-  return insights;
+  try {
+    // Get published social posts from last 30 days
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    
+    const { data: socialPosts } = await supabase
+      .from('social_content')
+      .select('*')
+      .eq('status', 'published')
+      .gte('published_at', thirtyDaysAgo);
+    
+    // Get blog posts from last 30 days
+    const { data: blogPosts } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .gte('created_at', thirtyDaysAgo);
+    
+    // Get latest market research
+    const { data: research } = await supabase
+      .from('market_research')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    
+    // Generate REAL insights from data
+    if (socialPosts && socialPosts.length > 0) {
+      insights.push(`Created and published ${socialPosts.length} social media posts this month`);
+    }
+    
+    if (blogPosts && blogPosts.length > 0) {
+      const avgWordCount = blogPosts.reduce((sum, post) => 
+        sum + (post.word_count || 1500), 0) / blogPosts.length;
+      insights.push(`Published ${blogPosts.length} blog posts (avg ${Math.round(avgWordCount)} words)`);
+    }
+    
+    if (research && research.length > 0) {
+      const topics = research[0].trending_topics || [];
+      if (topics.length > 0) {
+        insights.push(`Identified ${topics.length} trending topics in your industry`);
+      }
+      
+      const opportunities = research[0].opportunities || [];
+      if (opportunities.length > 0) {
+        insights.push(`Found ${opportunities.length} content opportunities`);
+      }
+    }
+    
+    // Add analytics-based insights if data available
+    if (analyticsData && analyticsData.rows && analyticsData.rows.length > 0) {
+      const totalSessions = analyticsData.rows.reduce((sum, row) => 
+        sum + parseInt(row.metricValues?.[0]?.value || 0), 0);
+      if (totalSessions > 0) {
+        insights.push(`Website traffic: ${totalSessions.toLocaleString()} sessions this period`);
+      }
+    }
+    
+    // Fallback if no data yet
+    if (insights.length === 0) {
+      insights.push('AI agent system is collecting data - check back soon for insights');
+    }
+    
+    return insights;
+  } catch (error) {
+    console.error('Error generating insights:', error);
+    return ['AI agent system is active and collecting data'];
+  }
 }
 
-function generatePredictions(analyticsData, searchData) {
-  return {
-    nextMonthTraffic: '15.2K',
-    q4Revenue: '$25.4K',
-    contentEngagement: '+32%',
-    leadGeneration: '145',
-    marketShare: '+2.8%',
-    aiROI: '+156%'
-  };
+async function generatePredictions(analyticsData, searchData) {
+  const supabase = require('../database/supabase-client');
+  
+  try {
+    // Get last 60 days of data for trend analysis
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    
+    // Get content created in last 30 vs previous 30 days
+    const { data: recentPosts } = await supabase
+      .from('social_content')
+      .select('*')
+      .gte('created_at', thirtyDaysAgo);
+    
+    const { data: previousPosts } = await supabase
+      .from('social_content')
+      .select('*')
+      .gte('created_at', sixtyDaysAgo)
+      .lt('created_at', thirtyDaysAgo);
+    
+    // Calculate real growth rate
+    const growthRate = previousPosts && previousPosts.length > 0 
+      ? Math.round(((recentPosts.length - previousPosts.length) / previousPosts.length) * 100)
+      : 0;
+    
+    // Get blog post stats
+    const { data: recentBlogs } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .gte('created_at', thirtyDaysAgo);
+    
+    const { data: previousBlogs } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .gte('created_at', sixtyDaysAgo)
+      .lt('created_at', thirtyDaysAgo);
+    
+    const blogGrowth = previousBlogs && previousBlogs.length > 0
+      ? Math.round(((recentBlogs.length - previousBlogs.length) / previousBlogs.length) * 100)
+      : 0;
+    
+    return {
+      nextMonthContentCreation: recentPosts && recentPosts.length > 0 
+        ? recentPosts.length + Math.round(recentPosts.length * (growthRate / 100))
+        : 'N/A',
+      contentGrowthRate: growthRate !== 0 ? `${growthRate > 0 ? '+' : ''}${growthRate}%` : 'N/A',
+      postsScheduled: recentPosts ? recentPosts.filter(p => p.status === 'approved').length : 0,
+      postsPublished: recentPosts ? recentPosts.filter(p => p.status === 'published').length : 0,
+      blogGrowthRate: blogGrowth !== 0 ? `${blogGrowth > 0 ? '+' : ''}${blogGrowth}%` : 'N/A',
+      blogsCreated: recentBlogs ? recentBlogs.length : 0
+    };
+  } catch (error) {
+    console.error('Error generating predictions:', error);
+    return {
+      nextMonthContentCreation: 'N/A',
+      contentGrowthRate: 'Collecting data',
+      postsScheduled: 0,
+      postsPublished: 0
+    };
+  }
 }
 
-function generateCompetitiveAnalysis() {
-  return [
-    { name: 'Local Competitor A', traffic: '12K', keywords: '456', backlinks: '2.3K', strength: 'medium' },
-    { name: 'Industry Leader B', traffic: '45K', keywords: '1.2K', backlinks: '8.9K', strength: 'high' },
-    { name: 'Rising Competitor C', traffic: '8K', keywords: '234', backlinks: '1.1K', strength: 'low' },
-    { name: 'Niche Player D', traffic: '6K', keywords: '189', backlinks: '890', strength: 'low' }
-  ];
+async function generateCompetitiveAnalysis() {
+  const supabase = require('../database/supabase-client');
+  
+  try {
+    // Get latest market research with competitor data
+    const { data: research } = await supabase
+      .from('market_research')
+      .select('competitor_analysis')
+      .order('created_at', { ascending: false})
+      .limit(1);
+    
+    if (research && research.length > 0 && research[0].competitor_analysis) {
+      // Use REAL competitor data from market research
+      const competitorData = research[0].competitor_analysis;
+      
+      // Return as array if it's an object
+      if (typeof competitorData === 'object' && !Array.isArray(competitorData)) {
+        return Object.values(competitorData);
+      }
+      
+      return Array.isArray(competitorData) ? competitorData : [];
+    }
+    
+    // Return empty array if no data yet (not hardcoded competitors)
+    return [];
+  } catch (error) {
+    console.error('Error generating competitive analysis:', error);
+    return [];
+  }
 }
 
-function generateActionableRecommendations() {
-  return [
-    { priority: 'high', action: 'Optimize top-performing content for increased engagement', impact: 'high' },
-    { priority: 'medium', action: 'Expand social media presence on Instagram and LinkedIn', impact: 'medium' },
-    { priority: 'high', action: 'Implement retargeting campaigns for website visitors', impact: 'high' },
-    { priority: 'low', action: 'A/B test new blog post formats and layouts', impact: 'medium' },
-    { priority: 'medium', action: 'Enhance email marketing automation sequences', impact: 'high' }
-  ];
+async function generateActionableRecommendations() {
+  const supabase = require('../database/supabase-client');
+  const recommendations = [];
+  
+  try {
+    // Get latest CMO Brain recommendations from agent outputs
+    const { data: cmoOutputs } = await supabase
+      .from('agent_outputs')
+      .select('*')
+      .eq('agent', 'cmo-brain')
+      .order('created_at', { ascending: false })
+      .limit(3);
+    
+    if (cmoOutputs && cmoOutputs.length > 0) {
+      cmoOutputs.forEach(output => {
+        if (output.content && output.content.recommendations) {
+          const recs = Array.isArray(output.content.recommendations) 
+            ? output.content.recommendations 
+            : [output.content.recommendations];
+          recommendations.push(...recs);
+        } else if (output.content && output.content.priorities) {
+          // Extract priorities as recommendations
+          const priorities = Array.isArray(output.content.priorities)
+            ? output.content.priorities
+            : Object.values(output.content.priorities);
+          priorities.slice(0, 2).forEach((priority, index) => {
+            recommendations.push({
+              priority: index === 0 ? 'high' : 'medium',
+              action: typeof priority === 'string' ? priority : priority.action || priority.title,
+              impact: 'high',
+              source: 'CMO Brain'
+            });
+          });
+        }
+      });
+    }
+    
+    // Add data-driven recommendations based on actual metrics
+    const { data: pendingPosts } = await supabase
+      .from('social_content')
+      .select('*')
+      .eq('status', 'pending');
+    
+    if (pendingPosts && pendingPosts.length > 3) {
+      recommendations.push({
+        priority: 'high',
+        action: `Review and approve ${pendingPosts.length} pending social media posts`,
+        impact: 'high',
+        dataPoint: `${pendingPosts.length} posts awaiting approval`,
+        source: 'Content Pipeline'
+      });
+    }
+    
+    // Check for blog posts needing approval
+    const { data: pendingBlogs } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('status', 'draft');
+    
+    if (pendingBlogs && pendingBlogs.length > 0) {
+      recommendations.push({
+        priority: 'medium',
+        action: `Review ${pendingBlogs.length} draft blog post${pendingBlogs.length > 1 ? 's' : ''}`,
+        impact: 'high',
+        source: 'Content Pipeline'
+      });
+    }
+    
+    // Check market research age
+    const { data: latestResearch } = await supabase
+      .from('market_research')
+      .select('created_at')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    
+    if (latestResearch && latestResearch.length > 0) {
+      const daysSinceResearch = Math.floor(
+        (Date.now() - new Date(latestResearch[0].created_at).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      
+      if (daysSinceResearch > 7) {
+        recommendations.push({
+          priority: 'medium',
+          action: 'Run new market research to identify fresh opportunities',
+          impact: 'medium',
+          dataPoint: `Last research: ${daysSinceResearch} days ago`,
+          source: 'Market Intelligence'
+        });
+      }
+    }
+    
+    // Return top 5 unique recommendations
+    const uniqueRecommendations = recommendations
+      .filter((rec, index, self) => 
+        index === self.findIndex(r => r.action === rec.action)
+      )
+      .slice(0, 5);
+    
+    // Fallback if no recommendations
+    if (uniqueRecommendations.length === 0) {
+      return [
+        {
+          priority: 'medium',
+          action: 'Continue running weekly content workflows',
+          impact: 'high',
+          source: 'System'
+        }
+      ];
+    }
+    
+    return uniqueRecommendations;
+  } catch (error) {
+    console.error('Error generating recommendations:', error);
+    return [
+      {
+        priority: 'medium',
+        action: 'AI agent system is analyzing your data',
+        impact: 'high',
+        source: 'System'
+      }
+    ];
+  }
 }
 
 // Debug endpoint to check environment variables

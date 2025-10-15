@@ -840,14 +840,78 @@ router.get('/analytics', async (req, res) => {
 // Get social media stats
 router.get('/social-media', async (req, res) => {
   try {
-    // TODO: Implement social media clients
-    // For now, return mock data
+    const supabase = require('../database/supabase-client');
+    const MetaPostingIntegration = require('../integrations/meta-posting-integration');
+    
+    // Get post counts from Supabase for all platforms
+    const { data: facebookPosts } = await supabase
+      .from('social_content')
+      .select('*')
+      .eq('platform', 'facebook')
+      .eq('status', 'published');
+    
+    const { data: instagramPosts } = await supabase
+      .from('social_content')
+      .select('*')
+      .eq('platform', 'instagram')
+      .eq('status', 'published');
+    
+    const { data: linkedinPosts } = await supabase
+      .from('social_content')
+      .select('*')
+      .eq('platform', 'linkedin')
+      .eq('status', 'published');
+    
+    const { data: xPosts } = await supabase
+      .from('social_content')
+      .select('*')
+      .eq('platform', 'x')
+      .eq('status', 'published');
+    
+    // Try to get real Meta API data (Facebook & Instagram)
+    let facebookFollowers = 0;
+    let instagramFollowers = 0;
+    let facebookPages = 0;
+    let instagramAccounts = 0;
+    
+    try {
+      const meta = new MetaPostingIntegration();
+      const pages = await meta.getFacebookPages();
+      const accounts = await meta.getInstagramAccounts();
+      
+      facebookPages = pages.length;
+      facebookFollowers = pages.reduce((sum, page) => sum + (page.fan_count || 0), 0);
+      instagramAccounts = accounts.length;
+      // Instagram follower count not available via Business API without additional permissions
+    } catch (metaError) {
+      logger.warn('Meta API data not available:', metaError.message);
+    }
+    
     res.json({
-      linkedin: { followers: 1250, engagement: 4.2, posts: 45 },
-      twitter: { followers: 890, engagement: 3.8, tweets: 67 },
-      instagram: { followers: 2100, engagement: 5.1, posts: 89 },
-      facebook: { followers: 1800, engagement: 2.9, posts: 34 },
-      timestamp: new Date().toISOString()
+      facebook: {
+        pages: facebookPages,
+        followers: facebookFollowers || 'N/A',
+        posts: facebookPosts?.length || 0,
+        lastPost: facebookPosts?.[0]?.published_at || null
+      },
+      instagram: {
+        accounts: instagramAccounts,
+        followers: instagramFollowers || 'N/A',
+        posts: instagramPosts?.length || 0,
+        lastPost: instagramPosts?.[0]?.published_at || null
+      },
+      linkedin: {
+        posts: linkedinPosts?.length || 0,
+        lastPost: linkedinPosts?.[0]?.published_at || null,
+        followers: 'N/A' // LinkedIn API not yet integrated
+      },
+      x: {
+        posts: xPosts?.length || 0,
+        lastPost: xPosts?.[0]?.published_at || null,
+        followers: 'N/A' // X API not yet integrated
+      },
+      timestamp: new Date().toISOString(),
+      dataSource: 'Supabase + Meta API'
     });
   } catch (error) {
     logger.error('Error fetching social media data:', error);
