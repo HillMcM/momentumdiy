@@ -9,15 +9,15 @@ const logger = require('../utils/logger');
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL?.replace('@', ''); // Clean URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
+if (!supabaseUrl || !supabaseKey) {
   logger.error('Supabase credentials not configured');
-  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_KEY must be set in environment variables');
+  throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY must be set in environment variables');
 }
 
-// Use service key for backend operations (bypasses RLS)
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+// Use anon key for backend operations
+const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
