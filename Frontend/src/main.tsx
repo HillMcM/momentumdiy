@@ -4,6 +4,8 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './contexts/AuthContext'
 import { NotificationProvider } from './contexts/NotificationContext'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 // Suppress React Router v7 deprecation warnings
 if (typeof window !== 'undefined') {
@@ -63,6 +65,8 @@ createRoot(document.getElementById('root')!).render(
   <NotificationProvider>
     <AuthProvider>
       <App />
+      <Analytics />
+      <SpeedInsights />
     </AuthProvider>
   </NotificationProvider>
 )
