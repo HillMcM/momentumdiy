@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
-const approvalDB = require('../database/approval-db');
+const approvalDB = require('../database/approval-db-supabase');
 
 // Get agent outputs with filters
 router.get('/outputs', async (req, res) => {

@@ -1,4 +1,4 @@
-const approvalDB = require('../database/approval-db');
+const approvalDB = require('../database/approval-db-supabase');
 const logger = require('./logger');
 
 class LearningSystem {

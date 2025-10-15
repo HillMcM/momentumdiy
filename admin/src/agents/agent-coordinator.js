@@ -2,7 +2,7 @@ const ResourceManager = require('../utils/resource-manager');
 const logger = require('../utils/logger');
 const fs = require('fs').promises;
 const path = require('path');
-const ResearchDatabase = require('../utils/research-database');
+const ResearchDatabase = require('../database/research-db-supabase');
 
 class AgentCoordinator {
   constructor(agentManager) {
@@ -3290,7 +3290,7 @@ class AgentCoordinator {
       });
       
       // Save to approval database with status='pending'
-      const approvalDB = require('../database/approval-db');
+      const approvalDB = require('../database/approval-db-supabase');
       await approvalDB.addOutput({
         agent: 'social-content-agent',
         type: 'social-posts',
@@ -3317,7 +3317,7 @@ class AgentCoordinator {
       logger.info(`📤 Executing scheduled posting for: ${platforms.join(', ')}`);
       
       // Get approved posts for these platforms
-      const approvalDB = require('../database/approval-db');
+      const approvalDB = require('../database/approval-db-supabase');
       const allApprovedPosts = await approvalDB.getOutputs({
         status: 'approved',
         agent: 'social-content-agent'
@@ -3355,19 +3355,75 @@ class AgentCoordinator {
         throw new Error('Social Posting Agent not available');
       }
       
-      const result = await socialPoster.execute('post-via-buffer', {
-        posts: postsToPublish,
-        platforms: platforms
-      });
+      const results = [];
       
-      // Mark posts as published
-      for (const post of postsToPublish) {
-        await approvalDB.updateOutputStatus(post.id, 'published', 'Posted via Buffer');
+      // Route Facebook & Instagram to Meta API, LinkedIn & X to Buffer
+      const metaPlatforms = platforms.filter(p => ['facebook', 'instagram'].includes(p));
+      const bufferPlatforms = platforms.filter(p => ['linkedin', 'x', 'twitter'].includes(p));
+      
+      // Post to Meta platforms (Facebook & Instagram)
+      if (metaPlatforms.length > 0 && postsToPublish.length > 0) {
+        logger.info(`Posting to Meta platforms: ${metaPlatforms.join(', ')}`);
+        
+        for (const post of postsToPublish) {
+          // Extract content for Meta platforms
+          const postContent = post.content || post;
+          
+          if (metaPlatforms.includes('facebook') && postContent.facebook) {
+            const fbResult = await socialPoster.execute('post-to-facebook', {
+              content: {
+                message: postContent.facebook.content || postContent.facebook.caption,
+                link: postContent.facebook.link
+              }
+            });
+            results.push(fbResult);
+            
+            if (fbResult.success) {
+              await approvalDB.updateOutputStatus(post.id, 'published', 'Posted to Facebook via Meta API');
+            }
+          }
+          
+          if (metaPlatforms.includes('instagram') && postContent.instagram) {
+            const igResult = await socialPoster.execute('post-to-instagram', {
+              content: {
+                message: postContent.instagram.content || postContent.instagram.caption,
+                imageUrl: postContent.instagram.imageUrl
+              }
+            });
+            results.push(igResult);
+            
+            if (igResult.success) {
+              await approvalDB.updateOutputStatus(post.id, 'published', 'Posted to Instagram via Meta API');
+            }
+          }
+        }
+      }
+      
+      // Post to Buffer platforms (LinkedIn & X) - if needed
+      if (bufferPlatforms.length > 0 && postsToPublish.length > 0) {
+        logger.info(`Posting to Buffer platforms: ${bufferPlatforms.join(', ')}`);
+        const bufferResult = await socialPoster.execute('post-via-buffer', {
+          posts: postsToPublish,
+          platforms: bufferPlatforms
+        });
+        results.push(bufferResult);
+        
+        // Mark Buffer posts as published
+        for (const post of postsToPublish) {
+          await approvalDB.updateOutputStatus(post.id, 'published', `Posted to ${bufferPlatforms.join(', ')} via Buffer`);
+        }
       }
       
       logger.info(`✅ Successfully posted to: ${platforms.join(', ')}`);
       
-      return result;
+      return {
+        success: true,
+        results: results,
+        platforms: platforms,
+        metaPlatforms: metaPlatforms,
+        bufferPlatforms: bufferPlatforms,
+        timestamp: new Date().toISOString()
+      };
     } catch (error) {
       logger.error('Error executing scheduled posting:', error);
       throw error;

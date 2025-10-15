@@ -1,7 +1,7 @@
 const logger = require('../utils/logger');
 const ResourceManager = require('../utils/resource-manager');
 const ContentAnalyzer = require('../utils/content-analyzer');
-const ResearchDatabase = require('../utils/research-database');
+const ResearchDatabase = require('../database/research-db-supabase');
 const apiClients = require('../utils/api-clients');
 const BaseAgent = require('./base-agent');
 const { getFullBrandContext } = require('../utils/brand-knowledge');

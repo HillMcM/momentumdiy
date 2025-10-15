@@ -2,7 +2,7 @@ require('dotenv').config();
 const logger = require('../utils/logger');
 const { newsAPIClient, serpAPIClient } = require('../utils/api-clients');
 const ResourceManager = require('../utils/resource-manager');
-const ResearchDatabase = require('../utils/research-database');
+const ResearchDatabase = require('../database/research-db-supabase');
 const BaseAgent = require('./base-agent');
 const { getFullBrandContext } = require('../utils/brand-knowledge');
 

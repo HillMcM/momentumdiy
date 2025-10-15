@@ -1,17 +1,17 @@
 const logger = require('../utils/logger');
 const ResourceManager = require('../utils/resource-manager');
-const BufferNotificationIntegration = require('../integrations/buffer-notification-integration');
+const MetaPostingIntegration = require('../integrations/meta-posting-integration');
 const axios = require('axios');
 
 class SocialPostingAgent {
   constructor() {
     this.name = 'Social Posting Agent';
-    this.description = 'Automatically posts and schedules content to social media platforms via Buffer';
+    this.description = 'Automatically posts content to social media platforms via Meta Business Suite API';
     this.lastActivity = new Date();
     this.resourceManager = new ResourceManager();
     
-    // Buffer Notification Integration
-    this.buffer = new BufferNotificationIntegration();
+    // Meta Business Suite Integration for Facebook & Instagram
+    this.meta = new MetaPostingIntegration();
     
     // Legacy platform APIs (kept for fallback)
     this.platforms = {
@@ -183,6 +183,138 @@ class SocialPostingAgent {
     }
   }
 
+  // ==================== META API METHODS ====================
+  
+  /**
+   * Post to all platforms via Meta API (Facebook & Instagram)
+   */
+  async postViaMeta(input) {
+    try {
+      logger.info('Posting via Meta Business Suite API', { input });
+      
+      const { posts, content } = input;
+      
+      // If posts provided (from approval database)
+      if (posts && posts.content) {
+        return await this.meta.postToAllPlatforms(posts.content);
+      }
+      
+      // If direct content provided
+      if (content) {
+        return await this.meta.postToAllPlatforms(content);
+      }
+      
+      throw new Error('No content provided for Meta posting');
+    } catch (error) {
+      logger.error('Error posting via Meta:', error);
+      return {
+        success: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Post to Facebook via Meta API
+   */
+  async postToFacebookMeta(input) {
+    try {
+      logger.info('Posting to Facebook via Meta API', { input });
+      
+      const { content, pageId } = input;
+      
+      if (!content) {
+        throw new Error('Content is required for Facebook posting');
+      }
+
+      // Get Facebook pages and use first one if pageId not specified
+      const pages = await this.meta.getFacebookPages();
+      const targetPageId = pageId || (pages[0]?.id);
+      
+      if (!targetPageId) {
+        throw new Error('No Facebook page found');
+      }
+
+      return await this.meta.postToFacebook(targetPageId, content);
+    } catch (error) {
+      logger.error('Error posting to Facebook:', error);
+      return {
+        success: false,
+        error: error.message,
+        platform: 'facebook',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Post to Instagram via Meta API
+   */
+  async postToInstagramMeta(input) {
+    try {
+      logger.info('Posting to Instagram via Meta API', { input });
+      
+      const { content, accountId } = input;
+      
+      if (!content) {
+        throw new Error('Content is required for Instagram posting');
+      }
+
+      // Get Instagram accounts and use first one if accountId not specified
+      const accounts = await this.meta.getInstagramAccounts();
+      const targetAccountId = accountId || (accounts[0]?.id);
+      
+      if (!targetAccountId) {
+        throw new Error('No Instagram account found');
+      }
+
+      return await this.meta.postToInstagram(targetAccountId, content);
+    } catch (error) {
+      logger.error('Error posting to Instagram:', error);
+      return {
+        success: false,
+        error: error.message,
+        platform: 'instagram',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Create draft post on Facebook via Meta API
+   */
+  async createMetaDraft(input) {
+    try {
+      logger.info('Creating Meta draft post', { input });
+      
+      const { content, pageId } = input;
+      
+      if (!content) {
+        throw new Error('Content is required for draft creation');
+      }
+
+      // Get Facebook pages and use first one if pageId not specified
+      const pages = await this.meta.getFacebookPages();
+      const targetPageId = pageId || (pages[0]?.id);
+      
+      if (!targetPageId) {
+        throw new Error('No Facebook page found');
+      }
+
+      return await this.meta.createDraft(targetPageId, content);
+    } catch (error) {
+      logger.error('Error creating Meta draft:', error);
+      return {
+        success: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  // ==================== BUFFER METHODS (For LinkedIn & X) ====================
+
   async postViaBuffer(input) {
     try {
       logger.info('Sending Buffer posting notification', { input });
@@ -273,22 +405,21 @@ class SocialPostingAgent {
 
       // Map of task handlers
       const taskHandlers = {
-        // Buffer Notification Integration (Primary)
-        'create-buffer-draft': async () => await this.createBufferDraft(input),
-        'post-via-buffer': async () => await this.postViaBuffer(input),
-        'test-buffer-connection': async () => await this.testBufferConnection(input),
-        'get-recent-content': async () => await this.getRecentContent(input),
+        // Meta API Integration (Primary for Facebook & Instagram)
+        'post-via-meta': async () => await this.postViaMeta(input),
+        'post-to-facebook': async () => await this.postToFacebookMeta(input),
+        'post-to-instagram': async () => await this.postToInstagramMeta(input),
+        'create-meta-draft': async () => await this.createMetaDraft(input),
         
-        // Legacy Platform APIs (Fallback)
+        // Legacy Buffer/Platform Methods (Fallback for LinkedIn & X)
+        'post-via-buffer': async () => await this.postViaBuffer(input),
         'post-content': async () => await this.postContent(input),
         'post-to-all-platforms': async () => await this.postToAllPlatforms(input),
         'schedule-post': async () => await this.schedulePost(input),
         'get-optimal-times': async () => await this.getOptimalTimes(input),
         'monitor-posts': async () => await this.monitorPosts(input),
         'post-to-linkedin': async () => await this.postToLinkedIn(input),
-        'post-to-twitter': async () => await this.postToTwitter(input),
-        'post-to-facebook': async () => await this.postToFacebook(input),
-        'post-to-instagram': async () => await this.postToInstagram(input)
+        'post-to-twitter': async () => await this.postToTwitter(input)
       };
 
       if (taskHandlers[normalizedTask]) {
