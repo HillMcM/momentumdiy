@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { MarketingGoal, Task } from './types';
 import { supabase } from './lib/supabase';
+import { logger } from './utils/logger';
 
 interface AIMarketingAssistantProps {
   marketingGoals?: MarketingGoal[];
@@ -40,7 +41,7 @@ const getUserBusinessContext = async () => {
 
     return businessContext;
   } catch (error) {
-    console.log('Could not load business context for AI:', error);
+    logger.debug('Could not load business context for AI', error);
     return {};
   }
 };
@@ -142,7 +143,7 @@ export default function AIMarketingAssistant({ marketingGoals = [], tasks = [] }
         throw new Error(data.error || 'Failed to get response');
       }
     } catch (error) {
-      console.error('AI Chat Error:', error);
+      logger.error('AI Chat Error', error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',

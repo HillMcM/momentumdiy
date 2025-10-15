@@ -135,6 +135,10 @@ if (process.env['NODE_ENV'] === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Import and apply sanitization middleware
+import { sanitizeBody } from './middleware/validate';
+app.use(sanitizeBody);
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.json({

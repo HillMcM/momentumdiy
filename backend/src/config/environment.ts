@@ -46,6 +46,7 @@ export interface EnvironmentConfig {
 export function validateEnvironment(): EnvironmentConfig {
   const requiredVars = [
     'SUPABASE_URL',
+    'SUPABASE_ANON_KEY',
     'SUPABASE_SERVICE_ROLE_KEY',
     'STRIPE_SECRET_KEY',
     'STRIPE_PUBLISHABLE_KEY',

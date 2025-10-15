@@ -62,7 +62,11 @@ class AIService {
             return result;
         }
         catch (error) {
-            logger_1.logger.error('AI Service Error', error, { userMessage });
+            logger_1.logger.error('AI Service Error', error, {
+                userMessage,
+                errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                errorStack: error instanceof Error ? error.stack : undefined
+            });
             return {
                 response: this.getFallbackResponse(error),
                 usage: null
@@ -118,13 +122,6 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
                 }
             ];
         }
-        requestParams.tools = [
-            {
-                type: 'memory_20250818',
-                name: 'memory'
-            }
-        ];
-        requestParams.betas = ['context-management-2025-06-27'];
         const response = await anthropic.messages.create(requestParams);
         if (response.usage) {
             const usage = response.usage;
