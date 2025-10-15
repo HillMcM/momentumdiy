@@ -41,6 +41,7 @@ const stripeService_1 = require("../services/stripeService");
 const supabase_1 = require("../config/supabase");
 const rate_1 = require("../middleware/rate");
 const logger_1 = require("../utils/logger");
+const admin_1 = require("../config/admin");
 const stripe_1 = __importDefault(require("stripe"));
 const router = express.Router();
 router.post('/create-subscription', (0, rate_1.routeRateLimit)(10), async (req, res) => {
@@ -172,12 +173,7 @@ router.get('/profile', (0, rate_1.routeRateLimit)(30), async (req, res) => {
                 error: 'Unauthorized - Invalid token'
             });
         }
-        const greenlistedEmails = [
-            'info@hillaryedenmcmullen.com',
-            'hillary@momentumdiy.com',
-            'admin@momentumdiy.com'
-        ];
-        const isGreenlisted = greenlistedEmails.includes(user.email?.toLowerCase() || '');
+        const isGreenlisted = (0, admin_1.isAdmin)(user.email);
         const { data: profile, error: profileError } = await supabase_1.supabase
             .from('profiles')
             .select(`

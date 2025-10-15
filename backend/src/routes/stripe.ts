@@ -3,6 +3,7 @@ import { StripeService, SubscriptionData } from '../services/stripeService';
 import { supabase, supabasePublic } from '../config/supabase';
 import { routeRateLimit } from '../middleware/rate';
 import { logger } from '../utils/logger';
+import { isAdmin } from '../config/admin';
 import Stripe from 'stripe';
 
 const router = express.Router();
@@ -172,14 +173,8 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
       });
     }
 
-    // Greenlist check for owner/admin accounts
-    const greenlistedEmails = [
-      'info@hillaryedenmcmullen.com',
-      'hillary@momentumdiy.com',
-      'admin@momentumdiy.com'
-    ];
-    
-    const isGreenlisted = greenlistedEmails.includes(user.email?.toLowerCase() || '');
+    // Check if user has admin privileges
+    const isGreenlisted = isAdmin(user.email);
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')

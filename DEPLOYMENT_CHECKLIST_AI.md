@@ -178,3 +178,6 @@ Your AI Marketing Assistant now has:
 **Limit:** $5/month (273 messages with 4000 tokens)  
 **Quality:** Professional, detailed responses  
 
+
+
+

@@ -9,6 +9,7 @@ import { getAllImages, addImage } from '../../services/socialGenerator/dbService
 import { canGenerateImages, recordSession, getUsageStats, getUpgradeMessage } from '../../services/socialGenerator/usageService';
 import type { BrandSettings, GeneratedImage, AspectRatio, BrandPreset } from '../../types/socialGenerator';
 import { AspectRatios } from '../../constants/socialGenerator';
+import { logger } from '../../utils/logger';
 
 interface SocialMediaGeneratorAppProps {
   isOpen: boolean;
@@ -51,7 +52,7 @@ const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({
         imagesFromDb.sort((a, b) => b.createdAt - a.createdAt);
         setGeneratedImages(imagesFromDb);
       } catch (err) {
-        console.error("Failed to load images from IndexedDB", err);
+        logger.error("Failed to load images from IndexedDB", err);
         setError("Could not load previously generated images.");
       }
     };
@@ -131,7 +132,7 @@ const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({
       // Update usage stats
       setUsageStats(getUsageStats(userTier));
     } catch (err) {
-      console.error(err);
+      logger.error('Image generation error', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred during image generation.');
     } finally {
       setIsLoading(false);
@@ -147,7 +148,7 @@ const SocialMediaGeneratorApp: React.FC<SocialMediaGeneratorAppProps> = ({
       setBrandVoice(newBrandVoice);
       // Optional: Add a success notification here
     } catch (err) {
-      console.error(err);
+      logger.error('Brand voice refinement error', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred while refining brand voice.');
     } finally {
       setIsRefining(false);

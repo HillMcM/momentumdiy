@@ -128,6 +128,8 @@ else {
 }
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
+const validate_1 = require("./middleware/validate");
+app.use(validate_1.sanitizeBody);
 app.get('/health', (_req, res) => {
     res.json({
         success: true,
