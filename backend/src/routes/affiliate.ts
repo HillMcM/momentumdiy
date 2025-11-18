@@ -74,10 +74,10 @@ router.get('/eligibility', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     
-    // Check if user has been subscribed for 30+ days
+    // Check if user has been active for 30+ days (account age, not just subscription)
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('subscription_start_date')
+      .select('created_at, trial_start_date, subscription_start_date')
       .eq('id', user.id)
       .single();
 
@@ -89,24 +89,33 @@ router.get('/eligibility', requireAuth, async (req, res) => {
       });
     }
 
-    if (!profile.subscription_start_date) {
+    // Determine the earliest date: account creation, trial start, or subscription start
+    // This represents when the user first started using the app
+    const dates: (Date | null)[] = [
+      profile.created_at ? new Date(profile.created_at) : null,
+      profile.trial_start_date ? new Date(profile.trial_start_date) : null,
+      profile.subscription_start_date ? new Date(profile.subscription_start_date) : null,
+    ].filter((date): date is Date => date !== null);
+
+    if (dates.length === 0) {
       return res.json({
         success: false,
         eligible: false,
-        reason: 'No active subscription',
+        reason: 'Unable to determine account age',
       });
     }
 
-    const subscriptionDate = new Date(profile.subscription_start_date);
+    // Use the earliest date (when user first started using the app)
+    const accountStartDate = new Date(Math.min(...dates.map(d => d.getTime())));
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const eligible = subscriptionDate <= thirtyDaysAgo;
+    const eligible = accountStartDate <= thirtyDaysAgo;
 
     return res.json({
       success: true,
       eligible,
-      reason: eligible ? 'Eligible' : 'Must be subscribed for 30+ days',
+      reason: eligible ? 'Eligible' : 'Must be active for 30+ days',
     });
   } catch (error) {
     logger.error('Error checking eligibility', error);

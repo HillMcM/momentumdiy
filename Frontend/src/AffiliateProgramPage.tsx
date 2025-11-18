@@ -169,7 +169,7 @@ export default function AffiliateProgramPage() {
               <div>
                 <h4 className="text-lg font-semibold text-white mb-1">Join the Program</h4>
                 <p className="text-gray-400">
-                  Sign up and get your unique referral code. Must be subscribed for 30+ days.
+                  Sign up and get your unique referral code. Must be active for 30+ days.
                 </p>
               </div>
             </div>
@@ -261,7 +261,7 @@ export default function AffiliateProgramPage() {
                 {eligibility?.reason || 'You need to meet the eligibility requirements to join the program.'}
               </p>
               <div className="text-sm text-gray-500">
-                Requirements: Active subscription for 30+ days
+                Requirements: Active account for 30+ days
               </div>
             </>
           )}
