@@ -2,6 +2,9 @@
 supabase/.branches
 supabase/.temp
 
+# Admin - internal AI agent system (not for public repo)
+admin/
+
 # OS
 .DS_Store
 .DS_Store?
