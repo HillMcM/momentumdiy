@@ -17,9 +17,9 @@ jobs:
         with:
           node-version: 20
           cache: npm
-
-      - name: Install root deps
-        run: npm ci --ignore-scripts --no-audit --no-fund || true
+          cache-dependency-path: |
+            backend/package-lock.json
+            Frontend/package-lock.json
 
       - name: Backend install & build
         working-directory: backend
