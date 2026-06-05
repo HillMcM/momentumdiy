@@ -184,6 +184,38 @@ router.post('/opt-in', requireAuth, async (req, res) => {
   }
 });
 
+// Check enrollment status (lightweight check for frontend to avoid heavy queries and 404s)
+router.get('/status', requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+    const { data: affiliate, error } = await supabase
+      .from('affiliate_programs')
+      .select('id, status')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error || !affiliate) {
+      return res.json({
+        success: true,
+        isAffiliate: false,
+        status: null,
+      });
+    }
+
+    return res.json({
+      success: true,
+      isAffiliate: true,
+      status: affiliate.status,
+    });
+  } catch (error) {
+    logger.error('Error checking affiliate status', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+});
+
 // Get dashboard data
 router.get('/dashboard', requireAuth, async (req, res) => {
   try {
@@ -197,7 +229,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
       .single();
 
     if (error || !affiliate) {
-      return res.status(404).json({
+      return res.json({
         success: false,
         error: 'Affiliate account not found',
       });

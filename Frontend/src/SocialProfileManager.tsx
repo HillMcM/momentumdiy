@@ -3,6 +3,15 @@ import type { MarketingGoal } from './types';
 
 type Props = { marketingGoals: MarketingGoal[] };
 
+const Card = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div style={{ background: '#23233a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '1rem' }}>
+    <h3 style={{ marginTop: 0, color: '#FFF1E7' }}>{title}</h3>
+    <div style={{ color: '#FFF1E7' }}>{children}</div>
+  </div>
+);
+
+const Label = ({ children }: { children: React.ReactNode }) => <span style={{ fontWeight: 700, color: '#FFF1E7' }}>{children}</span>;
+
 export default function SocialProfileManager({ marketingGoals }: Props) {
   const activeCompleted = useMemo(() => marketingGoals.find(g => g.isActive && g.currentWeek >= g.duration) || marketingGoals.find(g => g.currentWeek >= g.duration), [marketingGoals]);
   const goalId = activeCompleted?.id || 'default';
@@ -41,15 +50,6 @@ export default function SocialProfileManager({ marketingGoals }: Props) {
     setReflection(wk12?.reflection || null);
     setPlan30(wk12?.plan || null);
   }, [goalId]);
-
-  const Card = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div style={{ background: '#23233a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '1rem' }}>
-      <h3 style={{ marginTop: 0, color: '#FFF1E7' }}>{title}</h3>
-      <div style={{ color: '#FFF1E7' }}>{children}</div>
-    </div>
-  );
-
-  const Label = ({ children }: { children: React.ReactNode }) => <span style={{ fontWeight: 700, color: '#FFF1E7' }}>{children}</span>;
 
   return (
     <div className="widget" style={{ padding: '1rem', borderRadius: 12 }}>

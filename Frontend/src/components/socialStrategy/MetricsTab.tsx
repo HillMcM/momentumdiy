@@ -11,6 +11,109 @@ interface MetricsTabProps {
   onAddSnapshot: (snapshot: WeeklySnapshot) => void;
 }
 
+const calculateGrowth = (baseline: number, current: number) => {
+  if (!baseline || baseline === 0) return 0;
+  return Math.round(((current - baseline) / baseline) * 100);
+};
+
+interface MetricCardProps {
+  label: string;
+  baseline: number;
+  current: number;
+  onBaselineChange: (val: number) => void;
+  onCurrentChange: (val: number) => void;
+}
+
+const MetricCard = ({
+  label,
+  baseline,
+  current,
+  onBaselineChange,
+  onCurrentChange
+}: MetricCardProps) => {
+  const [baselineInput, setBaselineInput] = React.useState(baseline?.toString() || '');
+  const [currentInput, setCurrentInput] = React.useState(current?.toString() || '');
+  
+  const growth = calculateGrowth(baseline, current);
+  const isPositive = growth > 0;
+  const isNegative = growth < 0;
+
+  // Update local state when props change
+  React.useEffect(() => {
+    setBaselineInput(baseline?.toString() || '');
+  }, [baseline]);
+
+  React.useEffect(() => {
+    setCurrentInput(current?.toString() || '');
+  }, [current]);
+
+  return (
+    <div className="bg-[#1A1625]/50 rounded-lg p-6 border border-[#2A2438]">
+      <h4 className="text-[#FFF1E7]/80 text-sm font-medium mb-4">{label}</h4>
+      
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="text-[#FFF1E7]/60 text-xs block mb-1">Baseline</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={baselineInput}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9]/g, '');
+              setBaselineInput(val);
+            }}
+            onBlur={() => {
+              onBaselineChange(parseInt(baselineInput) || 0);
+            }}
+            className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
+            placeholder="0"
+          />
+        </div>
+        <div>
+          <label className="text-[#FFF1E7]/60 text-xs block mb-1">Current</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={currentInput}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9]/g, '');
+              setCurrentInput(val);
+            }}
+            onBlur={() => {
+              onCurrentChange(parseInt(currentInput) || 0);
+            }}
+            className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      {baseline > 0 && (
+        <div className="flex items-center justify-between pt-3 border-t border-[#2A2438]">
+          <span className="text-[#FFF1E7]/60 text-xs">Growth</span>
+          <div className={`flex items-center text-sm font-bold ${
+            isPositive ? 'text-green-400' : isNegative ? 'text-red-400' : 'text-[#FFF1E7]/60'
+          }`}>
+            {isPositive && (
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            )}
+            {isNegative && (
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+              </svg>
+            )}
+            {growth > 0 && '+'}{growth}%
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function MetricsTab({
   baselineMetrics,
   currentMetrics,
@@ -37,11 +140,6 @@ export default function MetricsTab({
     }
   });
 
-  const calculateGrowth = (baseline: number, current: number) => {
-    if (!baseline || baseline === 0) return 0;
-    return Math.round(((current - baseline) / baseline) * 100);
-  };
-
   const handleAddSnapshot = () => {
     if (newSnapshot.week && newSnapshot.date && newSnapshot.metrics) {
       onAddSnapshot(newSnapshot as WeeklySnapshot);
@@ -58,102 +156,6 @@ export default function MetricsTab({
       });
       setShowSnapshotForm(false);
     }
-  };
-
-  const MetricCard = ({
-    label,
-    baseline,
-    current,
-    onBaselineChange,
-    onCurrentChange
-  }: {
-    label: string;
-    baseline: number;
-    current: number;
-    onBaselineChange: (val: number) => void;
-    onCurrentChange: (val: number) => void;
-  }) => {
-    const [baselineInput, setBaselineInput] = React.useState(baseline?.toString() || '');
-    const [currentInput, setCurrentInput] = React.useState(current?.toString() || '');
-    
-    const growth = calculateGrowth(baseline, current);
-    const isPositive = growth > 0;
-    const isNegative = growth < 0;
-
-    // Update local state when props change
-    React.useEffect(() => {
-      setBaselineInput(baseline?.toString() || '');
-    }, [baseline]);
-
-    React.useEffect(() => {
-      setCurrentInput(current?.toString() || '');
-    }, [current]);
-
-    return (
-      <div className="bg-[#1A1625]/50 rounded-lg p-6 border border-[#2A2438]">
-        <h4 className="text-[#FFF1E7]/80 text-sm font-medium mb-4">{label}</h4>
-        
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="text-[#FFF1E7]/60 text-xs block mb-1">Baseline</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={baselineInput}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, '');
-                setBaselineInput(val);
-              }}
-              onBlur={() => {
-                onBaselineChange(parseInt(baselineInput) || 0);
-              }}
-              className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
-              placeholder="0"
-            />
-          </div>
-          <div>
-            <label className="text-[#FFF1E7]/60 text-xs block mb-1">Current</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={currentInput}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, '');
-                setCurrentInput(val);
-              }}
-              onBlur={() => {
-                onCurrentChange(parseInt(currentInput) || 0);
-              }}
-              className="w-full bg-[#2A2438] text-[#FFF1E7] px-3 py-2 rounded border border-[#3A3448] focus:outline-none focus:border-[#EF8E81] text-sm"
-              placeholder="0"
-            />
-          </div>
-        </div>
-
-        {baseline > 0 && (
-          <div className="flex items-center justify-between pt-3 border-t border-[#2A2438]">
-            <span className="text-[#FFF1E7]/60 text-xs">Growth</span>
-            <div className={`flex items-center text-sm font-bold ${
-              isPositive ? 'text-green-400' : isNegative ? 'text-red-400' : 'text-[#FFF1E7]/60'
-            }`}>
-              {isPositive && (
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              )}
-              {isNegative && (
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                </svg>
-              )}
-              {growth > 0 && '+'}{growth}%
-            </div>
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (

@@ -65,28 +65,35 @@ export function MarketingProvider({ children, onTaskStatusChange }: MarketingPro
       
       const response = await getActiveGoal();
       
-      if (response.success && response.data) {
-        const newGoal = response.data;
-        
-        // Detect week advancement
-        if (prevWeekRef.current !== null && newGoal.currentWeek > prevWeekRef.current) {
-          logger.info('Week advanced', { fromWeek: prevWeekRef.current, toWeek: newGoal.currentWeek });
-          showWeekUnlocked(newGoal.currentWeek);
+      if (response.success) {
+        if (response.data) {
+          const newGoal = response.data;
+          
+          // Detect week advancement
+          if (prevWeekRef.current !== null && newGoal.currentWeek > prevWeekRef.current) {
+            logger.info('Week advanced', { fromWeek: prevWeekRef.current, toWeek: newGoal.currentWeek });
+            showWeekUnlocked(newGoal.currentWeek);
+          }
+          
+          // Detect track completion
+          if (newGoal.progress >= 100 && activeGoal && activeGoal.progress < 100) {
+            logger.info('Track completed', { trackTitle: newGoal.title });
+            showTrackCompleted(newGoal.title);
+          }
+          
+          // Update state
+          prevWeekRef.current = newGoal.currentWeek;
+          setActiveGoal(newGoal);
+          
+          // Set current module based on active goal
+          const current = newGoal.modules.find(module => module.weekNumber === newGoal.currentWeek);
+          setCurrentModule(current || null);
+        } else {
+          // No active goal is a valid state
+          setActiveGoal(null);
+          setCurrentModule(null);
+          prevWeekRef.current = null;
         }
-        
-        // Detect track completion
-        if (newGoal.progress >= 100 && activeGoal && activeGoal.progress < 100) {
-          logger.info('Track completed', { trackTitle: newGoal.title });
-          showTrackCompleted(newGoal.title);
-        }
-        
-        // Update state
-        prevWeekRef.current = newGoal.currentWeek;
-        setActiveGoal(newGoal);
-        
-        // Set current module based on active goal
-        const current = newGoal.modules.find(module => module.weekNumber === newGoal.currentWeek);
-        setCurrentModule(current || null);
       } else {
         logger.error('Failed to load marketing goal', { error: response.error });
         setError('Failed to load marketing goal');

@@ -24,15 +24,15 @@ export function useAffiliateStatus() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/api/affiliate/dashboard`, {
+        const response = await fetch(`${API_URL}/api/affiliate/status`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
           },
         });
 
         const result = await response.json();
-        setIsAffiliate(result.success === true);
-      } catch (err) {
+        setIsAffiliate(result.success === true && result.isAffiliate === true);
+      } catch {
         // If there's an error, user is not an affiliate
         setIsAffiliate(false);
       } finally {

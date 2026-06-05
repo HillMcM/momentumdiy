@@ -33,18 +33,18 @@ export default function AffiliateProgramPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) return;
 
-      const response = await fetch(`${API_URL}/api/affiliate/dashboard`, {
+      const response = await fetch(`${API_URL}/api/affiliate/status`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
         },
       });
 
       const result = await response.json();
-      if (result.success) {
+      if (result.success && result.isAffiliate) {
         // User already has an affiliate account, redirect to dashboard
         navigate('/app/affiliate/dashboard');
       }
-    } catch (err) {
+    } catch {
       // Ignore errors - user just isn't an affiliate yet
     }
   };
