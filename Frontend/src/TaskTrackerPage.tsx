@@ -24,6 +24,8 @@ export default function TaskTrackerPage({ projects, tasks, onTasksChange, onProj
       })
     : tasks;
 
+  const hasVisibleTasks = visibleTasks.length > 0;
+
   const handleSubsetTasksChange = (updatedVisible: Task[]) => {
     if (!activeGoal) {
       onTasksChange(updatedVisible);
@@ -41,9 +43,11 @@ export default function TaskTrackerPage({ projects, tasks, onTasksChange, onProj
     }}>
       <TaskTrackerWidget 
         projects={projects}
-        tasks={visibleTasks}
+        tasks={hasVisibleTasks ? visibleTasks : []}
         onTasksChange={handleSubsetTasksChange}
         onProjectsChange={onProjectsChange}
+        showEmptyState={!hasVisibleTasks}
+        activeGoal={activeGoal}
       />
     </div>
   );

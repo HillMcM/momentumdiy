@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/useAuth';
 import { API_URL } from './config/environment';
 import { supabase } from './lib/supabase';
+import { logger } from './utils/logger';
 
 interface EligibilityResponse {
   success: boolean;
@@ -68,7 +69,7 @@ export default function AffiliateProgramPage() {
       const data = await response.json();
       setEligibility(data);
     } catch (err) {
-      console.error('Error checking eligibility:', err);
+      logger.error('Error checking eligibility', err);
     } finally {
       setChecking(false);
     }
@@ -110,7 +111,7 @@ export default function AffiliateProgramPage() {
         navigate('/app/affiliate/dashboard');
       }, 2000);
     } catch (err) {
-      console.error('Error joining program:', err);
+      logger.error('Error joining program', err);
       setError('Failed to join affiliate program');
     } finally {
       setLoading(false);
@@ -169,7 +170,7 @@ export default function AffiliateProgramPage() {
               <div>
                 <h4 className="text-lg font-semibold text-white mb-1">Join the Program</h4>
                 <p className="text-gray-400">
-                  Sign up and get your unique referral code. Must be subscribed for 30+ days.
+                  Sign up and get your unique referral code. Must be active for 30+ days.
                 </p>
               </div>
             </div>
@@ -261,7 +262,7 @@ export default function AffiliateProgramPage() {
                 {eligibility?.reason || 'You need to meet the eligibility requirements to join the program.'}
               </p>
               <div className="text-sm text-gray-500">
-                Requirements: Active subscription for 30+ days
+                Requirements: Active account for 30+ days
               </div>
             </>
           )}

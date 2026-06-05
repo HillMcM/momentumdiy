@@ -926,8 +926,19 @@ class MarketingService {
             };
         }
     }
-    static async updateMarketingTaskCompletion(taskId, isCompleted) {
+    static async updateMarketingTaskCompletion(taskId, isCompleted, userId) {
         try {
+            let currentUserId = userId;
+            if (!currentUserId) {
+                const { data: { user }, error: userError } = await supabase_1.supabase.auth.getUser();
+                if (userError || !user) {
+                    return {
+                        success: false,
+                        error: 'User not authenticated'
+                    };
+                }
+                currentUserId = user.id;
+            }
             const { data, error } = await supabase_1.supabase
                 .from('marketing_tasks')
                 .update({ is_completed: isCompleted })
@@ -939,6 +950,37 @@ class MarketingService {
                     success: false,
                     error: error.message
                 };
+            }
+            if (isCompleted) {
+                const { error: completionError } = await supabase_1.supabase
+                    .from('user_task_completions')
+                    .upsert({
+                    user_id: currentUserId,
+                    task_id: taskId,
+                    completed_at: new Date().toISOString()
+                }, {
+                    onConflict: 'user_id,task_id'
+                });
+                if (completionError) {
+                    logger_1.logger.error('Error updating user_task_completions', completionError, { userId: currentUserId, taskId });
+                }
+                const { error: profileError } = await supabase_1.supabase
+                    .from('profiles')
+                    .update({ last_activity: new Date().toISOString() })
+                    .eq('id', currentUserId);
+                if (profileError) {
+                    logger_1.logger.error('Error updating profile last_activity', profileError, { userId: currentUserId });
+                }
+            }
+            else {
+                const { error: deletionError } = await supabase_1.supabase
+                    .from('user_task_completions')
+                    .delete()
+                    .eq('user_id', currentUserId)
+                    .eq('task_id', taskId);
+                if (deletionError) {
+                    logger_1.logger.error('Error removing task completion', deletionError, { userId: currentUserId, taskId });
+                }
             }
             const task = {
                 id: data.id,

@@ -59,32 +59,41 @@ router.post('/chat', routeRateLimit(30), async (req, res) => {
       }
     }
 
-    // Get user's current marketing data
-    const [marketingGoalsResponse, tasksResponse] = await Promise.all([
-      MarketingService.getMarketingGoals(),
-      TaskService.getTasks()
+    // Get user's current marketing data and profile
+    const [activeGoalResponse, tasksResponse, profileResponse] = await Promise.all([
+      userId ? MarketingService.getActiveMarketingGoal(userId) : Promise.resolve({ success: true, data: null }),
+      TaskService.getTasks(),
+      userId ? supabasePublic
+        .from('profiles')
+        .select('business_bio, competitors, weekly_notes')
+        .eq('id', userId)
+        .single() : Promise.resolve({ data: null })
     ]);
 
-    if (!marketingGoalsResponse.success || !tasksResponse.success) {
+    if (!activeGoalResponse.success || !tasksResponse.success) {
       return res.status(500).json({
         success: false,
         error: 'Failed to load user data'
       });
     }
 
-    const marketingGoals = marketingGoalsResponse.data || [];
+    const marketingGoals = activeGoalResponse.data ? [activeGoalResponse.data] : [];
     const tasks = tasksResponse.data || [];
-    const activeTrack = marketingGoals.find(goal => goal.isActive) || null;
+    const activeTrack = activeGoalResponse.data || null;
+    const userProfile = profileResponse.data;
 
     // Create conversation context with business intelligence
     const context: ConversationContext = {
       marketingGoals,
-      currentTasks: tasks.filter(task => task.status === 'todo'),
+      currentTasks: tasks,
       activeTrack,
       userBusinessType: userBusinessType || 'Not specified',
       userIndustry: userIndustry || 'General',
       userExperienceLevel: userExperienceLevel || 'Not specified',
       pagePath: pagePath || '/app',
+      businessBio: userProfile?.business_bio,
+      competitors: userProfile?.competitors,
+      weeklyNotes: userProfile?.weekly_notes,
     };
 
     // Generate AI response with Sonnet 4.5 features
@@ -111,7 +120,7 @@ router.post('/chat', routeRateLimit(30), async (req, res) => {
           cacheReadTokens: usage.cache_read_input_tokens
         }),
         endpoint: '/api/ai/chat',
-        modelVersion: 'claude-sonnet-4-5-20250929'
+        modelVersion: 'claude-3-5-sonnet-latest'
       };
 
       // Record usage asynchronously (don't block response)
@@ -151,24 +160,33 @@ router.post('/chat', routeRateLimit(30), async (req, res) => {
 });
 
 // GET /api/ai/context - Get current user context for AI
-router.get('/context', async (_req, res) => {
+router.get('/context', async (req, res) => {
   try {
+    const authHeader = req.headers.authorization;
+    let userId: string | undefined;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const { data: { user } } = await supabasePublic.auth.getUser(token);
+      userId = user?.id;
+    }
+
     // Get user's current marketing data
-    const [marketingGoalsResponse, tasksResponse] = await Promise.all([
-      MarketingService.getMarketingGoals(),
+    const [activeGoalResponse, tasksResponse] = await Promise.all([
+      userId ? MarketingService.getActiveMarketingGoal(userId) : Promise.resolve({ success: true, data: null }),
       TaskService.getTasks()
     ]);
 
-    if (!marketingGoalsResponse.success || !tasksResponse.success) {
+    if (!activeGoalResponse.success || !tasksResponse.success) {
       return res.status(500).json({
         success: false,
         error: 'Failed to load user data'
       });
     }
 
-    const marketingGoals = marketingGoalsResponse.data || [];
+    const marketingGoals = activeGoalResponse.data ? [activeGoalResponse.data] : [];
     const tasks = tasksResponse.data || [];
-    const activeTrack = marketingGoals.find(goal => goal.isActive) || null;
+    const activeTrack = activeGoalResponse.data || null;
 
     const context: ConversationContext = {
       marketingGoals,

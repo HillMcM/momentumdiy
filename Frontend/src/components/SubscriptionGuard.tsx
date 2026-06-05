@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useSubscription } from '../hooks/useSubscription';
 import { useAuth } from '../contexts/useAuth';
 import PaywallModal from './PaywallModal';
+import LoadingSpinner from './LoadingSpinner';
 import { logger } from '../utils/logger';
 
 interface SubscriptionGuardProps {
@@ -19,12 +20,13 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
   const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production';
   const isAuthDisabled = (import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE') && !isProduction;
 
-  // If auth is disabled, bypass all checks and show the app
-  if (isAuthDisabled) {
-    return <>{children}</>;
-  }
-
+  // Always call hooks in the same order - move useEffect before early returns
   useEffect(() => {
+    // Skip effect if auth is disabled
+    if (isAuthDisabled) {
+      return;
+    }
+    
     if (!loading && subscription) {
       // Show paywall if user doesn't have access
       if (!subscription.hasAccess) {
@@ -36,17 +38,21 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
         setShowPaywall(true);
       }
     }
-  }, [subscription, loading, user]);
+  }, [subscription, loading, user, isAuthDisabled]);
+
+  // If auth is disabled, bypass all checks and show the app
+  if (isAuthDisabled) {
+    return <>{children}</>;
+  }
 
   // Show loading state while authentication is being checked
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#EF8E81] mx-auto mb-4"></div>
-          <p className="text-[#FFF1E7]/60">Loading...</p>
-        </div>
-      </div>
+      <LoadingSpinner
+        fullScreen
+        message="Loading..."
+        size="lg"
+      />
     );
   }
 
@@ -58,12 +64,11 @@ export default function SubscriptionGuard({ children, fallback }: SubscriptionGu
   // Show loading state for subscription data
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0F0A1A] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#EF8E81] mx-auto mb-4"></div>
-          <p className="text-[#FFF1E7]/60">Loading your subscription status...</p>
-        </div>
-      </div>
+      <LoadingSpinner
+        fullScreen
+        message="Loading your subscription status..."
+        size="lg"
+      />
     );
   }
 

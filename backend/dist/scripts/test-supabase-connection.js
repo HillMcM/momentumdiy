@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const supabase_1 = require("../config/supabase");
+const logger_1 = require("../utils/logger");
 async function testSupabaseConnection() {
     try {
         console.log('🔍 Testing Supabase connection...');
@@ -10,8 +11,9 @@ async function testSupabaseConnection() {
             .select('count')
             .limit(1);
         if (error) {
-            console.error('❌ Supabase connection failed:', error.message);
-            console.error('🔧 Please check your SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+            logger_1.logger.error('Supabase connection failed', error, {
+                message: 'Please check your SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
+            });
             return;
         }
         console.log('✅ Supabase connection successful!');
@@ -26,7 +28,7 @@ async function testSupabaseConnection() {
                 console.log('💡 Run: npm run seed-marketing-track to create content');
             }
             else {
-                console.error('❌ Error checking for active goal:', goalError.message);
+                logger_1.logger.error('Error checking for active goal', goalError);
             }
         }
         else {
@@ -35,7 +37,7 @@ async function testSupabaseConnection() {
         }
     }
     catch (error) {
-        console.error('❌ Connection test failed:', error);
+        logger_1.logger.error('Connection test failed', error);
     }
 }
 testSupabaseConnection();

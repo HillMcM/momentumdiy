@@ -1,7 +1,6 @@
 {
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/app.html" },
     { "source": "/app", "destination": "/app.html" },
     { "source": "/app/(.*)", "destination": "/app.html" },
     { "source": "/auth", "destination": "/app.html" },
@@ -9,6 +8,11 @@
     { "source": "/checkout/(.*)", "destination": "/app.html" },
     { "source": "/feedback", "destination": "/app.html" },
     { "source": "/terms", "destination": "/app.html" },
+    { "source": "/privacy", "destination": "/app.html" },
+    { "source": "/affiliate-terms", "destination": "/app.html" },
+    { "source": "/tracks", "destination": "/app.html" },
+    { "source": "/features", "destination": "/app.html" },
+    { "source": "/affiliate-partner/(.*)", "destination": "/app.html" },
     { "source": "/shared/strategy/(.*)", "destination": "/app.html" }
   ],
   "headers": [

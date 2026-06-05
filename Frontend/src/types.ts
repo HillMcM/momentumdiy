@@ -81,6 +81,8 @@ export interface MarketingGoal {
   currentPhase?: MarketingPhase; // Current phase based on current week
 }
 
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+
 export interface Task {
   id: string;
   title: string;
@@ -93,6 +95,10 @@ export interface Task {
   status: TaskStatus;
   isArchived?: boolean;
   projectId?: string; // ID of the project this task belongs to
+  priority?: TaskPriority; // Task priority
+  parentTaskId?: string; // For subtasks
+  subtasks?: string[]; // Array of subtask IDs
+  dependsOn?: string[]; // Array of task IDs this task depends on
   marketingTrack?: {
     goalId: string;
     moduleId: string;

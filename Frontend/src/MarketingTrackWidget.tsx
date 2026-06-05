@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import type { MarketingGoal, MarketingModule } from './types';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useMarketing } from './contexts/MarketingContext';
 import { renderMarketingContent } from './utils/contentRenderer';
 import { useIsMobile } from './hooks/useMediaQuery';
+import HelpIcon from './components/HelpIcon';
 
 interface MarketingTrackModalProps {
   isOpen: boolean;
@@ -206,22 +207,54 @@ export default function MarketingTrackWidget() {
     return (
       <div className="widget" style={{ padding: '1rem', borderRadius: '12px', minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ color: '#FFF1E7', margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.5px' }}>
-            Marketing Track
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h2 style={{ color: '#FFF1E7', margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.5px' }}>
+              Marketing Track
+            </h2>
+            <HelpIcon 
+              content="Choose a 12-week marketing track tailored to your goals. Each track includes weekly lessons, tasks, and progress tracking." 
+              position="bottom"
+            />
+          </div>
         </div>
         <div style={{ 
-          color: '#FFF1E7', 
-          opacity: 0.7, 
           textAlign: 'center', 
           padding: '2rem',
           background: 'rgba(239, 142, 129, 0.05)',
           borderRadius: '8px',
           border: '1px solid rgba(239, 142, 129, 0.1)'
         }}>
-          <h3 style={{ margin: 0, marginBottom: '0.5rem', color: '#EF8E81' }}>No Active Track</h3>
-          <p style={{ margin: 0, fontSize: '0.9rem' }}>
-            Start a marketing track to begin your strategic journey
+          <div style={{ 
+            width: '64px', 
+            height: '64px', 
+            margin: '0 auto 1rem',
+            background: 'rgba(239, 142, 129, 0.2)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2rem'
+          }}>
+            🎯
+          </div>
+          <h3 style={{ margin: 0, marginBottom: '0.5rem', color: '#EF8E81', fontSize: '1.125rem', fontWeight: 600 }}>
+            No Active Track
+          </h3>
+          <p style={{ margin: 0, fontSize: '0.9rem', color: '#FFF1E7', opacity: 0.7, marginBottom: '1.5rem' }}>
+            Choose a marketing track to get started with your 12-week journey
+          </p>
+          <Link
+            to="/app/marketing-track"
+            className="inline-block px-6 py-3 rounded-lg bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white font-semibold hover:from-[#EF8E81]/90 hover:to-[#D4AF37]/90 transition-all transform hover:scale-105 active:scale-95"
+            style={{
+              textDecoration: 'none',
+              boxShadow: '0 4px 12px rgba(239, 142, 129, 0.3)'
+            }}
+          >
+            Choose Your Track →
+          </Link>
+          <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#FFF1E7', opacity: 0.5 }}>
+            Each track includes weekly lessons, tasks, and progress tracking
           </p>
         </div>
       </div>
@@ -254,9 +287,15 @@ export default function MarketingTrackWidget() {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ color: '#FFF1E7', margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.5px' }}>
-            Marketing Track
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h2 style={{ color: '#FFF1E7', margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.5px' }}>
+              Marketing Track
+            </h2>
+            <HelpIcon 
+              content="Click this widget to see this week's lesson and tasks. Progress syncs automatically with your task tracker." 
+              position="bottom"
+            />
+          </div>
           <div style={{ 
             color: '#EF8E81', 
             fontSize: '0.875rem',
@@ -299,7 +338,7 @@ export default function MarketingTrackWidget() {
             <div style={{ marginBottom: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span style={{ color: '#FFF1E7', fontSize: '0.875rem', fontWeight: 600 }}>Track Progress</span>
-                <span style={{ color: '#EF8E81', fontSize: '0.875rem', fontWeight: 600 }}>{activeGoal.progress}%</span>
+                <span style={{ color: '#EF8E81', fontSize: '0.875rem', fontWeight: 600 }}>{Math.round(activeGoal.progress)}%</span>
               </div>
               <div style={{ 
                 width: '100%', 

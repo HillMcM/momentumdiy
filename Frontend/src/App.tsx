@@ -6,14 +6,23 @@ import TaskTrackerPage from './TaskTrackerPage';
 import MarketingTrackWidget from './MarketingTrackWidget';
 import MarketingTrackPage from './MarketingTrackPage';
 import ProfilePage from './ProfilePage';
+import AffiliateHowItWorksModal from './components/AffiliateHowItWorksModal';
+import HelpIcon from './components/HelpIcon';
+import Breadcrumbs from './components/Breadcrumbs';
+import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import QuickSearch from './components/QuickSearch';
+import OfflineBanner from './components/OfflineBanner';
+import TrialCountdownBanner from './components/TrialCountdownBanner';
+import MobileBottomNav from './components/MobileBottomNav';
+import { useAffiliateStatus } from './hooks/useAffiliateStatus';
 
 // Lazy-loaded components for code splitting
 const SocialProfileManager = lazy(() => import('./SocialProfileManager'));
 const SocialStrategyHub = lazy(() => import('./pages/SocialStrategyHub'));
 const SharedStrategyView = lazy(() => import('./pages/SharedStrategyView'));
 const AssetLibrary = lazy(() => import('./pages/AssetLibrary'));
+const SharedAssets = lazy(() => import('./pages/SharedAssets'));
 import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
-import { useWindowFocus } from './hooks/useWindowFocus';
 import { useIsMobile } from './hooks/useMediaQuery';
 import type { Project, Task, MarketingGoal } from './types';
 import OctopusLogo from './assets/octopus_icon.png';
@@ -27,26 +36,34 @@ const SocialMediaGeneratorPage = lazy(() => import('./SocialMediaGeneratorPage')
 const AffiliateProgramPage = lazy(() => import('./AffiliateProgramPage'));
 const AffiliateDashboardPage = lazy(() => import('./AffiliateDashboardPage'));
 const AdminAffiliatePage = lazy(() => import('./AdminAffiliatePage'));
-const AdminGuard = lazy(() => import('./components/AdminGuard'));
+const AffiliatePartnerApplicationPage = lazy(() => import('./AffiliatePartnerApplicationPage'));
+import AdminGuard from './components/AdminGuard';
 const VisualTracksAdminPage = lazy(() => import('./VisualTracksAdminPage'));
 const TracksAdminPage = lazy(() => import('./TracksAdminPage'));
 
 // Core pages (always loaded)
-import LandingPage from './LandingPage';
+// LandingPage is served as static index.html, not a React component
 import AuthPage from './AuthPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
 import FeedbackPage from './FeedbackPage';
 import TermsPage from './TermsPage';
+import PrivacyPolicyPage from './PrivacyPolicyPage';
+import AffiliateProgramTermsPage from './AffiliateProgramTermsPage';
+import MarketingTracksPage from './MarketingTracksPage';
+import FeaturesPage from './FeaturesPage';
 import SubscriptionGuard from './components/SubscriptionGuard';
 import PersonalizedDashboard from './components/PersonalizedDashboard';
 import NotificationContainer from './components/NotificationContainer';
 import NotificationBell from './components/NotificationBell';
-import OnboardingWizard from './components/OnboardingWizard';
+import LoadingSpinner from './components/LoadingSpinner';
+import OnboardingWizard, { type OnboardingData } from './components/OnboardingWizard';
 import { useAuth } from './contexts/useAuth';
 import { MarketingProvider, useMarketing } from './contexts/MarketingContext';
-import { OnboardingProvider } from './contexts/OnboardingContext';
+import { OnboardingProvider, useOnboarding } from './contexts/OnboardingContext';
 import { useSubscription } from './hooks/useSubscription';
+import { useActivityReminders } from './hooks/useActivityReminders';
+import { useNotificationHelpers } from './hooks/useNotificationHelpers';
 
 import { supabase } from './lib/supabase';
 // Removed mock data imports - using real database data only
@@ -147,10 +164,17 @@ import CheckoutSuccessPage from './CheckoutSuccessPage';
 // Lazy-loaded components already defined above
 
 
+// Component to handle activity reminders inside MarketingProvider
+function ActivityReminders() {
+  useActivityReminders();
+  return null;
+}
+
 // Component to handle task synchronization between marketing track and task tracker
-function TaskSync({ 
+
+function TaskSync({
   tasks, 
-  setTasks,
+  setTasks, 
   setMarketingGoals 
 }: { 
   tasks: Task[], 
@@ -278,7 +302,7 @@ function TaskSync({
 }
 
 
-function Header({ onLogoClick }: { onLogoClick?: () => void }) {
+function Header({ onLogoClick, onSearchClick }: { onLogoClick?: () => void; onSearchClick?: () => void }) {
   const { user, signOut } = useAuth();
   const { subscription } = useSubscription();
   const isMobile = useIsMobile();
@@ -311,6 +335,48 @@ function Header({ onLogoClick }: { onLogoClick?: () => void }) {
       {/* Hide buttons on mobile - they'll be in the sidebar */}
       {!isMobile && (
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        {onSearchClick && (
+          <button
+            onClick={onSearchClick}
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              padding: '0.5rem 1rem',
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.color = '#FFF1E7';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+            }}
+            title="Search (Press / or ⌘K)"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <span>Search</span>
+            <kbd style={{
+              background: 'rgba(0, 0, 0, 0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '4px',
+              padding: '0.125rem 0.375rem',
+              fontSize: '0.7rem',
+              fontFamily: 'monospace',
+              color: 'rgba(255, 255, 255, 0.5)',
+            }}>/</kbd>
+          </button>
+        )}
         {subscription && (
           <div style={{ 
             background: subscription.hasAccess ? '#10b981' : '#ef4444', 
@@ -452,9 +518,13 @@ function Sidebar({ hidden, onToggle, showProfileManager, showSocialStrategy, mob
     return location.pathname === path;
   };
 
-  const handleLinkClick = (path: string) => {
+  const handleLinkClick = (_path: string) => {
     // Debug logging removed for production
   };
+
+  // Check if user is admin
+  const ADMIN_EMAILS = ['info@hillaryedenmcmullen.com'];
+  const isAdmin = user && user.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 
   return (
     <nav className={`sidebar${hidden ? ' hidden' : ''}${mobileOpen ? ' mobile-open' : ''}`}>
@@ -470,6 +540,12 @@ function Sidebar({ hidden, onToggle, showProfileManager, showSocialStrategy, mob
         <NotificationBell />
       </div>
       <ul>
+        {/* Core Section */}
+        <li style={{ marginTop: '0.5rem', paddingTop: '0.5rem' }}>
+          <div style={{ padding: '0.5rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            Core
+          </div>
+        </li>
         <li>
           <Link 
             to="/app" 
@@ -497,37 +573,6 @@ function Sidebar({ hidden, onToggle, showProfileManager, showSocialStrategy, mob
             Marketing Track
           </Link>
         </li>
-        {showProfileManager && (
-          <li>
-            <Link 
-              to="/app/profile-manager" 
-              className={isActive('/app/profile-manager') ? 'active' : ''}
-              onClick={() => handleLinkClick('/app/profile-manager')}
-            >
-              Social Profile Manager
-            </Link>
-          </li>
-        )}
-        {showSocialStrategy && (
-          <li>
-            <Link 
-              to="/app/social-strategy" 
-              className={isActive('/app/social-strategy') ? 'active' : ''}
-              onClick={() => handleLinkClick('/app/social-strategy')}
-            >
-              Social Strategy Hub
-            </Link>
-          </li>
-        )}
-        <li>
-          <Link 
-            to="/app/assets" 
-            className={isActive('/app/assets') ? 'active' : ''}
-            onClick={() => handleLinkClick('/app/assets')}
-          >
-            Asset Library
-          </Link>
-        </li>
         <li>
           <Link 
             to="/app/task-tracker" 
@@ -536,6 +581,13 @@ function Sidebar({ hidden, onToggle, showProfileManager, showSocialStrategy, mob
           >
             Task Tracker
           </Link>
+        </li>
+
+        {/* Tools Section */}
+        <li style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ padding: '0.5rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            Tools
+          </div>
         </li>
         <li>
           <Link 
@@ -555,6 +607,49 @@ function Sidebar({ hidden, onToggle, showProfileManager, showSocialStrategy, mob
             Social Media Generator
           </Link>
         </li>
+        {showProfileManager && (
+          <li>
+            <Link 
+              to="/app/profile-manager" 
+              className={isActive('/app/profile-manager') ? 'active' : ''}
+              onClick={() => handleLinkClick('/app/profile-manager')}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <span>Social Profile Manager</span>
+              <HelpIcon 
+                content="Available after completing the 'Improve Social Media Strategy' track. Manage your social media profiles in one place." 
+                position="right"
+                className="w-3 h-3"
+              />
+            </Link>
+          </li>
+        )}
+        {showSocialStrategy && (
+          <li>
+            <Link 
+              to="/app/social-strategy" 
+              className={isActive('/app/social-strategy') ? 'active' : ''}
+              onClick={() => handleLinkClick('/app/social-strategy')}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <span>Social Strategy Hub</span>
+              <HelpIcon 
+                content="Available when you have a social media marketing track active. Create and manage your social media content strategy." 
+                position="right"
+                className="w-3 h-3"
+              />
+            </Link>
+          </li>
+        )}
+        <li>
+          <Link 
+            to="/app/assets" 
+            className={isActive('/app/assets') ? 'active' : ''}
+            onClick={() => handleLinkClick('/app/assets')}
+          >
+            Asset Library
+          </Link>
+        </li>
         <li>
           <Link
             to="/app/affiliate/program" 
@@ -564,13 +659,98 @@ function Sidebar({ hidden, onToggle, showProfileManager, showSocialStrategy, mob
             💰 Affiliate Program
           </Link>
         </li>
-        {/* Non-core features are temporarily hidden
-        - Marketing Calendar
-        - Project Management  
-        - Asset Library
-        - Test Pages
-        */}
       </ul>
+      
+      {/* Mobile Quick Actions */}
+      {isMobile && (
+        <div style={{ 
+          padding: '1rem', 
+          borderTop: '1px solid rgba(255,255,255,0.1)', 
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          marginTop: '1rem',
+          marginBottom: '1rem'
+        }}>
+          <div style={{ 
+            fontSize: '0.7rem', 
+            fontWeight: '700', 
+            color: 'rgba(255,255,255,0.4)', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.1em',
+            marginBottom: '0.75rem',
+            paddingLeft: '0.5rem'
+          }}>
+            Quick Actions
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Link
+              to="/app/task-tracker"
+              onClick={() => handleLinkClick('/app/task-tracker')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                background: 'rgba(239, 142, 129, 0.15)',
+                border: '1px solid rgba(239, 142, 129, 0.3)',
+                borderRadius: '8px',
+                color: '#FFF1E7',
+                textDecoration: 'none',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                minHeight: '44px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 142, 129, 0.25)';
+                e.currentTarget.style.borderColor = 'rgba(239, 142, 129, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 142, 129, 0.15)';
+                e.currentTarget.style.borderColor = 'rgba(239, 142, 129, 0.3)';
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+              </svg>
+              <span>Add Task</span>
+            </Link>
+            <Link
+              to="/app/ai-marketing-assistant"
+              onClick={() => handleLinkClick('/app/ai-marketing-assistant')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                color: '#FFF1E7',
+                textDecoration: 'none',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                minHeight: '44px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+              </svg>
+              <span>Ask AI</span>
+            </Link>
+          </div>
+        </div>
+      )}
+      
       <div className="sidebar-footer">
         {/* Mobile-only: Subscription status, Upgrade, and Sign Out */}
         {isMobile && (
@@ -634,6 +814,33 @@ function Sidebar({ hidden, onToggle, showProfileManager, showSocialStrategy, mob
           </div>
         )}
         
+        {isAdmin && (
+          <>
+            <li style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: '600', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Admin
+              </div>
+            </li>
+            <li>
+              <Link 
+                to="/app/admin/affiliate" 
+                className={isActive('/app/admin/affiliate') ? 'active' : ''}
+                onClick={() => handleLinkClick('/app/admin/affiliate')}
+              >
+                🔧 Affiliate Admin
+              </Link>
+            </li>
+            <li>
+              <Link 
+                to="/app/admin/marketing-tracks" 
+                className={isActive('/app/admin/marketing-tracks') ? 'active' : ''}
+                onClick={() => handleLinkClick('/app/admin/marketing-tracks')}
+              >
+                🔧 Marketing Tracks
+              </Link>
+            </li>
+          </>
+        )}
         <Link 
           to="/app/manage-subscription" 
           className={isActive('/app/manage-subscription') ? 'active' : ''}
@@ -660,14 +867,7 @@ function Sidebar({ hidden, onToggle, showProfileManager, showSocialStrategy, mob
   );
 }
 
-function Placeholder({ title }: { title: string }) {
-  return (
-    <div style={{ padding: '2rem' }}>
-      <h1>{title}</h1>
-      <p>This feature is coming soon!</p>
-    </div>
-  );
-}
+// Removed unused Placeholder component
 
 interface DashboardProps {
   projects: Project[];
@@ -684,7 +884,11 @@ function Dashboard({
   onProjectsChange, 
   onTasksChange
 }: DashboardProps) {
+  const [showAffiliateModal, setShowAffiliateModal] = useState(false);
+  const { isAffiliate, loading: affiliateLoading } = useAffiliateStatus();
   const activeGoal = marketingGoals.find(g => g.isActive);
+  const { onboardingData } = useOnboarding();
+  
     // Include tasks linked via marketingTrack OR via the active goal's projectId
     const activeProject = activeGoal ? projects.find(p => p.name === activeGoal.title) : undefined;
     let visibleTasks = activeGoal 
@@ -703,10 +907,9 @@ function Dashboard({
           return false;
         })
       : tasks;
-    // Fallback: if none found via filters, show all tasks so dashboard isn't empty
-    if (activeGoal && visibleTasks.length === 0) {
-      visibleTasks = tasks;
-    }
+    
+    // Track if we should show empty state (no fallback to all tasks)
+    const hasVisibleTasks = visibleTasks.length > 0;
 
   const handleSubsetTasksChange = (updatedVisible: Task[]) => {
     if (!activeGoal) {
@@ -716,12 +919,85 @@ function Dashboard({
     const others = tasks.filter(t => !(t.marketingTrack && t.marketingTrack.goalId === activeGoal.id));
     onTasksChange([...others, ...updatedVisible]);
   };
+
+  // Determine if we should show get started guide
+  const [showGetStartedGuide, setShowGetStartedGuide] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('getStartedGuideDismissed') !== 'true';
+    }
+    return true;
+  });
+  
+  const isNewUser = !onboardingData && !activeGoal && showGetStartedGuide;
+  const hasNoTasks = !hasVisibleTasks && tasks.length === 0;
+
   return (
     <div>
-      <MarketingTrackWidget />
+      {/* Get Started Guide for New Users */}
+      {isNewUser && (
+        <div className="mb-6 p-6 bg-gradient-to-r from-[#EF8E81]/15 to-[#D4AF37]/15 rounded-2xl border border-[#EF8E81]/30">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-[#EF8E81] rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl">🚀</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-[#FFF1E7] mb-2">Get Started with MomentumDIY</h3>
+              <p className="text-[#FFF1E7]/80 mb-4">
+                Welcome! To get the most out of MomentumDIY, we recommend completing your profile setup and choosing a marketing track.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  to="/app/profile"
+                  className="px-4 py-2 bg-[#EF8E81] text-white font-semibold rounded-lg hover:bg-[#E67A6E] transition-colors text-sm"
+                >
+                  Complete Your Profile
+                </Link>
+                <Link
+                  to="/app/marketing-track"
+                  className="px-4 py-2 bg-transparent border border-[#EF8E81]/50 text-[#EF8E81] font-semibold rounded-lg hover:bg-[#EF8E81]/10 transition-colors text-sm"
+                >
+                  Choose a Marketing Track
+                </Link>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                // Hide guide (store in localStorage)
+                localStorage.setItem('getStartedGuideDismissed', 'true');
+                setShowGetStartedGuide(false);
+              }}
+              className="text-[#FFF1E7]/50 hover:text-[#FFF1E7] transition-colors"
+              aria-label="Dismiss guide"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="relative">
+        <MarketingTrackWidget />
+        {activeGoal && (
+          <div className="absolute top-2 right-2">
+            <HelpIcon 
+              content="Your marketing track shows your weekly progress. Click to view this week's lessons and tasks." 
+              position="left"
+            />
+          </div>
+        )}
+      </div>
 
       {/* Social Media Generator CTA */}
-      <div className="bg-gradient-to-r from-[#EF8E81] to-[#65170C] rounded-2xl p-8 mb-8 text-white">
+      <div className="bg-gradient-to-r from-[#EF8E81] to-[#65170C] rounded-2xl p-8 mb-8 text-white relative">
+        <div className="absolute top-4 right-4">
+          <HelpIcon 
+            content="Generate ready-to-post social media content with AI. Creates 2 variations customized to your brand colors and logo for any platform." 
+            position="left"
+            className="bg-white/10 hover:bg-white/20"
+          />
+        </div>
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex-1">
             <h2 className="text-2xl font-bold mb-2">🎨 AI-Powered Social Media Generator</h2>
@@ -749,36 +1025,64 @@ function Dashboard({
 
       <TaskTrackerWidget 
         projects={projects}
-        tasks={visibleTasks}
+        tasks={hasVisibleTasks ? visibleTasks : []}
         onTasksChange={handleSubsetTasksChange}
         onProjectsChange={onProjectsChange}
+        showEmptyState={!hasVisibleTasks}
+        activeGoal={activeGoal}
       />
-      {/* Comment out non-core widgets for now */}
-      {/* 
-      <ProjectTrackerWidget 
-        projects={projects}
-        onProjectsChange={onProjectsChange}
-        tasks={tasks}
+
+      {/* Affiliate How It Works Link - Footer */}
+      {!affiliateLoading && isAffiliate && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          marginTop: '2rem',
+          paddingTop: '2rem',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+        }}>
+          <button
+            onClick={() => setShowAffiliateModal(true)}
+            style={{
+              background: 'transparent',
+              border: '1px solid rgba(239, 142, 129, 0.3)',
+              color: '#EF8E81',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 142, 129, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(239, 142, 129, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.borderColor = 'rgba(239, 142, 129, 0.3)';
+            }}
+          >
+            💰 Affiliate Program: How It Works
+          </button>
+        </div>
+      )}
+
+      {/* Affiliate How It Works Modal */}
+      <AffiliateHowItWorksModal 
+        isOpen={showAffiliateModal}
+        onClose={() => setShowAffiliateModal(false)}
       />
-      <AssetLibraryWidget 
-        assets={assets}
-        brandingKits={brandingKits}
-        shareLinks={shareLinks}
-        onAssetsChange={onAssetsChange}
-        onBrandingKitsChange={onBrandingKitsChange}
-        onShareLinksChange={onShareLinksChange}
-        onNavigateToAssetLibrary={handleNavigateToAssetLibrary}
-      />
-      */}
+
     </div>
   );
 }
 
 function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   const location = useLocation();
-  const { isFocused } = useWindowFocus();
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const { showSuccess } = useNotificationHelpers();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [marketingGoals, setMarketingGoals] = useState<MarketingGoal[]>([]);
@@ -802,23 +1106,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     }
   }, [user]);
   
-  // Debug: Log marketing goals state for troubleshooting
-  useEffect(() => {
-    logger.debug('Marketing goals updated in ProtectedApp', {
-      count: marketingGoals.length,
-      goals: marketingGoals.map(g => ({
-        title: g.title,
-        isActive: g.isActive,
-        hasSocialInTitle: g.title?.toLowerCase().includes('social')
-      })),
-      hasSocialStrategyAccess
-    });
-  }, [marketingGoals, hasSocialStrategyAccess]);
-
-  // Debug: Track if component is mounting vs re-rendering
-  const mountTimeRef = useRef(Date.now());
-  const renderCountRef = useRef(0);
-  renderCountRef.current += 1;
   const [sidebarHidden, setSidebarHidden] = useState<boolean>(() => {
     // Check localStorage for sidebar state
     const saved = localStorage.getItem('sidebarHidden');
@@ -827,6 +1114,10 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
   // Mobile sidebar state (separate from desktop toggle)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Keyboard shortcuts and quick search state
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showQuickSearch, setShowQuickSearch] = useState(false);
 
   // Function to toggle sidebar and persist state
   const toggleSidebar = useCallback(() => {
@@ -846,6 +1137,29 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   useEffect(() => {
     setMobileSidebarOpen(false);
   }, [location.pathname]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Quick search: Cmd/Ctrl + K or /
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowQuickSearch(true);
+      } else if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        setShowQuickSearch(true);
+      } else if (e.key === '?' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        setShowKeyboardShortcuts(true);
+      } else if (e.key === 'Escape') {
+        setShowQuickSearch(false);
+        setShowKeyboardShortcuts(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Comment out non-core state for now
   // const [assets, setAssets] = useState<Asset[]>([]);
@@ -912,7 +1226,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       // Check if user needs onboarding - only on app pages after auth completion
       const isOnAppPages = location.pathname.startsWith('/app');
       const isOnAuthPage = location.pathname.startsWith('/auth');
-      const isOnHomePage = location.pathname === '/';
 
       if (isOnAppPages && !isOnAuthPage) {
         try {
@@ -950,7 +1263,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     };
   }, []);
   
-  const debouncedCreateTask = useCallback(async (taskData: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string }) => {
+  const debouncedCreateTask = useCallback(async (taskData: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string; priority?: string; parentTaskId?: string; dependsOn?: string[] }) => {
     const taskKey = `${taskData.title}:${taskData.project || taskData.projectId}`;
     
     // Clear existing timeout for this task
@@ -958,12 +1271,22 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       clearTimeout(taskCreationQueue.current.get(taskKey)!);
     }
     
-    // Set new timeout
+    // Reduced debounce from 500ms to 200ms for better responsiveness
+    // Still debounced to prevent API spam but feels more instant
     const timeoutId = setTimeout(async () => {
       try {
-        // Debug logging removed for production
         const response = await apiService.createTask(taskData);
-        if (!response.success) {
+        if (response.success && response.data) {
+          // Update the task with the real ID from the server
+          setTasks(prevTasks => {
+            const placeholderTask = prevTasks.find(t => t.id === taskKey || (t.id.startsWith('tmp:') && t.title === taskData.title));
+            if (placeholderTask) {
+              return prevTasks.map(t => t.id === placeholderTask.id ? response.data : t);
+            }
+            return prevTasks;
+          });
+          // Don't show success notification for every task to avoid spam
+        } else {
           logger.error('Failed to create task', new Error(response.error), { title: taskData.title });
         }
       } catch (error) {
@@ -972,17 +1295,15 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
         // Remove from queue
         taskCreationQueue.current.delete(taskKey);
       }
-    }, 500); // 500ms debounce
+    }, 200); // Reduced from 500ms to 200ms for better responsiveness
     
     taskCreationQueue.current.set(taskKey, timeoutId);
   }, []);
 
   const handleTasksChange = useCallback(async (updatedTasks: Task[]) => {
-    // Debug logging removed for production
     // Treat ids that contain "-w" as placeholders that must be created first
     const isPlaceholderId = (id: string) => id.includes('-w');
     const newTasks = updatedTasks.filter(t => !tasks.find(existing => existing.id === t.id) || isPlaceholderId(t.id));
-    // Debug logging removed for production
     
     // Update local state immediately for UI responsiveness
     setTasks(dedupeTasks(updatedTasks));
@@ -991,7 +1312,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     try {
       // Handle new tasks with debouncing
       for (const newTask of newTasks) {
-        // Debug logging removed for production
         const looksLikeUuid = typeof newTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(newTask.projectId);
         const payload: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string } = {
           title: newTask.title,
@@ -1012,7 +1332,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       for (const updatedTask of existingTasks) {
         const originalTask = tasks.find(t => t.id === updatedTask.id);
         if (originalTask && !isPlaceholderId(updatedTask.id) && JSON.stringify(originalTask) !== JSON.stringify(updatedTask)) {
-          // Debug logging removed for production
           const looksLikeUuid = typeof updatedTask.projectId === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(updatedTask.projectId);
           const updatePayload: { title: string; description: string; responsible: string; status: 'todo' | 'in-progress' | 'completed'; deadline?: string | null; project?: string; projectId?: string; timeSpent?: string; notifications?: boolean } = {
             title: updatedTask.title,
@@ -1027,7 +1346,9 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           if (looksLikeUuid) updatePayload.projectId = updatedTask.projectId;
           const response = await apiService.updateTask(updatedTask.id, updatePayload);
           
-          if (!response.success) {
+          if (response.success) {
+            // Success feedback is handled by optimistic updates and notifications
+          } else {
             logger.error('Failed to update task', new Error(response.error), { title: updatedTask.title });
           }
         }
@@ -1039,12 +1360,10 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     // Check if we're adding new marketing track tasks (which means we're setting up a track)
     const hasNewMarketingTasks = newTasks.some(task => task.marketingTrack);
     if (hasNewMarketingTasks) {
-      // Debug logging removed for production
       return;
     }
 
     // Sync marketing track tasks but preserve active goal states
-    // Debug logging removed for production
     const updatedGoals = marketingGoals.map(goal => {
       const updatedModules = goal.modules.map(module => {
         const updatedModuleTasks = module.tasks.map(marketingTask => {
@@ -1086,11 +1405,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   }, [tasks, marketingGoals, setTasks, setMarketingGoals, debouncedCreateTask]);
 
   const handleProjectsChange = useCallback(async (updatedProjects: Project[]) => {
-    logger.debug('handleProjectsChange called', { 
-      projectCount: updatedProjects.length,
-      projects: updatedProjects.map(p => ({ id: p.id, name: p.name, status: p.status }))
-    });
-    
     // Update local state immediately for UI responsiveness
     setProjects(updatedProjects);
     
@@ -1101,7 +1415,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       
       // Handle new projects
       for (const newProject of newProjects) {
-        logger.debug('Creating new project', { name: newProject.name });
         // Create in database
         try {
           const response = await apiService.createProject({
@@ -1113,6 +1426,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           
           if (response.success && response.data) {
             logger.info('Project created successfully', { projectId: response.data?.id });
+            showSuccess('Project Created', `"${newProject.name}" has been created successfully.`);
           } else {
             logger.error('Failed to create project', new Error(response.error), { name: newProject.name });
           }
@@ -1126,7 +1440,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       for (const updatedProject of existingProjects) {
         const originalProject = projects.find(p => p.id === updatedProject.id);
         if (originalProject && JSON.stringify(originalProject) !== JSON.stringify(updatedProject)) {
-          logger.debug('Updating project', { name: updatedProject.name });
           const response = await apiService.updateProject(updatedProject.id, {
             name: updatedProject.name,
             description: updatedProject.description || '',
@@ -1134,7 +1447,9 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
             status: updatedProject.status
           });
           
-          if (!response.success) {
+          if (response.success) {
+            showSuccess('Project Updated', `"${updatedProject.name}" has been updated successfully.`);
+          } else {
             logger.error('Failed to update project', new Error(response.error), { id: updatedProject.id });
           }
         }
@@ -1142,10 +1457,11 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       
       // Handle deleted projects
       for (const deletedProject of deletedProjects) {
-        logger.debug('Deleting project', { name: deletedProject.name });
         const response = await apiService.deleteProject(deletedProject.id);
         
-        if (!response.success) {
+        if (response.success) {
+          showSuccess('Project Deleted', `"${deletedProject.name}" has been deleted successfully.`);
+        } else {
           logger.error('Failed to delete project', new Error(response.error), { id: deletedProject.id });
         }
       }
@@ -1155,17 +1471,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   }, [projects, setProjects]);
 
   const handleMarketingGoalsChange = useCallback(async (updatedGoals: MarketingGoal[]) => {
-    logger.debug('handleMarketingGoalsChange called', {
-      goalCount: updatedGoals.length,
-      goals: updatedGoals.map((g, index) => ({
-        index: index + 1,
-        id: g.id,
-        title: g.title,
-        isActive: g.isActive,
-        currentWeek: g.currentWeek
-      }))
-    });
-    
     // Update local state immediately for UI responsiveness
     setMarketingGoals(updatedGoals);
     
@@ -1175,7 +1480,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
       
       // Handle new goals
       for (const newGoal of newGoals) {
-        logger.debug('Creating new marketing goal', { title: newGoal.title });
         const response = await apiService.createMarketingGoal({
           title: newGoal.title,
           description: newGoal.description || '',
@@ -1198,7 +1502,6 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           originalGoal.progress !== existingGoal.progress ||
           JSON.stringify(originalGoal.modules.map(m => m.tasks)) !== JSON.stringify(existingGoal.modules.map(m => m.tasks))
         )) {
-          logger.debug('Updating marketing goal', { title: existingGoal.title });
           const nextWeek = Math.max(existingGoal.currentWeek, originalGoal.currentWeek);
           const response = await apiService.updateMarketingGoal(existingGoal.id, {
             isActive: existingGoal.isActive,
@@ -1216,7 +1519,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     }
   }, [marketingGoals, setMarketingGoals]);
 
-  const handleOnboardingComplete = useCallback(async (onboardingData: Record<string, unknown>) => {
+  const handleOnboardingComplete = useCallback(async (onboardingData: OnboardingData) => {
     logger.info('Onboarding completed', { onboardingData });
     logger.debug('About to close onboarding wizard');
 
@@ -1245,24 +1548,24 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
       logger.info('Onboarding setup complete - track activated and data refreshed');
 
-      // Send onboarding complete notification (temporarily disabled to prevent errors)
+      // Send onboarding complete notification
       try {
-        logger.debug('Onboarding complete notification temporarily disabled');
-        // const notificationResponse = await apiService.sendNotification({
-        //   type: 'onboarding_complete',
-        //   data: onboardingData
-        // });
-        // if (notificationResponse.success) {
-        //   logger.info('Onboarding complete notification sent');
-        // }
+        const notificationResponse = await apiService.sendNotification({
+          type: 'onboarding_complete',
+          data: onboardingData
+        });
+        if (notificationResponse.success) {
+          logger.info('Onboarding complete notification sent');
+        } else {
+          logger.warn('Onboarding notification failed', { error: notificationResponse.error });
+        }
       } catch (error) {
         logger.error('Error sending onboarding notification', error);
+        // Don't block onboarding completion if notification fails
       }
 
       // Close the onboarding modal
-      logger.debug('Setting showOnboarding to false');
       setShowOnboarding(false);
-      logger.debug('Onboarding wizard should now be closed');
 
     } catch (error) {
       logger.error('Error setting up onboarding', error);
@@ -1270,49 +1573,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   }, [marketingGoals, projects, handleMarketingGoalsChange, handleProjectsChange]);
 
   // Comment out unused handlers for now
-  /*
-  const handleAssetsChange = async (updatedAssets: Asset[]) => {
-    // Implementation removed for now
-  };
 
-  const handleBrandingKitsChange = (updatedKits: BrandingKit[]) => {
-    // Implementation removed for now
-  };
-
-  const handleShareLinksChange = (updatedLinks: ShareLink[]) => {
-    // Implementation removed for now
-  };
-
-  const handleEventEdit = (event: CalendarEvent) => {
-    // Implementation removed for now
-  };
-
-  const handleEventSave = async (eventData: { title: string; description: string; startTime: string; endTime: string; projectId?: string; category?: EventCategory }) => {
-    // Implementation removed for now
-  };
-
-  const handleEventCancel = () => {
-    // Implementation removed for now
-  };
-
-  const handleEventDelete = async (eventId: string) => {
-    // Implementation removed for now
-  };
-  */
-
-  // Monitor marketing goals state changes
-  useEffect(() => {
-    logger.debug('marketingGoals state changed', {
-      goalCount: marketingGoals.length,
-      goals: marketingGoals.map((g, index) => ({
-        index: index + 1,
-        id: g.id,
-        title: g.title,
-        isActive: g.isActive,
-        currentWeek: g.currentWeek
-      }))
-    });
-  }, [marketingGoals]);
 
   // Auto-sync tasks with active marketing goal so dashboard reflects correct state without visiting the track page
   useEffect(() => {
@@ -1347,21 +1608,17 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
     });
 
     if (changed) {
-      logger.debug('Auto-synced dashboard tasks with marketing track');
       handleTasksChange(updatedTasks);
     }
   }, [marketingGoals, tasks, projects, handleTasksChange]);
 
   // Function to sync marketing task changes with regular tasks
   const handleMarketingTaskStatusChange = useCallback((taskId: string, isCompleted: boolean) => {
-    logger.debug('Marketing task status changed', { taskId, status: isCompleted ? 'completed' : 'incomplete' });
-    
     // Find the corresponding regular task and update its status
     const regularTask = tasks.find(t => t.marketingTrack?.marketingTaskId === taskId);
     if (regularTask) {
       const newStatus: 'todo' | 'in-progress' | 'completed' = isCompleted ? 'completed' : 'todo';
       if (regularTask.status !== newStatus) {
-        logger.debug('Updating regular task status', { taskId: regularTask.id, newStatus });
         const updatedTasks = tasks.map(t => 
           t.id === regularTask.id ? { ...t, status: newStatus } : t
         );
@@ -1377,7 +1634,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
   if (isLoading) {
     return (
       <>
-        <Header onLogoClick={onLogoClick} />
+        <Header onLogoClick={onLogoClick} onSearchClick={() => setShowQuickSearch(true)} />
         <div className={`app-shell${sidebarHidden ? ' collapsed' : ''}`} style={{ position: 'relative' }}>
           <Sidebar hidden={sidebarHidden} onToggle={toggleSidebar} />
           {/* Only show sidebar toggle on mobile during loading */}
@@ -1388,7 +1645,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
           )}
           <main className="main-content">
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-              <div>Loading...</div>
+              <LoadingSpinner message="Loading..." size="sm" />
             </div>
           </main>
         </div>
@@ -1398,7 +1655,9 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
 
   return (
     <>
-      <Header onLogoClick={onLogoClick} />
+      <Header onLogoClick={onLogoClick} onSearchClick={() => setShowQuickSearch(true)} />
+      <OfflineBanner />
+      <TrialCountdownBanner />
       <NotificationContainer />
       
       {/* Mobile Hamburger Menu */}
@@ -1437,6 +1696,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
         )}
         <main className="main-content">
           <MarketingProvider onTaskStatusChange={handleMarketingTaskStatusChange}>
+            <ActivityReminders />
             <TaskSync tasks={tasks} setTasks={setTasks} setMarketingGoals={setMarketingGoals} />
             <OnboardingWizard
               isOpen={showOnboarding}
@@ -1460,7 +1720,7 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
               path="profile-manager"
               element={
                 marketingGoals.some(g => g.title === 'Improve Social Media Strategy & Engagement' && g.currentWeek >= g.duration)
-                  ? <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                  ? <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner size="md" /></div>}>
                       <SocialProfileManager marketingGoals={marketingGoals} />
                     </Suspense>
                   : <Navigate to="/app/marketing-track" replace />
@@ -1473,14 +1733,14 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
                   const titleLower = g.title?.toLowerCase() || '';
                   return titleLower.includes('social media') || titleLower.includes('social');
                 })
-                  ? <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+                  ? <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner size="md" /></div>}>
                       <SocialStrategyHub />
                     </Suspense>
                   : <Navigate to="/app/marketing-track" replace />
               }
             />
             <Route path="assets" element={
-              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner size="md" /></div>}>
                 <AssetLibrary />
               </Suspense>
             } />
@@ -1494,27 +1754,27 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
               />
             } />
             <Route path="ai-marketing-assistant" element={
-              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner size="md" /></div>}>
                 <AIMarketingAssistant />
               </Suspense>
             } />
             <Route path="social-generator" element={
-              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner size="md" /></div>}>
                 <SocialMediaGeneratorPage />
               </Suspense>
             } />
             <Route path="affiliate/program" element={
-              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner size="md" /></div>}>
                 <AffiliateProgramPage />
               </Suspense>
             } />
             <Route path="affiliate/dashboard" element={
-              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner size="md" /></div>}>
                 <AffiliateDashboardPage />
               </Suspense>
             } />
             <Route path="admin/affiliate" element={
-              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner size="md" /></div>}>
                 <AdminGuard>
                   <AdminAffiliatePage />
                 </AdminGuard>
@@ -1523,14 +1783,14 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
             <Route path="manage-subscription" element={<SubscriptionPage />} />
             <Route path="feedback" element={<FeedbackPage />} />
             <Route path="admin/marketing-tracks" element={
-              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner size="md" /></div>}>
                 <AdminGuard>
                   <VisualTracksAdminPage />
                 </AdminGuard>
               </Suspense>
             } />
             <Route path="admin/marketing-tracks-old" element={
-              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner size="md" /></div>}>
                 <AdminGuard>
                   <TracksAdminPage />
                 </AdminGuard>
@@ -1543,39 +1803,33 @@ function ProtectedApp({ onLogoClick }: { onLogoClick?: () => void }) {
             </PersonalizedDashboard>
           </MarketingProvider>
         </main>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav />
+
+        {/* Keyboard Shortcuts Modal */}
+        <KeyboardShortcutsModal 
+          isOpen={showKeyboardShortcuts}
+          onClose={() => setShowKeyboardShortcuts(false)}
+        />
+
+        {/* Quick Search */}
+        <QuickSearch
+          isOpen={showQuickSearch}
+          onClose={() => setShowQuickSearch(false)}
+          tasks={tasks}
+        />
       </div>
     </>
   );
 }
 
 function App() {
-  // Debug environment variables (development only)
-  logger.debug('App.tsx - Environment variables', {
-    VITE_DISABLE_AUTH: import.meta.env.VITE_DISABLE_AUTH,
-    VITE_DISABLE_AUTH_type: typeof import.meta.env.VITE_DISABLE_AUTH,
-    authBypassEnabled: (import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE') && !import.meta.env.PROD
-  });
-  
-  // Basic React debugging (development only)
-  logger.debug('App component is rendering', {
-    url: window.location.href,
-    pathname: window.location.pathname,
-    hostname: window.location.hostname
-  });
-  
-  // Production debugging
-  if (window.location.hostname !== 'localhost') {
-    logger.debug('Production environment detected', {
-      authDisabled: (import.meta.env.VITE_DISABLE_AUTH === 'true' || import.meta.env.VITE_DISABLE_AUTH === 'TRUE') && !import.meta.env.PROD
-    });
-  }
   
   // Secret admin access state
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [showAdminAccess, setShowAdminAccess] = useState(false);
   
-  // Mobile detection
-  const isMobile = useIsMobile();
   
   // Handle secret admin access
   const handleLogoClick = () => {
@@ -1604,9 +1858,18 @@ function App() {
       <OnboardingProvider>
         <Routes>
         {/* Public */}
-        <Route path="/" element={<LandingPage />} />
+        {/* Landing page is served as static index.html, not a React route */}
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/affiliate-terms" element={<AffiliateProgramTermsPage />} />
+        <Route path="/tracks" element={<MarketingTracksPage />} />
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/affiliate-partner/apply" element={
+          <Suspense fallback={<LoadingSpinner fullScreen size="md" />}>
+            <AffiliatePartnerApplicationPage />
+          </Suspense>
+        } />
 
         {/* Pricing */}
         <Route path="/pricing" element={<PricingPage />} />
@@ -1618,8 +1881,15 @@ function App() {
 
         {/* Shared Strategy View - Public */}
         <Route path="/shared/strategy/:accessCode" element={
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-[#0F0A1A]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81]"></div></div>}>
+          <Suspense fallback={<LoadingSpinner fullScreen size="md" />}>
             <SharedStrategyView />
+          </Suspense>
+        } />
+
+        {/* Shared Assets View - Public */}
+        <Route path="/shared/assets/:accessCode" element={
+          <Suspense fallback={<LoadingSpinner fullScreen size="md" />}>
+            <SharedAssets />
           </Suspense>
         } />
 

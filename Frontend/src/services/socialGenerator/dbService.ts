@@ -1,4 +1,5 @@
 import type { GeneratedImage } from '../../types/socialGenerator';
+import { logger } from '../../utils/logger';
 
 const DB_NAME = 'SocialGraphicGeneratorDB';
 const DB_VERSION = 1;
@@ -15,7 +16,7 @@ const initDB = (): Promise<IDBDatabase> => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = () => {
-      console.error('IndexedDB error:', request.error);
+      logger.error('IndexedDB error', request.error);
       reject('Error opening database');
     };
 
@@ -43,7 +44,7 @@ export const addImage = async (image: GeneratedImage): Promise<void> => {
 
     request.onsuccess = () => resolve();
     request.onerror = () => {
-        console.error('Error adding image to DB:', request.error);
+        logger.error('Error adding image to DB', request.error);
         reject(request.error);
     };
   });
@@ -60,7 +61,7 @@ export const getAllImages = async (): Promise<GeneratedImage[]> => {
         resolve(request.result as GeneratedImage[]);
     };
     request.onerror = () => {
-        console.error('Error getting images from DB:', request.error);
+        logger.error('Error getting images from DB', request.error);
         reject(request.error);
     };
   });

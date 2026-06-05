@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { apiService } from '../services/api';
+import { logger } from '../utils/logger';
 
 interface SubscriptionStatus {
   subscription_status: 'trial' | 'active' | 'expired' | 'cancelled';
@@ -71,7 +72,7 @@ export function useSubscription() {
           setError('Failed to fetch subscription status');
         }
       } catch (err) {
-        console.error('Error fetching subscription:', err);
+        logger.error('Error fetching subscription', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);

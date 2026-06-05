@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { API_URL } from './config/environment';
 import AdminGuard from './components/AdminGuard';
 import { supabase } from './lib/supabase';
+import { useNotificationHelpers } from './hooks/useNotificationHelpers';
+import { logger } from './utils/logger';
 
 interface AdminStats {
   totalAffiliates: number;
@@ -62,13 +64,17 @@ interface RevenueReport {
 }
 
 export default function AdminAffiliatePage() {
+  const { showSuccess, showError, showWarning } = useNotificationHelpers();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [revenue, setRevenue] = useState<RevenueReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'affiliates' | 'payouts' | 'revenue'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'affiliates' | 'payouts' | 'revenue' | 'partner-applications'>('overview');
+  const [partnerApplications, setPartnerApplications] = useState<any[]>([]);
+  const [processingApplication, setProcessingApplication] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -86,26 +92,30 @@ export default function AdminAffiliatePage() {
       const headers = { 'Authorization': `Bearer ${session.access_token}` };
 
       // Load all data in parallel
-      const [statsRes, affiliatesRes, payoutsRes, revenueRes] = await Promise.all([
+      const [statsRes, affiliatesRes, payoutsRes, revenueRes, applicationsRes] = await Promise.all([
         fetch(`${API_URL}/api/affiliate/admin/stats`, { headers }),
         fetch(`${API_URL}/api/affiliate/admin/affiliates`, { headers }),
         fetch(`${API_URL}/api/affiliate/admin/payouts`, { headers }),
         fetch(`${API_URL}/api/affiliate/admin/revenue-report`, { headers }),
+        fetch(`${API_URL}/api/affiliate/partner/applications`, { headers }),
       ]);
 
-      const [statsData, affiliatesData, payoutsData, revenueData] = await Promise.all([
+      const [statsData, affiliatesData, payoutsData, revenueData, applicationsData] = await Promise.all([
         statsRes.json(),
         affiliatesRes.json(),
         payoutsRes.json(),
         revenueRes.json(),
+        applicationsRes.json(),
       ]);
 
       if (statsData.success) setStats(statsData.data);
       if (affiliatesData.success) setAffiliates(affiliatesData.data);
       if (payoutsData.success) setPayouts(payoutsData.data);
       if (revenueData.success) setRevenue(revenueData.data);
+      if (applicationsData.success) setPartnerApplications(applicationsData.data || []);
     } catch (err) {
-      console.error('Error loading admin data:', err);
+      logger.error('Error loading admin data', err);
+      setError('Failed to load admin data');
     } finally {
       setLoading(false);
     }
@@ -132,14 +142,21 @@ export default function AdminAffiliatePage() {
       const result = await response.json();
 
       if (result.success) {
-        alert(`Processed ${result.processed || 0} payouts successfully. ${result.failed || 0} failed.`);
+        const processed = result.processed || 0;
+        const failed = result.failed || 0;
+        if (failed > 0) {
+          showWarning('Payouts Processed', `Processed ${processed} payouts successfully. ${failed} failed.`);
+        } else {
+          showSuccess('Payouts Processed', `Successfully processed ${processed} payout(s).`);
+        }
         loadData(); // Reload data
       } else {
-        alert('Failed to process payouts');
+        showError('Payout Processing Failed', 'Failed to process payouts. Please try again.');
       }
     } catch (err) {
-      console.error('Error processing payouts:', err);
-      alert('Failed to process payouts');
+      logger.error('Error processing payouts', err);
+      setError('Failed to process payouts');
+      showError('Payout Processing Failed', 'Failed to process payouts. Please try again.');
     } finally {
       setProcessing(false);
     }
@@ -160,18 +177,91 @@ export default function AdminAffiliatePage() {
     });
   };
 
+  const handleApproveApplication = async (applicationId: string) => {
+    if (!confirm('Approve this partner application? This will create an affiliate account and send an approval email.')) {
+      return;
+    }
+
+    setProcessingApplication(applicationId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Not authenticated');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/affiliate/partner/approve/${applicationId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showSuccess('Application Approved', 'Application approved successfully! An email has been sent to the applicant.');
+        loadData(); // Reload data
+      } else {
+        showError('Approval Failed', `Failed to approve application: ${result.error}`);
+      }
+    } catch (err) {
+      logger.error('Error approving application', err);
+      setError('Failed to approve application');
+      showError('Approval Failed', 'Failed to approve application. Please try again.');
+    } finally {
+      setProcessingApplication(null);
+    }
+  };
+
+  const handleRejectApplication = async (applicationId: string) => {
+    const reason = prompt('Please provide a reason for rejection (optional):');
+    if (reason === null) return; // User cancelled
+
+    setProcessingApplication(applicationId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Not authenticated');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/affiliate/partner/reject/${applicationId}`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ rejectionReason: reason || undefined }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showSuccess('Application Rejected', 'Application rejected successfully.');
+        loadData(); // Reload data
+      } else {
+        showError('Rejection Failed', `Failed to reject application: ${result.error}`);
+      }
+    } catch (err) {
+      logger.error('Error rejecting application', err);
+      setError('Failed to reject application');
+      showError('Rejection Failed', 'Failed to reject application. Please try again.');
+    } finally {
+      setProcessingApplication(null);
+    }
+  };
+
+  // Don't wrap with AdminGuard here - it's already wrapped in App.tsx routes
+  // Wrapping conditionally causes hook order issues
   if (loading) {
     return (
-      <AdminGuard>
-        <div className="min-h-screen bg-gradient-to-br from-[#1B1628] via-[#231C37] to-[#1B1628] flex items-center justify-center">
-          <div className="text-white text-xl">Loading...</div>
-        </div>
-      </AdminGuard>
+      <div className="min-h-screen bg-gradient-to-br from-[#1B1628] via-[#231C37] to-[#1B1628] flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
     );
   }
 
   return (
-    <AdminGuard>
+    <>
       <div className="min-h-screen bg-gradient-to-br from-[#1B1628] via-[#231C37] to-[#1B1628] p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -179,6 +269,19 @@ export default function AdminAffiliatePage() {
             <h1 className="text-3xl font-bold text-white mb-2">Affiliate Program Admin</h1>
             <p className="text-gray-400">Manage affiliates, track performance, and process payouts</p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 bg-red-500/20 border border-red-500/30 rounded-lg p-4">
+              <p className="text-red-300">{error}</p>
+              <button
+                onClick={() => setError(null)}
+                className="mt-2 text-red-300 hover:text-red-200 text-sm underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="flex gap-2 mb-6">
@@ -221,6 +324,16 @@ export default function AdminAffiliatePage() {
               }`}
             >
               Revenue
+            </button>
+            <button
+              onClick={() => setActiveTab('partner-applications')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                activeTab === 'partner-applications'
+                  ? 'bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] text-white'
+                  : 'bg-[#2A243E] text-gray-400 hover:text-white'
+              }`}
+            >
+              Partner Applications
             </button>
           </div>
 
@@ -461,8 +574,80 @@ export default function AdminAffiliatePage() {
               </div>
             </div>
           )}
+
+          {/* Partner Applications Tab */}
+          {activeTab === 'partner-applications' && (
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4">Partner Applications</h2>
+              
+              {partnerApplications.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">No partner applications yet</div>
+              ) : (
+                <div className="space-y-4">
+                  {partnerApplications.map((app) => (
+                    <div key={app.id} className="bg-[#2A243E] rounded-xl p-6 border border-[#3A344E]">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-bold text-white">{app.full_name}</h3>
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              app.status === 'approved' ? 'bg-green-500/20 text-green-400' :
+                              app.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                              'bg-yellow-500/20 text-yellow-400'
+                            }`}>
+                              {app.status}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-400 space-y-1">
+                            <p><strong>Email:</strong> {app.email}</p>
+                            {app.company_name && <p><strong>Company:</strong> {app.company_name}</p>}
+                            {app.industry && <p><strong>Industry:</strong> {app.industry}</p>}
+                            {app.website && <p><strong>Website:</strong> <a href={app.website} target="_blank" rel="noopener noreferrer" className="text-[#EF8E81] hover:underline">{app.website}</a></p>}
+                            {app.expected_referrals_per_month && <p><strong>Expected Referrals/Month:</strong> {app.expected_referrals_per_month}</p>}
+                            <p><strong>Applied:</strong> {formatDate(app.created_at)}</p>
+                            {app.reviewed_at && <p><strong>Reviewed:</strong> {formatDate(app.reviewed_at)}</p>}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <h4 className="text-sm font-semibold text-white mb-2">Reason for Applying:</h4>
+                        <p className="text-gray-300 text-sm whitespace-pre-wrap">{app.reason_for_applying}</p>
+                      </div>
+
+                      {app.rejection_reason && (
+                        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                          <h4 className="text-sm font-semibold text-red-400 mb-1">Rejection Reason:</h4>
+                          <p className="text-red-300 text-sm">{app.rejection_reason}</p>
+                        </div>
+                      )}
+
+                      {app.status === 'pending' && (
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => handleApproveApplication(app.id)}
+                            disabled={processingApplication === app.id}
+                            className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {processingApplication === app.id ? 'Processing...' : 'Approve'}
+                          </button>
+                          <button
+                            onClick={() => handleRejectApplication(app.id)}
+                            disabled={processingApplication === app.id}
+                            className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {processingApplication === app.id ? 'Processing...' : 'Reject'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
-    </AdminGuard>
+    </>
   );
 }

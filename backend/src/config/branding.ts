@@ -23,9 +23,9 @@ export interface BrandingConfig {
 export function getBrandingConfig(): BrandingConfig {
   return {
     name: process.env['BRAND_NAME'] || 'MomentumDIY',
-    email: process.env['BRAND_EMAIL'] || 'info@hillaryedenmcmullen.com',
+    email: process.env['BRAND_EMAIL'] || 'hello@momentumdiy.com',
     domain: process.env['BRAND_DOMAIN'] || 'momentumdiy.com',
-    logoUrl: process.env['BRAND_LOGO_URL'] || 'https://momentumdiy.com/logo.png',
+    logoUrl: process.env['BRAND_LOGO_URL'] || 'https://momentumdiy.com/assets/octopus_icon.png',
     primaryColor: process.env['BRAND_PRIMARY_COLOR'] || '#EF8E81',
     secondaryColor: process.env['BRAND_SECONDARY_COLOR'] || '#D4AF37',
     supportEmail: process.env['BRAND_SUPPORT_EMAIL'] || 'info@hillaryedenmcmullen.com',

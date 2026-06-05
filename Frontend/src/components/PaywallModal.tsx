@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '../utils/logger';
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -64,7 +65,7 @@ export default function PaywallModal({ isOpen, onClose, trialEndDate, daysRemain
     try {
       navigate(`/checkout/${plan}/${interval}`);
     } catch (error) {
-      console.error('Error navigating to checkout:', error);
+      logger.error('Error navigating to checkout', error);
     } finally {
       setIsLoading(false);
     }

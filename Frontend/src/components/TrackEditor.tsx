@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../services/adminApi';
+import { useNotificationHelpers } from '../hooks/useNotificationHelpers';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 interface TrackDefinition {
   id: string;
@@ -45,7 +47,8 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
   ]);
   
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { showError } = useNotificationHelpers();
+  const { handleError } = useErrorHandler();
 
   // Initialize form data when track changes
   useEffect(() => {
@@ -66,7 +69,11 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
             setPhases(trackPhases);
           }
         } catch (error) {
-          console.error('Error parsing phases:', error);
+          handleError(error, {
+            showNotification: false, // Non-critical, just log
+            notificationTitle: 'Error Parsing Phases',
+            logAsError: false
+          });
         }
       }
     } else if (isCreating) {
@@ -89,7 +96,7 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
 
   const handleSave = async () => {
     if (!formData.slug || !formData.title || !formData.description) {
-      setError('Please fill in all required fields (slug, title, description)');
+      showError('Validation Error', 'Please fill in all required fields (slug, title, description)');
       return;
     }
 
@@ -102,23 +109,18 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
       phase.description.trim() === ''
     );
     if (incompletePhases.length > 0) {
-      setError('Please complete all phase titles and descriptions. Phase titles cannot be empty or end with a colon.');
+      showError('Validation Error', 'Please complete all phase titles and descriptions. Phase titles cannot be empty or end with a colon.');
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
-      // Debug logging removed for production
-      
       const trackData = {
         ...formData,
         industry_tags: formData.industry_tags.split(',').map(t => t.trim()).filter(Boolean),
         phases: phases // Send phases as array, let adminApi handle JSON.stringify
       };
-      
-      // Debug logging removed for production
 
       let response;
       if (isCreating) {
@@ -130,10 +132,19 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
       if (response.success) {
         onSave(response.data);
       } else {
-        setError(response.error || 'Failed to save track');
+        const errorMessage = response.error || 'Failed to save track';
+        showError('Save Failed', errorMessage);
+        handleError(new Error(errorMessage), {
+          showNotification: false, // Already shown above
+          notificationTitle: 'Failed to Save Track',
+          context: { isCreating, trackId: track?.id }
+        });
       }
     } catch (error) {
-      setError('Failed to save track');
+      handleError(error, {
+        notificationTitle: 'Failed to Save Track',
+        context: { isCreating, trackId: track?.id }
+      });
     } finally {
       setLoading(false);
     }
@@ -193,11 +204,6 @@ export default function TrackEditor({ track, onSave, onCancel, isCreating = fals
         </div>
       </div>
 
-      {error && (
-        <div className="mb-6 bg-red-500/20 border border-red-500/30 rounded-lg p-4">
-          <p className="text-red-300">{error}</p>
-        </div>
-      )}
 
       {/* Track Basic Information */}
       <div className="space-y-4 mb-8">

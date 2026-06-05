@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BACKEND_BASE_URL } from '../services/api';
+import { logger } from '../utils/logger';
 
 interface Insight {
   type: 'skill' | 'opportunity' | 'competitive';
@@ -45,7 +46,7 @@ export default function AIInsightsPanel({ profile }: AIInsightsPanelProps) {
       }
     } catch (err) {
       setError('Unable to connect to AI insights service');
-      console.error('AI Insights error:', err);
+      logger.error('AI Insights error', err);
     } finally {
       setLoading(false);
     }

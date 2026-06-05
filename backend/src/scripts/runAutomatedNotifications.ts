@@ -13,47 +13,47 @@
  */
 
 import { AutomatedNotificationsService } from '../services/automatedNotificationsService';
+import { logger } from '../utils/logger';
 
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0] || 'all';
 
-  console.log(`🚀 Running automated notifications: ${command}`);
-  console.log(`📅 Current time: ${new Date().toISOString()}`);
+  logger.info(`Running automated notifications: ${command}`, { currentTime: new Date().toISOString() });
 
   try {
     switch (command) {
       case 'weekly-progress':
         await AutomatedNotificationsService.sendWeeklyProgressReports();
-        console.log('✅ Weekly progress reports completed');
+        logger.info('Weekly progress reports completed');
         break;
 
       case 'trial-ending':
         await AutomatedNotificationsService.sendTrialEndingNotifications();
-        console.log('✅ Trial ending notifications completed');
+        logger.info('Trial ending notifications completed');
         break;
 
       case 'task-reminders':
         await AutomatedNotificationsService.sendTaskReminders();
-        console.log('✅ Task reminders completed');
+        logger.info('Task reminders completed');
         break;
 
       case 'schedule':
         await AutomatedNotificationsService.scheduleNotifications();
-        console.log('✅ Scheduled notifications completed');
+        logger.info('Scheduled notifications completed');
         break;
 
       case 'all':
       default:
         await AutomatedNotificationsService.runAllNotifications();
-        console.log('✅ All automated notifications completed');
+        logger.info('All automated notifications completed');
         break;
     }
 
-    console.log('🎉 Automated notifications script completed successfully');
+    logger.info('Automated notifications script completed successfully');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error running automated notifications:', error);
+    logger.error('Error running automated notifications', error);
     process.exit(1);
   }
 }

@@ -189,7 +189,16 @@ export default function LandingPage() {
       </section>
 
       <footer className="landing-footer">
-        <Link to="/terms">Terms</Link>
+        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 py-8">
+          <p className="text-sm text-white/60">© {new Date().getFullYear()} MomentumDIY</p>
+          <nav className="flex items-center gap-5 text-sm">
+            <Link to="/terms" className="text-white/60 hover:text-white transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="text-white/60 hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/affiliate-partner/apply" className="text-white/60 hover:text-white transition-colors">Become an Affiliate Partner</Link>
+            <a href="https://www.hillaryedenmcmullen.com/post/hillary-eden-mcmullen-an-introduction" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors">About the Founder</a>
+            <a href="mailto:info@hillaryedenmcmullen.com" className="text-white/60 hover:text-white transition-colors">Contact</a>
+          </nav>
+        </div>
       </footer>
     </div>
   );

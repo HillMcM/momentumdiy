@@ -13,6 +13,10 @@ export interface Notification {
     label: string;
     onClick: () => void;
   };
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 interface NotificationContextType {

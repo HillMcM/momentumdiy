@@ -1,0 +1,169 @@
+Onboarding & First-Time Experience
+Issues:
+Onboarding can be skipped — no clear value statement to discourage skipping
+Onboarding shows recommended tracks, but unclear how to start them without completing onboarding
+Post-onboarding redirect to /app/marketing-track is immediate, but a short success/celebration would help
+No preview of the track before committing during onboarding
+
+Missing polish:
+No progress indicators or estimated time remaining in onboarding
+No way to go back and change previous answers
+No confirmation before activating a track (users may want to review)
+
+
+Dashboard & Empty States
+Issues:
+Dashboard can be empty if no track is active — the widget shows "No Active Track" but no clear CTA to start one
+When tasks are empty, fallback shows all tasks instead of guiding the user to start
+Personalization (PersonalizedDashboard) only shows on the dashboard — inconsistent greeting elsewhere
+
+Missing polish:
+No "Get Started" guide for new users
+No tooltips or help icons for first-time discovery
+No sample data or demo mode to illustrate value
+
+
+Navigation & Information Architecture
+Issues:
+Sidebar is long — many features visible before users understand them
+Mobile sidebar overlays don't clearly communicate the navigation pattern
+No breadcrumbs — users may lose context in deep flows
+Feature discovery is low — Social Strategy Hub and Social Profile Manager appear conditionally without explanation
+
+Missing polish:
+No keyboard shortcuts hint
+No search for features or tasks
+No recent activity or "last viewed" shortcuts
+
+
+Marketing Track Experience
+Issues:
+Track selection happens in onboarding, but unclear how to switch tracks later
+If no track is active, the marketing track page shows an error instead of a track selector
+Week progression is unclear — what unlocks next week? How do you advance?
+Task descriptions are hidden in modals — requires clicks to understand what to do
+
+Missing polish:
+No progress celebration (confetti exists but minimal use)
+No preview of upcoming weeks
+No way to "catch up" if behind
+
+
+Error Handling & User Feedback
+Issues:
+Error messages are technical (e.g., "Track data loaded but not active") instead of user-friendly
+API failures show generic errors — no actionable recovery steps
+Loading states are inconsistent — some pages show spinners, others show skeletons
+No offline indication — what happens if the network fails mid-action?
+
+Missing polish:
+No retry mechanisms for failed requests
+No optimistic UI updates (tasks should feel instant)
+No clear success feedback for many actions
+
+
+Subscription & Access Flow
+Issues:
+Paywall appears abruptly — no grace period or "days remaining" banner beforehand
+Subscription page shows all plans but doesn't highlight what you're missing
+Trial expiration isn't communicated proactively — only at access denial
+No way to see usage/engagement before trial ends
+
+Missing polish:
+No upgrade prompts based on feature usage
+No preview of premium features for trial users
+Cancel flow is hidden in subscription management
+
+
+Task Management
+Issues:
+Task creation has a 500ms debounce — may feel unresponsive
+No task templates or quick-add options
+No bulk actions (complete multiple, delete multiple)
+No task prioritization or due date sorting
+
+Missing polish:
+No keyboard shortcuts for task operations
+No drag-and-drop reordering
+No task dependencies or subtasks
+
+
+AI Features
+Issues:
+AI Assistant is separate from the context where you're working — FloatingAssistant is separate from page context
+No conversation history persistence — conversations disappear on refresh
+Error states are generic — "having trouble connecting" doesn't suggest what to do
+No examples or prompts to get started
+
+Missing polish:
+No rate limit warnings
+No cost indication for AI usage
+No way to save favorite prompts
+
+
+Mobile Experience
+Issues:
+Mobile sidebar requires multiple taps — no quick access to common features
+Forms (onboarding, profile) have long scrolls on mobile — no step indicators
+Tables/grids may not be optimized for small screens
+Touch targets may be too small in some areas
+
+Missing polish:
+No mobile-specific gestures (swipe to complete tasks)
+No bottom navigation bar for quick access
+No mobile app-like experience
+
+
+Profile & Settings
+Issues:
+Profile has many tabs but unclear what's required vs. optional
+Branding settings don't preview how they'll look
+No account deletion or data export
+Email preferences are separate from notification preferences — could be confusing
+
+Missing polish:
+No profile completion indicator
+No way to test notifications
+No change history or undo for settings
+
+
+Critical Missing Features
+Search — no way to find tasks, lessons, or content
+Export — no way to export tasks, progress, or data
+Integrations — no calendar sync, Slack, or other tools
+Analytics — no insights into usage, completion rates, or trends
+Sharing — no way to share progress or collaborate
+Offline mode — no offline capability
+
+
+Small Details That Add Up
+No "What's New" or changelog
+No help documentation or tutorials in-app
+No keyboard navigation patterns (Tab order, Enter to submit)
+No dark/light mode toggle (dark only)
+No print-friendly views for tasks/lessons
+No undo for destructive actions
+No confirmation dialogs for critical actions (deleting, canceling subscription)
+No empty state illustrations (just text)
+
+
+Recommendations Priority
+Critical:
+Improve empty states with clear CTAs
+Add a track selector for when no track is active
+Better error messaging with recovery steps
+Proactive trial expiration warnings
+
+High Priority:
+Add onboarding value statements to reduce skipping
+Improve task management UX (bulk actions, better feedback)
+Make AI Assistant more contextual
+Add search functionality
+
+Medium Priority:
+Add progress celebrations and gamification
+Improve mobile navigation patterns
+Add keyboard shortcuts
+Add data export
+
+These issues compound quickly and can drive users away. Focus on clear guidance, helpful error messages, and reducing friction in core workflows.

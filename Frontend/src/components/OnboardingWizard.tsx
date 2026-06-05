@@ -5,6 +5,8 @@ import { getPublishedTracks, activateTrack } from '../services/marketingService'
 import { useMarketing } from '../contexts/MarketingContext';
 import { BRANDING } from '../config/branding';
 import { logger } from '../utils/logger';
+import CompletionConfetti from './CompletionConfetti';
+import FormStepIndicator from './FormStepIndicator';
 
 // Types for onboarding data
 export interface OnboardingData {
@@ -45,6 +47,9 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
   const [availableTracks, setAvailableTracks] = useState<any[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [selectedTrackForPreview, setSelectedTrackForPreview] = useState<any>(null);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     businessName: '',
     businessType: '',
@@ -133,6 +138,17 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
   };
 
   const totalSteps = 8; // Total steps across all phases
+
+  // Calculate estimated time remaining (2-3 minutes per step)
+  const getEstimatedTimeRemaining = () => {
+    const stepsRemaining = totalSteps - (currentStep + 1);
+    const minutesPerStep = 2;
+    const totalMinutes = stepsRemaining * minutesPerStep;
+    
+    if (totalMinutes < 1) return 'Less than 1 minute';
+    if (totalMinutes === 1) return 'About 1 minute';
+    return `About ${totalMinutes} minutes`;
+  };
 
   // Phase steps are handled by step numbers
 
@@ -264,14 +280,19 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
       await refreshActiveGoal();
       logger.debug('Marketing data refreshed');
       
-      // Call the completion handler and close the wizard
-      logger.info('Onboarding completed successfully');
-      onComplete(onboardingData);
+      // Show success celebration screen
+      setShowSuccess(true);
       
-      // Navigate to marketing track page to see the new track
+      // After showing success, complete onboarding and navigate
       setTimeout(() => {
-        navigate('/app/marketing-track');
-      }, 500);
+        logger.info('Onboarding completed successfully');
+        onComplete(onboardingData);
+        
+        // Navigate to marketing track page to see the new track
+        setTimeout(() => {
+          navigate('/app/marketing-track');
+        }, 500);
+      }, 3000); // Show success screen for 3 seconds
       
     } catch (error) {
       logger.error('Error completing onboarding', error);
@@ -338,25 +359,30 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
             <p id="onboarding-modal-description" className="text-[#FFF1E7]/70 mb-4">
               Complete the onboarding process to set up your MomentumDIY account and get started with your marketing journey.
             </p>
-            <div className="flex items-center space-x-2">
-              <div className="w-48 bg-[#2A2438] rounded-full h-2">
-                <div 
-                  className="bg-[#EF8E81] h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
-                />
-              </div>
-              <span className="text-sm text-[#FFF1E7]/70">
-                {currentStep + 1} of {totalSteps}
-              </span>
-            </div>
           </div>
           <button
-            onClick={onSkip}
-            className="text-[#FFF1E7]/50 hover:text-[#FFF1E7] transition-colors"
+            onClick={() => setShowSkipConfirm(true)}
+            className="text-[#FFF1E7]/50 hover:text-[#FFF1E7] transition-colors text-sm"
           >
             Skip for now
           </button>
         </div>
+
+        {/* Mobile Step Indicator */}
+        <FormStepIndicator
+          currentStep={currentStep + 1}
+          totalSteps={totalSteps}
+          steps={[
+            'Business Info',
+            'Business Details',
+            'Goals',
+            'Challenges',
+            'Activities',
+            'Quiz 1',
+            'Quiz 2',
+            'Track Setup'
+          ]}
+        />
 
         {/* Step Content */}
         <div className="min-h-[400px]">
@@ -417,6 +443,79 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onComplete,
             </button>
         </div>
       </div>
+
+      {/* Skip Confirmation Modal */}
+      {showSkipConfirm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-[#1B1628] border border-[#EF8E81]/30 rounded-2xl p-8 max-w-md w-full">
+            <h3 className="text-2xl font-bold text-[#FFF1E7] mb-4">
+              Skip Onboarding?
+            </h3>
+            <p className="text-[#FFF1E7]/80 mb-6">
+              Setting up your profile and choosing a track now helps us personalize your experience and gets you started faster. You'll be able to start a track later, but we recommend completing this quick setup.
+            </p>
+            <div className="bg-[#EF8E81]/10 border border-[#EF8E81]/30 rounded-lg p-4 mb-6">
+              <p className="text-sm text-[#FFF1E7]/90 font-medium mb-2">What you'll miss:</p>
+              <ul className="text-sm text-[#FFF1E7]/70 space-y-1">
+                <li>• Personalized track recommendations</li>
+                <li>• Pre-configured business profile</li>
+                <li>• Automatic first week task setup</li>
+                <li>• Optimized notification preferences</li>
+              </ul>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSkipConfirm(false)}
+                className="flex-1 px-6 py-3 rounded-lg border border-[#EF8E81]/30 text-[#EF8E81] hover:bg-[#EF8E81]/10 transition-colors"
+              >
+                Continue Setup
+              </button>
+              <button
+                onClick={() => {
+                  setShowSkipConfirm(false);
+                  onSkip();
+                }}
+                className="flex-1 px-6 py-3 rounded-lg bg-[#2A2438] text-[#FFF1E7]/70 hover:text-[#FFF1E7] hover:bg-[#3A344E] transition-colors"
+              >
+                Skip Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Celebration Screen */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <CompletionConfetti isComplete={true} duration={3000} />
+          <div className="bg-[#1B1628] border border-[#EF8E81]/30 rounded-2xl p-8 max-w-lg w-full text-center">
+            <div className="w-24 h-24 bg-gradient-to-r from-[#EF8E81] to-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+              <span className="text-5xl">🎉</span>
+            </div>
+            <h2 className="text-3xl font-bold text-[#FFF1E7] mb-4">
+              You're All Set!
+            </h2>
+            <p className="text-lg text-[#FFF1E7]/80 mb-6">
+              Your personalized marketing track is ready. We're setting up your first week of tasks now.
+            </p>
+            <div className="bg-[#2A2438] rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-center space-x-4 text-sm text-[#FFF1E7]/70">
+                <div className="flex items-center">
+                  <span className="text-[#EF8E81] mr-2">✓</span>
+                  <span>Track activated</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-[#EF8E81] mr-2">✓</span>
+                  <span>Tasks queued</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-[#FFF1E7]/50 animate-pulse">
+              Redirecting to your track...
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -437,20 +536,51 @@ const BusinessSetupStep: React.FC<{
           <h2 className="text-3xl font-bold text-[#FFF1E7] mb-4">
             Welcome to {BRANDING.name}!
           </h2>
-          <p className="text-lg text-[#FFF1E7]/80 mb-6 max-w-2xl mx-auto">
+          <p className="text-lg text-[#FFF1E7]/80 mb-8 max-w-2xl mx-auto">
             We're excited to help you build a marketing strategy that actually works. 
             Let's personalize your experience so you can start seeing results from day one.
           </p>
-          <div className="bg-[#2A2438] rounded-lg p-6 max-w-2xl mx-auto">
-            <h3 className="text-xl font-semibold text-[#FFF1E7] mb-3">
+          
+          <div className="bg-gradient-to-r from-[#EF8E81]/10 to-[#D4AF37]/10 border border-[#EF8E81]/30 rounded-lg p-6 max-w-2xl mx-auto mb-6">
+            <h3 className="text-xl font-semibold text-[#FFF1E7] mb-4 flex items-center">
+              <span className="text-2xl mr-3">🎯</span>
               What we'll set up together:
             </h3>
-            <ul className="text-[#FFF1E7]/80 space-y-2 text-left">
-              <li>✓ Your business profile and goals</li>
-              <li>✓ A personalized marketing track recommendation</li>
-              <li>✓ Your first week of actionable tasks</li>
-              <li>✓ Success tracking and notifications</li>
+            <ul className="text-[#FFF1E7]/80 space-y-3 text-left">
+              <li className="flex items-start">
+                <span className="text-[#EF8E81] mr-3 mt-0.5">✓</span>
+                <span><strong>Your business profile:</strong> We'll personalize everything based on your business type, goals, and industry</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-[#EF8E81] mr-3 mt-0.5">✓</span>
+                <span><strong>Track recommendation:</strong> Get matched with the perfect 12-week marketing track for your goals</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-[#EF8E81] mr-3 mt-0.5">✓</span>
+                <span><strong>First week ready:</strong> Your tasks are automatically set up so you can start immediately</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-[#EF8E81] mr-3 mt-0.5">✓</span>
+                <span><strong>Smart notifications:</strong> Get reminders tailored to your schedule and preferences</span>
+              </li>
             </ul>
+          </div>
+
+          <div className="bg-[#2A2438] rounded-lg p-4 max-w-2xl mx-auto">
+            <div className="flex items-center justify-center space-x-6 text-sm text-[#FFF1E7]/70">
+              <div className="flex items-center">
+                <span className="text-[#EF8E81] mr-2">⏱️</span>
+                <span>Takes about 3-5 minutes</span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-[#EF8E81] mr-2">🎁</span>
+                <span>100% personalized</span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-[#EF8E81] mr-2">⚡</span>
+                <span>Get started instantly</span>
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -816,10 +946,10 @@ const TrackSetupStep: React.FC<{
       // 1. Match primary goal to track characteristics
       const goalMatches: Record<string, string[]> = {
         'increase-foot-traffic': ['local', 'foot', 'traffic', 'physical', 'store', 'location'],
-        'grow-social-media': ['social', 'media', 'instagram', 'facebook', 'content', 'followers'],
-        'generate-leads': ['leads', 'funnel', 'conversion', 'customers', 'sales'],
-        'build-awareness': ['brand', 'awareness', 'visibility', 'recognition', 'audience'],
-        'increase-sales': ['sales', 'revenue', 'conversion', 'customers', 'ecommerce']
+        'grow-social-media': ['social', 'media', 'instagram', 'facebook', 'content', 'followers', 'engagement', 'strategy'],
+        'generate-leads': ['leads', 'funnel', 'conversion', 'customers', 'sales', 'email', 'list', 'audience'],
+        'build-awareness': ['brand', 'awareness', 'visibility', 'recognition', 'audience', 'email', 'list', 'community', 'connections'],
+        'increase-sales': ['sales', 'revenue', 'conversion', 'customers', 'ecommerce', 'email', 'list', 'repeat', 'business']
       };
       
       const goalKeywords = goalMatches[data.primaryGoal] || [];
@@ -837,21 +967,27 @@ const TrackSetupStep: React.FC<{
       if (locationAnswer === 'physical-only' && (trackText.includes('local') || trackText.includes('foot') || trackText.includes('physical'))) {
         score += 15;
         matchReasons.push('Perfect for physical location businesses');
-      } else if (locationAnswer === 'online-only' && (trackText.includes('social') || trackText.includes('online') || trackText.includes('digital'))) {
+      } else if (locationAnswer === 'online-only' && (trackText.includes('social') || trackText.includes('online') || trackText.includes('digital') || trackText.includes('email') || trackText.includes('list'))) {
         score += 15;
         matchReasons.push('Optimized for online businesses');
       } else if (locationAnswer === 'both') {
-        score += 5; // Any track could work
+        // Both physical and online - email and social media work well for both
+        if (trackText.includes('email') || trackText.includes('social') || trackText.includes('local')) {
+          score += 10;
+          matchReasons.push('Works for both physical and online businesses');
+        } else {
+          score += 5; // Any track could work
+        }
       }
       
       // 3. Match quiz answer 2: Customer source
       const customerSourceAnswer = data.quizAnswers['quiz_2'];
       const sourceMatches: Record<string, string[]> = {
         'walk-ins': ['local', 'foot', 'traffic', 'location', 'physical'],
-        'social-media': ['social', 'media', 'instagram', 'facebook', 'content'],
-        'google-search': ['seo', 'google', 'search', 'local', 'online'],
-        'referrals': ['referral', 'word-of-mouth', 'customers', 'community'],
-        'online-ads': ['ads', 'advertising', 'paid', 'digital', 'marketing']
+        'social-media': ['social', 'media', 'instagram', 'facebook', 'content', 'engagement', 'strategy', 'followers'],
+        'google-search': ['seo', 'google', 'search', 'local', 'online', 'email', 'list'],
+        'referrals': ['referral', 'word-of-mouth', 'customers', 'community', 'email', 'list', 'connections'],
+        'online-ads': ['ads', 'advertising', 'paid', 'digital', 'marketing', 'email', 'list', 'leads']
       };
       
       const sourceKeywords = sourceMatches[customerSourceAnswer] || [];
@@ -866,9 +1002,9 @@ const TrackSetupStep: React.FC<{
       const priorityAnswer = data.quizAnswers['quiz_3'];
       const priorityMatches: Record<string, string[]> = {
         'physical-traffic': ['local', 'foot', 'traffic', 'store', 'location', 'physical'],
-        'online-presence': ['social', 'media', 'online', 'digital', 'presence', 'followers'],
-        'leads-sales': ['leads', 'sales', 'conversion', 'customers', 'revenue'],
-        'brand-recognition': ['brand', 'awareness', 'recognition', 'visibility', 'audience']
+        'online-presence': ['social', 'media', 'online', 'digital', 'presence', 'followers', 'engagement', 'strategy', 'email', 'list'],
+        'leads-sales': ['leads', 'sales', 'conversion', 'customers', 'revenue', 'email', 'list', 'repeat', 'business'],
+        'brand-recognition': ['brand', 'awareness', 'recognition', 'visibility', 'audience', 'email', 'list', 'community', 'connections']
       };
       
       const priorityKeywords = priorityMatches[priorityAnswer] || [];
@@ -906,17 +1042,38 @@ const TrackSetupStep: React.FC<{
         matchReasons.push('Makes use of your available time');
       }
       
+      // 6.5. Match current activities (boost if already doing related activities)
+      data.currentActivities.forEach(activity => {
+        const activityMatches: Record<string, string[]> = {
+          'email-marketing': ['email', 'list', 'audience', 'subscribers'],
+          'social-media-posting': ['social', 'media', 'engagement', 'strategy', 'content', 'followers'],
+          'google-my-business': ['local', 'foot', 'traffic', 'location', 'physical'],
+          'content-creation': ['content', 'social', 'media', 'email', 'strategy'],
+          'website-blog': ['email', 'list', 'audience', 'social', 'content'],
+          'paid-advertising': ['email', 'list', 'leads', 'sales', 'conversion'],
+          'networking-events': ['email', 'list', 'community', 'connections', 'referrals']
+        };
+        
+        const keywords = activityMatches[activity] || [];
+        keywords.forEach(keyword => {
+          if (trackText.includes(keyword)) {
+            score += 8;
+            matchReasons.push(`Builds on your ${activity.replace(/-/g, ' ')} efforts`);
+          }
+        });
+      });
+      
       // 7. Match biggest challenges
       data.biggestChallenge.forEach(challenge => {
         const challengeKeywords: Record<string, string[]> = {
           'don\'t-know-where-to-start': ['beginner', 'start', 'basics', 'foundation', 'step-by-step'],
           'lack-of-time': ['quick', 'efficient', 'time-saving', 'simple'],
           'no-clear-strategy': ['strategy', 'plan', 'roadmap', 'structured'],
-          'inconsistent-posting': ['consistent', 'schedule', 'calendar', 'routine'],
-          'low-engagement': ['engagement', 'audience', 'community', 'interaction'],
+          'inconsistent-posting': ['consistent', 'schedule', 'calendar', 'routine', 'email', 'batching'],
+          'low-engagement': ['engagement', 'audience', 'community', 'interaction', 'social', 'media', 'email'],
           'measuring-results': ['analytics', 'tracking', 'metrics', 'results'],
-          'creating-content': ['content', 'creation', 'ideas', 'templates'],
-          'understanding-audience': ['audience', 'targeting', 'customer', 'persona']
+          'creating-content': ['content', 'creation', 'ideas', 'templates', 'email', 'social'],
+          'understanding-audience': ['audience', 'targeting', 'customer', 'persona', 'email', 'list', 'community']
         };
         
         const keywords = challengeKeywords[challenge] || [];
@@ -1052,28 +1209,113 @@ const TrackSetupStep: React.FC<{
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-[#FFF1E7] mb-4">Available Tracks:</h3>
             {availableTracks.map((track) => (
-              <label key={track.id} className="flex items-start space-x-3 cursor-pointer p-4 bg-[#2A2438] rounded-lg hover:bg-[#2A2438]/80 transition-colors">
-                <input
-                  type="radio"
-                  name="selectedTrack"
-                  value={track.id}
-                  checked={data.selectedTrack === track.id}
-                  onChange={(e) => onUpdate({ selectedTrack: e.target.value })}
-                  className="w-4 h-4 text-[#EF8E81] bg-[#2A2438] border-[#EF8E81]/30 focus:ring-[#EF8E81] mt-1"
-                />
-                <div className="flex-1">
-                  <span className="text-[#FFF1E7] font-medium block mb-1">{track.title}</span>
-                  <span className="text-[#FFF1E7]/70 text-sm">{track.description}</span>
-                  <div className="flex items-center space-x-4 text-xs text-[#FFF1E7]/50 mt-2">
-                    <span>⏱️ {track.duration_weeks} weeks</span>
-                    {track.industry_tags && track.industry_tags.length > 0 && (
-                      <span>🏷️ {track.industry_tags.join(', ')}</span>
-                    )}
+              <div key={track.id} className="bg-[#2A2438] rounded-lg hover:bg-[#2A2438]/80 transition-colors border border-transparent hover:border-[#EF8E81]/30">
+                <label className="flex items-start space-x-3 cursor-pointer p-4">
+                  <input
+                    type="radio"
+                    name="selectedTrack"
+                    value={track.id}
+                    checked={data.selectedTrack === track.id}
+                    onChange={(e) => onUpdate({ selectedTrack: e.target.value })}
+                    className="w-4 h-4 text-[#EF8E81] bg-[#2A2438] border-[#EF8E81]/30 focus:ring-[#EF8E81] mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <span className="text-[#FFF1E7] font-medium block mb-1">{track.title}</span>
+                        <span className="text-[#FFF1E7]/70 text-sm line-clamp-2">{track.description}</span>
+                        <div className="flex items-center space-x-4 text-xs text-[#FFF1E7]/50 mt-2">
+                          <span>⏱️ {track.duration_weeks} weeks</span>
+                          {track.industry_tags && track.industry_tags.length > 0 && (
+                            <span>🏷️ {track.industry_tags.join(', ')}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                </label>
+                <div className="px-4 pb-4">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setSelectedTrackForPreview(track);
+                    }}
+                    className="text-xs text-[#EF8E81] hover:text-[#E67A6E] transition-colors flex items-center"
+                  >
+                    <span className="mr-1">👁️</span>
+                    Preview track details
+                  </button>
                 </div>
-              </label>
+              </div>
             ))}
           </div>
+
+          {/* Track Preview Modal */}
+          {selectedTrackForPreview && (
+            <div 
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
+              onClick={() => setSelectedTrackForPreview(null)}
+            >
+              <div 
+                className="bg-[#1B1628] border border-[#EF8E81]/30 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-[#FFF1E7]">
+                    {selectedTrackForPreview.title}
+                  </h3>
+                  <button
+                    onClick={() => setSelectedTrackForPreview(null)}
+                    className="text-[#FFF1E7]/50 hover:text-[#FFF1E7] transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <p className="text-[#FFF1E7]/80 mb-6 leading-relaxed">
+                  {selectedTrackForPreview.description}
+                </p>
+
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-[#2A2438] rounded-lg p-4">
+                    <div className="text-sm text-[#FFF1E7]/60 mb-1">Duration</div>
+                    <div className="text-lg font-semibold text-[#FFF1E7]">
+                      {selectedTrackForPreview.duration_weeks} weeks
+                    </div>
+                  </div>
+                  {selectedTrackForPreview.industry_tags && selectedTrackForPreview.industry_tags.length > 0 && (
+                    <div className="bg-[#2A2438] rounded-lg p-4">
+                      <div className="text-sm text-[#FFF1E7]/60 mb-1">Best For</div>
+                      <div className="text-lg font-semibold text-[#FFF1E7]">
+                        {selectedTrackForPreview.industry_tags.slice(0, 2).join(', ')}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      onUpdate({ selectedTrack: selectedTrackForPreview.id });
+                      setSelectedTrackForPreview(null);
+                    }}
+                    className="flex-1 px-6 py-3 rounded-lg bg-[#EF8E81] text-white font-semibold hover:bg-[#E67A6E] transition-colors"
+                  >
+                    Select This Track
+                  </button>
+                  <button
+                    onClick={() => setSelectedTrackForPreview(null)}
+                    className="px-6 py-3 rounded-lg border border-[#EF8E81]/30 text-[#EF8E81] hover:bg-[#EF8E81]/10 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
 

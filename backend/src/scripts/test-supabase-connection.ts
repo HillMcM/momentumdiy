@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase';
+import { logger } from '../utils/logger';
 
 // Test script to verify Supabase connection
 async function testSupabaseConnection() {
@@ -13,8 +14,9 @@ async function testSupabaseConnection() {
       .limit(1);
 
     if (error) {
-      console.error('❌ Supabase connection failed:', error.message);
-      console.error('🔧 Please check your SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+      logger.error('Supabase connection failed', error, { 
+        message: 'Please check your SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
+      });
       return;
     }
 
@@ -32,7 +34,7 @@ async function testSupabaseConnection() {
         console.log('⚠️  No active marketing goal found');
         console.log('💡 Run: npm run seed-marketing-track to create content');
       } else {
-        console.error('❌ Error checking for active goal:', goalError.message);
+        logger.error('Error checking for active goal', goalError);
       }
     } else {
       console.log('🎯 Active goal found:', activeGoal.title);
@@ -40,7 +42,7 @@ async function testSupabaseConnection() {
     }
 
   } catch (error) {
-    console.error('❌ Connection test failed:', error);
+    logger.error('Connection test failed', error);
   }
 }
 

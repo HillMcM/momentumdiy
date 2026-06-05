@@ -20,4 +20,32 @@ services:
         sync: false
       - key: NOTION_API_KEY
         sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+
+jobs:
+  - type: cron
+    name: automated-notifications
+    schedule: "0 * * * *"  # Every hour at minute 0 (e.g., 1:00 PM, 2:00 PM, etc.)
+    buildCommand: npm install
+    startCommand: npx tsx src/scripts/runAutomatedNotifications.ts schedule
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: BRAND_EMAIL
+        sync: false
+      - key: BRAND_NAME
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
 

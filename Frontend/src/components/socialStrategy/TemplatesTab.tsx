@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { Asset } from '../../types';
 import { logger } from '../../utils/logger';
+import { useNotificationHelpers } from '../../hooks/useNotificationHelpers';
 
 interface TemplatesTabProps {
   trackId: string;
@@ -18,6 +19,7 @@ const TEMPLATE_CATEGORIES = [
 ];
 
 export default function TemplatesTab({ trackId }: TemplatesTabProps) {
+  const { showSuccess, showError, showWarning } = useNotificationHelpers();
   const [templates, setTemplates] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -64,7 +66,7 @@ export default function TemplatesTab({ trackId }: TemplatesTabProps) {
 
     // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      alert('File is too large. Maximum size is 10MB.');
+      showWarning('File Too Large', 'File is too large. Maximum size is 10MB.');
       return;
     }
 
@@ -74,7 +76,7 @@ export default function TemplatesTab({ trackId }: TemplatesTabProps) {
       
       if (!user) {
         logger.warn('No user found when uploading');
-        alert('Please log in to upload templates');
+        showError('Authentication Required', 'Please log in to upload templates');
         setUploading(false);
         return;
       }
@@ -94,7 +96,7 @@ export default function TemplatesTab({ trackId }: TemplatesTabProps) {
 
       if (uploadError) {
         logger.error('Error uploading file to storage', uploadError);
-        alert(`Upload failed: ${uploadError.message}\n\nPlease ensure the 'assets' bucket exists in Supabase Storage with proper RLS policies.`);
+        showError('Upload Failed', `Upload failed: ${uploadError.message}. Please ensure the 'assets' bucket exists in Supabase Storage with proper RLS policies.`);
         setUploading(false);
         return;
       }
@@ -124,7 +126,7 @@ export default function TemplatesTab({ trackId }: TemplatesTabProps) {
 
       if (insertError) {
         logger.error('Error creating asset record', insertError);
-        alert(`Failed to save template metadata: ${insertError.message}`);
+        showError('Save Failed', `Failed to save template metadata: ${insertError.message}`);
         
         // Cleanup: delete the uploaded file
         await supabase.storage.from('assets').remove([fileName]);
@@ -133,12 +135,13 @@ export default function TemplatesTab({ trackId }: TemplatesTabProps) {
       }
 
       logger.info('Asset record created successfully');
+      showSuccess('Template Uploaded', 'Template uploaded successfully!');
 
       // Reload templates
       await loadTemplates();
     } catch (error) {
       logger.error('Error in handleUpload', error);
-      alert('An unexpected error occurred during upload');
+      showError('Upload Error', 'An unexpected error occurred during upload.');
       setUploading(false);
     }
   };

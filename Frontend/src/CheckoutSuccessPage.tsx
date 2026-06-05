@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
+import { logger } from './utils/logger';
 
 export default function CheckoutSuccessPage() {
   const [searchParams] = useSearchParams();
@@ -73,7 +74,7 @@ export default function CheckoutSuccessPage() {
 
       setSuccess(true);
     } catch (err) {
-      console.error('Payment verification error:', err);
+      logger.error('Payment verification error', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);

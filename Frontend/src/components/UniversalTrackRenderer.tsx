@@ -2,7 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { MarketingGoal, MarketingTask } from '../types';
 import { useNotificationHelpers } from '../hooks/useNotificationHelpers';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 import TaskModal from './marketingTrack/TaskModal';
+import ErrorDisplay from './ErrorDisplay';
+import LoadingSpinner from './LoadingSpinner';
+import LoadingSkeleton from './LoadingSkeleton';
 
 interface UniversalTrackRendererProps {
   trackSlug: string;
@@ -24,6 +28,7 @@ export default function UniversalTrackRenderer({
   const [trackData, setTrackData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { handleError } = useErrorHandler();
 
   // Load track data from new API
   useEffect(() => {
@@ -35,10 +40,22 @@ export default function UniversalTrackRenderer({
           setTrackData(response.data);
           setError(null);
         } else {
-          setError(response.error || 'Failed to load track');
+          const errorMessage = response.error || 'Failed to load track';
+          setError(errorMessage);
+          handleError(new Error(errorMessage), {
+            showNotification: false, // ErrorDisplay will show it
+            notificationTitle: 'Failed to Load Track',
+            context: { trackSlug }
+          });
         }
       } catch (err) {
-        setError('Failed to load track');
+        const errorMessage = 'Failed to load track';
+        setError(errorMessage);
+        handleError(err, {
+          showNotification: false, // ErrorDisplay will show it
+          notificationTitle: 'Failed to Load Track',
+          context: { trackSlug }
+        });
       } finally {
         setLoading(false);
       }
@@ -147,12 +164,11 @@ export default function UniversalTrackRenderer({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-transparent text-white p-6">
+      <div className="min-h-screen bg-transparent text-white p-6" style={{ background: 'transparent !important' }}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81] mb-4"></div>
-            <p className="text-gray-400">Loading track...</p>
-          </div>
+          <LoadingSkeleton lines={5} showTitle className="mb-6" />
+          <LoadingSkeleton lines={3} className="mb-6" />
+          <LoadingSkeleton lines={4} />
         </div>
       </div>
     );
@@ -160,37 +176,45 @@ export default function UniversalTrackRenderer({
 
   if (error || !trackData) {
     return (
-      <div className="min-h-screen bg-transparent text-white p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <p className="text-red-400 mb-4">{error || 'Track not found'}</p>
-            <button 
-              onClick={() => navigate('/app')}
-              className="px-4 py-2 bg-[#EF8E81] text-white rounded-lg hover:bg-[#EF8E81]/80"
-            >
-              Back to Dashboard
-            </button>
-          </div>
-        </div>
-      </div>
+      <ErrorDisplay
+        error={error || 'Track not found'}
+        title="Track Not Found"
+        backLabel="Back to Dashboard"
+        onRetry={async () => {
+          setError(null);
+          setLoading(true);
+          try {
+            const response = await tracksApi.getTrackBySlug(trackSlug);
+            if (response.success && response.data) {
+              setTrackData(response.data);
+            } else {
+              setError(response.error || 'Failed to load track');
+            }
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load track';
+            setError(errorMessage);
+            handleError(new Error(errorMessage), {
+              showNotification: false,
+            });
+          } finally {
+            setLoading(false);
+          }
+        }}
+      />
     );
   }
 
   if (!activeGoal) {
     return (
-      <div className="min-h-screen bg-transparent text-white p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <p className="text-gray-400 mb-4">Track data loaded but not active</p>
-            <button 
-              onClick={() => navigate('/app')}
-              className="px-4 py-2 bg-[#EF8E81] text-white rounded-lg hover:bg-[#EF8E81]/80"
-            >
-              Back to Dashboard
-            </button>
-          </div>
-        </div>
-      </div>
+      <ErrorDisplay
+        error="Track data loaded but not active"
+        title="Track Not Active"
+        backLabel="Back to Dashboard"
+        action={{
+          label: 'Go to Marketing Tracks',
+          onClick: () => navigate('/app/marketing-track')
+        }}
+      />
     );
   }
 

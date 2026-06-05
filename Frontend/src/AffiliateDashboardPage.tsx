@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/useAuth';
 import { API_URL } from './config/environment';
 import { supabase } from './lib/supabase';
+import AffiliateHowItWorksModal from './components/AffiliateHowItWorksModal';
+import { useNotificationHelpers } from './hooks/useNotificationHelpers';
+import { logger } from './utils/logger';
 
 interface AffiliateDashboardData {
   affiliate: {
@@ -56,17 +59,33 @@ interface AffiliateDashboardData {
 export default function AffiliateDashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { showSuccess, showError, showInfo } = useNotificationHelpers();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<AffiliateDashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [requestingPayout, setRequestingPayout] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
+  const [showHowItWorksModal, setShowHowItWorksModal] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadDashboard();
     }
+  }, [user]);
+
+  // Check for return from Stripe onboarding
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('onboarding') === 'complete' || params.get('onboarding') === 'refresh') {
+      // Reload dashboard to get updated status
+      if (user) {
+        void loadDashboard();
+      }
+      // Clean URL
+      window.history.replaceState({}, '', '/app/affiliate/dashboard');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadDashboard = async () => {
@@ -97,7 +116,7 @@ export default function AffiliateDashboardPage() {
 
       setData(result.data);
     } catch (err) {
-      console.error('Error loading dashboard:', err);
+      logger.error('Error loading dashboard', err);
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -117,11 +136,62 @@ export default function AffiliateDashboardPage() {
 
   const handleAddBankAccount = async () => {
     setConnectLoading(true);
+    setError(null);
     try {
-      // For now, just show a message that bank account setup is coming soon
-      alert('Bank account setup will be available soon! For now, you can track your earnings and we\'ll contact you when payouts are ready.');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Not authenticated');
+        return;
+      }
+
+      // Step 1: Create Connect account if it doesn't exist
+      let accountCreated = false;
+      if (!data?.affiliate.stripe_connect_account_id) {
+        const createResponse = await fetch(`${API_URL}/api/affiliate/connect/create-account`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const createResult = await createResponse.json();
+        if (!createResult.success) {
+          // Check if it's a Stripe platform profile error
+          if (createResult.error?.includes('responsibilities of managing losses') || 
+              createResult.error?.includes('platform-profile')) {
+            setError('Stripe Connect platform setup required. Please contact support to complete the Stripe Connect platform profile configuration.');
+          } else {
+            setError(createResult.error || 'Failed to create Connect account');
+          }
+          return;
+        }
+        accountCreated = true;
+      }
+
+      // Step 2: Get onboarding link
+      const returnUrl = `${window.location.origin}/app/affiliate/dashboard?onboarding=complete`;
+      const refreshUrl = `${window.location.origin}/app/affiliate/dashboard?onboarding=refresh`;
+
+      const linkResponse = await fetch(`${API_URL}/api/affiliate/connect/onboarding-link`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ returnUrl, refreshUrl }),
+      });
+
+      const linkResult = await linkResponse.json();
+      if (!linkResult.success || !linkResult.url) {
+        setError(linkResult.error || 'Failed to create onboarding link');
+        return;
+      }
+
+      // Step 3: Redirect to Stripe onboarding
+      window.location.href = linkResult.url;
     } catch (error) {
-      console.error('Error setting up bank account:', error);
+      logger.error('Error setting up bank account', error);
       setError('Failed to setup bank account');
     } finally {
       setConnectLoading(false);
@@ -134,11 +204,12 @@ export default function AffiliateDashboardPage() {
     }
 
     if (!data.affiliate.bank_account_added) {
-      alert('Please add your bank account information first');
+      showInfo('Bank Account Required', 'Please add your bank account information first before requesting a payout.');
       return;
     }
 
     setRequestingPayout(true);
+    setError(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -157,14 +228,16 @@ export default function AffiliateDashboardPage() {
       const result = await response.json();
 
       if (result.success) {
-        alert('Payout requested successfully! It will be processed in the next monthly cycle.');
+        showSuccess('Payout Requested', 'Payout processed successfully! Funds will be transferred to your bank account.');
         loadDashboard(); // Reload to show updated balance
       } else {
-        alert('Failed to request payout: ' + (result.error || 'Unknown error'));
+        const errorMsg = result.error || 'Unknown error';
+        setError(errorMsg);
+        showError('Payout Failed', `Failed to process payout: ${errorMsg}`);
       }
     } catch (err) {
-      console.error('Error requesting payout:', err);
-      alert('Failed to request payout');
+      logger.error('Error requesting payout', err);
+      showError('Payout Request Failed', 'Failed to request payout. Please try again.');
     } finally {
       setRequestingPayout(false);
     }
@@ -219,8 +292,18 @@ export default function AffiliateDashboardPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Affiliate Dashboard</h1>
-          <p className="text-gray-400">Track your referrals and earnings</p>
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Affiliate Dashboard</h1>
+              <p className="text-gray-400">Track your referrals and earnings</p>
+            </div>
+            <button
+              onClick={() => setShowHowItWorksModal(true)}
+              className="px-4 py-2 bg-[#2A243E] border border-[#3A344E] text-[#EF8E81] font-semibold rounded-lg hover:bg-[#3A344E] hover:border-[#EF8E81]/50 transition-colors text-sm"
+            >
+              💰 How It Works
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -415,6 +498,12 @@ export default function AffiliateDashboardPage() {
           )}
         </div>
       </div>
+
+      {/* How It Works Modal */}
+      <AffiliateHowItWorksModal 
+        isOpen={showHowItWorksModal}
+        onClose={() => setShowHowItWorksModal(false)}
+      />
     </div>
   );
 }

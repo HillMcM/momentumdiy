@@ -60,6 +60,15 @@ export interface FeedbackTemplateData extends BaseTemplateData {
   category: string;
 }
 
+export interface PartnerApprovalTemplateData extends BaseTemplateData {
+  dashboardUrl: string;
+  referralCode: string;
+}
+
+export interface PartnerRejectionTemplateData extends BaseTemplateData {
+  rejectionReason?: string;
+}
+
 // ============================================================================
 // STYLE CONSTANTS
 // ============================================================================
@@ -562,6 +571,103 @@ export class EmailTemplateFactory {
 
     return EmailTemplateComponents.createDocument(
       'New Feedback - ${BRANDING.name}',
+      header + EmailTemplateComponents.createContentContainer(content)
+    );
+  }
+
+  /**
+   * Generate partner approval email template
+   */
+  static createPartnerApprovalTemplate(data: PartnerApprovalTemplateData): string {
+    const header = EmailTemplateComponents.createHeader(
+      'Welcome to the Affiliate Partner Program!',
+      'Your application has been approved'
+    );
+
+    const content = `
+      <h2 style="color: ${EmailStyles.colors.dark}; margin-top: 0;">Congratulations, ${data.name}!</h2>
+      
+      ${EmailTemplateComponents.createParagraph(
+        'We\'re excited to let you know that your application to become an affiliate partner has been approved!'
+      )}
+      
+      ${EmailTemplateComponents.createInfoBox(
+        'Your Referral Code:',
+        `<p style="color: ${EmailStyles.colors.dark}; margin: 0; font-size: 24px; font-weight: bold; font-family: monospace;">${data.referralCode}</p>`
+      )}
+      
+      ${EmailTemplateComponents.createParagraph(
+        'You can now start earning 20% recurring commissions for 12 months on every referral that signs up and makes their first payment.'
+      )}
+      
+      ${EmailTemplateComponents.createParagraph(
+        '<strong>Next Steps:</strong>'
+      )}
+      
+      <ul style="color: ${EmailStyles.colors.gray}; line-height: 1.8;">
+        <li>Access your affiliate dashboard using the link below</li>
+        <li>Share your referral link with your clients and network</li>
+        <li>Track your referrals and earnings in real-time</li>
+        <li>Set up your bank account for payouts (minimum $10)</li>
+      </ul>
+      
+      ${EmailTemplateComponents.createButton('Access Your Dashboard', data.dashboardUrl)}
+      
+      ${EmailTemplateComponents.createParagraph(
+        `<strong>Important:</strong> You'll need to sign in to access your dashboard. If you don't have an account yet, you can use the "Forgot Password" option on the sign-in page to set up your password.`
+      )}
+      
+      ${EmailTemplateComponents.createParagraph(
+        'If you have any questions, feel free to reach out to us at <a href="mailto:info@hillaryedenmcmullen.com" style="color: ${EmailStyles.colors.primary};">info@hillaryedenmcmullen.com</a>.'
+      )}
+      
+      ${EmailTemplateComponents.createFooter()}
+    `;
+
+    return EmailTemplateComponents.createDocument(
+      'Welcome to the Affiliate Partner Program - ${BRANDING.name}',
+      header + EmailTemplateComponents.createContentContainer(content)
+    );
+  }
+
+  /**
+   * Generate partner rejection email template
+   */
+  static createPartnerRejectionTemplate(data: PartnerRejectionTemplateData): string {
+    const header = EmailTemplateComponents.createHeader(
+      'Affiliate Partner Application Update',
+      'Thank you for your interest'
+    );
+
+    const content = `
+      <h2 style="color: ${EmailStyles.colors.dark}; margin-top: 0;">Hello ${data.name},</h2>
+      
+      ${EmailTemplateComponents.createParagraph(
+        'Thank you for your interest in becoming an affiliate partner with ${BRANDING.name}. We appreciate the time you took to submit your application.'
+      )}
+      
+      ${EmailTemplateComponents.createParagraph(
+        'After careful review, we\'re unable to approve your application at this time. This decision is based on our current program requirements and capacity.'
+      )}
+      
+      ${data.rejectionReason ? EmailTemplateComponents.createInfoBox(
+        'Additional Information:',
+        `<p style="color: ${EmailStyles.colors.gray}; margin: 0;">${data.rejectionReason}</p>`
+      ) : ''}
+      
+      ${EmailTemplateComponents.createParagraph(
+        'We encourage you to reapply in the future as our program evolves. If you have any questions or would like feedback on your application, please don\'t hesitate to reach out to us at <a href="mailto:info@hillaryedenmcmullen.com" style="color: ${EmailStyles.colors.primary};">info@hillaryedenmcmullen.com</a>.'
+      )}
+      
+      ${EmailTemplateComponents.createParagraph(
+        'Thank you again for your interest in ${BRANDING.name}.'
+      )}
+      
+      ${EmailTemplateComponents.createFooter()}
+    `;
+
+    return EmailTemplateComponents.createDocument(
+      'Affiliate Partner Application Update - ${BRANDING.name}',
       header + EmailTemplateComponents.createContentContainer(content)
     );
   }

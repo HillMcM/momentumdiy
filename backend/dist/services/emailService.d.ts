@@ -40,5 +40,32 @@ export declare class EmailService {
     static getSubscriptionCancelledTemplate(name: string, data: any): string;
     static getWeeklyProgressTemplate(name: string, data: any): string;
     static getTaskReminderTemplate(name: string, data: any): string;
+    static sendPartnerApprovalEmail(data: {
+        email: string;
+        name: string;
+        dashboardUrl: string;
+        referralCode: string;
+    }): Promise<{
+        success: boolean;
+        error?: string;
+    }>;
+    static sendPartnerRejectionEmail(data: {
+        email: string;
+        name: string;
+        rejectionReason?: string;
+    }): Promise<{
+        success: boolean;
+        error?: string;
+    }>;
+    static sendAdminPartnerApplicationNotification(data: {
+        applicationId: string;
+        applicantName: string;
+        applicantEmail: string;
+        companyName?: string;
+        applicationUrl: string;
+    }): Promise<{
+        success: boolean;
+        error?: string;
+    }>;
 }
 //# sourceMappingURL=emailService.d.ts.map

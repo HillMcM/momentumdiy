@@ -19,7 +19,9 @@ import {
   SubscriptionCancelledTemplateData,
   WeeklyProgressTemplateData,
   TaskReminderTemplateData,
-  FeedbackTemplateData
+  FeedbackTemplateData,
+  PartnerApprovalTemplateData,
+  PartnerRejectionTemplateData
 } from './emailTemplates';
 import { BRANDING } from '../config/branding';
 import { ENV } from '../config/environment';
@@ -278,18 +280,56 @@ export class EmailService {
       }
 
       if (!resend) {
-        logger.warn('Email service not configured, skipping email send');
-        return { success: true };
+        logger.error('Email service not configured - Resend API key missing or invalid', {
+          hasApiKey: !!ENV.resendApiKey,
+          apiKeyLength: ENV.resendApiKey?.length || 0,
+          apiKeyPrefix: ENV.resendApiKey?.substring(0, 3) || 'none'
+        });
+        return { 
+          success: false, 
+          error: 'Email service not configured. RESEND_API_KEY is required.' 
+        };
       }
 
+      // Validate email address
+      if (!email || !email.includes('@')) {
+        logger.error('Invalid email address provided', { email, type });
+        return { 
+          success: false, 
+          error: 'Invalid email address' 
+        };
+      }
+
+      // Validate from address
+      const fromAddress = BRANDING.email || 'hello@momentumdiy.com';
+      if (!fromAddress || !fromAddress.includes('@')) {
+        logger.error('Invalid from address in branding config', { fromAddress, type });
+        return { 
+          success: false, 
+          error: 'Invalid from address configuration' 
+        };
+      }
+
+      logger.debug('Attempting to send email', {
+        type,
+        to: email,
+        from: `${BRANDING.name} <${fromAddress}>`,
+        subject
+      });
+
       const result = await resend.emails.send({
-        from: `${BRANDING.name} <${BRANDING.email}>`,
+        from: `${BRANDING.name} <${fromAddress}>`,
         to: email,
         subject: subject,
         html: emailContent,
       });
 
-      logger.info(`${type} notification sent successfully`, { result });
+      logger.info(`${type} notification sent successfully`, { 
+        result,
+        emailId: result.data?.id,
+        to: email,
+        type
+      });
       return { success: true };
 
     } catch (error) {
@@ -391,5 +431,175 @@ export class EmailService {
       trackName: data?.trackName
     };
     return EmailTemplateFactory.createTaskReminderTemplate(templateData);
+  }
+
+  /**
+   * Send partner approval email
+   */
+  static async sendPartnerApprovalEmail(data: {
+    email: string;
+    name: string;
+    dashboardUrl: string;
+    referralCode: string;
+  }): Promise<{ success: boolean; error?: string }> {
+    try {
+      const templateData: PartnerApprovalTemplateData = {
+        name: data.name,
+        email: data.email,
+        dashboardUrl: data.dashboardUrl,
+        referralCode: data.referralCode
+      };
+
+      const emailContent = EmailTemplateFactory.createPartnerApprovalTemplate(templateData);
+      
+      if (!resend) {
+        logger.warn('Email service not configured, skipping email send');
+        return { success: true };
+      }
+
+      await resend.emails.send({
+        from: `${BRANDING.name} <${BRANDING.email}>`,
+        to: data.email,
+        subject: '🎉 Welcome to the Affiliate Partner Program!',
+        html: emailContent,
+      });
+
+      logger.info('Partner approval email sent successfully', { 
+        email: data.email, 
+        referralCode: data.referralCode 
+      });
+      return { success: true };
+
+    } catch (error) {
+      logger.error('Error sending partner approval email', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+  }
+
+  /**
+   * Send partner rejection email
+   */
+  static async sendPartnerRejectionEmail(data: {
+    email: string;
+    name: string;
+    rejectionReason?: string;
+  }): Promise<{ success: boolean; error?: string }> {
+    try {
+      const templateData: PartnerRejectionTemplateData = {
+        name: data.name,
+        email: data.email,
+        ...(data.rejectionReason && { rejectionReason: data.rejectionReason })
+      };
+
+      const emailContent = EmailTemplateFactory.createPartnerRejectionTemplate(templateData);
+      
+      if (!resend) {
+        logger.warn('Email service not configured, skipping email send');
+        return { success: true };
+      }
+
+      await resend.emails.send({
+        from: `${BRANDING.name} <${BRANDING.email}>`,
+        to: data.email,
+        subject: `Affiliate Partner Application Update - ${BRANDING.name}`,
+        html: emailContent,
+      });
+
+      logger.info('Partner rejection email sent successfully', { 
+        email: data.email,
+        name: data.name
+      });
+
+      return { success: true };
+    } catch (error) {
+      logger.error('Error sending partner rejection email', error);
+      return { success: false, error: 'Failed to send email' };
+    }
+  }
+
+  /**
+   * Send admin notification about new partner application
+   */
+  static async sendAdminPartnerApplicationNotification(data: {
+    applicationId: string;
+    applicantName: string;
+    applicantEmail: string;
+    companyName?: string;
+    applicationUrl: string;
+  }): Promise<{ success: boolean; error?: string }> {
+    try {
+      const adminEmails = (process.env['ADMIN_EMAILS'] || 'info@hillaryedenmcmullen.com')
+        .split(',')
+        .map(email => email.trim())
+        .filter(Boolean);
+
+      if (adminEmails.length === 0) {
+        logger.warn('No admin emails configured for partner application notifications');
+        return { success: true };
+      }
+
+      const emailContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #EF8E81 0%, #D4AF37 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">New Partner Application</h1>
+          </div>
+          <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
+            <h2 style="color: #2A2438; margin-top: 0;">Application Details</h2>
+            <p><strong>Applicant Name:</strong> ${data.applicantName}</p>
+            <p><strong>Email:</strong> <a href="mailto:${data.applicantEmail}">${data.applicantEmail}</a></p>
+            ${data.companyName ? `<p><strong>Company:</strong> ${data.companyName}</p>` : ''}
+            <p><strong>Application ID:</strong> ${data.applicationId}</p>
+            
+            <div style="margin: 30px 0;">
+              <a href="${data.applicationUrl}" 
+                 style="display: inline-block; background: #EF8E81; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                Review Application
+              </a>
+            </div>
+            
+            <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+              This is an automated notification from ${BRANDING.name}.
+            </p>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      if (!resend) {
+        logger.warn('Email service not configured, skipping admin notification');
+        return { success: true };
+      }
+
+      // Send to all admin emails
+      const emailPromises = adminEmails.map(adminEmail =>
+        resend.emails.send({
+          from: `${BRANDING.name} <${BRANDING.email}>`,
+          to: adminEmail,
+          subject: `New Partner Application: ${data.applicantName}`,
+          html: emailContent,
+        })
+      );
+
+      await Promise.all(emailPromises);
+
+      logger.info('Admin partner application notification sent', { 
+        applicationId: data.applicationId,
+        adminEmails
+      });
+
+      return { success: true };
+    } catch (error) {
+      logger.error('Error sending admin partner application notification', error);
+      return { success: false, error: 'Failed to send email' };
+    }
   }
 }

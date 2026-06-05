@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
 const notionSyncService_1 = require("../services/notionSyncService");
+const logger_1 = require("../utils/logger");
 async function main() {
     try {
         const arg = process.argv.slice(2).join(' ').trim();
@@ -17,7 +18,7 @@ async function main() {
         const goalFlagIndex = process.argv.indexOf('--goal');
         const goalTitle = goalFlagIndex !== -1 ? (process.argv[goalFlagIndex + 1] || '').trim() : '';
         if (goalTitle && !isPage) {
-            console.error('The --goal option can only be used with a single page URL/ID.');
+            logger_1.logger.error('The --goal option can only be used with a single page URL/ID.');
             process.exit(1);
         }
         if (goalTitle) {
@@ -44,7 +45,7 @@ async function main() {
         process.exit(0);
     }
     catch (err) {
-        console.error('Notion export failed:', err instanceof Error ? err.message : err);
+        logger_1.logger.error('Notion export failed', err instanceof Error ? err : new Error(String(err)));
         process.exit(1);
     }
 }

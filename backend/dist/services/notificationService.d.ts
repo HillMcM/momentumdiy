@@ -33,7 +33,7 @@ export declare class NotificationService {
     static sendSubscriptionActiveNotification(user: UserProfile, plan: string): Promise<void>;
     static sendSubscriptionCancelledNotification(user: UserProfile): Promise<void>;
     static sendWeeklyProgressNotification(user: UserProfile, progressData: ProgressData): Promise<void>;
-    static sendTaskReminderNotification(user: UserProfile, taskName: string): Promise<void>;
+    static sendTaskReminderNotification(user: UserProfile, taskName: string, reminderNumber?: number, daysInactive?: number): Promise<void>;
     static checkTrialEndingNotifications(users: UserProfile[]): Promise<void>;
     static sendWeeklyProgressReports(users: UserProfile[]): Promise<void>;
     static sendTaskReminders(_users: UserProfile[]): Promise<void>;

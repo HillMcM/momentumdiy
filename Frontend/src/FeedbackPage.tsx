@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from './services/api';
-import { logger } from './utils/logger';
+import { useNotificationHelpers } from './hooks/useNotificationHelpers';
+import { useErrorHandler } from './hooks/useErrorHandler';
+import { useIsAdmin } from './hooks/useIsAdmin';
 
 interface FeedbackFormData {
   name: string;
@@ -14,6 +16,9 @@ interface FeedbackFormData {
 
 export default function FeedbackPage() {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotificationHelpers();
+  const { handleError } = useErrorHandler();
+  const { isAdmin } = useIsAdmin();
   const [formData, setFormData] = useState<FeedbackFormData>({
     name: '',
     email: '',
@@ -63,7 +68,10 @@ export default function FeedbackPage() {
         setSubmitStatus('error');
       }
     } catch (error) {
-      console.error('Error submitting feedback:', error);
+      handleError(error, {
+        notificationTitle: 'Failed to Submit Feedback',
+        showNotification: false // Status UI handles it
+      });
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -83,13 +91,16 @@ export default function FeedbackPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('Test email sent successfully! Check your inbox.');
+        showSuccess('Test Email Sent', 'Test email sent successfully! Check your inbox.');
       } else {
-        alert('Failed to send test email: ' + data.error);
+        showError('Email Failed', `Failed to send test email: ${data.error}`);
       }
     } catch (error) {
-      console.error('Error sending test email:', error);
-      alert('Error sending test email');
+      handleError(error, {
+        showNotification: false, // Status UI handles it
+        notificationTitle: 'Failed to Send Test Email'
+      });
+      showError('Email Error', 'Error sending test email. Please try again.');
     } finally {
       setIsTestingEmail(false);
     }
@@ -284,14 +295,16 @@ export default function FeedbackPage() {
                   {isSubmitting ? 'Sending Feedback...' : 'Send Feedback'}
                 </button>
                 
-                <button
-                  type="button"
-                  onClick={handleTestEmail}
-                  disabled={isTestingEmail}
-                  className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:transform-none"
-                >
-                  {isTestingEmail ? 'Sending Test...' : 'Test Email'}
-                </button>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={handleTestEmail}
+                    disabled={isTestingEmail}
+                    className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:transform-none"
+                  >
+                    {isTestingEmail ? 'Sending Test...' : 'Test Email'}
+                  </button>
+                )}
               </div>
 
               {submitStatus === 'error' && (

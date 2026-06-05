@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 // Removed custom wrapper; use Sentry's express helpers directly
 import dotenv from 'dotenv';
 
@@ -130,6 +131,9 @@ if (process.env['NODE_ENV'] === 'development') {
 } else {
   app.use(morgan('combined'));
 }
+
+// Cookie parsing middleware
+app.use(cookieParser());
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

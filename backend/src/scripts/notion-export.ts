@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { NotionSyncService } from '../services/notionSyncService';
+import { logger } from '../utils/logger';
 
 async function main() {
   try {
@@ -19,7 +20,7 @@ async function main() {
     const goalTitle = goalFlagIndex !== -1 ? (process.argv[goalFlagIndex + 1] || '').trim() : '';
 
     if (goalTitle && !isPage) {
-      console.error('The --goal option can only be used with a single page URL/ID.');
+      logger.error('The --goal option can only be used with a single page URL/ID.');
       process.exit(1);
     }
 
@@ -50,7 +51,7 @@ async function main() {
     console.log('Done.');
     process.exit(0);
   } catch (err) {
-    console.error('Notion export failed:', err instanceof Error ? err.message : err);
+    logger.error('Notion export failed', err instanceof Error ? err : new Error(String(err)));
     process.exit(1);
   }
 }

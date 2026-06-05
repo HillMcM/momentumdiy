@@ -50,11 +50,18 @@ export class AIUsageService {
     outputTokens: number;
     cacheCreationTokens?: number;
     cacheReadTokens?: number;
-  }): number {
-    const INPUT_COST_PER_TOKEN = 3 / 1_000_000; // $3 per million
-    const OUTPUT_COST_PER_TOKEN = 15 / 1_000_000; // $15 per million
-    const CACHE_WRITE_COST_PER_TOKEN = 3.75 / 1_000_000; // $3.75 per million
-    const CACHE_READ_COST_PER_TOKEN = 0.30 / 1_000_000; // $0.30 per million
+  }, model: string = 'claude-3-5-sonnet-latest'): number {
+    let INPUT_COST_PER_TOKEN = 3 / 1_000_000; // $3 per million
+    let OUTPUT_COST_PER_TOKEN = 15 / 1_000_000; // $15 per million
+    let CACHE_WRITE_COST_PER_TOKEN = 3.75 / 1_000_000; // $3.75 per million
+    let CACHE_READ_COST_PER_TOKEN = 0.30 / 1_000_000; // $0.30 per million
+
+    if (model.includes('haiku')) {
+      INPUT_COST_PER_TOKEN = 0.80 / 1_000_000;
+      OUTPUT_COST_PER_TOKEN = 4.00 / 1_000_000;
+      CACHE_WRITE_COST_PER_TOKEN = 1.00 / 1_000_000;
+      CACHE_READ_COST_PER_TOKEN = 0.08 / 1_000_000;
+    }
 
     let cost = 0;
 

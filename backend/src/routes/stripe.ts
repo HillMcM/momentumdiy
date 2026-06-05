@@ -4,6 +4,7 @@ import { supabase, supabasePublic } from '../config/supabase';
 import { routeRateLimit } from '../middleware/rate';
 import { logger } from '../utils/logger';
 import { isAdmin } from '../config/admin';
+import { StripeConnectService } from '../services/stripeConnectService';
 import Stripe from 'stripe';
 
 const router = express.Router();
@@ -232,6 +233,54 @@ router.get('/profile', routeRateLimit(30), async (req, res) => {
 
       // Use the newly created profile
       finalProfile = newProfile;
+
+      // Link referral if exists (check cookie first, then request body)
+      const referralCode = (req.cookies?.momentum_ref as string) || req.body?.referralCode;
+      if (referralCode) {
+        try {
+          // Find affiliate by referral code
+          const { data: affiliate } = await supabase
+            .from('affiliate_programs')
+            .select('id')
+            .eq('referral_code', referralCode)
+            .single();
+
+          if (affiliate) {
+            // Check if referral already exists
+            const { data: existingReferral } = await supabase
+              .from('referrals')
+              .select('id')
+              .eq('referred_user_id', user.id)
+              .single();
+
+            if (!existingReferral) {
+              // Create referral record
+              await supabase
+                .from('referrals')
+                .insert({
+                  affiliate_id: affiliate.id,
+                  referred_user_id: user.id,
+                  referral_code_used: referralCode,
+                  signed_up_at: new Date().toISOString(),
+                  status: 'pending',
+                });
+
+              logger.info('Referral linked on profile creation', {
+                userId: user.id,
+                referralCode,
+                affiliateId: affiliate.id,
+              });
+            }
+          }
+        } catch (referralError) {
+          // Don't fail profile creation if referral linking fails
+          logger.warn('Error linking referral on profile creation', {
+            error: referralError instanceof Error ? referralError.message : String(referralError),
+            userId: user.id,
+            referralCode,
+          });
+        }
+      }
     }
 
     // Check if trial has expired (skip for greenlisted users)
@@ -289,7 +338,14 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   }
 
   try {
-    await StripeService.handleWebhook(event);
+    // Handle Connect webhooks separately
+    const connectEventTypes = ['account.updated', 'transfer.created', 'transfer.updated', 'transfer.failed'];
+    if (connectEventTypes.includes(event.type) || (event.type as string).startsWith('transfer.')) {
+      await StripeConnectService.handleConnectWebhook(event);
+    } else {
+      // Handle regular Stripe webhooks
+      await StripeService.handleWebhook(event);
+    }
     return res.json({ received: true });
   } catch (error) {
     logger.error('Error handling webhook', error, { eventType: event?.type });

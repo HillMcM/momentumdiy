@@ -338,8 +338,195 @@ export class StripeService {
 
     const userId = profile.id;
 
-            // TODO: Implement affiliate commission tracking when services are ready
-            logger.info('Payment success - affiliate tracking not yet implemented', { userId, subscriptionId, amountPaid, invoiceId });
+    // Process affiliate commission if applicable
+    await this.processAffiliateCommission(userId, subscriptionId, amountPaid, invoiceId);
+  }
+
+  /**
+   * Process affiliate commission for a payment
+   */
+  private static async processAffiliateCommission(
+    userId: string,
+    subscriptionId: string | null,
+    amountPaid: number,
+    invoiceId: string
+  ): Promise<void> {
+    try {
+      // Only process commissions for recurring subscriptions
+      if (!subscriptionId) {
+        return;
+      }
+
+      // Check if user has a referral record
+      const { data: referral } = await supabase
+        .from('referrals')
+        .select('*, affiliate:affiliate_programs(*)')
+        .eq('referred_user_id', userId)
+        .single();
+
+      if (!referral) {
+        // No referral, nothing to process
+        return;
+      }
+
+      const affiliate = referral.affiliate as any;
+
+      // Check if affiliate account is active
+      if (!affiliate || affiliate.status !== 'active') {
+        logger.warn('Affiliate account not active, skipping commission', {
+          userId,
+          affiliateId: referral.affiliate_id,
+          affiliateStatus: affiliate?.status,
+        });
+        return;
+      }
+
+      const now = new Date();
+      let commissionStartDate: Date | null = null;
+      let commissionEndDate: Date | null = null;
+      let isFirstPayment = false;
+
+      // If referral is pending, this is the first payment - convert it
+      if (referral.status === 'pending') {
+        isFirstPayment = true;
+        commissionStartDate = now;
+        commissionEndDate = new Date(now);
+        commissionEndDate.setMonth(commissionEndDate.getMonth() + 12); // 12 months from now
+
+        // Update referral to converted status
+        await supabase
+          .from('referrals')
+          .update({
+            status: 'converted',
+            first_payment_at: now.toISOString(),
+            commission_start_date: commissionStartDate.toISOString(),
+            commission_end_date: commissionEndDate.toISOString(),
+            stripe_subscription_id: subscriptionId,
+            updated_at: now.toISOString(),
+          })
+          .eq('id', referral.id);
+
+        logger.info('Referral converted on first payment', {
+          userId,
+          referralId: referral.id,
+          affiliateId: referral.affiliate_id,
+        });
+      } else if (referral.status === 'converted' && referral.commission_start_date) {
+        // Use existing commission dates
+        commissionStartDate = new Date(referral.commission_start_date);
+        commissionEndDate = referral.commission_end_date ? new Date(referral.commission_end_date) : null;
+      } else {
+        // Referral not in a valid state for commission
+        return;
+      }
+
+      // Check if commission period has expired
+      if (commissionEndDate && now > commissionEndDate) {
+        logger.info('Commission period expired, skipping commission', {
+          userId,
+          referralId: referral.id,
+          commissionEndDate: commissionEndDate.toISOString(),
+        });
+        return;
+      }
+
+      // Calculate commission (20% of subscription amount)
+      const COMMISSION_RATE = 0.20;
+      const commissionAmount = amountPaid * COMMISSION_RATE;
+
+      // Calculate commission month (1-12 based on months since commission_start_date)
+      if (!commissionStartDate) {
+        return;
+      }
+
+      const monthsSinceStart = Math.floor(
+        (now.getTime() - commissionStartDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+      );
+      const commissionMonth = Math.min(monthsSinceStart + 1, 12); // Cap at 12
+
+      // Check if we've already processed this invoice
+      const { data: existingEarning } = await supabase
+        .from('affiliate_earnings')
+        .select('id')
+        .eq('stripe_invoice_id', invoiceId)
+        .single();
+
+      if (existingEarning) {
+        logger.info('Commission already processed for this invoice', { invoiceId });
+        return;
+      }
+
+      // Create affiliate earnings record
+      const { error: earningsError } = await supabase
+        .from('affiliate_earnings')
+        .insert({
+          affiliate_id: referral.affiliate_id,
+          referral_id: referral.id,
+          stripe_invoice_id: invoiceId,
+          amount: commissionAmount,
+          subscription_amount: amountPaid,
+          commission_month: commissionMonth,
+          earned_at: now.toISOString(),
+        });
+
+      if (earningsError) {
+        logger.error('Error creating affiliate earnings', earningsError, {
+          userId,
+          referralId: referral.id,
+          affiliateId: referral.affiliate_id,
+        });
+        return;
+      }
+
+      // Update affiliate program totals
+      const { data: affiliateProgram } = await supabase
+        .from('affiliate_programs')
+        .select('total_earnings, pending_balance')
+        .eq('id', referral.affiliate_id)
+        .single();
+
+      if (affiliateProgram) {
+        const newTotalEarnings = (parseFloat(affiliateProgram.total_earnings?.toString() || '0')) + commissionAmount;
+        const newPendingBalance = (parseFloat(affiliateProgram.pending_balance?.toString() || '0')) + commissionAmount;
+
+        await supabase
+          .from('affiliate_programs')
+          .update({
+            total_earnings: newTotalEarnings,
+            pending_balance: newPendingBalance,
+            updated_at: now.toISOString(),
+          })
+          .eq('id', referral.affiliate_id);
+      }
+
+      // Update referral total commission earned
+      const newTotalCommission = (parseFloat(referral.total_commission_earned?.toString() || '0')) + commissionAmount;
+      await supabase
+        .from('referrals')
+        .update({
+          total_commission_earned: newTotalCommission,
+          updated_at: now.toISOString(),
+        })
+        .eq('id', referral.id);
+
+      logger.info('Affiliate commission processed', {
+        userId,
+        referralId: referral.id,
+        affiliateId: referral.affiliate_id,
+        commissionAmount,
+        commissionMonth,
+        isFirstPayment,
+        invoiceId,
+      });
+    } catch (error) {
+      // Don't fail payment processing if commission calculation fails
+      logger.error('Error processing affiliate commission', error, {
+        userId,
+        subscriptionId,
+        amountPaid,
+        invoiceId,
+      });
+    }
   }
 
   private static async handlePaymentFailure(invoice: any) {

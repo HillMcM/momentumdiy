@@ -36,17 +36,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const disableAuthValue = import.meta.env.VITE_DISABLE_AUTH;
   const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production';
   const BYPASS_AUTH = (disableAuthValue === 'true' || disableAuthValue === 'TRUE') && !isProduction;
-  
-  logger.debug('AuthContext environment check', {
-    disableAuthValue,
-    bypassAuth: BYPASS_AUTH
-  });
-
-  if (BYPASS_AUTH) {
-    logger.warn('Auth bypass enabled for local development');
-  } else {
-    logger.info('Normal authentication enabled');
-  }
 
   useEffect(() => {
     let isMounted = true;
@@ -141,6 +130,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (newSession?.user) {
         void ensureProfileExists(newSession.user);
         
+        // Link referral if exists (check URL parameter and cookie will be handled by backend)
+        if (event === 'SIGNED_IN' || event === 'SIGNED_UP') {
+          // Check for URL parameter
+          const urlParams = new URLSearchParams(window.location.search);
+          const refCode = urlParams.get('ref');
+          if (refCode) {
+            // Store in localStorage temporarily, will be linked when profile is created
+            localStorage.setItem('referral_code', refCode);
+          }
+          
+          // Call link referral endpoint (cookie will be sent automatically)
+          void linkReferralOnSignup(newSession.user.id);
+        }
+        
         // Show welcome notification only when user actually signs in (not on initial load)
         if (event === 'SIGNED_IN' && !hasShownWelcomeRef.current) {
           addNotification({
@@ -162,6 +165,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Temporarily disabled to prevent errors while deployment completes
     // Profile creation is handled by the backend automatically
     logger.debug('Profile creation handled by backend automatically');
+  };
+
+  const linkReferralOnSignup = async (userId: string) => {
+    // Check URL parameter and localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlRefCode = urlParams.get('ref');
+    const storedRefCode = localStorage.getItem('referral_code');
+    const referralCode = urlRefCode || storedRefCode;
+    
+    if (!referralCode) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        return;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://momentumdiy-backend.onrender.com/api'}/affiliate/link-referral`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ referralCode }),
+        credentials: 'include', // Include cookies
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // Clear stored code after successful linking
+        if (storedRefCode) {
+          localStorage.removeItem('referral_code');
+        }
+        // Clean URL parameter
+        if (urlRefCode) {
+          const newUrl = window.location.pathname + window.location.search.replace(/[?&]ref=[^&]*/, '').replace(/^&/, '?');
+          window.history.replaceState({}, '', newUrl || window.location.pathname);
+        }
+      }
+    } catch (err) {
+      logger.debug('Error linking referral on signup', err);
+    }
   };
 
   const signInWithEmail = async (email: string) => {

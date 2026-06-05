@@ -55,12 +55,12 @@ async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}):
       ...options,
     });
 
-    console.log('🌐 Response status:', response.status);
+    logger.debug('API response status', { status: response.status });
     const data = await response.json();
-    console.log('🌐 Response data:', data);
+    logger.debug('API response data', { data });
     return data;
   } catch (error) {
-    console.error('🌐 API request failed:', error);
+    logger.error('API request failed', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Network error' 

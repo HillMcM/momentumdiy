@@ -24,6 +24,63 @@ router.get('/goals', async (_req, res) => {
         });
     }
 });
+router.get('/tracks/:id/preview', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { data: track, error: trackError } = await supabase_1.supabase
+            .from('marketing_tracks')
+            .select('id, title, description, industry_tags, duration_weeks, phases, slug')
+            .eq('id', id)
+            .eq('published', true)
+            .single();
+        if (trackError || !track) {
+            return res.status(404).json({
+                success: false,
+                error: 'Track not found or not published'
+            });
+        }
+        const { data: modules, error: modulesError } = await supabase_1.supabase
+            .from('marketing_modules')
+            .select('id, week_number, title')
+            .eq('track_id', id)
+            .order('week_number', { ascending: true });
+        if (modulesError) {
+            logger_1.logger.error('Error fetching track modules for preview', modulesError, { trackId: id });
+            return res.json({
+                success: true,
+                data: {
+                    ...track,
+                    modules: []
+                }
+            });
+        }
+        const modulesWithTaskCounts = await Promise.all((modules || []).map(async (module) => {
+            const { count, error: taskCountError } = await supabase_1.supabase
+                .from('marketing_tasks')
+                .select('*', { count: 'exact', head: true })
+                .eq('module_id', module.id);
+            return {
+                week_number: module.week_number,
+                title: module.title,
+                task_count: taskCountError ? 0 : (count || 0)
+            };
+        }));
+        return res.json({
+            success: true,
+            data: {
+                ...track,
+                modules: modulesWithTaskCounts
+            }
+        });
+    }
+    catch (error) {
+        logger_1.logger.error('Error getting track preview', error, { trackId: req.params['id'] });
+        return res.status(500).json({
+            success: false,
+            error: 'Internal server error'
+        });
+    }
+});
 router.get('/goals/active', async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
@@ -291,6 +348,21 @@ router.patch('/tasks/:id/completion', (0, rate_1.routeRateLimit)(60), (0, valida
     return undefined;
 }), async (req, res) => {
     try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authorization header required'
+            });
+        }
+        const token = authHeader.substring(7);
+        const { data: { user }, error: authError } = await supabase_1.supabaseAuth.auth.getUser(token);
+        if (authError || !user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid or expired token'
+            });
+        }
         const id = req.params['id'];
         const { isCompleted } = req.body;
         if (typeof isCompleted !== 'boolean') {
@@ -299,7 +371,7 @@ router.patch('/tasks/:id/completion', (0, rate_1.routeRateLimit)(60), (0, valida
                 error: 'isCompleted must be a boolean'
             });
         }
-        const result = await marketingService_1.MarketingService.updateMarketingTaskCompletion(id, isCompleted);
+        const result = await marketingService_1.MarketingService.updateMarketingTaskCompletion(id, isCompleted, user.id);
         if (!result.success) {
             return res.status(404).json(result);
         }

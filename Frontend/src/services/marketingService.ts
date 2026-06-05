@@ -301,7 +301,7 @@ export async function getActiveGoal(): Promise<ApiResponse<MarketingGoal>> {
     };
 
   } catch (error) {
-    console.error('❌ Network error:', error);
+    logger.error('Network error', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',
@@ -448,7 +448,7 @@ export async function toggleMarketingTask(taskId: string, isCompleted: boolean):
 // Update phases for a marketing goal
 export async function updateMarketingGoalPhases(goalId: string, phases: any[]): Promise<ApiResponse<MarketingGoal>> {
   const url = `${BACKEND_BASE_URL}/api/marketing/goals/${goalId}/phases`;
-  console.log('🔍 Updating phases for goal:', goalId, phases);
+  logger.debug('Updating phases for goal', { goalId, phases });
   
   try {
     const response = await fetch(url, {

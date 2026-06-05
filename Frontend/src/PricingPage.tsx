@@ -148,42 +148,6 @@ export default function PricingPage() {
       ],
       footnote: "Billed monthly. Upgrade/downgrade anytime.",
     },
-    {
-      key: "growth",
-      name: "Growth",
-      badge: "Best for momentum",
-      description: "Everything in MomentumDIY + 5 hours of 1:1 support each month.",
-      monthlyPrice: 600,
-      monthlyOnly: true,
-      cta: "Choose Growth",
-      href: "/checkout/growth/monthly",
-      highlight: false,
-      bullets: [
-        "5 hrs/month hands‑on strategy & execution",
-        "Roadmap planning & accountability",
-        "Priority turnaround on deliverables",
-        "Includes full MomentumDIY access",
-      ],
-      footnote: "Billed monthly. Upgrade/downgrade anytime.",
-    },
-    {
-      key: "lead",
-      name: "Lead",
-      badge: "Done‑with‑you powerhouse",
-      description: "Everything in MomentumDIY + 10 hours of 1:1 support each month.",
-      monthlyPrice: 1400,
-      monthlyOnly: true,
-      cta: "Choose Lead",
-      href: "/checkout/lead/monthly",
-      highlight: false,
-      bullets: [
-        "10 hrs/month strategy, content & campaigns",
-        "Deeper collaboration & sprint reviews",
-        "Priority access & scheduling",
-        "Includes full MomentumDIY access",
-      ],
-      footnote: "Billed monthly. Upgrade/downgrade anytime.",
-    },
   ] as const
 
   return (
@@ -283,12 +247,12 @@ export default function PricingPage() {
 
       {/* Plans */}
       <main className="relative">
-        <div className="mx-auto max-w-7xl px-6 pb-16 lg:px-8">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mx-auto max-w-5xl px-6 pb-16 lg:px-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 max-w-4xl mx-auto">
             {plans.map((p) => (
               <div
                 key={p.key}
-className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur transition hover:-translate-y-0.5 hover:shadow-2xl"
+                className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur transition hover:-translate-y-0.5 hover:shadow-2xl"
                 style={{
                   backgroundColor: 'rgba(27, 22, 40, 0.8)',
                   borderColor: p.highlight ? 'rgba(239, 142, 129, 0.4)' : 'rgba(42, 36, 62, 0.6)'
@@ -382,35 +346,33 @@ className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur 
           </div>
 
           {/* Trust band */}
-          <div className="mx-auto mt-14 max-w-5xl rounded-2xl border p-6 text-center ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)' }}>
-            <p className="text-sm" style={{ color: '#FFF1E7' }}>
-              Trusted by local businesses who want clear, doable marketing — not jargon.
+          <div className="mx-auto mt-14 max-w-4xl rounded-2xl border p-8 text-center" style={{ 
+            borderColor: 'rgba(239, 142, 129, 0.2)', 
+            background: 'linear-gradient(135deg, rgba(27, 22, 40, 0.8) 0%, rgba(35, 30, 52, 0.8) 100%)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <p className="text-base font-semibold tracking-wide uppercase mb-6" style={{ color: '#EF8E81' }}>
+              Trusted by Local Business Owners
             </p>
-            <div className="mt-4 grid grid-cols-2 gap-4 opacity-80 sm:grid-cols-4">
-              <div className="rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'rgba(34, 32, 47, 0.4)' }}>Coffee Shops</div>
-              <div className="rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'rgba(34, 32, 47, 0.4)' }}>Trades & Services</div>
-              <div className="rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'rgba(34, 32, 47, 0.4)' }}>Retail</div>
-              <div className="rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'rgba(34, 32, 47, 0.4)' }}>Wellness</div>
+            <p className="text-sm max-w-xl mx-auto mb-6" style={{ color: '#FFF1E7', opacity: 0.8, lineHeight: 1.6 }}>
+              Whether you are running a storefront, managing a local service team, or selling online, MomentumDIY gives you clear, jargon-free weekly action steps.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold border" style={{ backgroundColor: 'rgba(239, 142, 129, 0.08)', borderColor: 'rgba(239, 142, 129, 0.25)', color: '#EF8E81' }}>
+                ☕ Coffee Shops & Cafés
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold border" style={{ backgroundColor: 'rgba(78, 205, 196, 0.08)', borderColor: 'rgba(78, 205, 196, 0.25)', color: '#4ECDC4' }}>
+                🛠️ Trades & Local Services
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold border" style={{ backgroundColor: 'rgba(69, 183, 209, 0.08)', borderColor: 'rgba(69, 183, 209, 0.25)', color: '#45B7D1' }}>
+                🛍️ Retail & Storefronts
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold border" style={{ backgroundColor: 'rgba(255, 234, 167, 0.08)', borderColor: 'rgba(255, 234, 167, 0.25)', color: '#FFEAA7' }}>
+                🧘 Wellness, Spas & Gyms
+              </span>
             </div>
           </div>
-
-          {/* Testimonials */}
-          <section className="mx-auto mt-12 max-w-5xl">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <figure className="rounded-2xl border p-6 ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)' }}>
-                <blockquote className="text-white">
-                  "MomentumDIY helped us finally stick to a plan. We ran our first real campaign and saw a clear uptick in foot traffic."
-                </blockquote>
-                <figcaption className="mt-4 text-sm" style={{ color: '#FFF1E7', opacity: 0.7 }}>— Jamie, Café Owner</figcaption>
-              </figure>
-              <figure className="rounded-2xl border p-6 ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', backgroundColor: 'rgba(27, 22, 40, 0.5)' }}>
-                <blockquote className="text-white">
-                  "The weekly tasks made marketing doable. Adding a monthly hour of coaching gave us the nudge we needed."
-                </blockquote>
-                <figcaption className="mt-4 text-sm" style={{ color: '#FFF1E7', opacity: 0.7 }}>— Marco, Home Services</figcaption>
-              </figure>
-            </div>
-          </section>
 
           {/* FAQ */}
           <section className="mx-auto mt-16 max-w-4xl">
@@ -474,18 +436,26 @@ className="group relative rounded-2xl border p-6 shadow-xl ring-1 backdrop-blur 
           </section>
 
           {/* Final CTA */}
-          <section className="mx-auto mt-16 max-w-5xl overflow-hidden rounded-2xl border p-8 text-center ring-1" style={{ borderColor: 'rgba(42, 36, 62, 0.6)', background: 'linear-gradient(to right, rgba(239, 142, 129, 0.1), rgba(239, 142, 129, 0.05), transparent)' }}>
-            <h3 className="text-2xl font-semibold text-center">Ready to gain momentum?</h3>
-            <p className="mt-2" style={{ color: '#FFF1E7' }}>Start your 30‑day free trial. No credit card required.</p>
-            <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a href="/auth" className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#EF8E81]" style={{ backgroundColor: '#EF8E81', color: '#191628' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffb09e'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#EF8E81'; }}>
+          <section className="mx-auto mt-16 max-w-4xl overflow-hidden rounded-2xl border p-8 text-center" style={{ 
+            borderColor: 'rgba(239, 142, 129, 0.2)', 
+            background: 'linear-gradient(to bottom, rgba(239, 142, 129, 0.08) 0%, rgba(27, 22, 40, 0.4) 100%)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+          }}>
+            <h3 className="text-3xl font-bold text-center text-white mb-2">Ready to gain momentum?</h3>
+            <p className="text-base text-center mb-6 max-w-md mx-auto" style={{ color: '#FFF1E7', opacity: 0.9 }}>
+              Start your 30‑day free trial today. No credit card required.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+              <a href="/auth" className="inline-flex items-center justify-center rounded-xl px-6 py-3.5 font-bold transition focus:outline-none focus:ring-2 focus:ring-[#EF8E81]" style={{ backgroundColor: '#EF8E81', color: '#191628', minWidth: '180px' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffb09e'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#EF8E81'; }}>
                 Start Free Trial
               </a>
-              <a href="/contact" className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-white transition focus:outline-none focus:ring-2 focus:ring-white/40" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; }}>
+              <a href="/contact" className="inline-flex items-center justify-center rounded-xl px-6 py-3.5 font-bold text-white transition focus:outline-none focus:ring-2 focus:ring-white/40" style={{ backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', minWidth: '180px' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'; }}>
                 Questions? Contact us
               </a>
             </div>
-            <p className="mt-3 text-xs" style={{ color: '#FFF1E7', opacity: 0.7 }}>Cancel anytime • Your data stays yours • Forever price guarantee</p>
+            <p className="text-center text-xs" style={{ color: '#FFF1E7', opacity: 0.6 }}>
+              Cancel anytime • Your data stays yours • Forever price guarantee
+            </p>
           </section>
         </div>
       </main>

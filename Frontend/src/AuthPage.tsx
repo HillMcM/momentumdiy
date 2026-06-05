@@ -5,6 +5,7 @@ import { supabase } from './lib/supabase';
 import { apiService } from './services/api';
 import ReferralTracker from './components/ReferralTracker';
 import { API_URL } from './config/environment';
+import { logger } from './utils/logger';
 
 export default function AuthPage() {
   const { signInWithPassword, signUpWithPassword, signInWithGoogle, user } = useAuth();
@@ -69,30 +70,49 @@ export default function AuthPage() {
   }, [user, navigate, location.state]);
 
   const linkReferralIfExists = async (userId: string) => {
-    const referralCode = localStorage.getItem('referral_code');
+    // Check URL parameter first (primary for direct links)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlRefCode = urlParams.get('ref');
+    
+    // Check localStorage as fallback
+    const storedRefCode = localStorage.getItem('referral_code');
+    
+    // Use URL parameter if available, otherwise use stored code
+    const referralCode = urlRefCode || storedRefCode;
+    
     if (!referralCode) return;
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        console.error('No session token available for referral linking');
+        logger.warn('No session token available for referral linking');
         return;
       }
 
-      await fetch(`${API_URL}/api/affiliate/link-referral`, {
+      const response = await fetch(`${API_URL}/api/affiliate/link-referral`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ referralCode }),
-        credentials: 'include',
+        credentials: 'include', // Include cookies (momentum_ref cookie will be sent automatically)
       });
 
-      // Clear the stored referral code after linking
-      localStorage.removeItem('referral_code');
+      const result = await response.json();
+      if (result.success) {
+        // Clear the stored referral code after successful linking
+        if (storedRefCode) {
+          localStorage.removeItem('referral_code');
+        }
+        // Clean URL parameter if it was used
+        if (urlRefCode) {
+          const newUrl = window.location.pathname + window.location.search.replace(/[?&]ref=[^&]*/, '').replace(/^&/, '?');
+          window.history.replaceState({}, '', newUrl || window.location.pathname);
+        }
+      }
     } catch (err) {
-      console.error('Error linking referral:', err);
+      logger.error('Error linking referral', err);
     }
   };
 

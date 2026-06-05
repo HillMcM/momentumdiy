@@ -21,7 +21,7 @@ export declare class MarketingService {
     static createMarketingTask(taskData: Omit<MarketingTask, 'id'> & {
         moduleId: string;
     }): Promise<ApiResponse<MarketingTask>>;
-    static updateMarketingTaskCompletion(taskId: string, isCompleted: boolean): Promise<ApiResponse<MarketingTask>>;
+    static updateMarketingTaskCompletion(taskId: string, isCompleted: boolean, userId?: string): Promise<ApiResponse<MarketingTask>>;
     private static mapDatabaseGoalToGoal;
     private static mapDatabaseModuleToModule;
     static updateMarketingGoalPhases(goalId: string, phases: any[]): Promise<ApiResponse<MarketingGoal>>;

@@ -6,6 +6,7 @@ import { toggleMarketingTask, updateGoalProgress } from '../services/marketingSe
 import { calculateModuleProgress } from '../utils/date';
 import { useNotificationHelpers } from '../hooks/useNotificationHelpers';
 import { MarketingTrackProvider } from '../contexts/MarketingTrackContext';
+import { logger } from '../utils/logger';
 
 interface UniversalTrackTemplateProps {
   marketingGoals: MarketingGoal[];
@@ -119,14 +120,14 @@ export default function UniversalTrackTemplate({
       // Persist to backend
       const taskResponse = await toggleMarketingTask(taskId, isCompleted);
       if (!taskResponse.success) {
-        console.error('Failed to toggle task:', taskResponse.error);
+        logger.error('Failed to toggle task', new Error(taskResponse.error));
         return;
       }
 
       // Update goal progress
       const progressResponse = await updateGoalProgress(activeGoal.id, newProgress);
       if (!progressResponse.success) {
-        console.error('Failed to update progress:', progressResponse.error);
+        logger.error('Failed to update progress', new Error(progressResponse.error));
       }
 
       // Show notification only when completing (not uncompleting)
@@ -144,7 +145,7 @@ export default function UniversalTrackTemplate({
       }
 
     } catch (error) {
-      console.error('Error toggling task:', error);
+      logger.error('Error toggling task', error);
     }
   }, [activeGoal, marketingGoals, onMarketingGoalsChange, showTaskCompleted, showModuleCompleted]);
 
@@ -194,10 +195,86 @@ export default function UniversalTrackTemplate({
               </div>
             </div>
 
-            {/* Intro paragraph */}
-            <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-              {activeGoal.description}
-            </p>
+            {/* Intro paragraph with Example Outcomes */}
+            {(() => {
+              // Extract example outcomes from description
+              const extractOutcomes = (description: string): string[] => {
+                const outcomes: string[] = [];
+                
+                // Pattern 1: "Example outcomes:" followed by bullet points or comma-separated list
+                // Try to match with newline first, then try inline (same line)
+                let exampleOutcomesMatch = description.match(/(?:Example outcomes?):\s*([\s\S]*?)(?=\n\n[A-Z]|$)/i);
+                if (!exampleOutcomesMatch) {
+                  // Try inline format (same line, ends with period or end of string)
+                  exampleOutcomesMatch = description.match(/(?:Example outcomes?):\s*([^.]*(?:\.[^.]*)*?)(?=\s+[A-Z]|$)/i);
+                }
+                
+                if (exampleOutcomesMatch) {
+                  const outcomesText = exampleOutcomesMatch[1].trim();
+                  
+                  // First try to extract bullet points
+                  const bulletMatches = outcomesText.match(/^\s*[-*•]\s*(.+)$/gm);
+                  if (bulletMatches && bulletMatches.length > 0) {
+                    const bullets = bulletMatches.map(m => m.replace(/^\s*[-*•]\s*/, '').trim()).filter(s => s.length > 0);
+                    outcomes.push(...bullets);
+                  } else {
+                    // If no bullets, try comma-separated format
+                    const commaSeparated = outcomesText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                    if (commaSeparated.length > 0) {
+                      outcomes.push(...commaSeparated);
+                    }
+                  }
+                }
+                
+                // Pattern 2: Look for bullet-like patterns anywhere in description (fallback)
+                if (outcomes.length === 0) {
+                  const bulletMatches = description.match(/(?:^|\n)[\s]*[-*•]\s*([^\n]+)/g);
+                  if (bulletMatches && bulletMatches.length > 0) {
+                    const bullets = bulletMatches.map(m => m.replace(/^[\s]*[-*•]\s*/, '').trim()).filter(s => s.length > 0);
+                    if (bullets.length > 0) {
+                      outcomes.push(...bullets);
+                    }
+                  }
+                }
+                
+                return outcomes.slice(0, 5); // Limit to 5 outcomes
+              };
+              
+              const outcomes = extractOutcomes(activeGoal.description);
+              
+              // Remove the "Example outcomes:" section and all bullet points from description
+              let descriptionWithoutOutcomes = activeGoal.description
+                .replace(/(?:Example outcomes?):\s*[\s\S]*?(?=\n\n[A-Z]|$)/i, '')
+                .replace(/(?:^|\n)[\s]*[-*•]\s*[^\n]+/g, '')
+                .replace(/Example outcomes?:\s*[^.]*(?:\.[^.]*)*/gi, '') // Also remove inline comma-separated outcomes
+                .trim();
+              
+              // Clean up any double newlines or extra whitespace
+              descriptionWithoutOutcomes = descriptionWithoutOutcomes.replace(/\n{3,}/g, '\n\n').trim();
+              
+              return outcomes.length > 0 ? (
+                <div className="flex flex-col lg:flex-row gap-8 items-start mb-8">
+                  <p className="text-gray-300 text-lg leading-relaxed flex-1">
+                    {descriptionWithoutOutcomes || activeGoal.description}
+                  </p>
+                  <div className="lg:w-80 flex-shrink-0">
+                    <h3 className="text-xl font-bold text-white mb-4">Example Outcomes</h3>
+                    <ul className="space-y-3">
+                      {outcomes.map((outcome, idx) => (
+                        <li key={idx} className="flex items-start gap-3 text-gray-300">
+                          <span className="text-[#EF8E81] mt-1 flex-shrink-0">→</span>
+                          <span>{outcome}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+                  {activeGoal.description}
+                </p>
+              );
+            })()}
 
             {/* Overall Progress */}
             <div className="space-y-3">

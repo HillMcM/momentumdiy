@@ -135,13 +135,18 @@ export class ContextBuilders {
     const industry = context.userIndustry || 'Not specified';
     const experienceLevel = context.userExperienceLevel || 'Not specified';
 
+    let extraContext = '';
+    if (context.businessBio) extraContext += `\n**Business Bio:**\n${context.businessBio}\n`;
+    if (context.competitors) extraContext += `\n**Competitors:**\n${context.competitors}\n`;
+    if (context.weeklyNotes) extraContext += `\n**Recent Notes & Updates:**\n${context.weeklyNotes}\n`;
+
     return `## Business Intelligence & Context:
 **Business Profile:**
 - Business Type: ${businessType}
 - Industry: ${industry}
 - Marketing Experience: ${experienceLevel}
 - Location Context: ${this.getLocationInsights(context.pagePath || '/app')}
-
+${extraContext}
 **Tailored Approach:**
 ${this.getIndustrySpecificGuidance(industry, businessType, experienceLevel)}
 
@@ -162,12 +167,31 @@ ${this.getPersonalizedRecommendations(industry, experienceLevel, context.pagePat
     const totalWeeks = activeGoal.duration || 0;
     const progress = activeGoal.progress || 0;
 
+    // Find the current week's module and extract its full content
+    const currentModule = activeGoal.modules?.find(m => m.weekNumber === currentWeek) || activeGoal.modules?.[currentWeek - 1];
+    let moduleContext = '';
+    if (currentModule) {
+      moduleContext = `\n**This Week's Lesson Content ("${currentModule.title}"):**\n${currentModule.content || currentModule.description}\n`;
+    }
+
+    // Include the full track lessons (all weeks) for full context
+    let fullTrackLessonsContext = '';
+    if (activeGoal.modules && activeGoal.modules.length > 0) {
+      fullTrackLessonsContext = `\n**Full Track Lessons & Modules (All Weeks):**\n`;
+      fullTrackLessonsContext += activeGoal.modules.map(m => {
+        const isCurrent = m.weekNumber === currentWeek;
+        const status = isCurrent ? '[CURRENT WEEK]' : m.isCompleted ? '[COMPLETED]' : '[LOCKED/FUTURE]';
+        return `- Week ${m.weekNumber}: "${m.title}" ${status}\n  Description: ${m.description}`;
+      }).join('\n');
+    }
+
     return `## Current Marketing Track Context:
 The user is currently working on: "${activeGoal.title}"
 - Week ${currentWeek} of ${totalWeeks} (${Math.round(progress)}% complete)
 - Industry: ${activeGoal.industry || 'Not specified'}
 - Description: ${activeGoal.description || 'No description provided'}
-
+${moduleContext}
+${fullTrackLessonsContext}
 ${this.getWeekSpecificGuidance(currentWeek, activeGoal)}`;
   }
 
@@ -175,19 +199,37 @@ ${this.getWeekSpecificGuidance(currentWeek, activeGoal)}`;
    * Build tasks context
    */
   static buildTasksContext(context: ConversationContext): string {
-    if (context.currentTasks.length === 0) {
-      return '## Current Tasks & Progress:\nNo pending tasks - they might be ready for the next step or need help getting started';
+    if (!context.currentTasks || context.currentTasks.length === 0) {
+      return '## Current Tasks & Progress:\nNo tasks found - they might need to start a marketing track or add tasks.';
     }
 
-    const taskList = context.currentTasks.slice(0, 5).map(task => `• ${task.title}`).join('\n');
-    const moreTasks = context.currentTasks.length > 5 ? `• ... and ${context.currentTasks.length - 5} more tasks` : '';
+    // Filter tasks by status
+    const todoTasks = context.currentTasks.filter(t => t.status === 'todo');
+    const inProgressTasks = context.currentTasks.filter(t => t.status === 'in-progress');
+    const doneTasks = context.currentTasks.filter(t => t.status === 'completed');
 
-    return `## Current Tasks & Progress:
-They have ${context.currentTasks.length} tasks to work on:
-${taskList}
-${moreTasks}
+    let content = '## Current Tasks & Progress:\n';
+    content += `The user has ${context.currentTasks.length} total tasks in their workspace:\n`;
+    
+    if (todoTasks.length > 0) {
+      content += `\n**To-Do (Pending) Tasks:**\n`;
+      content += todoTasks.map(t => `- **${t.title}**${t.description ? `\n  Description: ${t.description}` : ''}`).join('\n') + '\n';
+    }
+    
+    if (inProgressTasks.length > 0) {
+      content += `\n**In-Progress Tasks:**\n`;
+      content += inProgressTasks.map(t => `- **${t.title}**${t.description ? `\n  Description: ${t.description}` : ''}`).join('\n') + '\n';
+    }
 
-Help them prioritize and understand how to tackle these effectively.`;
+    if (doneTasks.length > 0) {
+      content += `\n**Completed Tasks:**\n`;
+      content += doneTasks.slice(-10).map(t => `- **${t.title}** [Completed]`).join('\n') + '\n';
+      if (doneTasks.length > 10) {
+        content += `- ... and ${doneTasks.length - 10} more completed tasks\n`;
+      }
+    }
+
+    return content;
   }
 
   /**

@@ -56,14 +56,32 @@ const NotificationToast: React.FC<NotificationToastProps> = ({
             <p className="mt-1 text-sm text-gray-500">
               {notification.message}
             </p>
-            {notification.action && (
-              <div className="mt-2">
-                <button
-                  onClick={notification.action.onClick}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                >
-                  {notification.action.label}
-                </button>
+            {(notification.action || notification.secondaryAction) && (
+              <div className="mt-2 flex gap-3 flex-wrap">
+                {notification.action && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      notification.action?.onClick();
+                    }}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500 underline cursor-pointer"
+                  >
+                    {notification.action.label}
+                  </button>
+                )}
+                {notification.secondaryAction && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      notification.secondaryAction?.onClick();
+                    }}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500 underline cursor-pointer"
+                  >
+                    {notification.secondaryAction.label}
+                  </button>
+                )}
               </div>
             )}
           </div>

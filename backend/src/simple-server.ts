@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 import Anthropic from '@anthropic-ai/sdk';
+import { logger } from './utils/logger';
 
 dotenv.config();
 
@@ -69,7 +70,7 @@ app.post('/api/ai/chat', async (req, res) => {
 Be helpful, encouraging, and practical in your responses.`;
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
+      model: 'claude-3-5-sonnet-latest',
       max_tokens: 2000,
       messages: [
         {
@@ -107,7 +108,7 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
     });
 
   } catch (error) {
-    console.error('AI Chat Error:', error);
+    logger.error('AI Chat Error', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to generate AI response'
@@ -117,10 +118,12 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Simple AI Server running on port ${PORT}`);
-  console.log(`📊 Environment: development`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-  console.log(`🤖 AI Chat: http://localhost:${PORT}/api/ai/chat`);
+  logger.info('Simple AI Server started', {
+    port: PORT,
+    environment: 'development',
+    healthCheck: `http://localhost:${PORT}/health`,
+    aiChat: `http://localhost:${PORT}/api/ai/chat`
+  });
 });
 
 export default app;

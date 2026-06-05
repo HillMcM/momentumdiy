@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { apiService } from '../services/api';
+import { logger } from '../utils/logger';
 
 export interface OnboardingData {
   businessName: string;
@@ -65,7 +66,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         setOnboardingData(null);
       }
     } catch (err) {
-      console.error('Error fetching onboarding data:', err);
+      logger.error('Error fetching onboarding data', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
       setOnboardingData(null);
     } finally {

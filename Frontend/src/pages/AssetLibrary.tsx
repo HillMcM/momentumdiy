@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Asset, AssetCategory } from '../types';
 import { logger } from '../utils/logger';
+import { useNotificationHelpers } from '../hooks/useNotificationHelpers';
 
 type ViewMode = 'grid' | 'list';
 
 export default function AssetLibrary() {
+  const { showSuccess, showError, showWarning } = useNotificationHelpers();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [categories, setCategories] = useState<AssetCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,6 +18,15 @@ export default function AssetLibrary() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [previewAsset, setPreviewAsset] = useState<Asset | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showManageSharesModal, setShowManageSharesModal] = useState(false);
+
+  const toggleSelectAsset = (id: string) => {
+    setSelectedAssetIds(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
 
   useEffect(() => {
     loadCategories();
@@ -88,7 +99,7 @@ export default function AssetLibrary() {
 
   const handleUpload = async (file: File, category: string, description: string) => {
     if (file.size > 10 * 1024 * 1024) {
-      alert('File is too large. Maximum size is 10MB.');
+      showWarning('File Too Large', 'File is too large. Maximum size is 10MB.');
       return;
     }
 
@@ -97,7 +108,7 @@ export default function AssetLibrary() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        alert('Please log in to upload files');
+        showError('Authentication Required', 'Please log in to upload files');
         return;
       }
 
@@ -114,7 +125,7 @@ export default function AssetLibrary() {
 
       if (uploadError) {
         logger.error('Error uploading file', uploadError);
-        alert(`Upload failed: ${uploadError.message}`);
+        showError('Upload Failed', `Upload failed: ${uploadError.message}`);
         return;
       }
 
@@ -139,16 +150,17 @@ export default function AssetLibrary() {
 
       if (insertError) {
         logger.error('Error creating asset record', insertError);
-        alert(`Failed to save asset: ${insertError.message}`);
+        showError('Save Failed', `Failed to save asset: ${insertError.message}`);
         await supabase.storage.from('assets').remove([fileName]);
         return;
       }
 
       setShowUploadModal(false);
+      showSuccess('Asset Uploaded', 'Asset uploaded successfully!');
       await loadAssets();
     } catch (error) {
       logger.error('Error in handleUpload', error);
-      alert('An unexpected error occurred');
+      showError('Upload Error', 'An unexpected error occurred during upload.');
     } finally {
       setUploading(false);
     }
@@ -166,9 +178,11 @@ export default function AssetLibrary() {
 
       if (dbError) {
         logger.error('Error deleting asset from DB', dbError);
-        alert(`Failed to delete: ${dbError.message}`);
+        showError('Delete Failed', `Failed to delete: ${dbError.message}`);
         return;
       }
+
+      showSuccess('Asset Deleted', 'Asset deleted successfully.');
 
       // Try to delete from storage (may fail if not stored there)
       if (asset.url && asset.url.includes('supabase')) {
@@ -225,15 +239,37 @@ export default function AssetLibrary() {
                 Manage your images, templates, and media files
               </p>
             </div>
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Upload Asset
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-5 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 10.742l4.828-2.414m0 0a3 3 0 10-1.156-2.585c0 .179.016.354.047.525l-4.83 2.415a3 3 0 100 4.636l4.83 2.415a3 3 0 101.155-2.585c0-.18-.015-.354-.047-.525" />
+                </svg>
+                {selectedAssetIds.length > 0 
+                  ? `Share Selected (${selectedAssetIds.length})` 
+                  : 'Share Library'}
+              </button>
+              <button
+                onClick={() => setShowManageSharesModal(true)}
+                className="bg-transparent border border-[#EF8E81] hover:bg-[#EF8E81]/10 text-[#EF8E81] px-5 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                Manage Shares
+              </button>
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="bg-[#EF8E81]/20 hover:bg-[#EF8E81]/30 border border-[#EF8E81]/30 text-[#FFF1E7] px-5 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Upload Asset
+              </button>
+            </div>
           </div>
 
           {/* Search and Filters */}
@@ -315,6 +351,28 @@ export default function AssetLibrary() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {selectedAssetIds.length > 0 && (
+          <div className="bg-[#1A1625] border border-[#EF8E81]/30 rounded-xl p-4 mb-6 flex items-center justify-between">
+            <span className="text-[#FFF1E7] text-sm">
+              Selected <strong className="text-[#EF8E81]">{selectedAssetIds.length}</strong> assets to share.
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedAssetIds([])}
+                className="text-xs text-[#FFF1E7]/60 hover:text-white px-3 py-2 rounded-lg"
+              >
+                Clear Selection
+              </button>
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="bg-[#EF8E81] hover:bg-[#E67A6E] text-white text-xs px-4 py-2 rounded-lg font-medium"
+              >
+                Share Selected
+              </button>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#EF8E81] mx-auto mb-4"></div>
@@ -330,6 +388,8 @@ export default function AssetLibrary() {
                   categoryIcon={getCategoryIcon(asset.category)}
                   onPreview={() => setPreviewAsset(asset)}
                   onDelete={() => deleteAsset(asset)}
+                  isSelected={selectedAssetIds.includes(asset.id)}
+                  onToggleSelect={() => toggleSelectAsset(asset.id)}
                 />
               ))}
             </div>
@@ -343,6 +403,8 @@ export default function AssetLibrary() {
                   formatSize={formatFileSize}
                   onPreview={() => setPreviewAsset(asset)}
                   onDelete={() => deleteAsset(asset)}
+                  isSelected={selectedAssetIds.includes(asset.id)}
+                  onToggleSelect={() => toggleSelectAsset(asset.id)}
                 />
               ))}
             </div>
@@ -393,6 +455,24 @@ export default function AssetLibrary() {
           formatSize={formatFileSize}
         />
       )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <ShareModal
+          selectedAssetIds={selectedAssetIds}
+          onClose={() => setShowShareModal(false)}
+          onSuccess={() => {
+            setSelectedAssetIds([]);
+          }}
+        />
+      )}
+
+      {/* Manage Share Links Modal */}
+      {showManageSharesModal && (
+        <ManageSharesModal
+          onClose={() => setShowManageSharesModal(false)}
+        />
+      )}
     </div>
   );
 }
@@ -402,12 +482,16 @@ function AssetCard({
   asset,
   categoryIcon,
   onPreview,
-  onDelete
+  onDelete,
+  isSelected,
+  onToggleSelect
 }: {
   asset: Asset;
   categoryIcon: string;
   onPreview: () => void;
   onDelete: () => void;
+  isSelected: boolean;
+  onToggleSelect: () => void;
 }) {
   // Check if it's an image - be flexible with the check
   const isImage = (asset.fileType && asset.fileType.startsWith('image/')) ||
@@ -415,7 +499,22 @@ function AssetCard({
                   (asset.name && /\.(png|jpg|jpeg|gif|webp)$/i.test(asset.name));
 
   return (
-    <div className="bg-[#1A1625] rounded-lg border border-[#2A2438] overflow-hidden group hover:border-[#EF8E81] transition-all">
+    <div className={`bg-[#1A1625] rounded-lg border overflow-hidden group hover:border-[#EF8E81] transition-all relative ${
+      isSelected ? 'border-[#EF8E81] ring-1 ring-[#EF8E81]' : 'border-[#2A2438]'
+    }`}>
+      {/* Checkbox */}
+      <div className="absolute top-2 left-2 z-10">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={(e) => {
+            e.stopPropagation();
+            onToggleSelect();
+          }}
+          className="w-4 h-4 rounded border-[#2A2438] text-[#EF8E81] focus:ring-[#EF8E81] cursor-pointer"
+        />
+      </div>
+      
       <div
         className="aspect-square bg-[#2A2438] cursor-pointer relative overflow-hidden"
         onClick={onPreview}
@@ -475,20 +574,34 @@ function AssetListItem({
   fileIcon,
   formatSize,
   onPreview,
-  onDelete
+  onDelete,
+  isSelected,
+  onToggleSelect
 }: {
   asset: Asset;
   fileIcon: string;
   formatSize: (size: number) => string;
   onPreview: () => void;
   onDelete: () => void;
+  isSelected: boolean;
+  onToggleSelect: () => void;
 }) {
   return (
     <div
-      className="bg-[#1A1625] rounded-lg border border-[#2A2438] p-4 hover:border-[#EF8E81] transition-all cursor-pointer"
+      className={`bg-[#1A1625] rounded-lg border p-4 hover:border-[#EF8E81] transition-all cursor-pointer ${
+        isSelected ? 'border-[#EF8E81] ring-1 ring-[#EF8E81]' : 'border-[#2A2438]'
+      }`}
       onClick={onPreview}
     >
       <div className="flex items-center gap-4">
+        <div onClick={(e) => e.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={onToggleSelect}
+            className="w-4 h-4 rounded border-[#2A2438] text-[#EF8E81] focus:ring-[#EF8E81] cursor-pointer"
+          />
+        </div>
         <div className="text-4xl flex-shrink-0">
           {fileIcon}
         </div>
@@ -795,5 +908,373 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// Share Modal Component
+function ShareModal({
+  selectedAssetIds,
+  onClose,
+  onSuccess
+}: {
+  selectedAssetIds: string[];
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [expiryOption, setExpiryOption] = useState('never');
+  const [customExpiry, setCustomExpiry] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState('');
+  const { showSuccess, showError } = useNotificationHelpers();
+
+  const handleCreateShare = async () => {
+    if (!name.trim()) {
+      showError('Required Field', 'Please enter a name for the share link.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      let expiresAt: string | undefined = undefined;
+      const now = new Date();
+      if (expiryOption === '24h') {
+        expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+      } else if (expiryOption === '7d') {
+        expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      } else if (expiryOption === '30d') {
+        expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      } else if (expiryOption === 'custom' && customExpiry) {
+        expiresAt = new Date(customExpiry).toISOString();
+      }
+
+      const { apiService } = await import('../services/api');
+      const response = await apiService.createAssetShareLink({
+        name,
+        email: email || undefined,
+        expiresAt,
+        sharedAssetIds: selectedAssetIds.length > 0 ? selectedAssetIds : null
+      });
+
+      if (response.success && response.data) {
+        const link = `${window.location.origin}/shared/assets/${response.data.access_code}`;
+        setGeneratedLink(link);
+        showSuccess('Share Link Created', 'You can now copy the link.');
+        onSuccess();
+      } else {
+        showError('Error', response.error || 'Failed to create share link.');
+      }
+    } catch (err: any) {
+      showError('Error', err.message || 'An unexpected error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(generatedLink);
+    showSuccess('Copied to Clipboard', 'Share link copied successfully!');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="max-w-md w-full bg-[#1A1625] rounded-lg overflow-hidden border border-[#2A2438]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-6 border-b border-[#2A2438]">
+          <h2 className="text-2xl font-bold text-[#FFF1E7]">Share Assets</h2>
+          <button onClick={onClose} className="text-[#FFF1E7]/60 hover:text-[#FFF1E7] transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {generatedLink ? (
+            <div className="space-y-4">
+              <div className="bg-[#EF8E81]/10 border border-[#EF8E81]/30 p-4 rounded-lg">
+                <p className="text-sm text-[#FFF1E7] mb-2 font-medium">Link Generated Successfully!</p>
+                <p className="text-xs text-[#FFF1E7]/70">
+                  Anyone with this link can view and download the shared files.
+                </p>
+              </div>
+              <div>
+                <label className="text-[#FFF1E7] text-xs font-semibold block mb-1">Shared Link URL</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={generatedLink}
+                    className="flex-1 bg-[#2A2438] text-[#FFF1E7] text-sm px-3 py-2 rounded-lg border border-[#3A3448] focus:outline-none"
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className="bg-[#EF8E81] hover:bg-[#E67A6E] text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-full mt-4 bg-[#2A2438] hover:bg-[#3A3448] text-[#FFF1E7] px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="bg-[#2A2438] p-3 rounded-lg">
+                <span className="text-[#FFF1E7] text-sm font-semibold">
+                  Scope: {selectedAssetIds.length > 0 ? `${selectedAssetIds.length} Selected Assets` : 'Entire Library'}
+                </span>
+              </div>
+
+              <div>
+                <label className="text-[#FFF1E7] text-sm font-medium block mb-1">Link Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Logo pack for contractor"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-[#2A2438] text-[#FFF1E7] px-4 py-3 rounded-lg border border-[#3A3448] focus:outline-none focus:border-[#EF8E81]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[#FFF1E7] text-sm font-medium block mb-1">Recipient Email (Optional)</label>
+                <input
+                  type="email"
+                  placeholder="e.g. partner@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-[#2A2438] text-[#FFF1E7] px-4 py-3 rounded-lg border border-[#3A3448] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[#FFF1E7] text-sm font-medium block mb-1">Link Expiry</label>
+                <select
+                  value={expiryOption}
+                  onChange={(e) => setExpiryOption(e.target.value)}
+                  className="w-full bg-[#2A2438] text-[#FFF1E7] px-4 py-3 rounded-lg border border-[#3A3448] focus:outline-none"
+                >
+                  <option value="never">Never Expires</option>
+                  <option value="24h">24 Hours</option>
+                  <option value="7d">7 Days</option>
+                  <option value="30d">30 Days</option>
+                  <option value="custom">Custom Date...</option>
+                </select>
+              </div>
+
+              {expiryOption === 'custom' && (
+                <div>
+                  <label className="text-[#FFF1E7] text-sm font-medium block mb-1">Expiry Date</label>
+                  <input
+                    type="datetime-local"
+                    value={customExpiry}
+                    onChange={(e) => setCustomExpiry(e.target.value)}
+                    className="w-full bg-[#2A2438] text-[#FFF1E7] px-4 py-3 rounded-lg border border-[#3A3448] focus:outline-none"
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#2A2438]">
+                <button
+                  onClick={onClose}
+                  disabled={loading}
+                  className="px-6 py-3 text-[#FFF1E7]/60 hover:text-[#FFF1E7] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateShare}
+                  disabled={loading || !name.trim()}
+                  className="bg-[#EF8E81] hover:bg-[#E67A6E] disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                >
+                  {loading ? 'Creating...' : 'Generate Share Link'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Manage Share Links Modal Component
+function ManageSharesModal({
+  onClose
+}: {
+  onClose: () => void;
+}) {
+  const [shareLinks, setShareLinks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { showSuccess, showError } = useNotificationHelpers();
+
+  useEffect(() => {
+    loadShareLinks();
+  }, []);
+
+  const loadShareLinks = async () => {
+    try {
+      setLoading(true);
+      const { apiService } = await import('../services/api');
+      const response = await apiService.getAssetShareLinks();
+      if (response.success && response.data) {
+        setShareLinks(response.data);
+      } else {
+        showError('Error', response.error || 'Failed to load share links.');
+      }
+    } catch (err: any) {
+      showError('Error', err.message || 'Error occurred loading links.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleActive = async (linkId: string, currentActive: boolean) => {
+    try {
+      const { apiService } = await import('../services/api');
+      const response = await apiService.updateAssetShareLink(linkId, { is_active: !currentActive });
+      if (response.success) {
+        showSuccess('Link Updated', `Link has been ${!currentActive ? 'activated' : 'deactivated'}.`);
+        setShareLinks(prev => prev.map(lnk => lnk.id === linkId ? { ...lnk, is_active: !currentActive } : lnk));
+      } else {
+        showError('Error', response.error || 'Failed to update link.');
+      }
+    } catch (err: any) {
+      showError('Error', err.message || 'Error occurred.');
+    }
+  };
+
+  const handleRevokeLink = async (linkId: string) => {
+    if (!confirm('Are you sure you want to revoke this share link? This cannot be undone and any users using this link will immediately lose access.')) return;
+
+    try {
+      const { apiService } = await import('../services/api');
+      const response = await apiService.deleteAssetShareLink(linkId);
+      if (response.success) {
+        showSuccess('Link Revoked', 'Share link has been deleted.');
+        setShareLinks(prev => prev.filter(lnk => lnk.id !== linkId));
+      } else {
+        showError('Error', response.error || 'Failed to revoke link.');
+      }
+    } catch (err: any) {
+      showError('Error', err.message || 'Error occurred.');
+    }
+  };
+
+  const handleCopyLink = (accessCode: string) => {
+    const link = `${window.location.origin}/shared/assets/${accessCode}`;
+    navigator.clipboard.writeText(link);
+    showSuccess('Copied to Clipboard', 'Link copied successfully!');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="max-w-3xl w-full bg-[#1A1625] rounded-lg overflow-hidden border border-[#2A2438]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-6 border-b border-[#2A2438]">
+          <h2 className="text-2xl font-bold text-[#FFF1E7]">Manage Share Links</h2>
+          <button onClick={onClose} className="text-[#FFF1E7]/60 hover:text-[#FFF1E7] transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[60vh] space-y-4">
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#EF8E81] mx-auto mb-2"></div>
+              <p className="text-[#FFF1E7]/60 text-sm">Loading share links...</p>
+            </div>
+          ) : shareLinks.length > 0 ? (
+            <div className="space-y-3">
+              {shareLinks.map(link => {
+                const expired = link.expires_at && new Date(link.expires_at) < new Date();
+                return (
+                  <div key={link.id} className="bg-[#2A2438] p-4 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-4 border border-[#3A3448]">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[#FFF1E7] font-semibold truncate block">
+                          {link.name}
+                        </span>
+                        {!link.is_active && (
+                          <span className="bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded border border-red-500/30">
+                            Inactive
+                          </span>
+                        )}
+                        {expired && (
+                          <span className="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/30">
+                            Expired
+                          </span>
+                        )}
+                        {link.is_active && !expired && (
+                          <span className="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded border border-green-500/30">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-[#FFF1E7]/60 space-y-0.5">
+                        {link.email && <p>Shared with: <strong>{link.email}</strong></p>}
+                        <p>
+                          Scope: {link.shared_asset_ids && link.shared_asset_ids.length > 0 
+                            ? `${link.shared_asset_ids.length} specific assets` 
+                            : 'Entire library'}
+                        </p>
+                        <p>
+                          Expires: {link.expires_at 
+                            ? new Date(link.expires_at).toLocaleString() 
+                            : 'Never'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 self-end md:self-center">
+                      <button
+                        onClick={() => handleCopyLink(link.access_code)}
+                        className="text-xs bg-[#EF8E81]/20 hover:bg-[#EF8E81]/30 text-[#EF8E81] border border-[#EF8E81]/30 px-3 py-2 rounded-lg transition-colors"
+                        disabled={expired || !link.is_active}
+                      >
+                        Copy Link
+                      </button>
+                      <button
+                        onClick={() => handleToggleActive(link.id, link.is_active)}
+                        className={`text-xs px-3 py-2 rounded-lg border transition-colors ${
+                          link.is_active
+                            ? 'bg-amber-500/20 border-amber-500/30 text-amber-300 hover:bg-amber-500/30'
+                            : 'bg-green-500/20 border-green-500/30 text-green-300 hover:bg-green-500/30'
+                        }`}
+                        disabled={expired}
+                      >
+                        {link.is_active ? 'Disable' : 'Enable'}
+                      </button>
+                      <button
+                        onClick={() => handleRevokeLink(link.id)}
+                        className="text-xs bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 px-3 py-2 rounded-lg transition-colors"
+                      >
+                        Revoke
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-[#FFF1E7]/60">
+              No share links generated yet.
+            </div>
+          )}
+        </div>
+
+        <div className="p-6 border-t border-[#2A2438] flex justify-end">
+          <button onClick={onClose} className="bg-[#2A2438] hover:bg-[#3A3448] text-[#FFF1E7] px-6 py-3 rounded-lg font-medium transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 

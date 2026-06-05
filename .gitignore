@@ -2,9 +2,6 @@
 supabase/.branches
 supabase/.temp
 
-# Admin - internal AI agent system (not for public repo)
-admin/
-
 # OS
 .DS_Store
 .DS_Store?
@@ -27,27 +24,20 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment - ALL .env variants (never commit real secrets)
+# Environment
 .env
-.env.*
-!.env.*.example
-!.env.example
-**/.env
-**/.env.*
-!**/.env.*.example
-!**/.env.example
-
-# Build artifacts (generated, not source)
-**/dist/
-**/build/
-**/.next/
-**/.vercel/
-
-# Dependencies (should never be committed)
-node_modules/
-**/node_modules/
+.env.local
+.env.*.local
 
 # Temporary
 *.tmp
 *.temp
+
+# Secrets and Credentials
+*client_secret*.json
+vercel-recovery-codes.txt
+*.local.backup
+.env.production
+.env.development
+.vercel/
 

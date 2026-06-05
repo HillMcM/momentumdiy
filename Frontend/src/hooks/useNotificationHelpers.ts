@@ -1,4 +1,5 @@
 import { useNotifications } from '../contexts/NotificationContext';
+import { openShareDialog, generateTaskShareMessage, type ShareableContent } from '../utils/shareHelpers';
 
 export const useNotificationHelpers = () => {
   const { addNotification } = useNotifications();
@@ -103,12 +104,27 @@ export const useNotificationHelpers = () => {
     });
   };
 
-  const showTaskCompleted = (taskName: string, onClick?: () => void) => {
+  const showTaskCompleted = (taskName: string, onClick?: () => void, shareContent?: ShareableContent) => {
+    const handleShare = () => {
+      const shareData: ShareableContent = shareContent || { taskName };
+      openShareDialog(shareData, () => {
+        addNotification({
+          type: 'success',
+          title: 'Copied!',
+          message: 'Share message copied to clipboard! Paste it on social media.',
+        });
+      });
+    };
+    
     addNotification({
       type: 'success',
       title: '🎉 Task Completed!',
       message: `Fantastic work on completing "${taskName}"! You're making real progress!`,
-      action: onClick ? {
+      action: {
+        label: '📱 Share',
+        onClick: handleShare,
+      },
+      secondaryAction: onClick ? {
         label: 'Keep Going!',
         onClick,
       } : undefined,

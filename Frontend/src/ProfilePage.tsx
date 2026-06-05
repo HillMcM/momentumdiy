@@ -14,6 +14,12 @@ import { BACKEND_BASE_URL } from './services/api';
 import { logger } from './utils/logger';
 import { calculateMomentumScore, getMomentumFactorsFromTrackData } from './utils/momentumCalculator';
 import { useIsMobile } from './hooks/useMediaQuery';
+import { useNotificationHelpers } from './hooks/useNotificationHelpers';
+import ProfileCompletionIndicator from './components/ProfileCompletionIndicator';
+import BrandingPreview from './components/BrandingPreview';
+import FieldLabel from './components/FieldLabel';
+import AccountSettings from './components/AccountSettings';
+import { useSettingsHistory } from './hooks/useSettingsHistory';
 
 type SkillLevels = {
   social?: number;
@@ -46,6 +52,7 @@ type ProfileRecord = {
   industry_keywords?: string[] | null;
   brand_primary_color?: string | null;
   brand_secondary_color?: string | null;
+  brand_accent_color?: string | null;
   brand_font_heading?: string | null;
   brand_font_body?: string | null;
   favorite_templates?: string[] | null;
@@ -69,20 +76,20 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Input({ label, value, onChange, type = 'text', placeholder }: { label: string; value: string | null | undefined; onChange: (v: string) => void; type?: string; placeholder?: string }) {
+function Input({ label, value, onChange, type = 'text', placeholder, required, optional, description }: { label: string; value: string | null | undefined; onChange: (v: string) => void; type?: string; placeholder?: string; required?: boolean; optional?: boolean; description?: string }) {
   return (
     <label style={{ display: 'block', marginBottom: '0.75rem' }}>
-      <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.25rem' }}>{label}</div>
-      <input type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: '0.6rem 0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#FFF1E7' }} />
+      <FieldLabel label={label} required={required} optional={optional} description={description} />
+      <input type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: '0.6rem 0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#FFF1E7', minHeight: '44px' }} />
     </label>
   );
 }
 
-function Textarea({ label, value, onChange, placeholder, rows = 3 }: { label: string; value: string | null | undefined; onChange: (v: string) => void; placeholder?: string; rows?: number }) {
+function Textarea({ label, value, onChange, placeholder, rows = 3, required, optional, description }: { label: string; value: string | null | undefined; onChange: (v: string) => void; placeholder?: string; rows?: number; required?: boolean; optional?: boolean; description?: string }) {
   return (
     <label style={{ display: 'block', marginBottom: '0.75rem' }}>
-      <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.25rem' }}>{label}</div>
-      <textarea value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows} style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: '0.6rem 0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#FFF1E7', resize: 'vertical', fontFamily: 'inherit' }} />
+      <FieldLabel label={label} required={required} optional={optional} description={description} />
+      <textarea value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows} style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: '0.6rem 0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#FFF1E7', resize: 'vertical', fontFamily: 'inherit', minHeight: '88px' }} />
     </label>
   );
 }
@@ -93,6 +100,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const isCompact = useIsCompact(); // Compact layout at 1100px or less
+  const { showSuccess, showError, showInfo } = useNotificationHelpers();
   const [tab, setTab] = useState<'account' | 'business' | 'tracks' | 'favorites' | 'notifications'>('account');
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -101,6 +109,9 @@ export default function ProfilePage() {
   const [loadingAIColors, setLoadingAIColors] = useState(false);
   const [weeklyNote, setWeeklyNote] = useState('');
   const [showNoteInput, setShowNoteInput] = useState(false);
+  
+  // Settings history for undo functionality (initialize with profile when available)
+  const settingsHistory = useSettingsHistory<ProfileRecord>(profile || undefined, 5);
 
   useEffect(() => {
     if (!user) return;
@@ -143,7 +154,7 @@ export default function ProfilePage() {
       tasksCompleted: taskCompletions,
       totalTasks,
       currentWeek: activeGoal.currentWeek,
-      startDate: activeGoal.startDate || new Date().toISOString(),
+      startDate: typeof activeGoal.startDate === 'string' ? activeGoal.startDate : (activeGoal.startDate?.toISOString() || new Date().toISOString()),
       weeklyNotes: profile.weekly_notes || []
     });
 
@@ -163,6 +174,10 @@ export default function ProfilePage() {
 
   const save = async () => {
     if (!user || !profile) return;
+    
+    // Save current state to history before saving
+    settingsHistory.saveSnapshot(profile, 'Profile saved');
+    
     setSaving(true);
     try {
       const { error } = await supabase
@@ -182,6 +197,7 @@ export default function ProfilePage() {
           industry_keywords: profile.industry_keywords ?? [],
           brand_primary_color: profile.brand_primary_color,
           brand_secondary_color: profile.brand_secondary_color,
+          brand_accent_color: profile.brand_accent_color,
           brand_font_heading: profile.brand_font_heading,
           brand_font_body: profile.brand_font_body,
           favorite_templates: profile.favorite_templates ?? [],
@@ -198,18 +214,28 @@ export default function ProfilePage() {
       if (error) throw error;
       
       // Show success message
-      alert('Profile saved successfully!');
+      showSuccess('Profile Saved', 'Your profile has been updated successfully! You can undo this change if needed.');
     } catch (error) {
       logger.error('Error saving profile', error, { userId: user?.id });
-      alert('Failed to save profile. Please try again.');
+      showError('Save Failed', 'Failed to save profile. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
+  const handleUndo = () => {
+    const previous = settingsHistory.undo();
+    if (previous) {
+      setProfile(previous);
+      showSuccess('Changes Undone', 'Your changes have been reverted to the previous state.');
+    } else {
+      showInfo('Nothing to Undo', 'There are no previous changes to undo.');
+    }
+  };
+
   const handleAIColorSuggestions = async () => {
     if (!profile?.brand_primary_color) {
-      alert('Please set a primary color first!');
+      showInfo('Primary Color Required', 'Please set a primary color first before getting AI suggestions.');
       return;
     }
 
@@ -229,13 +255,13 @@ export default function ProfilePage() {
         setProfile(p => p ? {
           ...p,
           brand_secondary_color: data.data.secondary,
-          // Could also set accent/background if we add those fields
+          brand_accent_color: data.data.accent,
         } : null);
-        alert('AI color suggestions applied! Review and save if you like them.');
+        showSuccess('AI Suggestions Applied', 'Color suggestions have been applied. Review and save if you like them.');
       }
     } catch (error) {
       logger.error('Error getting AI color suggestions', error);
-      alert('Failed to get AI suggestions. Please try again.');
+      showError('AI Suggestions Failed', 'Failed to get AI suggestions. Please try again.');
     } finally {
       setLoadingAIColors(false);
     }
@@ -263,9 +289,9 @@ export default function ProfilePage() {
       }
     } catch (error) {
       logger.error('Error saving note', error, { noteType: 'brand_notes' });
-      alert('Failed to save note. Please try again.');
+      showError('Save Failed', 'Failed to save note. Please try again.');
     } finally {
-      setSavingNote(false);
+      setSaving(false);
     }
   };
 
@@ -280,7 +306,7 @@ export default function ProfilePage() {
     return names[key] || key;
   };
 
-  const getSkillTip = (key: string, level: number) => {
+  const getSkillTip = (_key: string, level: number) => {
     if (level === 0) return 'Just starting out - let\'s build this skill!';
     if (level <= 2) return 'Learning the basics - great progress!';
     if (level <= 4) return 'Solid skills - keep refining!';
@@ -291,7 +317,7 @@ export default function ProfilePage() {
     { key: 'account', label: 'Account Settings' },
     { key: 'business', label: 'Business Profile' },
     { key: 'tracks', label: 'My Tracks & Progress' },
-    { key: 'favorites', label: 'Saved & Favorites' },
+    // { key: 'favorites', label: 'Saved & Favorites' },
     { key: 'notifications', label: 'Email Preferences' }
   ] as const), []);
 
@@ -331,21 +357,32 @@ export default function ProfilePage() {
         onEditClick={() => setTab('account')}
       />
 
-      {/* Track Completion Confetti */}
-      <CompletionConfetti isComplete={activeGoal?.progress >= 100} />
+      {/* Profile Completion Indicator */}
+      <ProfileCompletionIndicator profile={profile} />
 
-      {/* Tabs - Scrollable on mobile */}
+      {/* Track Completion Confetti */}
+      <CompletionConfetti isComplete={(activeGoal?.progress ?? 0) >= 100} />
+
+      {/* Tabs and Action Buttons Row */}
       <div style={{ 
-        marginBottom: isMobile ? '1rem' : '1.5rem'
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '1rem',
+        flexWrap: 'wrap',
+        marginBottom: isMobile ? '1.5rem' : '2rem',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        paddingBottom: '1rem'
       }}>
+        {/* Left Side: Tabs */}
         <div style={{ 
           display: 'flex', 
           gap: '0.5rem', 
-          flexWrap: isMobile ? 'nowrap' : 'wrap',
+          flexWrap: 'wrap',
+          flex: '1 1 auto',
+          minWidth: isMobile ? '100%' : 'auto',
           overflowX: isMobile ? 'auto' : 'visible',
           WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'thin',
-          paddingBottom: isMobile ? '0.5rem' : '0'
         }}>
           {tabs.map(t => (
             <button 
@@ -371,29 +408,61 @@ export default function ProfilePage() {
           ))}
         </div>
         
-        {/* Save button - separate row on mobile for visibility */}
-        {!isMobile && <span style={{ marginLeft: 'auto' }} />}
-        <button 
-          onClick={save} 
-          disabled={saving} 
-          style={{ 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: 10, 
-            border: 'none', 
-            background: saving ? '#999' : 'linear-gradient(135deg, #EF8E81 0%, #D4AF37 100%)', 
-            color: '#FFF', 
-            cursor: saving ? 'not-allowed' : 'pointer',
-            fontWeight: 600,
-            boxShadow: saving ? 'none' : '0 2px 8px rgba(239, 142, 129, 0.3)',
-            transition: 'all 0.2s',
-            whiteSpace: 'nowrap',
-            width: isMobile ? '100%' : 'auto',
-            minHeight: '44px',
-            marginTop: isMobile ? '0.75rem' : '0'
-          }}
-        >
-          {saving ? 'Saving…' : '💾 Save Changes'}
-        </button>
+        {/* Right Side: Save & Undo Actions */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '0.5rem', 
+          alignItems: 'center',
+          justifyContent: isMobile ? 'stretch' : 'flex-end',
+          flex: isMobile ? '1 1 100%' : '0 1 auto',
+          width: isMobile ? '100%' : 'auto'
+        }}>
+          {settingsHistory.canUndo && (
+            <button 
+              onClick={handleUndo}
+              style={{ 
+                padding: '0.75rem 1.25rem', 
+                borderRadius: 10, 
+                border: '1px solid rgba(255, 255, 255, 0.2)', 
+                background: 'rgba(255, 255, 255, 0.05)', 
+                color: '#FFF1E7', 
+                cursor: 'pointer',
+                fontWeight: 600,
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
+                width: isMobile ? '100%' : 'auto',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
+              title={`Undo last ${settingsHistory.history.length} change${settingsHistory.history.length !== 1 ? 's' : ''}`}
+            >
+              ↶ Undo
+            </button>
+          )}
+          <button 
+            onClick={save} 
+            disabled={saving} 
+            style={{ 
+              padding: '0.75rem 1.5rem', 
+              borderRadius: 10, 
+              border: 'none', 
+              background: saving ? '#999' : 'linear-gradient(135deg, #EF8E81 0%, #D4AF37 100%)', 
+              color: '#FFF', 
+              cursor: saving ? 'not-allowed' : 'pointer',
+              fontWeight: 600,
+              boxShadow: saving ? 'none' : '0 2px 8px rgba(239, 142, 129, 0.3)',
+              transition: 'all 0.2s',
+              whiteSpace: 'nowrap',
+              width: isMobile ? '100%' : 'auto',
+              minHeight: '44px'
+            }}
+          >
+            {saving ? 'Saving…' : '💾 Save Changes'}
+          </button>
+        </div>
       </div>
 
       {/* TAB 1: ACCOUNT SETTINGS */}
@@ -415,6 +484,7 @@ export default function ProfilePage() {
               value={profile.full_name} 
               onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), full_name: v }))} 
               placeholder="Your full name"
+              optional={true}
             />
             
             <Input 
@@ -423,6 +493,8 @@ export default function ProfilePage() {
               onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), contact_email: v }))}
               type="email"
               placeholder="your@email.com"
+              optional={true}
+              description="Email for notifications (defaults to your account email)"
             />
           </Section>
           
@@ -430,7 +502,7 @@ export default function ProfilePage() {
             {/* Color Pickers - Stack on compact screens for better accessibility */}
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', 
+              gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr 1fr', 
               gap: isCompact ? '1rem' : '0.75rem' 
             }}>
               <div>
@@ -530,6 +602,55 @@ export default function ProfilePage() {
                   />
                 </div>
               </div>
+
+              <div>
+                <label style={{ 
+                  fontSize: '0.85rem', 
+                  opacity: 0.9, 
+                  marginBottom: '0.5rem', 
+                  display: 'block',
+                  fontWeight: 600 
+                }}>
+                  Accent Color
+                </label>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '0.5rem', 
+                  alignItems: 'center',
+                  flexDirection: isCompact ? 'column' : 'row'
+                }}>
+                  <input 
+                    type="color" 
+                    value={profile.brand_accent_color || '#8B5CF6'} 
+                    onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), brand_accent_color: e.target.value }))}
+                    style={{ 
+                      width: isCompact ? '100%' : '60px', 
+                      height: '44px', 
+                      borderRadius: 8, 
+                      border: '1px solid rgba(255,255,255,0.12)', 
+                      cursor: 'pointer' 
+                    }}
+                  />
+                  <input 
+                    type="text"
+                    value={profile.brand_accent_color || '#8B5CF6'}
+                    onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), brand_accent_color: e.target.value }))}
+                    style={{ 
+                      flex: 1, 
+                      width: isCompact ? '100%' : 'auto',
+                      padding: '0.65rem 0.75rem', 
+                      borderRadius: 8, 
+                      background: 'rgba(255,255,255,0.06)', 
+                      border: '1px solid rgba(255,255,255,0.12)', 
+                      color: '#FFF1E7', 
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      minHeight: '44px'
+                    }}
+                    placeholder="#8B5CF6"
+                  />
+                </div>
+              </div>
             </div>
 
             <button
@@ -573,7 +694,7 @@ export default function ProfilePage() {
                 type="checkbox" 
                 checked={profile.apply_branding_to_templates ?? true}
                 onChange={(e) => setProfile(p => ({ ...(p as ProfileRecord), apply_branding_to_templates: e.target.checked }))}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: 'pointer', minWidth: '20px', minHeight: '20px' }}
               />
               <span style={{ fontSize: '0.9rem', flex: 1 }}>
                 <strong>Apply my branding to generated content</strong>
@@ -582,7 +703,20 @@ export default function ProfilePage() {
                 </div>
               </span>
             </label>
+            
+            {/* Branding Preview */}
+            <BrandingPreview
+              primaryColor={profile.brand_primary_color}
+              secondaryColor={profile.brand_secondary_color}
+              accentColor={profile.brand_accent_color}
+              fontHeading={profile.brand_font_heading}
+              fontBody={profile.brand_font_body}
+              logo={profile.brand_logo}
+            />
           </Section>
+          
+          {/* Account Settings */}
+          <AccountSettings />
         </div>
       )}
 
@@ -595,29 +729,49 @@ export default function ProfilePage() {
             gap: isMobile ? '1rem' : '1.5rem' 
           }}>
             <Section title="Business Details">
+              {/* Required fields indicator */}
+              <div style={{ 
+                fontSize: '0.75rem', 
+                padding: '0.5rem', 
+                background: 'rgba(239, 142, 129, 0.1)', 
+                borderRadius: '6px', 
+                marginBottom: '1rem',
+                color: '#FFF1E7',
+                opacity: 0.8
+              }}>
+                <strong>💡 Tip:</strong> Required fields are marked with a red "Required" badge. Complete all required fields to unlock full features.
+              </div>
               <Input 
                 label="Business Name" 
                 value={profile.business_name} 
                 onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), business_name: v }))}
                 placeholder="Your business name"
+                required={true}
+                description="The name of your business"
               />
               <Input 
                 label="Business Category" 
                 value={profile.business_category} 
                 onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), business_category: v }))}
                 placeholder="e.g., Restaurant, Retail, Service"
+                required={true}
+                description="Helps us personalize recommendations"
               />
               <Input 
                 label="Location" 
                 value={profile.location} 
                 onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), location: v }))}
                 placeholder="City, State"
+                required={true}
+                description="Your business location"
               />
               <Input 
                 label="Business Size" 
                 value={profile.business_size} 
                 onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), business_size: v }))}
                 placeholder="e.g., 1-10 employees"
+                optional={true}
+                description="Number of employees or team size"
               />
               
               <Textarea
@@ -626,6 +780,8 @@ export default function ProfilePage() {
                 onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), business_bio: v }))}
                 placeholder="Describe your business in 2-3 sentences..."
                 rows={4}
+                optional={true}
+                description="A brief description of your business"
               />
             </Section>
             
@@ -635,24 +791,32 @@ export default function ProfilePage() {
                 value={profile.primary_marketing_goal} 
                 onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), primary_marketing_goal: v }))}
                 placeholder="e.g., Increase foot traffic"
+                required={true}
+                description="Your main marketing objective"
               />
               <Input 
                 label="Main Channels" 
                 value={(profile.marketing_channels || []).join(', ')} 
                 onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), marketing_channels: v.split(',').map(s => s.trim()).filter(Boolean) }))}
                 placeholder="Facebook, Instagram, Google, etc."
+                optional={true}
+                description="Marketing channels you use or want to use"
               />
               <Input 
                 label="Industry Keywords" 
                 value={(profile.industry_keywords || []).join(', ')} 
                 onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), industry_keywords: v.split(',').map(s => s.trim()).filter(Boolean) }))}
                 placeholder="organic, local, artisan, etc."
+                optional={true}
+                description="Keywords that describe your business or industry"
               />
               <Input 
                 label="Top Competitors" 
                 value={(profile.competitors || []).join(', ')} 
                 onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), competitors: v.split(',').map(s => s.trim()).filter(Boolean) }))}
                 placeholder="Competitor names (comma-separated)"
+                optional={true}
+                description="For competitive analysis and benchmarking"
               />
             </Section>
           </div>
@@ -996,41 +1160,17 @@ export default function ProfilePage() {
                   <div style={{ fontSize: '0.9rem' }}>View This Week's Tasks</div>
                 </button>
 
-                <button
-                  onClick={() => {
-                    // TODO: Integrate with AI assistant
-                    alert('AI Campaign Generator coming soon!');
-                  }}
-                  style={{
-                    padding: '1rem',
-                    borderRadius: 10,
-                    border: '1px solid rgba(212, 175, 55, 0.3)',
-                    background: 'rgba(212, 175, 55, 0.1)',
-                    color: '#D4AF37',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>✨</div>
-                  <div style={{ fontSize: '0.9rem' }}>Generate Campaign Idea</div>
-                </button>
 
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     // Generate shareable progress card
                     const shareText = `I'm on Week ${activeGoal.currentWeek} of my ${activeGoal.title} journey with MomentumDIY! ${activeGoal.progress}% complete 🚀`;
-                    navigator.clipboard.writeText(shareText);
-                    alert('Progress copied to clipboard! Paste it on social media.');
+                    try {
+                      await navigator.clipboard.writeText(shareText);
+                      showSuccess('Copied!', 'Progress copied to clipboard! Paste it on social media.');
+                    } catch (error) {
+                      showError('Copy Failed', 'Failed to copy to clipboard. Please try again.');
+                    }
                   }}
                   style={{
                     padding: '1rem',
@@ -1079,18 +1219,6 @@ export default function ProfilePage() {
             onChange={(v) => setProfile(p => ({ ...(p as ProfileRecord), favorite_tools: v.split(',').map(s => s.trim()).filter(Boolean) }))}
             placeholder="Canva, Buffer, Mailchimp, etc."
           />
-          
-          <div style={{
-            marginTop: '1.5rem',
-            padding: '1rem',
-            background: 'rgba(139, 92, 246, 0.1)',
-            border: '1px solid rgba(139, 92, 246, 0.2)',
-            borderRadius: 10,
-            fontSize: '0.85rem',
-            opacity: 0.8
-          }}>
-            💡 <strong>Coming Soon:</strong> Visual template library with drag-and-drop organization!
-          </div>
         </Section>
       )}
 

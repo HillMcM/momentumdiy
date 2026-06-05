@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { API_URL } from '../config/environment';
+import { logger } from '../utils/logger';
 
 export default function ReferralTracker() {
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -32,7 +33,7 @@ export default function ReferralTracker() {
         credentials: 'include', // Important for cookie setting
       });
     } catch (err) {
-      console.error('Error tracking referral:', err);
+      logger.error('Error tracking referral', err);
     }
   };
 

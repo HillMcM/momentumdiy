@@ -4,6 +4,7 @@
  */
 
 import * as supabase from '../config/supabase';
+import { logger } from '../utils/logger';
 
 interface ActionLink {
   url: string;
@@ -93,7 +94,7 @@ async function addActionLinksToTasks() {
       .single();
 
     if (trackError || !trackDef) {
-      console.error('❌ Could not find Social Media Strategy track:', trackError);
+      logger.error('Could not find Social Media Strategy track', trackError);
       return;
     }
 
@@ -106,7 +107,7 @@ async function addActionLinksToTasks() {
       .eq('track_definition_id', trackDef.id);
 
     if (goalsError) {
-      console.error('❌ Error fetching goals:', goalsError);
+      logger.error('Error fetching goals', goalsError);
       return;
     }
 
@@ -125,7 +126,7 @@ async function addActionLinksToTasks() {
       .in('goal_id', goalIds);
 
     if (modulesError) {
-      console.error('❌ Error fetching modules:', modulesError);
+      logger.error('Error fetching modules', modulesError);
       return;
     }
 
@@ -139,7 +140,7 @@ async function addActionLinksToTasks() {
       .in('module_id', moduleIds);
 
     if (tasksError) {
-      console.error('❌ Error fetching tasks:', tasksError);
+      logger.error('Error fetching tasks', tasksError);
       return;
     }
 
@@ -167,7 +168,7 @@ async function addActionLinksToTasks() {
             .eq('id', task.id);
 
           if (updateError) {
-            console.error(`   ❌ Failed to update task "${task.title}":`, updateError.message);
+            logger.error(`Failed to update task "${task.title}"`, updateError);
           } else {
             console.log(`   ✅ Added link to: "${task.title}" → ${actionLink.tab} tab`);
             updatedCount++;
@@ -186,7 +187,7 @@ async function addActionLinksToTasks() {
     }
 
   } catch (error) {
-    console.error('❌ Error:', error);
+    logger.error('Script error', error);
   }
 }
 
@@ -196,7 +197,7 @@ if (require.main === module) {
     console.log('✨ Script completed');
     process.exit(0);
   }).catch(error => {
-    console.error('Script failed:', error);
+    logger.error('Script failed', error);
     process.exit(1);
   });
 }

@@ -34,6 +34,9 @@ export interface ConversationContext {
   userIndustry?: string;
   userExperienceLevel?: string;
   pagePath?: string;
+  businessBio?: string;
+  competitors?: string;
+  weeklyNotes?: string;
 }
 
 export interface ChatMessage {
@@ -52,7 +55,7 @@ export interface AIResponse {
 // ============================================================================
 
 export class AIConfig {
-  static readonly MODEL = 'claude-sonnet-4-5-20250929';
+  static readonly MODEL = 'claude-3-5-sonnet-latest';
   static readonly MAX_TOKENS = 4000; // Generous limit for detailed, helpful responses
   static readonly TEMPERATURE = 0.7;
   static readonly MAX_HISTORY_LENGTH = 10; // More context for better continuity

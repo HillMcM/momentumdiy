@@ -42,6 +42,7 @@ const supabase_1 = require("../config/supabase");
 const rate_1 = require("../middleware/rate");
 const logger_1 = require("../utils/logger");
 const admin_1 = require("../config/admin");
+const stripeConnectService_1 = require("../services/stripeConnectService");
 const stripe_1 = __importDefault(require("stripe"));
 const router = express.Router();
 router.post('/create-subscription', (0, rate_1.routeRateLimit)(10), async (req, res) => {
@@ -222,6 +223,46 @@ router.get('/profile', (0, rate_1.routeRateLimit)(30), async (req, res) => {
                 });
             }
             finalProfile = newProfile;
+            const referralCode = req.cookies?.momentum_ref || req.body?.referralCode;
+            if (referralCode) {
+                try {
+                    const { data: affiliate } = await supabase_1.supabase
+                        .from('affiliate_programs')
+                        .select('id')
+                        .eq('referral_code', referralCode)
+                        .single();
+                    if (affiliate) {
+                        const { data: existingReferral } = await supabase_1.supabase
+                            .from('referrals')
+                            .select('id')
+                            .eq('referred_user_id', user.id)
+                            .single();
+                        if (!existingReferral) {
+                            await supabase_1.supabase
+                                .from('referrals')
+                                .insert({
+                                affiliate_id: affiliate.id,
+                                referred_user_id: user.id,
+                                referral_code_used: referralCode,
+                                signed_up_at: new Date().toISOString(),
+                                status: 'pending',
+                            });
+                            logger_1.logger.info('Referral linked on profile creation', {
+                                userId: user.id,
+                                referralCode,
+                                affiliateId: affiliate.id,
+                            });
+                        }
+                    }
+                }
+                catch (referralError) {
+                    logger_1.logger.warn('Error linking referral on profile creation', {
+                        error: referralError instanceof Error ? referralError.message : String(referralError),
+                        userId: user.id,
+                        referralCode,
+                    });
+                }
+            }
         }
         if (!isGreenlisted && finalProfile.subscription_status === 'trial' && finalProfile.trial_end_date) {
             const trialEnd = new Date(finalProfile.trial_end_date);
@@ -267,7 +308,13 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         return res.status(400).send(`Webhook Error: ${errorMessage}`);
     }
     try {
-        await stripeService_1.StripeService.handleWebhook(event);
+        const connectEventTypes = ['account.updated', 'transfer.created', 'transfer.updated', 'transfer.failed'];
+        if (connectEventTypes.includes(event.type) || event.type.startsWith('transfer.')) {
+            await stripeConnectService_1.StripeConnectService.handleConnectWebhook(event);
+        }
+        else {
+            await stripeService_1.StripeService.handleWebhook(event);
+        }
         return res.json({ received: true });
     }
     catch (error) {

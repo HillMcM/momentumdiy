@@ -1,5 +1,6 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import type { BrandSettings, AspectRatio } from "../../types/socialGenerator";
+import { logger } from "../../utils/logger";
 
 // Initialize Gemini AI with error handling
 const getGeminiAI = () => {
@@ -98,14 +99,14 @@ export const generateSocialGraphics = async (settings: BrandSettings, aspectRati
             const images = await Promise.all(imagePromises);
             return images;
         } catch (error) {
-            console.error("Error generating images with nano-banana:", error);
+            logger.error("Error generating images with nano-banana", error);
             if (error instanceof Error) {
                 throw new Error(`Image generation failed: ${error.message}`);
             }
             throw new Error("An unexpected error occurred during image generation.");
         }
     } catch (error) {
-        console.error("Error initializing Gemini AI:", error);
+        logger.error("Error initializing Gemini AI", error);
         if (error instanceof Error) {
             throw new Error(`API initialization failed: ${error.message}`);
         }
@@ -127,7 +128,7 @@ export const describeImageStyle = async (imageBase64: string): Promise<string> =
         });
         return response.text;
     } catch (error) {
-        console.error("Error describing image style:", error);
+        logger.error("Error describing image style", error);
         if (error instanceof Error) {
             throw new Error(`Image analysis failed: ${error.message}`);
         }
@@ -156,7 +157,7 @@ export const refineBrandVoice = async (currentVoice: string, selectionStyle: str
 
         return response.text.trim();
     } catch (error) {
-        console.error("Error refining brand voice:", error);
+        logger.error("Error refining brand voice", error);
         if (error instanceof Error) {
             throw new Error(`Brand voice refinement failed: ${error.message}`);
         }

@@ -1,5 +1,6 @@
 import { useAuth } from '../contexts/useAuth';
 import { Navigate } from 'react-router-dom';
+import LoadingSpinner from './LoadingSpinner';
 
 interface AdminGuardProps {
   children: React.ReactNode;
@@ -11,7 +12,19 @@ const ADMIN_EMAILS = [
 ];
 
 export default function AdminGuard({ children }: AdminGuardProps) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Wait for auth to finish loading before making decision
+  // This prevents hook order issues with lazy-loaded children
+  if (loading) {
+    return (
+      <LoadingSpinner
+        fullScreen
+        message="Loading..."
+        size="lg"
+      />
+    );
+  }
 
   // Check if user is authenticated and is an admin
   const isAdmin = user && user.email && ADMIN_EMAILS.includes(user.email.toLowerCase());

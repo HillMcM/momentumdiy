@@ -1170,8 +1170,22 @@ export class MarketingService {
   /**
    * Update marketing task completion status
    */
-  static async updateMarketingTaskCompletion(taskId: string, isCompleted: boolean): Promise<ApiResponse<MarketingTask>> {
+  static async updateMarketingTaskCompletion(taskId: string, isCompleted: boolean, userId?: string): Promise<ApiResponse<MarketingTask>> {
     try {
+      // Get current user ID from parameter or auth context
+      let currentUserId = userId;
+      if (!currentUserId) {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          return {
+            success: false,
+            error: 'User not authenticated'
+          };
+        }
+        currentUserId = user.id;
+      }
+
+      // Update task completion status
       const { data, error } = await supabase
         .from('marketing_tasks')
         .update({ is_completed: isCompleted })
@@ -1184,6 +1198,45 @@ export class MarketingService {
           success: false,
           error: error.message
         };
+      }
+
+      // If task is being completed, update user_task_completions and profile last_activity
+      if (isCompleted) {
+        // Insert or update user_task_completions
+        const { error: completionError } = await supabase
+          .from('user_task_completions')
+          .upsert({
+            user_id: currentUserId,
+            task_id: taskId,
+            completed_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id,task_id'
+          });
+
+        if (completionError) {
+          logger.error('Error updating user_task_completions', completionError, { userId: currentUserId, taskId });
+        }
+
+        // Update profile last_activity
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ last_activity: new Date().toISOString() })
+          .eq('id', currentUserId);
+
+        if (profileError) {
+          logger.error('Error updating profile last_activity', profileError, { userId: currentUserId });
+        }
+      } else {
+        // If task is being uncompleted, remove from user_task_completions
+        const { error: deletionError } = await supabase
+          .from('user_task_completions')
+          .delete()
+          .eq('user_id', currentUserId)
+          .eq('task_id', taskId);
+
+        if (deletionError) {
+          logger.error('Error removing task completion', deletionError, { userId: currentUserId, taskId });
+        }
       }
 
       const task: MarketingTask = {

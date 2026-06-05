@@ -630,6 +630,42 @@ class ApiService {
     });
   }
 
+  // Account management
+  async deleteAccount(): Promise<ApiResponse<void>> {
+    return this.request<void>('/account/delete', {
+      method: 'DELETE',
+    });
+  }
+
+  // Asset sharing API methods
+  async createAssetShareLink(data: { name: string; email?: string; expiresAt?: string; sharedAssetIds?: string[] | null }): Promise<ApiResponse<any>> {
+    return this.request<any>('/assets/share', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getAssetShareLinks(): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>('/assets/share');
+  }
+
+  async updateAssetShareLink(linkId: string, updates: { is_active?: boolean; name?: string; email?: string; expires_at?: string; shared_asset_ids?: string[] | null }): Promise<ApiResponse<any>> {
+    return this.request<any>(`/assets/share/${linkId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+  }
+
+  async deleteAssetShareLink(linkId: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/assets/share/${linkId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getSharedAssets(accessCode: string): Promise<ApiResponse<{ shareInfo: any; assets: Asset[] }>> {
+    return this.request<{ shareInfo: any; assets: Asset[] }>(`/assets/shared/${accessCode}`);
+  }
+
 }
 
 export const apiService = new ApiService();

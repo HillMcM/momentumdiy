@@ -74,6 +74,8 @@
         </div>
         <div class="hidden sm:flex items-center gap-4">
           <a href="#how" class="text-white/80 hover:text-white">How it works</a>
+          <a href="/tracks" class="text-white/80 hover:text-white">Tracks</a>
+          <a href="/features" class="text-white/80 hover:text-white">Features</a>
           <a href="#pricing" class="text-white/80 hover:text-white">Pricing</a>
           <a href="#faq" class="text-white/80 hover:text-white">FAQ</a>
           <a href="/auth" class="text-white/90 hover:text-white font-semibold">Sign in</a>
@@ -123,7 +125,10 @@
   <!-- What You'll Get (additive) -->
   <section id="features" class="py-20 lg:py-28 bg-fun-2">
     <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-3xl font-extrabold">What You’ll Get in Your First 90 Days</h2>
+      <h2 class="text-3xl font-extrabold">What You'll Get in Your First 90 Days</h2>
+      <p class="mt-4 text-white/80 mb-8 max-w-2xl">
+        A complete marketing toolkit designed for small business owners. <a href="/features" class="text-coral hover:text-coral/80 font-semibold underline">See all features →</a>
+      </p>
       <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
           <h3 class="font-bold">Weekly plan tailored to your goals</h3>
@@ -170,12 +175,25 @@
   <!-- Audience (additive) -->
   <section id="audience" class="py-20 lg:py-28 bg-fun-1">
     <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-3xl font-extrabold">Who MomentumDIY Is Perfect For</h2>
-      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 text-white/90">
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-5">Local shops & cafés</div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-5">Service-based businesses</div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-5">Solo entrepreneurs</div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-5">Community‑focused brands</div>
+      <h2 class="text-3xl font-extrabold mb-2">Who MomentumDIY Is Perfect For</h2>
+      <p class="text-white/80 mb-8 max-w-2xl">Whether you're just starting out or looking to grow, MomentumDIY adapts to your business needs.</p>
+      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="font-bold text-lg mb-2">Local shops & cafés</h3>
+          <p class="text-white/85 text-sm">Perfect for brick-and-mortar businesses looking to attract more foot traffic and build a loyal local customer base through consistent, community-focused marketing.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="font-bold text-lg mb-2">Service-based businesses</h3>
+          <p class="text-white/85 text-sm">Ideal for consultants, freelancers, and service providers who need to build trust and showcase expertise without spending hours on marketing strategy.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="font-bold text-lg mb-2">Solo entrepreneurs</h3>
+          <p class="text-white/85 text-sm">Built for solopreneurs who wear all the hats. Get a clear marketing plan that fits into your already-busy schedule with tasks you can actually complete.</p>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
+          <h3 class="font-bold text-lg mb-2">Community‑focused brands</h3>
+          <p class="text-white/85 text-sm">Great for businesses that prioritize authentic connections over flashy campaigns. Learn to build genuine relationships with your audience through thoughtful, consistent marketing.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -189,7 +207,7 @@
         <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
           <div class="w-10 h-10 rounded-full bg-coral/20 text-coral grid place-items-center font-extrabold">1</div>
           <h3 class="mt-4 text-xl font-bold">Pick Your 90‑Day Track</h3>
-          <p class="mt-2 text-white/85">Choose a clear growth goal and we’ll map the next 12 weeks.</p>
+          <p class="mt-2 text-white/85">Choose a clear growth goal and we'll map the next 12 weeks. <a href="/tracks" class="text-coral hover:text-coral/80 font-semibold">View all tracks →</a></p>
         </div>
         <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
           <div class="w-10 h-10 rounded-full bg-coral/20 text-coral grid place-items-center font-extrabold">2</div>
@@ -213,26 +231,26 @@
         <div class="flex gap-4 min-w-[720px]">
           <!-- Cards -->
           <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
-            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden">
-              <img src="/assets/dashboard_feature.png" alt="Weekly plan view" class="w-full h-full object-cover" />
+            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden cursor-pointer" onclick="expandImage('/assets/dashboard_feature.png', 'Weekly plan view')">
+              <img src="/assets/dashboard_feature.png" alt="Weekly plan view" class="w-full h-full object-cover hover:opacity-90 transition-opacity" />
             </div>
             <p class="mt-3 text-sm text-white/85">Weekly plan view</p>
           </div>
           <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
-            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden">
-              <img src="/assets/task_tracker_feature.png" alt="Task tracker" class="w-full h-full object-cover" />
+            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden cursor-pointer" onclick="expandImage('/assets/task_tracker_feature.png', 'Task tracker')">
+              <img src="/assets/task_tracker_feature.png" alt="Task tracker" class="w-full h-full object-cover hover:opacity-90 transition-opacity" />
             </div>
             <p class="mt-3 text-sm text-white/85">Task tracker</p>
           </div>
           <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
-            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden">
-              <img src="/assets/claude_ai_marketing_assistant_feature.png" alt="AI assistant" class="w-full h-full object-cover" />
+            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden cursor-pointer" onclick="expandImage('/assets/claude_ai_marketing_assistant_feature.png', 'AI assistant')">
+              <img src="/assets/claude_ai_marketing_assistant_feature.png" alt="AI assistant" class="w-full h-full object-cover hover:opacity-90 transition-opacity" />
             </div>
             <p class="mt-3 text-sm text-white/85">AI assistant</p>
           </div>
           <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
-            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden">
-              <img src="/assets/asset_feature.png" alt="Asset library" class="w-full h-full object-cover" />
+            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden cursor-pointer" onclick="expandImage('/assets/asset_feature.png', 'Asset library')">
+              <img src="/assets/asset_feature.png" alt="Asset library" class="w-full h-full object-cover hover:opacity-90 transition-opacity" />
             </div>
             <p class="mt-3 text-sm text-white/85">Asset library</p>
           </div>
@@ -240,6 +258,15 @@
       </div>
     </div>
   </section>
+
+  <!-- Image Expansion Modal -->
+  <div id="imageModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 p-4" onclick="closeImageModal()">
+    <div class="relative max-w-7xl max-h-full" onclick="event.stopPropagation()">
+      <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white text-3xl font-bold hover:text-coral transition-colors" aria-label="Close">×</button>
+      <img id="expandedImage" src="" alt="" class="max-w-full max-h-[90vh] rounded-lg" />
+      <p id="imageCaption" class="mt-4 text-center text-white/90"></p>
+    </div>
+  </div>
 
   <!-- 3C Framework -->
   <section class="py-20 lg:py-28 bg-fun-2">
@@ -371,14 +398,43 @@
       <nav class="flex items-center gap-5 text-sm">
         <a href="/privacy" class="hover:text-white">Privacy Policy</a>
         <a href="/terms" class="hover:text-white">Terms of Service</a>
-        <a href="/about" class="hover:text-white">About the Founder</a>
-        <a href="mailto:hello@momentumdiy.com" class="hover:text-white">Contact</a>
+        <a href="/affiliate-partner/apply" class="hover:text-white">Become an Affiliate Partner</a>
+        <a href="https://www.hillaryedenmcmullen.com/post/hillary-eden-mcmullen-an-introduction" target="_blank" rel="noopener noreferrer" class="hover:text-white">About the Founder</a>
+        <a href="mailto:info@hillaryedenmcmullen.com" class="hover:text-white">Contact</a>
       </nav>
     </div>
   </footer>
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Image expansion functionality
+    function expandImage(src, alt) {
+      const modal = document.getElementById('imageModal');
+      const img = document.getElementById('expandedImage');
+      const caption = document.getElementById('imageCaption');
+      
+      img.src = src;
+      img.alt = alt;
+      caption.textContent = alt;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeImageModal() {
+      const modal = document.getElementById('imageModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeImageModal();
+      }
+    });
   </script>
 </body>
 </html>

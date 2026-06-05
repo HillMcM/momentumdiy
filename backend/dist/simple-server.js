@@ -40,6 +40,7 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv = __importStar(require("dotenv"));
 const sdk_1 = __importDefault(require("@anthropic-ai/sdk"));
+const logger_1 = require("./utils/logger");
 dotenv.config();
 const app = (0, express_1.default)();
 const PORT = 3002;
@@ -129,7 +130,7 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
         });
     }
     catch (error) {
-        console.error('AI Chat Error:', error);
+        logger_1.logger.error('AI Chat Error', error);
         return res.status(500).json({
             success: false,
             error: 'Failed to generate AI response'
@@ -137,10 +138,12 @@ Please respond as Hillary, keeping in mind the user's current marketing track pr
     }
 });
 app.listen(PORT, () => {
-    console.log(`🚀 Simple AI Server running on port ${PORT}`);
-    console.log(`📊 Environment: development`);
-    console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-    console.log(`🤖 AI Chat: http://localhost:${PORT}/api/ai/chat`);
+    logger_1.logger.info('Simple AI Server started', {
+        port: PORT,
+        environment: 'development',
+        healthCheck: `http://localhost:${PORT}/health`,
+        aiChat: `http://localhost:${PORT}/api/ai/chat`
+    });
 });
 exports.default = app;
 //# sourceMappingURL=simple-server.js.map

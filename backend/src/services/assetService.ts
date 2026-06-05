@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase';
+import crypto from 'crypto';
 import { 
   Asset, 
   CreateAssetRequest, 
@@ -266,6 +267,245 @@ export class AssetService {
       return {
         success: true,
         data: assets
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  /**
+   * Create a new asset share link
+   */
+  static async createShareLink(
+    userId: string,
+    data: { name: string; email?: string; expiresAt?: string; sharedAssetIds?: string[] }
+  ): Promise<ApiResponse<any>> {
+    try {
+      const accessCode = 'sh_' + crypto.randomBytes(8).toString('hex');
+      
+      const { data: inserted, error } = await supabase
+        .from('asset_share_links')
+        .insert([{
+          user_id: userId,
+          name: data.name,
+          email: data.email || null,
+          expires_at: data.expiresAt || null,
+          shared_asset_ids: data.sharedAssetIds || null,
+          access_code: accessCode,
+          is_active: true
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      return {
+        success: true,
+        data: inserted,
+        message: 'Share link created successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  /**
+   * Get all share links for a user
+   */
+  static async getShareLinks(userId: string): Promise<ApiResponse<any[]>> {
+    try {
+      const { data, error } = await supabase
+        .from('asset_share_links')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      return {
+        success: true,
+        data: data || []
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  /**
+   * Update a share link
+   */
+  static async updateShareLink(
+    userId: string,
+    linkId: string,
+    updates: { is_active?: boolean; name?: string; email?: string; expires_at?: string; shared_asset_ids?: string[] | null }
+  ): Promise<ApiResponse<any>> {
+    try {
+      // First verify ownership
+      const { data: existing, error: checkError } = await supabase
+        .from('asset_share_links')
+        .select('id')
+        .eq('id', linkId)
+        .eq('user_id', userId)
+        .single();
+
+      if (checkError || !existing) {
+        return {
+          success: false,
+          error: 'Share link not found or unauthorized'
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('asset_share_links')
+        .update(updates)
+        .eq('id', linkId)
+        .select()
+        .single();
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      return {
+        success: true,
+        data,
+        message: 'Share link updated successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  /**
+   * Delete a share link
+   */
+  static async deleteShareLink(userId: string, linkId: string): Promise<ApiResponse<void>> {
+    try {
+      // First verify ownership
+      const { data: existing, error: checkError } = await supabase
+        .from('asset_share_links')
+        .select('id')
+        .eq('id', linkId)
+        .eq('user_id', userId)
+        .single();
+
+      if (checkError || !existing) {
+        return {
+          success: false,
+          error: 'Share link not found or unauthorized'
+        };
+      }
+
+      const { error } = await supabase
+        .from('asset_share_links')
+        .delete()
+        .eq('id', linkId);
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Share link deleted/revoked successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  /**
+   * Fetch assets shared via a public access code
+   */
+  static async getSharedAssets(accessCode: string): Promise<ApiResponse<{ shareInfo: any; assets: Asset[] }>> {
+    try {
+      const { data: shareLink, error: shareError } = await supabase
+        .from('asset_share_links')
+        .select('*')
+        .eq('access_code', accessCode)
+        .single();
+
+      if (shareError || !shareLink) {
+        return {
+          success: false,
+          error: 'Shared link not found or invalid'
+        };
+      }
+
+      if (!shareLink.is_active) {
+        return {
+          success: false,
+          error: 'This share link has been deactivated'
+        };
+      }
+
+      if (shareLink.expires_at && new Date(shareLink.expires_at) < new Date()) {
+        return {
+          success: false,
+          error: 'This share link has expired'
+        };
+      }
+
+      // Fetch assets
+      let query = supabase.from('assets').select('*');
+      
+      // If shared_asset_ids is specific, filter by it
+      if (shareLink.shared_asset_ids && shareLink.shared_asset_ids.length > 0) {
+        query = query.in('id', shareLink.shared_asset_ids);
+      }
+
+      const { data: dbAssets, error: assetsError } = await query;
+
+      if (assetsError) {
+        return {
+          success: false,
+          error: assetsError.message
+        };
+      }
+
+      const assets: Asset[] = (dbAssets || []).map(this.mapDatabaseAssetToAsset);
+
+      return {
+        success: true,
+        data: {
+          shareInfo: {
+            name: shareLink.name,
+            expiresAt: shareLink.expires_at,
+            createdAt: shareLink.created_at
+          },
+          assets
+        }
       };
     } catch (error) {
       return {

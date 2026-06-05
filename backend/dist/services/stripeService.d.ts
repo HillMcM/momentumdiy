@@ -46,6 +46,7 @@ export declare class StripeService {
     private static handleSubscriptionUpdate;
     private static handleSubscriptionCancellation;
     private static handlePaymentSuccess;
+    private static processAffiliateCommission;
     private static handlePaymentFailure;
 }
 //# sourceMappingURL=stripeService.d.ts.map

@@ -32,6 +32,80 @@ router.get('/goals', async (_req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/marketing/tracks/:id/preview
+ * Public endpoint to get track preview (titles only, no full content)
+ */
+router.get('/tracks/:id/preview', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Get track definition (must be published)
+    const { data: track, error: trackError } = await supabase
+      .from('marketing_tracks')
+      .select('id, title, description, industry_tags, duration_weeks, phases, slug')
+      .eq('id', id)
+      .eq('published', true)
+      .single();
+    
+    if (trackError || !track) {
+      return res.status(404).json({
+        success: false,
+        error: 'Track not found or not published'
+      });
+    }
+    
+        // Get module titles and task counts (for preview) - ordered by week number
+        const { data: modules, error: modulesError } = await supabase
+          .from('marketing_modules')
+          .select('id, week_number, title')
+          .eq('track_id', id)
+          .order('week_number', { ascending: true });
+        
+        if (modulesError) {
+          logger.error('Error fetching track modules for preview', modulesError, { trackId: id });
+          // Don't fail if modules don't exist yet, just return empty array
+          return res.json({
+            success: true,
+            data: {
+              ...track,
+              modules: []
+            }
+          });
+        }
+        
+        // Get task counts for each module
+        const modulesWithTaskCounts = await Promise.all(
+          (modules || []).map(async (module) => {
+            const { count, error: taskCountError } = await supabase
+              .from('marketing_tasks')
+              .select('*', { count: 'exact', head: true })
+              .eq('module_id', module.id);
+            
+            return {
+              week_number: module.week_number,
+              title: module.title,
+              task_count: taskCountError ? 0 : (count || 0)
+            };
+          })
+        );
+        
+        return res.json({
+          success: true,
+          data: {
+            ...track,
+            modules: modulesWithTaskCounts
+          }
+        });
+  } catch (error) {
+    logger.error('Error getting track preview', error, { trackId: req.params['id'] });
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
  * GET /api/marketing/goals/active
  * Get active marketing goal for the authenticated user
  */
@@ -385,6 +459,25 @@ router.patch('/tasks/:id/completion', routeRateLimit(60), validate((req) => {
   return undefined;
 }), async (req: Request, res: Response) => {
   try {
+    // Extract and verify authentication token
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authorization header required'
+      });
+    }
+
+    const token = authHeader.substring(7);
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+    
+    if (authError || !user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid or expired token'
+      });
+    }
+
     const id = req.params['id'] as string;
     const { isCompleted } = req.body;
     
@@ -395,7 +488,7 @@ router.patch('/tasks/:id/completion', routeRateLimit(60), validate((req) => {
       });
     }
 
-    const result = await MarketingService.updateMarketingTaskCompletion(id, isCompleted);
+    const result = await MarketingService.updateMarketingTaskCompletion(id, isCompleted, user.id);
 
     if (!result.success) {
       return res.status(404).json(result);

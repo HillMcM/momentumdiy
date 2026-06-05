@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { SocialStrategyService } from '../services/socialStrategyService';
 import { supabase } from '../config/supabase';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router.get('/has-access', async (req: Request, res: Response) => {
     
     return res.json(result);
   } catch (error) {
-    console.error('Error checking social strategy access:', error);
+    logger.error('Error checking social strategy access', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -74,7 +75,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    console.error('Error fetching social strategy:', error);
+    logger.error('Error fetching social strategy', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -117,7 +118,7 @@ router.put('/', async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    console.error('Error updating social strategy:', error);
+    logger.error('Error updating social strategy', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -160,7 +161,7 @@ router.post('/share', async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    console.error('Error creating share link:', error);
+    logger.error('Error creating share link', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -201,7 +202,7 @@ router.get('/share', async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    console.error('Error fetching share links:', error);
+    logger.error('Error fetching share links', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -232,7 +233,7 @@ router.get('/shared/:accessCode', async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    console.error('Error fetching shared strategy:', error);
+    logger.error('Error fetching shared strategy', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -282,7 +283,7 @@ router.delete('/share/:linkId', async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    console.error('Error deleting share link:', error);
+    logger.error('Error deleting share link', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -333,7 +334,7 @@ router.patch('/share/:linkId', async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    console.error('Error toggling share link:', error);
+    logger.error('Error toggling share link', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

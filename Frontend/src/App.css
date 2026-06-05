@@ -617,6 +617,139 @@
   border-color: #EF8E81;
 }
 
+/* AI Assistant Multi-Session Layout & Sidebar */
+.ai-marketing-assistant-layout {
+  display: flex;
+  gap: 2rem;
+  height: calc(100vh - 120px);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem 2rem 2rem 2rem;
+  box-sizing: border-box;
+}
+
+.chat-sidebar {
+  width: 280px;
+  background: rgba(26, 22, 37, 0.6);
+  border: 1px solid rgba(239, 142, 129, 0.2);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.new-chat-btn {
+  margin: 1rem;
+  background: #EF8E81;
+  color: #191628;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.new-chat-btn:hover {
+  background: #ffb09e;
+  transform: translateY(-1px);
+}
+
+.sidebar-sessions-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #FFF1E7;
+  text-align: left;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.session-item:hover {
+  background: rgba(239, 142, 129, 0.1);
+  border-color: rgba(239, 142, 129, 0.3);
+}
+
+.session-item.active {
+  background: rgba(239, 142, 129, 0.15);
+  border-color: #EF8E81;
+}
+
+.session-title {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-delete-btn {
+  opacity: 0;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.session-item:hover .session-delete-btn {
+  opacity: 1;
+}
+
+.session-delete-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.chat-main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .ai-marketing-assistant-layout {
+    flex-direction: column;
+    height: auto;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  .chat-sidebar {
+    width: 100%;
+    max-height: 220px;
+  }
+}
+
 /* Floating Assistant */
 .floating-assistant-root {
   position: fixed;
@@ -1048,13 +1181,60 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
     z-index: 999;
+    animation: overlayFadeIn 0.3s ease;
+    cursor: pointer;
   }
   
   .sidebar-overlay.visible {
     display: block;
+  }
+
+  @keyframes overlayFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Add visual indicator for swipe to close */
+  .sidebar-overlay.visible::after {
+    content: '← Tap to close';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.875rem;
+    font-weight: 600;
+    pointer-events: none;
+    animation: fadeOutHint 2s ease forwards;
+  }
+
+  @keyframes fadeOutHint {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  .animate-fade-out {
+    animation: fadeOut 3s ease forwards;
   }
 
   /* Mobile hamburger menu - show on mobile */
@@ -1086,6 +1266,12 @@
   /* Main content padding for mobile */
   .main-content {
     padding: 1rem !important;
+    padding-bottom: calc(1rem + 80px) !important; /* Space for bottom nav */
+  }
+  
+  /* Bottom navigation spacing */
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
   /* Header adjustments */
@@ -1154,5 +1340,291 @@
   input[type="radio"] {
     min-width: 24px;
     min-height: 24px;
+  }
+  
+  /* Mobile swipe hint for tasks */
+  [data-swipeable] {
+    position: relative;
+  }
+  
+  [data-swipeable]::after {
+    content: '← Swipe to complete';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  [data-swipeable]:active::after {
+    opacity: 1;
+  }
+}
+
+/* Mobile table optimization */
+@media (max-width: 768px) {
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  thead {
+    display: none;
+  }
+  
+  tbody {
+    display: block;
+  }
+  
+  tr {
+    display: block;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  td {
+    display: block;
+    text-align: right;
+    padding: 0.5rem 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  td:last-child {
+    border-bottom: none;
+  }
+  
+  td::before {
+    content: attr(data-label) ": ";
+    float: left;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  /* Grid optimization for mobile */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  /* Mobile app-like styling */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  
+  /* Prevent pull-to-refresh on mobile */
+  body {
+    overscroll-behavior-y: contain;
+  }
+  
+  /* Smooth scrolling on mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+/* Task highlight animation for QuickSearch */
+.highlight-task {
+  animation: highlightPulse 2s ease;
+  outline: 2px solid #EF8E81;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    outline-color: #EF8E81;
+    outline-width: 2px;
+  }
+  50% {
+    outline-color: #D4AF37;
+    outline-width: 3px;
+  }
+}
+
+/* Print-friendly styles */
+@media print {
+  /* Hide navigation, sidebar, buttons, and non-essential elements */
+  .sidebar,
+  .header,
+  .mobile-bottom-nav,
+  .sidebar-toggle,
+  .sidebar-overlay,
+  button:not(.print-visible),
+  .assistant-panel,
+  .floating-assistant,
+  .notification-container,
+  .notification-toast,
+  .breadcrumbs,
+  nav,
+  .help-icon,
+  [class*="menu"],
+  [class*="dropdown"],
+  [aria-label="Close"],
+  [aria-label="Toggle menu"] {
+    display: none !important;
+  }
+
+  /* Full width layout for print */
+  .app-shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Task Tracker Print Styles */
+  .task-tracker-widget,
+  .kanban-board,
+  .task-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .kanban-column {
+    width: 100% !important;
+    margin-bottom: 1.5rem;
+    break-after: auto;
+  }
+
+  .task-card {
+    background: white !important;
+    color: black !important;
+    border: 1px solid #ddd !important;
+    padding: 1rem !important;
+    margin-bottom: 0.75rem !important;
+    box-shadow: none !important;
+  }
+
+  .task-card h3 {
+    color: black !important;
+    font-size: 1.1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .task-card p {
+    color: #333 !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Marketing Track Print Styles */
+  .marketing-track-page,
+  .track-module,
+  .track-week {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .module-card,
+  .week-card {
+    background: white !important;
+    color: black !important;
+    border: 1px solid #ddd !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1rem !important;
+    box-shadow: none !important;
+  }
+
+  .task-item {
+    background: #f9f9f9 !important;
+    color: black !important;
+    border: 1px solid #e0e0e0 !important;
+    padding: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* General print optimizations */
+  * {
+    background: white !important;
+    color: black !important;
+  }
+
+  body {
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: black !important;
+    page-break-after: avoid;
+  }
+
+  a {
+    color: black !important;
+    text-decoration: underline !important;
+  }
+
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* Remove decorative elements */
+  [class*="gradient"],
+  [class*="shadow"],
+  [class*="blur"],
+  ::before,
+  ::after {
+    display: none !important;
+  }
+
+  /* Page breaks */
+  .page-break {
+    page-break-before: always;
+  }
+
+  /* Keep headers with content */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+
+  /* Table print styles */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th, td {
+    border: 1px solid #ddd !important;
+    padding: 0.5rem !important;
+    color: black !important;
+  }
+
+  th {
+    background: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+}
+
+/* Print button - visible only when printing is supported */
+@media screen {
+  .print-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #FFF1E7;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+
+  .print-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
   }
 }

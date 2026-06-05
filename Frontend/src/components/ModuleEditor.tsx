@@ -20,6 +20,9 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { logger } from '../utils/logger';
+import { useNotificationHelpers } from '../hooks/useNotificationHelpers';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 interface TrackModule {
   id: string;
@@ -66,6 +69,8 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
   const [error, setError] = useState<string | null>(null);
   const [contentPreviewMode, setContentPreviewMode] = useState<'edit' | 'preview'>('edit');
   const [proTipPreviewMode, setProTipPreviewMode] = useState<'edit' | 'preview'>('edit');
+  const { showError } = useNotificationHelpers();
+  const { handleError } = useErrorHandler();
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -78,9 +83,6 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
   const showMessage = (msg: string, isError = false) => {
     if (isError) {
       setError(msg);
-    } else {
-      // For now, just log success messages
-      // Debug logging removed for production
     }
     setTimeout(() => {
       setError(null);
@@ -126,13 +128,17 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
         setTasks(sortedTasks);
       }
     } catch (error) {
-      console.error('Failed to load tasks:', error);
+      handleError(error, {
+        showNotification: false, // Non-critical, just log
+        notificationTitle: 'Failed to Load Tasks',
+        logAsError: false
+      });
     }
   };
 
   const handleSave = async () => {
     if (!formData.title || !formData.content) {
-      setError('Please fill in all required fields (title, content)');
+      showError('Validation Error', 'Please fill in all required fields (title, content)');
       return;
     }
 
@@ -150,10 +156,19 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
       if (response.success) {
         onSave(response.data);
       } else {
-        setError(response.error || 'Failed to save module');
+        const errorMessage = response.error || 'Failed to save module';
+        showError('Save Failed', errorMessage);
+        handleError(new Error(errorMessage), {
+          showNotification: false, // Already shown above
+          notificationTitle: 'Failed to Save Module',
+          context: { isCreating, moduleId: module?.id, trackId }
+        });
       }
     } catch (error) {
-      setError('Failed to save module');
+      handleError(error, {
+        notificationTitle: 'Failed to Save Module',
+        context: { isCreating, moduleId: module?.id, trackId }
+      });
     } finally {
       setLoading(false);
     }
@@ -174,10 +189,19 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
       if (response.success) {
         await loadTasks(); // Reload tasks
       } else {
-        setError(response.error || 'Failed to create task');
+        const errorMessage = response.error || 'Failed to create task';
+        showError('Create Failed', errorMessage);
+        handleError(new Error(errorMessage), {
+          showNotification: false, // Already shown above
+          notificationTitle: 'Failed to Create Task',
+          context: { moduleId: module?.id }
+        });
       }
     } catch (error) {
-      setError('Failed to create task');
+      handleError(error, {
+        notificationTitle: 'Failed to Create Task',
+        context: { moduleId: module?.id }
+      });
     }
   };
 
@@ -187,10 +211,19 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
       if (response.success) {
         await loadTasks(); // Reload tasks
       } else {
-        setError(response.error || 'Failed to update task');
+        const errorMessage = response.error || 'Failed to update task';
+        showError('Update Failed', errorMessage);
+        handleError(new Error(errorMessage), {
+          showNotification: false, // Already shown above
+          notificationTitle: 'Failed to Update Task',
+          context: { taskId, moduleId: module?.id }
+        });
       }
     } catch (error) {
-      setError('Failed to update task');
+      handleError(error, {
+        notificationTitle: 'Failed to Update Task',
+        context: { taskId, moduleId: module?.id }
+      });
     }
   };
 
@@ -206,21 +239,6 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
       }
     } catch (error) {
       setError('Failed to delete task');
-    }
-  };
-
-  const handleBulkCreateTasks = async (tasksText: string) => {
-    if (!module?.id || !tasksText.trim()) return;
-
-    try {
-      const response = await adminApi.createBulkTasks(module.id, tasksText);
-      if (response.success) {
-        await loadTasks(); // Reload tasks
-      } else {
-        setError(response.error || 'Failed to create tasks');
-      }
-    } catch (error) {
-      setError('Failed to create tasks');
     }
   };
 
@@ -273,7 +291,7 @@ export default function ModuleEditor({ module, trackId, onSave, onCancel, isCrea
 
       showMessage('Task order updated successfully');
     } catch (error) {
-      console.error('Failed to update task order:', error);
+      logger.error('Failed to update task order', error);
       setError('Failed to update task order');
       // Revert to original order on error
       await loadTasks();

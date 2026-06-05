@@ -136,17 +136,37 @@ export class NotificationService {
   /**
    * Send task reminder
    */
-  static async sendTaskReminderNotification(user: UserProfile, taskName: string): Promise<void> {
+  static async sendTaskReminderNotification(
+    user: UserProfile, 
+    taskName: string,
+    reminderNumber?: number,
+    daysInactive?: number
+  ): Promise<void> {
     try {
       await EmailService.sendNotificationEmail({
         name: user.name,
         email: user.email,
         type: 'task_reminder',
-        data: { taskName }
+        data: { 
+          taskName,
+          reminderNumber,
+          daysInactive,
+          trackName: taskName
+        }
       });
-      logger.info('Task reminder email sent', { email: user.email, taskName });
+      logger.info('Task reminder email sent', { 
+        email: user.email, 
+        taskName,
+        reminderNumber,
+        daysInactive
+      });
     } catch (error) {
-      logger.error('Error sending task reminder email', error, { email: user.email, taskName });
+      logger.error('Error sending task reminder email', error, { 
+        email: user.email, 
+        taskName,
+        reminderNumber,
+        daysInactive
+      });
     }
   }
 
@@ -155,6 +175,8 @@ export class NotificationService {
    */
   static async checkTrialEndingNotifications(users: UserProfile[]): Promise<void> {
     const now = new Date();
+    let emailsSent = 0;
+    let emailsSkipped = 0;
     
     for (const user of users) {
       if (user.subscription_status === 'trial' && user.trial_end_date) {
@@ -164,9 +186,33 @@ export class NotificationService {
         // Send reminders at 7 days, 3 days, and 1 day before trial ends
         if (daysLeft === 7 || daysLeft === 3 || daysLeft === 1) {
           await this.sendTrialEndingNotification(user, daysLeft);
+          emailsSent++;
+          logger.info('Trial ending notification sent', { 
+            userEmail: user.email, 
+            daysLeft 
+          });
+        } else {
+          emailsSkipped++;
+          logger.debug('Trial ending notification skipped', { 
+            userEmail: user.email, 
+            daysLeft,
+            reason: 'Not at reminder interval (7, 3, or 1 days)'
+          });
         }
+      } else {
+        emailsSkipped++;
+        logger.debug('Trial ending notification skipped', { 
+          userEmail: user.email,
+          reason: user.subscription_status !== 'trial' ? 'Not on trial' : 'No trial end date'
+        });
       }
     }
+    
+    logger.info('Trial ending notification check completed', {
+      totalUsers: users.length,
+      emailsSent,
+      emailsSkipped
+    });
   }
 
   /**
