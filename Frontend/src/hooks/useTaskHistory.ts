@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Task, TaskStatus } from '../types';
+import type { Task, TaskStatus } from '../types';
 
 interface DeletedTask {
   task: Task;

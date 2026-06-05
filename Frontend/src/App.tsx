@@ -16,13 +16,14 @@ import TrialCountdownBanner from './components/TrialCountdownBanner';
 import MobileBottomNav from './components/MobileBottomNav';
 import { useAffiliateStatus } from './hooks/useAffiliateStatus';
 
+import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
+
 // Lazy-loaded components for code splitting
 const SocialProfileManager = lazy(() => import('./SocialProfileManager'));
 const SocialStrategyHub = lazy(() => import('./pages/SocialStrategyHub'));
 const SharedStrategyView = lazy(() => import('./pages/SharedStrategyView'));
 const AssetLibrary = lazy(() => import('./pages/AssetLibrary'));
 const SharedAssets = lazy(() => import('./pages/SharedAssets'));
-import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { useIsMobile } from './hooks/useMediaQuery';
 import type { Project, Task, MarketingGoal } from './types';
 import OctopusLogo from './assets/octopus_icon.png';

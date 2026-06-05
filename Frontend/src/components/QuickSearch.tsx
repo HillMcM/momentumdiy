@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Task } from '../types';
+import type { Task } from '../types';
 
 interface QuickSearchProps {
   isOpen: boolean;
