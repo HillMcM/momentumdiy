@@ -115,8 +115,8 @@ const limiter = rateLimit({
 
 // Apply rate limiting to all routes except admin routes
 app.use((req, res, next) => {
-  // Skip rate limiting for admin routes and health checks
-  if (req.path.startsWith('/api/admin/') || req.path === '/health' || req.path === '/') {
+  // Skip rate limiting in development, or for admin routes and health checks
+  if (process.env['NODE_ENV'] === 'development' || req.path.startsWith('/api/admin/') || req.path === '/health' || req.path === '/') {
     return next();
   }
   return limiter(req, res, next);

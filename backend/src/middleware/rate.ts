@@ -7,7 +7,9 @@ export function routeRateLimit(maxPerMinute: number) {
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, error: 'Rate limit exceeded' },
+    skip: () => process.env['NODE_ENV'] === 'development',
   });
 }
+
 
 

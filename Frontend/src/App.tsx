@@ -43,7 +43,8 @@ const VisualTracksAdminPage = lazy(() => import('./VisualTracksAdminPage'));
 const TracksAdminPage = lazy(() => import('./TracksAdminPage'));
 
 // Core pages (always loaded)
-// LandingPage is served as static index.html, not a React component
+// LandingPage is served as static index.html in production, but mapped as a route in dev
+import LandingPage from './LandingPage';
 import AuthPage from './AuthPage';
 import SubscriptionPage from './SubscriptionPage';
 import PricingPage from './PricingPage';
@@ -1859,7 +1860,7 @@ function App() {
       <OnboardingProvider>
         <Routes>
         {/* Public */}
-        {/* Landing page is served as static index.html, not a React route */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />

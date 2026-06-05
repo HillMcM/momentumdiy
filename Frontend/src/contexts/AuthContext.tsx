@@ -120,9 +120,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Handle sign out - redirect to auth page if not already there
       if (event === 'SIGNED_OUT') {
-        logger.info('User signed out - redirecting to auth page');
+        logger.info('User signed out - checking redirect');
         const currentPath = window.location.pathname;
-        if (currentPath !== '/auth' && currentPath !== '/pricing' && !currentPath.startsWith('/landing')) {
+        const publicPaths = [
+          '/',
+          '/auth',
+          '/pricing',
+          '/terms',
+          '/privacy',
+          '/affiliate-terms',
+          '/tracks',
+          '/features',
+          '/feedback'
+        ];
+        const isPublicPath = publicPaths.includes(currentPath) || 
+                            currentPath.startsWith('/shared/') || 
+                            currentPath.startsWith('/checkout/');
+        
+        if (!isPublicPath) {
           window.location.href = '/auth?signed_out=true';
         }
       }
