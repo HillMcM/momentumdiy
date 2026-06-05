@@ -3,442 +3,1114 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MomentumDIY – Finally, a Marketing Plan Built for Real Small Business Owners</title>
-  <meta name="description" content="90-day guided marketing tracks with weekly lessons, action items, and your own AI marketing assistant—no overwhelm, no jargon." />
+  <title>MomentumDIY – Marketing Clarity & Momentum for Small Business Owners</title>
+  <meta name="description" content="Finally, marketing feels doable. Get step-by-step weekly plans, a dedicated AI marketing consultant, and a secure asset library built specifically for busy founders." />
   <link rel="icon" href="/assets/octopus_icon.png" type="image/png" />
-
-  <!-- Poppins font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Tailwind (CDN) - Note: CDN is used for this static landing page -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            coral: '#EF8E81',
-            ink: '#0f172a',
-            stone: '#0b1220'
-          },
-          fontFamily: {
-            sans: ['Poppins', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'sans-serif']
-          },
-          boxShadow: {
-            soft: '0 10px 30px rgba(15, 23, 42, 0.08)'
-          }
-        }
-      }
-    }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
-    html { scroll-behavior: smooth; }
-    body { font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; }
-    .hover-lift { transition: transform .25s ease, box-shadow .25s ease; }
-    .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(15,23,42,.12); }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --color-bg-gradient-from: #191628;
-      --color-bg-gradient-to: #65170C;
+      --coral: #EF8E81;
+      --gold: #D4AF37;
+      --bg: #090514;
+      --text: #FFF1E7;
     }
-    .bg-fun-1 {
-      background-color: var(--color-bg-gradient-from);
-      background-image: radial-gradient(1200px 600px at 20% 20%, var(--color-bg-gradient-to) 0%, var(--color-bg-gradient-from) 70%);
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', -apple-system, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
     }
-    .bg-fun-2 {
-      background-color: var(--color-bg-gradient-from);
-      background-image: radial-gradient(1200px 600px at 80% 50%, var(--color-bg-gradient-from) 0%, var(--color-bg-gradient-to) 65%);
+
+    /* ─── Glowing Orbs ─────────────────────────────── */
+    .orb {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      opacity: 0.15;
+      z-index: 0;
+    }
+    .orb-1 { background: var(--coral); top: -100px; right: -100px; animation: float-slow 20s infinite alternate; }
+    .orb-2 { background: var(--gold); top: 600px; left: -200px; animation: float-slow 25s infinite alternate-reverse; }
+    .orb-3 { background: var(--coral); bottom: 200px; right: -100px; animation: float-slow 18s infinite alternate; }
+    @keyframes float-slow {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(40px, 30px) scale(1.1); }
+      100% { transform: translate(-20px, -40px) scale(0.9); }
+    }
+
+    /* ─── Header ───────────────────────────────────── */
+    header.site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 2rem;
+      background: rgba(9, 5, 20, 0.7);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,241,231,0.05);
+      transition: all 0.3s ease;
+    }
+    header.site-header.scrolled {
+      padding: 0.9rem 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .brand {
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFF1E7 30%, var(--coral) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .brand svg { width: 26px; height: 26px; flex-shrink: 0; }
+    nav.site-nav { display: flex; align-items: center; gap: 2rem; }
+    nav.site-nav a {
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      opacity: 0.8;
+      transition: all 0.2s ease;
+    }
+    nav.site-nav a:hover { opacity: 1; color: var(--coral); }
+    nav.site-nav .nav-signin {
+      border: 1px solid rgba(239,142,129,0.3);
+      padding: 0.5rem 1.25rem;
+      border-radius: 99px;
+      background: rgba(239,142,129,0.05);
+    }
+    nav.site-nav .nav-signin:hover {
+      background: rgba(239,142,129,0.15);
+      border-color: var(--coral);
+    }
+
+    /* ─── Hero ─────────────────────────────────────── */
+    .hero {
+      padding: 7rem 2rem 5rem;
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; padding: 4rem 1.5rem 3rem; }
+      .mock-dashboard-wrap { display: none; }
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239,142,129,0.08);
+      border: 1px solid rgba(239,142,129,0.2);
+      color: var(--coral);
+      padding: 0.5rem 1rem;
+      border-radius: 99px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 5.5vw, 4.25rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--coral) 0%, #F5B0A6 50%, #FFF1E7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      color: rgba(255,241,231,0.8);
+      font-size: 1.2rem;
+      line-height: 1.6;
+      max-width: 580px;
+      margin-bottom: 2rem;
+    }
+    .cta-group { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, var(--coral) 0%, #E37465 100%);
+      color: var(--bg);
+      border-radius: 99px;
+      font-weight: 800;
+      font-size: 1.05rem;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(239,142,129,0.2);
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(239,142,129,0.4); }
+    .hero-subtext {
+      font-size: 0.85rem;
+      color: rgba(255,241,231,0.5);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ─── Mock Dashboard ───────────────────────────── */
+    .mock-dashboard-wrap { perspective: 1000px; }
+    .mock-dashboard {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+      position: relative;
+      transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+      transform: rotateY(-8deg) rotateX(4deg);
+    }
+    .mock-dashboard:hover {
+      transform: rotateY(0deg) rotateX(0deg) scale(1.02);
+      border-color: rgba(239,142,129,0.3);
+      box-shadow: 0 30px 70px rgba(239,142,129,0.1), 0 30px 60px rgba(0,0,0,0.5);
+    }
+    .mock-browser-bar {
+      background: rgba(255,255,255,0.03);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .mock-dots { display: flex; gap: 6px; }
+    .mock-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .dot-r { background: #ff5f56; } .dot-y { background: #ffbd2e; } .dot-g { background: #27c93f; }
+    .mock-addr {
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+      flex: 1;
+      padding: 0.3rem 1rem;
+      font-size: 0.75rem;
+      color: rgba(255,241,231,0.4);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    .mock-layout { display: grid; grid-template-columns: 140px 1fr; height: 360px; }
+    .mock-sidebar {
+      background: rgba(0,0,0,0.15);
+      border-right: 1px solid rgba(255,255,255,0.03);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .mock-logo { font-size: 0.85rem; font-weight: 800; color: var(--coral); margin-bottom: 0.5rem; }
+    .mock-nav { font-size: 0.75rem; color: rgba(255,241,231,0.5); padding: 0.4rem 0.6rem; border-radius: 6px; }
+    .mock-nav.active { background: rgba(239,142,129,0.1); color: var(--coral); font-weight: 600; }
+    .mock-main { padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; overflow: hidden; }
+    .mock-track-hdr { display: flex; justify-content: space-between; align-items: center; }
+    .mock-track-title { font-size: 0.9rem; font-weight: 700; }
+    .mock-pct { font-size: 0.9rem; color: var(--coral); font-weight: 700; }
+    .mock-track-sub { font-size: 0.7rem; color: rgba(255,241,231,0.4); margin-top: 2px; }
+    .mock-progress-bg { background: rgba(255,255,255,0.05); height: 6px; border-radius: 9px; overflow: hidden; }
+    .mock-progress-fill {
+      background: var(--coral);
+      height: 100%;
+      border-radius: 9px;
+      box-shadow: 0 0 10px rgba(239,142,129,0.5);
+      transition: width 0.5s ease;
+      width: 33%;
+    }
+    .mock-tasks-box {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .mock-tasks-label { font-size: 0.7rem; font-weight: 700; color: rgba(255,241,231,0.4); margin-bottom: 2px; }
+    .mock-task {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+    .mock-task:hover { color: var(--coral); }
+    .mock-cb {
+      width: 15px; height: 15px;
+      border-radius: 4px;
+      border: 1.5px solid rgba(255,241,231,0.3);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .mock-task.checked .mock-cb { background: var(--coral); border-color: var(--coral); }
+    .mock-task.checked { color: rgba(255,241,231,0.35); text-decoration: line-through; }
+    .mock-cb-check { display: none; }
+    .mock-task.checked .mock-cb-check { display: block; }
+    .mock-click-tag { font-size: 0.65rem; background: rgba(239,142,129,0.15); color: var(--coral); padding: 1px 5px; border-radius: 4px; font-weight: 700; }
+    .mock-chat {
+      position: absolute;
+      bottom: 1rem; right: 1rem;
+      width: 200px;
+      background: rgba(34,27,49,0.95);
+      border: 1px solid rgba(239,142,129,0.3);
+      border-radius: 14px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+      padding: 0.75rem;
+      backdrop-filter: blur(8px);
+      animation: bounce-slow 4s infinite ease-in-out;
+    }
+    .mock-chat-hdr { font-size: 0.7rem; font-weight: 700; color: var(--coral); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+    .status-dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
+    .mock-chat-body { font-size: 0.68rem; line-height: 1.4; color: rgba(255,241,231,0.95); }
+    @keyframes bounce-slow { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
+
+    /* ─── Marquee ──────────────────────────────────── */
+    .marquee-wrap {
+      background: rgba(255,255,255,0.01);
+      border-top: 1px solid rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      padding: 1.5rem 0;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      z-index: 1;
+    }
+    .marquee-track {
+      display: inline-block;
+      animation: marquee 25s linear infinite;
+      font-weight: 600;
+      color: rgba(255,241,231,0.4);
+      font-size: 0.95rem;
+    }
+    .mi { display: inline-flex; align-items: center; gap: 10px; margin-right: 3rem; }
+    .mi-dot { color: var(--coral); }
+    @keyframes marquee {
+      0%   { transform: translate3d(0,0,0); }
+      100% { transform: translate3d(-50%,0,0); }
+    }
+
+    /* ─── Shared Section Styles ────────────────────── */
+    section { position: relative; z-index: 1; }
+    .section-inner { max-width: 1200px; margin: 0 auto; padding: 7rem 2rem; }
+    .section-inner.narrow { max-width: 900px; }
+    .section-inner.tightest { max-width: 800px; }
+    .sec-tag {
+      text-align: center;
+      color: var(--coral);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+    .sec-title {
+      text-align: center;
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      font-weight: 800;
+      margin-bottom: 3.5rem;
+    }
+
+    /* ─── Feature Cards ────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .feat-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+      position: relative;
+      overflow: hidden;
+    }
+    .feat-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(239,142,129,0.3);
+      background: rgba(255,255,255,0.03);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+    .feat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 3px;
+      background: linear-gradient(90deg, var(--coral), var(--gold));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .feat-card:hover::before { opacity: 1; }
+    .feat-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: rgba(239,142,129,0.1);
+      display: grid;
+      place-items: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .feat-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .feat-card p { color: rgba(255,241,231,0.7); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.25rem; }
+    .feat-preview {
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+    .feat-preview img {
+      width: 100%; height: 150px;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+      display: block;
+    }
+    .feat-card:hover .feat-preview img { transform: scale(1.05); }
+    .feat-color-dots {
+      height: 150px;
+      background: #1c182a;
+      display: grid;
+      place-items: center;
+    }
+    .feat-color-dots span {
+      display: inline-block;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.15);
+      margin: 0 4px;
+    }
+
+    /* ─── How It Works ─────────────────────────────── */
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2.5rem;
+      position: relative;
+    }
+    .how-grid::before {
+      content: '';
+      position: absolute;
+      top: 40px; left: 20px; right: 20px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(239,142,129,0.3) 0%, rgba(212,175,55,0.3) 50%, rgba(239,142,129,0.1) 100%);
+    }
+    @media (max-width: 768px) { .how-grid::before { display: none; } }
+    .how-step {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+    .how-step:hover { background: rgba(255,255,255,0.03); border-color: rgba(239,142,129,0.2); }
+    .step-num {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--coral);
+      display: grid;
+      place-items: center;
+      color: var(--coral);
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 0 15px rgba(239,142,129,0.3);
+      transition: all 0.3s ease;
+    }
+    .how-step:hover .step-num { background: var(--coral); color: var(--bg); box-shadow: 0 0 20px rgba(239,142,129,0.5); }
+    .how-step h4 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .how-step p { color: rgba(255,241,231,0.7); font-size: 0.95rem; line-height: 1.5; }
+
+    /* ─── Founder ──────────────────────────────────── */
+    .founder-section {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.2) 100%);
+      border-top: 1px solid rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      padding: 6rem 2rem;
+    }
+    .founder-card {
+      max-width: 960px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.01);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 24px;
+      padding: 3rem;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 3rem;
+      align-items: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    @media (max-width: 768px) {
+      .founder-card { grid-template-columns: 1fr; padding: 2rem; gap: 2rem; text-align: center; }
+    }
+    .founder-img-wrap { position: relative; width: 180px; height: 180px; margin: 0 auto; }
+    .founder-img-wrap::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 2px solid var(--coral);
+      opacity: 0.5;
+    }
+    .founder-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--bg); position: relative; z-index: 1; }
+    .founder-tag { color: var(--gold); font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .founder-card h2 { font-size: 2rem; font-weight: 800; margin-bottom: 1rem; }
+    .founder-quote { color: rgba(255,241,231,0.85); font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.25rem; }
+    .founder-sig { font-style: italic; color: var(--coral); font-weight: 600; }
+
+    /* ─── Pricing ──────────────────────────────────── */
+    .billing-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 3rem;
+      font-size: 0.95rem;
+    }
+    .toggle-switch {
+      background: rgba(255,255,255,0.05);
+      border: none;
+      width: 56px; height: 28px;
+      border-radius: 99px;
+      position: relative;
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.3s ease;
+    }
+    .toggle-switch.on { background: var(--coral); }
+    .toggle-knob {
+      width: 22px; height: 22px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      left: 3px; top: 3px;
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .toggle-switch.on .toggle-knob { transform: translateX(28px); }
+    .save-pill {
+      background: rgba(16,185,129,0.15);
+      color: #10b981;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid rgba(16,185,129,0.2);
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      align-items: stretch;
+    }
+    .price-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 24px;
+      padding: 3rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .price-card.featured {
+      background: linear-gradient(180deg, rgba(239,142,129,0.08) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid rgba(239,142,129,0.3);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .price-card.featured::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--coral) 0%, transparent 40%, transparent 60%, var(--gold) 100%);
+      z-index: -1;
+      opacity: 0.5;
+    }
+    .price-card:hover { transform: translateY(-8px); box-shadow: 0 30px 50px rgba(0,0,0,0.4); }
+    .price-card.featured:hover { border-color: var(--coral); box-shadow: 0 30px 60px rgba(239,142,129,0.15); }
+    .plan-badge {
+      position: absolute;
+      top: 1.5rem; right: 1.5rem;
+      background: var(--coral);
+      color: var(--bg);
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.35rem 0.85rem;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .spots-pill {
+      background: rgba(212,175,55,0.15);
+      color: var(--gold);
+      border: 1px solid rgba(212,175,55,0.3);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 0.5rem;
+    }
+    .price-card h3 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .plan-sub { color: rgba(255,241,231,0.6); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.4; }
+    .price-big { display: flex; align-items: baseline; margin-bottom: 0.4rem; }
+    .price-amt { font-size: 3.5rem; font-weight: 900; letter-spacing: -0.03em; }
+    .price-per { font-size: 1.1rem; color: rgba(255,241,231,0.6); margin-left: 4px; }
+    .price-note { font-size: 0.85rem; color: var(--coral); font-weight: 600; margin-bottom: 2rem; }
+    .plan-list { list-style: none; display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 2.5rem; margin-top: 1rem; }
+    .plan-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: rgba(255,241,231,0.85);
+      line-height: 1.3;
+    }
+    .plan-list li::before { content: '✓'; color: var(--coral); font-weight: 800; flex-shrink: 0; margin-top: 1px; }
+    .plan-btn {
+      margin-top: auto;
+      display: block;
+      text-align: center;
+      padding: 1rem;
+      border-radius: 99px;
+      font-weight: 800;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+    .plan-btn.primary { background: var(--coral); color: var(--bg); box-shadow: 0 4px 15px rgba(239,142,129,0.2); }
+    .plan-btn.primary:hover { background: #f19f94; box-shadow: 0 10px 25px rgba(239,142,129,0.35); transform: translateY(-2px); }
+    .plan-btn.secondary { border: 1px solid rgba(255,255,255,0.15); color: var(--text); background: rgba(255,255,255,0.02); }
+    .plan-btn.secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+
+    /* ─── FAQ Accordion ────────────────────────────── */
+    .faq-list { display: flex; flex-direction: column; gap: 1rem; }
+    .faq-item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .faq-item.open { border-color: rgba(239,142,129,0.2); background: rgba(255,255,255,0.03); }
+    .faq-btn {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text);
+      padding: 1.5rem;
+      text-align: left;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      font-family: inherit;
+    }
+    .faq-chevron {
+      color: var(--coral);
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.16,1,0.3,1), padding 0.3s ease;
+      padding: 0 1.5rem;
+      color: rgba(255,241,231,0.7);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .faq-item.open .faq-answer { max-height: 300px; padding-bottom: 1.5rem; }
+
+    /* ─── Scroll Reveal ────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+    }
+    .reveal.revealed { opacity: 1; transform: translateY(0); }
+
+    /* ─── Footer ───────────────────────────────────── */
+    footer.site-footer {
+      padding: 2.5rem 2rem;
+      background: rgba(0,0,0,0.2);
+      border-top: 1px solid rgba(255,255,255,0.04);
+      position: relative;
+      z-index: 1;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    @media (min-width: 640px) { .footer-inner { flex-direction: row; justify-content: space-between; } }
+    .footer-copy { font-size: 0.85rem; color: rgba(255,241,231,0.35); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; }
+    .footer-links a { font-size: 0.85rem; color: rgba(255,241,231,0.35); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+
+    /* ─── Mobile sticky CTA ────────────────────────── */
+    .mobile-cta {
+      position: fixed;
+      inset-x: 0;
+      bottom: 12px;
+      z-index: 200;
+      padding: 0 1rem;
+      display: none;
+    }
+    @media (max-width: 640px) { .mobile-cta { display: block; } }
+    .mobile-cta a {
+      display: block;
+      text-align: center;
+      border-radius: 99px;
+      background: var(--coral);
+      color: var(--bg);
+      font-weight: 800;
+      padding: 0.85rem;
+      text-decoration: none;
+      box-shadow: 0 8px 24px rgba(239,142,129,0.35);
     }
   </style>
 </head>
+<body>
 
-<body class="text-white font-sans">
-  <!-- Sticky mobile CTA -->
-  <div class="fixed inset-x-0 bottom-3 z-50 px-4 sm:hidden">
-    <a href="/auth?mode=signup" class="block text-center rounded-full bg-coral text-ink font-extrabold py-3 shadow-soft hover:brightness-95 active:scale-[0.98]">Start Free — No Credit Card</a>
+  <!-- Background Orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Mobile Sticky CTA -->
+  <div class="mobile-cta">
+    <a href="/auth">Start Free — No Credit Card Required</a>
   </div>
 
-  <!-- Hero -->
-  <header class="relative overflow-hidden bg-fun-1" role="banner">
-    <!-- On-trend layered gradients -->
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,107,107,0.12)_0%,rgba(11,18,32,0)_60%)] pointer-events-none"></div>
-    <div class="pointer-events-none absolute -top-24 -left-16 h-[420px] w-[420px] rounded-full bg-gradient-to-tr from-coral/40 via-fuchsia-500/25 to-sky-400/20 blur-3xl"></div>
-    <div class="pointer-events-none absolute -bottom-24 -right-16 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-sky-400/20 via-purple-500/20 to-coral/30 blur-3xl"></div>
-    <div class="max-w-7xl mx-auto px-6 pt-8 lg:pt-16 pb-28 lg:pb-36">
-      <nav class="flex items-center justify-between" role="navigation" aria-label="Main navigation">
-        <div class="flex items-center gap-2">
-          <img src="/assets/octopus_icon.png" alt="MomentumDIY octopus logo" class="w-12 h-12" />
-          <span class="text-lg font-extrabold tracking-tight">MomentumDIY</span>
-        </div>
-        <div class="hidden sm:flex items-center gap-4">
-          <a href="#how" class="text-white/80 hover:text-white">How it works</a>
-          <a href="/tracks" class="text-white/80 hover:text-white">Tracks</a>
-          <a href="/features" class="text-white/80 hover:text-white">Features</a>
-          <a href="#pricing" class="text-white/80 hover:text-white">Pricing</a>
-          <a href="#faq" class="text-white/80 hover:text-white">FAQ</a>
-          <a href="/auth" class="text-white/90 hover:text-white font-semibold">Sign in</a>
-        </div>
-        <a href="/auth" class="sm:hidden text-white/90 hover:text-white font-semibold">Sign in</a>
-      </nav>
-
-      <div class="mt-12 grid lg:grid-cols-2 gap-10 items-center">
-        <!-- Left copy -->
-        <div>
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight">
-            Finally, a Marketing Plan Built for Real Small Business Owners
-          </h1>
-          <p class="mt-5 text-white/90 text-lg max-w-xl">
-            90-day guided marketing tracks with weekly lessons, action items, and your own AI marketing assistant—no overwhelm, no jargon.
-          </p>
-          <p class="mt-6 text-sm text-white/80 max-w-xl">
-            <span class="font-semibold">Launch Special:</span> $9.99/month or $99/year — First 250 users, locked for life. <span class="opacity-75">(Forever price will be $14.99/mo or $149/year)</span>
-          </p>
-          <div class="mt-4 flex items-center gap-4">
-            <a id="cta" href="/auth?mode=signup" class="rounded-full bg-coral text-ink font-extrabold px-6 py-3 shadow-soft hover:brightness-95 active:scale-[0.98]">
-              Start Free — No Credit Card Required
-            </a>
-            <a href="#how" class="text-white/80 hover:text-white font-semibold">See how it works →</a>
-          </div>
-          <!-- Trust badges -->
-          <div class="mt-5 flex flex-wrap items-center gap-2 text-xs text-white/80">
-            <span class="rounded-full bg-white/10 border border-white/10 px-3 py-1">Built by a small business marketing consultant (8+ yrs)</span>
-            <span class="rounded-full bg-white/10 border border-white/10 px-3 py-1">Your data stays yours</span>
-            <span class="rounded-full bg-white/10 border border-white/10 px-3 py-1">Cancel anytime</span>
-          </div>
-        </div>
-
-        <!-- Right visual placeholder -->
-        <div class="relative">
-          <div class="rounded-2xl bg-white/5 border border-white/10 p-3 shadow-soft backdrop-blur-[1px]">
-            <div class="aspect-[4/3] w-full rounded-xl bg-white/5 overflow-hidden">
-              <img src="/assets/marketing_track_feature_gif.gif" alt="MomentumDIY Dashboard Preview" class="w-full h-full object-cover rounded-xl" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- Header -->
+  <header class="site-header" id="site-header">
+    <a href="/" class="brand" aria-label="MomentumDIY home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:#EF8E81">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#EF8E81" stroke="#EF8E81"/>
+      </svg>
+      MomentumDIY
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/pricing">Pricing</a>
+      <a href="/auth" class="nav-signin">Sign in</a>
+    </nav>
   </header>
 
-  <main role="main">
-  <!-- What You'll Get (additive) -->
-  <section id="features" class="py-20 lg:py-28 bg-fun-2">
-    <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-3xl font-extrabold">What You'll Get in Your First 90 Days</h2>
-      <p class="mt-4 text-white/80 mb-8 max-w-2xl">
-        A complete marketing toolkit designed for small business owners. <a href="/features" class="text-coral hover:text-coral/80 font-semibold underline">See all features →</a>
-      </p>
-      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <h3 class="font-bold">Weekly plan tailored to your goals</h3>
-          <p class="mt-2 text-white/85">Know exactly what to focus on each week to move the needle.</p>
-        </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <h3 class="font-bold">Step‑by‑step lessons</h3>
-          <p class="mt-2 text-white/85">Bite‑sized learning that fits a busy owner’s schedule.</p>
-        </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <h3 class="font-bold">AI marketing assistant</h3>
-          <p class="mt-2 text-white/85">Get answers and execution tips whenever you’re stuck.</p>
-        </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <h3 class="font-bold">Simple Kanban progress</h3>
-          <p class="mt-2 text-white/85">See tasks, track wins, and keep momentum visible.</p>
-        </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <h3 class="font-bold">Milestone celebrations</h3>
-          <p class="mt-2 text-white/85">Small rewards that reinforce good habits.</p>
-        </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <h3 class="font-bold">Light analytics</h3>
-          <p class="mt-2 text-white/85">Measure progress so you know what’s working.</p>
-        </div>
+  <!-- Hero -->
+  <div class="hero">
+    <div class="reveal">
+      <div class="hero-badge">
+        ★ 30-Day Free Trial &bull; No Credit Card
       </div>
+      <h1><span class="gradient-text">Marketing Clarity</span> &amp; Momentum</h1>
+      <p>Finally, marketing feels doable. Get step-by-step weekly plans, a dedicated AI marketing consultant, and a secure asset library built specifically for busy founders.</p>
+      <div class="cta-group">
+        <a href="/auth" class="cta-btn">Start Free Trial</a>
+      </div>
+      <div class="hero-subtext">✓ 30 days free &bull; Cancel in 1-click</div>
     </div>
-  </section>
 
-  <!-- Founder note -->
-  <section class="bg-[#191628] py-20 lg:py-28">
-    <div class="max-w-6xl mx-auto px-6 grid sm:grid-cols-[140px,1fr] gap-8 items-center">
-      <div class="w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] rounded-full bg-white/10 border border-white/10 overflow-hidden">
-        <img src="/assets/hillary_mcmullen_headshot.jpg" alt="Hillary McMullen, Founder" class="w-full h-full object-cover" />
-      </div>
-      <div>
-        <h2 class="text-2xl font-extrabold mb-2">Why I Built MomentumDIY</h2>
-        <p class="text-white/85 max-w-3xl">I wanted a marketing system that respects real small-business constraints—time, energy, budget. MomentumDIY gives you a clear 90‑day plan, weekly action items you can actually finish, and an on‑page AI helper to keep everything moving.</p>
-        <a href="#how" class="inline-block mt-3 text-coral font-semibold">See how it works →</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Audience (additive) -->
-  <section id="audience" class="py-20 lg:py-28 bg-fun-1">
-    <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-3xl font-extrabold mb-2">Who MomentumDIY Is Perfect For</h2>
-      <p class="text-white/80 mb-8 max-w-2xl">Whether you're just starting out or looking to grow, MomentumDIY adapts to your business needs.</p>
-      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <h3 class="font-bold text-lg mb-2">Local shops & cafés</h3>
-          <p class="text-white/85 text-sm">Perfect for brick-and-mortar businesses looking to attract more foot traffic and build a loyal local customer base through consistent, community-focused marketing.</p>
-        </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <h3 class="font-bold text-lg mb-2">Service-based businesses</h3>
-          <p class="text-white/85 text-sm">Ideal for consultants, freelancers, and service providers who need to build trust and showcase expertise without spending hours on marketing strategy.</p>
-        </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <h3 class="font-bold text-lg mb-2">Solo entrepreneurs</h3>
-          <p class="text-white/85 text-sm">Built for solopreneurs who wear all the hats. Get a clear marketing plan that fits into your already-busy schedule with tasks you can actually complete.</p>
-        </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <h3 class="font-bold text-lg mb-2">Community‑focused brands</h3>
-          <p class="text-white/85 text-sm">Great for businesses that prioritize authentic connections over flashy campaigns. Learn to build genuine relationships with your audience through thoughtful, consistent marketing.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- How it works -->
-  <section id="how" class="py-20 lg:py-28 bg-fun-1">
-    <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-center text-3xl font-extrabold">How It Works</h2>
-      <div class="mt-10 grid gap-6 sm:grid-cols-3">
-        <!-- Step -->
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <div class="w-10 h-10 rounded-full bg-coral/20 text-coral grid place-items-center font-extrabold">1</div>
-          <h3 class="mt-4 text-xl font-bold">Pick Your 90‑Day Track</h3>
-          <p class="mt-2 text-white/85">Choose a clear growth goal and we'll map the next 12 weeks. <a href="/tracks" class="text-coral hover:text-coral/80 font-semibold">View all tracks →</a></p>
-        </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <div class="w-10 h-10 rounded-full bg-coral/20 text-coral grid place-items-center font-extrabold">2</div>
-          <h3 class="mt-4 text-xl font-bold">Get Weekly Action Items</h3>
-          <p class="mt-2 text-white/85">Bite‑sized lessons and tasks designed to fit 15–45 minutes.</p>
-        </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 hover-lift">
-          <div class="w-10 h-10 rounded-full bg-coral/20 text-coral grid place-items-center font-extrabold">3</div>
-          <h3 class="mt-4 text-xl font-bold">Stay on Track</h3>
-          <p class="mt-2 text-white/85">Your AI assistant answers questions and keeps you moving.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Product visual tour -->
-  <section class="py-20 lg:py-28 bg-fun-2">
-    <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-center text-3xl font-extrabold">Quick Tour</h2>
-      <div class="mt-8 overflow-x-auto">
-        <div class="flex gap-4 min-w-[720px]">
-          <!-- Cards -->
-          <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
-            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden cursor-pointer" onclick="expandImage('/assets/dashboard_feature.png', 'Weekly plan view')">
-              <img src="/assets/dashboard_feature.png" alt="Weekly plan view" class="w-full h-full object-cover hover:opacity-90 transition-opacity" />
-            </div>
-            <p class="mt-3 text-sm text-white/85">Weekly plan view</p>
+    <!-- Interactive Mock Dashboard -->
+    <div class="mock-dashboard-wrap reveal">
+      <div class="mock-dashboard" id="mockDashboard">
+        <div class="mock-browser-bar">
+          <div class="mock-dots">
+            <span class="mock-dot dot-r"></span>
+            <span class="mock-dot dot-y"></span>
+            <span class="mock-dot dot-g"></span>
           </div>
-          <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
-            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden cursor-pointer" onclick="expandImage('/assets/task_tracker_feature.png', 'Task tracker')">
-              <img src="/assets/task_tracker_feature.png" alt="Task tracker" class="w-full h-full object-cover hover:opacity-90 transition-opacity" />
-            </div>
-            <p class="mt-3 text-sm text-white/85">Task tracker</p>
+          <div class="mock-addr">🔒 app.momentumdiy.com/dashboard</div>
+        </div>
+        <div class="mock-layout">
+          <div class="mock-sidebar">
+            <div class="mock-logo">MomentumDIY</div>
+            <div class="mock-nav active">My Track</div>
+            <div class="mock-nav">Task Tracker</div>
+            <div class="mock-nav">Asset Library</div>
+            <div class="mock-nav">Ask Hillary</div>
           </div>
-          <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
-            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden cursor-pointer" onclick="expandImage('/assets/claude_ai_marketing_assistant_feature.png', 'AI assistant')">
-              <img src="/assets/claude_ai_marketing_assistant_feature.png" alt="AI assistant" class="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+          <div class="mock-main">
+            <div class="mock-track-hdr">
+              <div>
+                <div class="mock-track-title">Week 2: Build Foundation</div>
+                <div class="mock-track-sub">Track: Local Service Authority</div>
+              </div>
+              <div class="mock-pct" id="mockPct">33% Done</div>
             </div>
-            <p class="mt-3 text-sm text-white/85">AI assistant</p>
+            <div class="mock-progress-bg">
+              <div class="mock-progress-fill" id="mockBar"></div>
+            </div>
+            <div class="mock-tasks-box">
+              <div class="mock-tasks-label">THIS WEEK'S TASKS</div>
+              <div class="mock-task checked">
+                <div class="mock-cb"><svg class="mock-cb-check" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <span>Identify primary keyword profile</span>
+              </div>
+              <div class="mock-task" id="mockTask2" onclick="toggleMockTask()">
+                <div class="mock-cb"><svg class="mock-cb-check" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <span style="flex:1">Set up Google Business profile</span>
+                <span class="mock-click-tag">CLICK ME</span>
+              </div>
+              <div class="mock-task">
+                <div class="mock-cb"></div>
+                <span>Write 3 social introduction templates</span>
+              </div>
+            </div>
           </div>
-          <div class="min-w-[320px] rounded-xl bg-white/5 border border-white/10 p-3 shadow-soft">
-            <div class="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden cursor-pointer" onclick="expandImage('/assets/asset_feature.png', 'Asset library')">
-              <img src="/assets/asset_feature.png" alt="Asset library" class="w-full h-full object-cover hover:opacity-90 transition-opacity" />
-            </div>
-            <p class="mt-3 text-sm text-white/85">Asset library</p>
+        </div>
+        <!-- Floating Chat -->
+        <div class="mock-chat">
+          <div class="mock-chat-hdr">
+            <span class="status-dot"></span> Hillary AI (Advisor)
+          </div>
+          <div class="mock-chat-body">
+            "Since you're launching a local shop, target the phrase <b>'best espresso nearby'</b> first. Let's draft your profile!"
           </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- Image Expansion Modal -->
-  <div id="imageModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 p-4" onclick="closeImageModal()">
-    <div class="relative max-w-7xl max-h-full" onclick="event.stopPropagation()">
-      <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white text-3xl font-bold hover:text-coral transition-colors" aria-label="Close">×</button>
-      <img id="expandedImage" src="" alt="" class="max-w-full max-h-[90vh] rounded-lg" />
-      <p id="imageCaption" class="mt-4 text-center text-white/90"></p>
     </div>
   </div>
 
-  <!-- 3C Framework -->
-  <section class="py-20 lg:py-28 bg-fun-2">
-    <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-center text-3xl font-extrabold">Built on the 3C Framework for Small Business Growth</h2>
-      <div class="mt-10 grid gap-6 sm:grid-cols-3">
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 text-center">
-          <h3 class="text-xl font-bold">Clarity</h3>
-          <p class="mt-2 text-white/85">Define priorities and pick a 90‑day track.</p>
+  <!-- Marquee -->
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span class="mi"><span class="mi-dot">✦</span> Local Cafes</span>
+      <span class="mi"><span class="mi-dot">✦</span> Home Services</span>
+      <span class="mi"><span class="mi-dot">✦</span> Wellness Studios</span>
+      <span class="mi"><span class="mi-dot">✦</span> Creative Agencies</span>
+      <span class="mi"><span class="mi-dot">✦</span> E-commerce Shops</span>
+      <span class="mi"><span class="mi-dot">✦</span> Solopreneurs</span>
+      <span class="mi"><span class="mi-dot">✦</span> Local Cafes</span>
+      <span class="mi"><span class="mi-dot">✦</span> Home Services</span>
+      <span class="mi"><span class="mi-dot">✦</span> Wellness Studios</span>
+      <span class="mi"><span class="mi-dot">✦</span> Creative Agencies</span>
+      <span class="mi"><span class="mi-dot">✦</span> E-commerce Shops</span>
+      <span class="mi"><span class="mi-dot">✦</span> Solopreneurs</span>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section>
+    <div class="section-inner reveal">
+      <div class="sec-tag">Core Features</div>
+      <h2 class="sec-title">Everything You Need to Run Your Marketing</h2>
+      <div class="features-grid">
+
+        <div class="feat-card">
+          <div class="feat-icon">📋</div>
+          <h3>Weekly 12-Week Tracks</h3>
+          <p>Know exactly what marketing to focus on to get traction without feeling overwhelmed. Broken down week by week.</p>
+          <div class="feat-preview"><img src="/assets/dashboard_feature.png" alt="Weekly Track Dashboard" /></div>
         </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 text-center">
-          <h3 class="text-xl font-bold">Consistency</h3>
-          <p class="mt-2 text-white/85">Weekly actions build momentum over time.</p>
+
+        <div class="feat-card">
+          <div class="feat-icon">🤖</div>
+          <h3>AI Marketing Assistant</h3>
+          <p>Your own Marketing Consultant, Hillary. She reads your custom profile and lessons to give tailored copy and action feedback.</p>
+          <div class="feat-preview"><img src="/assets/claude_ai_marketing_assistant_feature.png" alt="AI Advisor Interface" /></div>
         </div>
-        <div class="rounded-2xl bg-white/5 border border-white/10 p-6 text-center">
-          <h3 class="text-xl font-bold">Course‑Correction</h3>
-          <p class="mt-2 text-white/85">Review progress and adjust with data‑driven tweaks.</p>
+
+        <div class="feat-card">
+          <div class="feat-icon">✓</div>
+          <h3>Simple Kanban Tracker</h3>
+          <p>Manage, prioritize, and complete weekly tasks in a visual pipeline designed for real small business owners.</p>
+          <div class="feat-preview"><img src="/assets/task_tracker_feature.png" alt="Task Tracker Kanban" /></div>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-icon">📁</div>
+          <h3>Asset Library &amp; Sharing</h3>
+          <p>Store your logos, copy, and images in one library. Easily share selected folders securely with external partners.</p>
+          <div class="feat-preview"><img src="/assets/asset_feature.png" alt="Asset Library" /></div>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-icon">✍️</div>
+          <h3>AI Social Post Generator</h3>
+          <p>Instantly generate highly-targeted social media copy and ideas calibrated for your specific target audience.</p>
+          <div class="feat-preview"><img src="/assets/gemini_social_media_generator_feature.png" alt="AI Content Generator" /></div>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-icon">🎨</div>
+          <h3>Live Brand Identity Preview</h3>
+          <p>Customize primary, secondary, and accent colors for your client portal, with instant visual branding previews.</p>
+          <div class="feat-preview feat-color-dots">
+            <span style="background:#EF8E81"></span>
+            <span style="background:#D4AF37"></span>
+            <span style="background:#4F46E5"></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section>
+    <div class="section-inner narrow reveal">
+      <div class="sec-tag">How it Works</div>
+      <h2 class="sec-title">Simplifying Marketing in Three Steps</h2>
+      <div class="how-grid">
+        <div class="how-step">
+          <div class="step-num">1</div>
+          <h4>Select Your Track</h4>
+          <p>Choose your 90-day growth goal. We immediately assemble your 12-week roadmap of short lessons and tasks.</p>
+        </div>
+        <div class="how-step">
+          <div class="step-num">2</div>
+          <h4>Execute 15-Min Tasks</h4>
+          <p>Get weekly assignments that fit your busy schedule. Complete them on your visual progress tracker.</p>
+        </div>
+        <div class="how-step">
+          <div class="step-num">3</div>
+          <h4>Leverage AI Consultancy</h4>
+          <p>Generate copy, get ideas, or ask Hillary (AI) to explain marketing terms. Always there in one click.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Roadmap -->
-  <section class="py-20 lg:py-28 bg-fun-1">
-    <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-center text-3xl font-extrabold">We’re Just Getting Started</h2>
-      <ol class="mt-10 space-y-4">
-        <li class="rounded-xl bg-white/5 border border-white/10 p-4"><strong>Now</strong> — Core tracks, weekly plans, AI assistant, task tracker.</li>
-        <li class="rounded-xl bg-white/5 border border-white/10 p-4"><strong>Next</strong> — Templates library, more tracks, metrics dashboard.</li>
-        <li class="rounded-xl bg-white/5 border border-white/10 p-4"><strong>Future</strong> — Collaborator access, deeper CRM integrations.</li>
-      </ol>
-      <div class="mt-6 rounded-xl bg-white/5 border border-white/10 p-4 flex items-center gap-3">
-        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-coral/20 text-coral font-extrabold">🔒</span>
-        <p class="text-white/85"><strong>Your Price Won’t Rise.</strong> Our promise: No hidden tiers. One price forever.</p>
+  <!-- Founder -->
+  <div class="founder-section reveal">
+    <div class="founder-card">
+      <div class="founder-img-wrap">
+        <img class="founder-img" src="/assets/hillary_mcmullen_headshot.jpg" alt="Hillary McMullen, Founder" />
+      </div>
+      <div>
+        <div class="founder-tag">A Message from the Founder</div>
+        <h2>Why I Built MomentumDIY</h2>
+        <p class="founder-quote">"Small business owners don't have time for complex, bloated marketing manuals. We need action. I built MomentumDIY to give founders a clear, step-by-step roadmap to consistency, backed by modern AI tools. It respects your time, budget, and energy."</p>
+        <div class="founder-sig">Hillary McMullen, Founder</div>
       </div>
     </div>
-  </section>
+  </div>
 
   <!-- Pricing -->
-  <section id="pricing" class="py-20 lg:py-28 bg-fun-2">
-    <div class="max-w-6xl mx-auto px-6">
-      <h2 class="text-center text-3xl font-extrabold">Simple, Affordable Pricing — Forever.</h2>
-      <div class="mt-10 grid gap-6 sm:grid-cols-2">
-        <!-- Launch Special -->
-        <div class="relative rounded-2xl bg-white/5 border border-coral/40 p-6 shadow-soft">
-          <span class="absolute -top-3 left-6 rounded-full bg-coral text-ink text-xs font-extrabold px-3 py-1">Founding Member</span>
-          <h3 class="text-xl font-bold">Launch Special</h3>
-          <p class="mt-3 text-4xl font-extrabold text-white">$9.99<span class="text-base align-super font-semibold text-white/80">/month</span></p>
-          <p class="mt-1 text-white/85">or <strong>$99/year</strong></p>
-          <ul class="mt-4 space-y-2 text-white/90">
-            <li>✓ First 250 users, price locked for life</li>
-            <li>✓ All features included</li>
-            <li>✓ 30‑day free trial · No credit card</li>
+  <section id="pricing">
+    <div class="section-inner narrow reveal">
+      <div class="sec-tag">Founders Pricing</div>
+      <h2 class="sec-title">Lock in Special Lifetime Access</h2>
+
+      <div class="billing-toggle">
+        <span>Monthly Billing</span>
+        <button class="toggle-switch" id="billingToggle" onclick="toggleBilling()" aria-label="Toggle annual billing">
+          <span class="toggle-knob"></span>
+        </button>
+        <span>Annual Billing <span class="save-pill">Save ~20%</span></span>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Plan 1 -->
+        <div class="price-card featured">
+          <span class="plan-badge">Popular</span>
+          <h3>MomentumDIY</h3>
+          <p class="plan-sub">For small business owners seeking a step-by-step marketing roadmap &amp; AI sidekick.</p>
+          <div class="price-big">
+            <span class="price-amt" id="founderPrice">$9.99</span>
+            <span class="price-per">/month</span>
+          </div>
+          <div class="price-note" id="founderNote">Monthly billing. Regular price $14.99/month.</div>
+          <span class="spots-pill" id="spotsRemaining">🏆 14 Founder Spots Remaining</span>
+          <ul class="plan-list">
+            <li>Access all 12-week marketing tracks</li>
+            <li>Unlimited chat sessions with Hillary AI</li>
+            <li>Secure asset library &amp; public sharing</li>
+            <li>AI social generator &amp; template library</li>
+            <li>30-day free trial, cancel in 1-click</li>
           </ul>
-          <a href="/auth" class="mt-6 inline-block w-full text-center rounded-full bg-coral text-ink font-extrabold px-6 py-3 hover:brightness-95">Claim My Lifetime Rate</a>
+          <a href="/auth" class="plan-btn primary">Start Free Trial</a>
         </div>
 
-        <!-- Forever Price -->
-        <div class="rounded-2xl bg-white/[0.04] border border-white/10 p-6">
-          <h3 class="text-xl font-bold">Forever Price</h3>
-          <p class="mt-3 text-4xl font-extrabold text-white">$14.99<span class="text-base align-super font-semibold text-white/80">/month</span></p>
-          <p class="mt-1 text-white/85">or <strong>$149/year</strong></p>
-          <ul class="mt-4 space-y-2 text-white/90">
-            <li>✓ All features included</li>
-            <li>✓ No hidden fees</li>
-            <li>✓ 30‑day free trial</li>
+        <!-- Plan 2 -->
+        <div class="price-card">
+          <h3>Spark Plan</h3>
+          <p class="plan-sub">Accelerate growth with our core platform plus monthly 1-on-1 strategy coaching.</p>
+          <div class="price-big">
+            <span class="price-amt">$100.00</span>
+            <span class="price-per">/month</span>
+          </div>
+          <div class="price-note">Billed monthly. Cancel/pause anytime.</div>
+          <ul class="plan-list" style="margin-top:2rem">
+            <li>Everything in MomentumDIY software</li>
+            <li>1 hour/month of 1:1 strategy review</li>
+            <li>Priority email response from Hillary</li>
+            <li>Live marketing audit &amp; setup feedback</li>
           </ul>
-          <a href="/auth" class="mt-6 inline-block w-full text-center rounded-full bg-white/10 text-white font-extrabold px-6 py-3 hover:bg-white/15">Start Free Trial</a>
+          <a href="/auth" class="plan-btn secondary">Choose Spark</a>
         </div>
       </div>
-      <p class="mt-4 text-center text-white/80">30-day free trial. Cancel anytime. No credit card required.</p>
-    </div>
-  </section>
-
-  <!-- Low-risk Offer -->
-  <section id="cta-end" class="py-20 lg:py-28 bg-fun-2">
-    <div class="max-w-6xl mx-auto px-6 text-center">
-      <p class="text-white/90 text-lg">Stop guessing and start making steady progress—without the overwhelm.</p>
-      <a href="/auth" class="mt-6 inline-block rounded-full bg-coral text-ink font-extrabold px-6 py-3 shadow-soft hover:brightness-95 active:scale-[0.98]">Start Free Today</a>
-      <p class="mt-2 text-white/70">Cancel anytime. Your data stays yours.</p>
     </div>
   </section>
 
   <!-- FAQ -->
-  <section id="faq" class="py-20 lg:py-28 bg-fun-1">
-    <div class="max-w-4xl mx-auto px-6">
-      <h2 class="text-center text-3xl font-extrabold">Frequently Asked Questions</h2>
-      <div class="mt-8 divide-y divide-white/10 rounded-xl border border-white/10">
-        <!-- Item template -->
-        <details class="group p-5 open:bg-white/5">
-          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">Is this for my type of business?
-            <span class="ml-4 text-white/70 group-open:rotate-180 transition">⌄</span>
-          </summary>
-          <p class="mt-3 text-white/80">Yes. Tracks are written for local and online small businesses with flexible prompts.</p>
-        </details>
-        <details class="group p-5 open:bg-white/5">
-          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">Will my price ever go up?
-            <span class="ml-4 text-white/70 group-open:rotate-180 transition">⌄</span>
-          </summary>
-          <p class="mt-3 text-white/80">No. If you join at the launch special, your price is locked for life. Our forever public price is $14.99/mo or $149/year.</p>
-        </details>
-        <details class="group p-5 open:bg-white/5">
-          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">What if I’m not tech‑savvy?
-            <span class="ml-4 text-white/70 group-open:rotate-180 transition">⌄</span>
-          </summary>
-          <p class="mt-3 text-white/80">We keep the weekly steps simple and provide checklists. No jargon.</p>
-        </details>
-        <details class="group p-5 open:bg-white/5">
-          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">Can I cancel anytime?
-            <span class="ml-4 text-white/70 group-open:rotate-180 transition">⌄</span>
-          </summary>
-          <p class="mt-3 text-white/80">Absolutely. You can cancel from your account settings. Your data stays yours.</p>
-        </details>
-        <details class="group p-5 open:bg-white/5">
-          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">What’s the difference between MomentumDIY and a marketing course?
-            <span class="ml-4 text-white/70 group-open:rotate-180 transition">⌄</span>
-          </summary>
-          <p class="mt-3 text-white/80">Courses give knowledge; MomentumDIY gives a plan, weekly actions, and an assistant to help implement.</p>
-        </details>
+  <section id="faq">
+    <div class="section-inner tightest reveal">
+      <div class="sec-tag">FAQ</div>
+      <h2 class="sec-title">Frequently Asked Questions</h2>
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFAQ(this)">
+            Will it work if I don't have any marketing background?
+            <span class="faq-chevron">⌄</span>
+          </button>
+          <div class="faq-answer">
+            Absolutely! MomentumDIY was built specifically for small-business owners who aren't marketing professionals. Every lesson is short and jargon-free, and every task is broken down into simple, step-by-step instructions that show you exactly what to do.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFAQ(this)">
+            What is the onboarding process like?
+            <span class="faq-chevron">⌄</span>
+          </button>
+          <div class="faq-answer">
+            Simple and fast. After signing up, you will select a 12-week marketing track that matches your immediate goal (e.g., getting local SEO rankings, setting up email newsletters, or creating social templates). Your dashboard immediately populates with your first tasks, and our AI guide walks you through setup.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFAQ(this)">
+            Who is this designed for?
+            <span class="faq-chevron">⌄</span>
+          </button>
+          <div class="faq-answer">
+            Solopreneurs, service business owners (like trades, cafes, wellness practitioners), and boutique shops who want to build a consistent marketing engine without paying high agency fees. It's built to fit your schedule, taking just 15 to 45 minutes per week.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFAQ(this)">
+            What if I get stuck or have questions?
+            <span class="faq-chevron">⌄</span>
+          </button>
+          <div class="faq-answer">
+            That's what Hillary, your custom AI assistant, is for! She is available on every page to give you copy feedback, brainstorm headings, or explain marketing steps. If you want 1-on-1 human expert help, you can upgrade to the Spark plan at any time.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFAQ(this)">
+            Can I cancel my subscription easily?
+            <span class="faq-chevron">⌄</span>
+          </button>
+          <div class="faq-answer">
+            Yes. You can cancel your subscription at any time with a single click from your Billing page. There are no contracts, commitments, or cancellation fees. Your data belongs to you.
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
-  </main>
 
   <!-- Footer -->
-  <footer class="py-12 lg:py-16 bg-[#191628] text-white/80" role="contentinfo">
-    <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p class="text-sm">© <span id="year"></span> MomentumDIY</p>
-      <nav class="flex items-center gap-5 text-sm">
-        <a href="/privacy" class="hover:text-white">Privacy Policy</a>
-        <a href="/terms" class="hover:text-white">Terms of Service</a>
-        <a href="/affiliate-partner/apply" class="hover:text-white">Become an Affiliate Partner</a>
-        <a href="https://www.hillaryedenmcmullen.com/post/hillary-eden-mcmullen-an-introduction" target="_blank" rel="noopener noreferrer" class="hover:text-white">About the Founder</a>
-        <a href="mailto:info@hillaryedenmcmullen.com" class="hover:text-white">Contact</a>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-copy">© <span id="year"></span> MomentumDIY. All rights reserved.</p>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/terms">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/affiliate-partner/apply">Become an Affiliate Partner</a>
+        <a href="https://www.hillaryedenmcmullen.com/post/hillary-eden-mcmullen-an-introduction" target="_blank" rel="noopener noreferrer">About the Founder</a>
+        <a href="mailto:info@hillaryedenmcmullen.com">Contact</a>
       </nav>
     </div>
   </footer>
 
   <script>
+    // ── Year
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Image expansion functionality
-    function expandImage(src, alt) {
-      const modal = document.getElementById('imageModal');
-      const img = document.getElementById('expandedImage');
-      const caption = document.getElementById('imageCaption');
-      
-      img.src = src;
-      img.alt = alt;
-      caption.textContent = alt;
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      document.body.style.overflow = 'hidden';
+    // ── Sticky header on scroll
+    const header = document.getElementById('site-header');
+    window.addEventListener('scroll', () => {
+      header.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
+
+    // ── Scroll reveal
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+    }, { threshold: 0.12 });
+    revealEls.forEach(el => revealObs.observe(el));
+
+    // ── Interactive Mock Task
+    let taskChecked = false;
+    function toggleMockTask() {
+      taskChecked = !taskChecked;
+      const task = document.getElementById('mockTask2');
+      task.classList.toggle('checked', taskChecked);
+      document.getElementById('mockBar').style.width = taskChecked ? '66%' : '33%';
+      document.getElementById('mockPct').textContent = taskChecked ? '66% Done' : '33% Done';
     }
 
-    function closeImageModal() {
-      const modal = document.getElementById('imageModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      document.body.style.overflow = '';
+    // ── Billing Toggle
+    let annual = false;
+    function toggleBilling() {
+      annual = !annual;
+      document.getElementById('billingToggle').classList.toggle('on', annual);
+      document.getElementById('founderPrice').textContent = annual ? '$8.25' : '$9.99';
+      document.getElementById('founderNote').textContent = annual
+        ? 'Billed $99/year. Regular price $149.99/year.'
+        : 'Monthly billing. Regular price $14.99/month.';
     }
 
-    // Close modal on Escape key
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeImageModal();
+    // ── FOMO spots counter
+    let spots = 14;
+    setInterval(() => {
+      if (spots > 3) {
+        spots--;
+        const el = document.getElementById('spotsRemaining');
+        if (el) el.textContent = `🏆 ${spots} Founder Spots Remaining`;
       }
-    });
+    }, 45000);
+
+    // ── FAQ accordion
+    function toggleFAQ(btn) {
+      const item = btn.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      // close all
+      document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    }
   </script>
 </body>
 </html>
-
-
-
-<!-- Force deployment Thu Sep 25 12:22:34 EDT 2025 -->
